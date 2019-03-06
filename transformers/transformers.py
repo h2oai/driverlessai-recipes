@@ -1,3 +1,4 @@
+from h2oaicore.systemutils import segfault
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
