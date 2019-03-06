@@ -91,4 +91,4 @@ class MyRandomTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        return np.random.rand(X.shape)
+        return np.random.rand(*X.shape)
