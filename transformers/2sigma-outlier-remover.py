@@ -8,11 +8,6 @@ from h2o.estimators.deeplearning import H2OAutoEncoderEstimator
 
 
 class MyTwoSigmaOutlierRemoverTransformer(CustomTransformer):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.mean = None
-        self.sd = None
-
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         self.mean = X.mean1()
         self.sd = X.sd1()
