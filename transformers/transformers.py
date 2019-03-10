@@ -77,7 +77,9 @@ class MyRound2DigitsTransformer(MyRound1DigitTransformer):
 
 
 class MySegfaultTransformer(CustomTransformer):
-    _is_enabled = False
+    @staticmethod
+    def is_enabled():
+        return False
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         segfault()
