@@ -59,8 +59,16 @@ class MyStrLenEncoderTransformer(CustomTransformer):
         return X.to_pandas().astype(str).iloc[:, 0].str.len()
 
 
-class MyRound1DigitTransformer(CustomTransformer):
-    def __init__(self, decimals=1, **kwargs):
+class MyRoundTransformer(CustomTransformer):
+    @staticmethod
+    def get_possible_mutations():
+        return {"decimals": [1, 2, 3]}
+
+    @property
+    def display_name(self):
+        return "MyRound%dDecimals" % self.decimals
+
+    def __init__(self, decimals, **kwargs):
         super().__init__(**kwargs)
         self.decimals = decimals
 
@@ -69,11 +77,6 @@ class MyRound1DigitTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         return np.round(X.to_numpy(), decimals=self.decimals)
-
-
-class MyRound2DigitsTransformer(MyRound1DigitTransformer):
-    def __init__(self, decimals=2, **kwargs):
-        super().__init__(decimals=decimals, **kwargs)
 
 
 class MySegfaultTransformer(CustomTransformer):
