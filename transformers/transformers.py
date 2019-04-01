@@ -61,7 +61,7 @@ class MyStrLenEncoderTransformer(CustomTransformer):
 
 class MyRoundTransformer(CustomTransformer):
     @staticmethod
-    def get_possible_mutations():
+    def get_parameter_choices():
         return {"decimals": [1, 2, 3]}
 
     @property
@@ -102,4 +102,3 @@ class MyRandomTransformer(CustomTransformer):
     def transform(self, X: dt.Frame):
         np.random.seed(self.seed)
         return np.random.rand(*X.shape)
-
