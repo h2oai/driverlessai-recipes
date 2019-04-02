@@ -4,7 +4,6 @@ import numpy as np
 import os
 import h2o
 import uuid
-import shutil
 from h2o.estimators.deeplearning import H2OAutoEncoderEstimator
 
 
