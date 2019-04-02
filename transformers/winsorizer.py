@@ -1,10 +1,6 @@
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.systemutils import config
 import datatable as dt
 import numpy as np
-import h2o
-import uuid
-from h2o.estimators.deeplearning import H2OAutoEncoderEstimator
 
 
 class MyWinsorizer(CustomTransformer):
