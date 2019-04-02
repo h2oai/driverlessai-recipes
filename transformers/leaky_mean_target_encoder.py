@@ -11,7 +11,7 @@ class MyLeakyCategoricalGroupMeanTargetEncoder(CustomTransformer):
         self._group_means = None
 
     @staticmethod
-    def get_default_properties(*args, **kwargs):
+    def get_default_properties():
         return dict(col_type="categorical", min_cols=1, max_cols=8, relative_importance=1)
 
     @property
