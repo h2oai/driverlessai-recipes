@@ -22,7 +22,6 @@ class MyLeakyCategoricalGroupMeanTargetEncoder(CustomTransformer):
     def display_name(self):
         return "MyLeakyMeanTargetGroupedBy%s" % ":".join(self.input_feature_names)
 
-
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         target = '__internal_target__'
         X[:, target] = dt.Frame(y)
