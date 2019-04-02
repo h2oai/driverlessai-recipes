@@ -40,4 +40,7 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
         model = h2o.load_model(self.id)
         os.remove(self.id)
         frame = h2o.H2OFrame(X.to_pandas())
-        return model.anomaly(frame).as_data_frame(header=False)
+        try:
+            return model.anomaly(frame).as_data_frame(header=False)
+        finally:
+            h2o.remove(self.id)
