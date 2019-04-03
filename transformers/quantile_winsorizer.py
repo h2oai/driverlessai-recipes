@@ -3,14 +3,14 @@ import datatable as dt
 import numpy as np
 
 
-class MyWinsorizer(CustomTransformer):
+class MyQuantileWinsorizer(CustomTransformer):
     @staticmethod
     def get_parameter_choices():
         return {"quantile": [0.01, 0.001, 0.05]}
 
     @property
     def display_name(self):
-        return "MyWinsorizer%s" % str(self._quantile)
+        return "MyQuantileWinsorizer%s" % str(self._quantile)
 
     def __init__(self, quantile=0.01, **kwargs):
         super().__init__(**kwargs)

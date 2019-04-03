@@ -3,7 +3,7 @@ import datatable as dt
 import numpy as np
 
 
-class MyTwoSigmaOutlierRemoverTransformer(CustomTransformer):
+class MyTwoSigmaWinsorizer(CustomTransformer):
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         self.mean = X.mean1()
         self.sd = X.sd1()
