@@ -35,6 +35,10 @@ def MyParallelProphetTransformer_transform_async(*args, **kwargs):
 class MyParallelProphetTransformer(CustomTransformer):
     _binary = False
     _multiclass = False
+    # some package dependencies are best sequential to overcome known issues
+    _modules_needed_by_name = ['pystan==2.18', 'fbprophet==0.4.post2']
+    # _modules_needed_by_name = ['fbprophet']
+    _allowed_boosters = None  # ["gblinear"] for strong trends - can extrapolate
 
     @staticmethod
     def is_enabled():
@@ -172,7 +176,8 @@ class MyParallelProphetTransformer(CustomTransformer):
 
                 args = (model_path, X_path, self.nan_value)
                 kwargs = {}
-                pool.submit_tryget(None, MyParallelProphetTransformer_transform_async, args=args, kwargs=kwargs, out=XX_paths)
+                pool.submit_tryget(None, MyParallelProphetTransformer_transform_async, args=args, kwargs=kwargs,
+                                   out=XX_paths)
             else:
                 XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # unseen groups
                 save_obj(XX, X_path)
@@ -185,4 +190,3 @@ class MyParallelProphetTransformer(CustomTransformer):
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         return self.fit(X, y).transform(X)
-
