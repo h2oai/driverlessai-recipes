@@ -24,10 +24,14 @@ class suppress_stdout_stderr(object):
 class MySerialProphetTransformer(CustomTransformer):
     _binary = False
     _multiclass = False
+    # some package dependencies are best sequential to overcome known issues
+    _modules_needed_by_name = ['pystan==2.18', 'fbprophet==0.4.post2']
+    # _modules_needed_by_name = ['fbprophet']
+    _allowed_boosters = None  # ["gblinear"] for strong trends - can extrapolate
 
     @staticmethod
     def is_enabled():
-        return True
+        return False
 
     @staticmethod
     def get_default_properties():

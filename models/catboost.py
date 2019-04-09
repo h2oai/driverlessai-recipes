@@ -16,6 +16,7 @@ except:
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
 class MyCatBoostModel(CustomModel):
     _boosters = ['catboost']
+    _modules_needed_by_name = ['catboost']
 
     @staticmethod
     def is_enabled():
@@ -57,6 +58,8 @@ class MyCatBoostModel(CustomModel):
             return {}
 
     def _fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
+
         if isinstance(X, dt.Frame):
             orig_cols = list(X.names)
             # dt -> lightgbm internally using buffer leaks, so convert here
@@ -95,6 +98,7 @@ class MyCatBoostModel(CustomModel):
             self.best_ntree_limit = self.model.get_best_iteration()
         else:
             self.best_ntree_limit = params['iterations']
+        # must always set best_iterations
         self.best_iterations = self.best_ntree_limit + 1
         self._calc_imp()
         self.model_bytes = pickle.dumps(self.model, protocol=4)
@@ -127,14 +131,16 @@ class MyCatBoostModel(CustomModel):
         else:
             kwargs['ntree_limit'] = self.best_ntree_limit
 
+        # implicit import
+        from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
         if not pred_contribs:
             self.get_model()
             if proba:
                 preds = self.model.predict_proba(X,
-                                                ntree_start=self.best_ntree_limit,
-                                                thread_count=self.params.get('n_jobs', -1))
+                                                 ntree_start=self.best_ntree_limit,
+                                                 thread_count=self.params.get('n_jobs', -1))
                 if preds.shape[1] == 2:
-                   return preds[:, 1]
+                    return preds[:, 1]
                 else:
                     return preds
             else:
