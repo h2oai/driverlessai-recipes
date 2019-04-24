@@ -7,40 +7,19 @@ import _pickle as pickle
 import pandas as pd
 from h2oaicore.systemutils import config
 
-try:
-    from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
-except:
-    pass
-
 
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
 class MyCatBoostModel(CustomModel):
     _boosters = ['catboost']
     _modules_needed_by_name = ['catboost']
 
-    @staticmethod
-    def is_enabled():
-        return True
-
-    @staticmethod
-    def get_default_properties():
-        return dict()
-
-    @staticmethod
-    def override_params_for_fs(params, train_shape, accuracy, time_tolerance, interpretability):
-        return params
-
-    @staticmethod
-    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0):
-        return True
-
-    def _set_default_params(self, params, logger=None, num_classes=None, seed=1234, disable_gpus=False,
-                            score_f_name: str = None,
-                            lossguide=False,
-                            monotonicity_constraints=False, silent=True, dummy=False, accuracy=None,
-                            time_tolerance=None,
-                            interpretability=None, min_child_weight=1.0, params_orig=None, ensemble_level=0,
-                            train_shape=None, valid_shape=None, labels=None):
+    def set_default_params(self, params, logger=None, num_classes=None, seed=1234, disable_gpus=False,
+                           score_f_name: str = None,
+                           lossguide=False,
+                           monotonicity_constraints=False, silent=True, dummy=False, accuracy=None,
+                           time_tolerance=None,
+                           interpretability=None, min_child_weight=1.0, params_orig=None, ensemble_level=0,
+                           train_shape=None, valid_shape=None, labels=None):
 
         params_new = {'iterations': config.max_nestimators, 'learning_rate': config.min_learning_rate}
         params.update(params_new)
@@ -57,7 +36,7 @@ class MyCatBoostModel(CustomModel):
         else:
             return {}
 
-    def _fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+    def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
 
         if isinstance(X, dt.Frame):
@@ -83,11 +62,15 @@ class MyCatBoostModel(CustomModel):
         # Hit sometimes: Exception: catboost/libs/data_new/quantization.cpp:779: All features are either constant or ignored.
         print("CATBOOST")
         sys.stdout.flush()
+        if 'param' in kwargs:
+            baseline = kwargs['param'].get('base_score', None)
+        else:
+            baseline = None
         self.model.fit(X, y=y,
                        sample_weight=sample_weight,
-                       baseline=kwargs['param'].get('base_score', None),
+                       baseline=baseline,
                        eval_set=eval_set,
-                       early_stopping_rounds=kwargs['early_stopping_rounds'],
+                       early_stopping_rounds=kwargs.get('early_stopping_rounds', None),
                        verbose=self.params.get('verbose', False)
                        )
 
@@ -100,21 +83,19 @@ class MyCatBoostModel(CustomModel):
             self.best_ntree_limit = params['iterations']
         # must always set best_iterations
         self.best_iterations = self.best_ntree_limit + 1
-        self._calc_imp()
+        self.set_feature_importances(self.model.feature_importances_)
         self.model_bytes = pickle.dumps(self.model, protocol=4)
         del self.model
         self.model = None
         return self
 
-    def _calc_imp(self):
-        df_imp = pd.DataFrame()
-        df_imp['fi'] = self.feature_names_fitted
-        df_imp['fi_depth'] = 0
-        df_imp['gain'] = self.model.feature_importances_
-        df_imp['gain'] /= df_imp['gain'].max()
-        self.feature_importances = df_imp
+    def predict(self, X, **kwargs):
+        return self.predict_choose(X, proba=False, **kwargs)
 
-    def _predict(self, X, proba, **kwargs):
+    def predict_proba(self, X, **kwargs):
+        return self.predict_choose(X, proba=True, **kwargs)
+
+    def predict_choose(self, X, proba, **kwargs):
         # FIXME: Do equivalent throttling of predict size like def _predict_internal(self, X, proba, **kwargs), wrap-up.
         if isinstance(X, dt.Frame):
             # dt -> lightgbm internally using buffer leaks, so convert here
@@ -122,8 +103,8 @@ class MyCatBoostModel(CustomModel):
             X = X.to_numpy()  # don't assign back to X so don't damage during predict
             X = np.ascontiguousarray(X, dtype=np.float32 if config.data_precision == "float32" else np.float64)
 
-        pred_contribs = kwargs['pred_contribs']
-        output_margin = kwargs['output_margin']
+        pred_contribs = kwargs.get('pred_contribs', None)
+        output_margin = kwargs.get('output_margin', None)
         fast_approx = kwargs.pop('fast_approx', False)
         if fast_approx:
             kwargs['ntree_limit'] = min(config.fast_approx_num_trees, self.best_ntree_limit)
