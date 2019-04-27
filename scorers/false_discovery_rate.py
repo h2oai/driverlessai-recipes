@@ -10,6 +10,7 @@ class MyFalseDiscoveryRateScorer(CustomScorer):
     _binary = True
     _maximize = False
     _perfect_score = 0
+    _display_name = "FDR"
 
     def score(self,
               actual: np.array,
@@ -19,5 +20,7 @@ class MyFalseDiscoveryRateScorer(CustomScorer):
         predicted = predicted >= self.__class__._threshold  # probability -> label
         cm = sklearn.metrics.confusion_matrix(actual, predicted, sample_weight=sample_weight, labels=labels)
         tn, fp, fn, tp = cm.ravel()
-        return fp / (fp + tp)
-
+        if (fp + tp) != 0:
+            return fp / (fp + tp)
+        else:
+            return 0

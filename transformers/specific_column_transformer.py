@@ -13,6 +13,9 @@ class MySpecificColumnTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         col_names = X.names
-        col_names_to_pick = [col_names[0], col_names[2]]  # can provide actual strings
+        if len(col_names) >= 3:
+            col_names_to_pick = [col_names[0], col_names[2]]  # can provide actual strings
+        else:
+            col_names_to_pick = [col_names[0]]
         X = X[:, col_names_to_pick]
         return X.to_pandas().astype(str).iloc[:, 0].str.len()

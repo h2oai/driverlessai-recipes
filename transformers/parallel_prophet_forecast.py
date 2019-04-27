@@ -2,10 +2,11 @@ from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.systemutils import small_job_pool, save_obj, load_obj, temporary_files_path, remove
 import datatable as dt
 import numpy as np
-import gc
 import os
 import uuid
 import random
+import importlib
+import pandas as pd
 
 
 class suppress_stdout_stderr(object):
@@ -75,7 +76,9 @@ class MyParallelProphetTransformer(CustomTransformer):
         # print("%s load_obj" % X_path) ; sys.stdout.flush()
         # print(X)
         # print("%s model" % X_path) ; sys.stdout.flush()
-        from fbprophet import Prophet
+        mod = importlib.import_module('fbprophet')
+        Prophet = getattr(mod, "Prophet")
+        # from fbprophet import Prophet
         model = Prophet()
         # pmodel_path = os.path.join(temporary_files_path, "fbprophet_model" + str(uuid.uuid4()))
         # save_obj(model, pmodel_path)
@@ -126,7 +129,6 @@ class MyParallelProphetTransformer(CustomTransformer):
 
     @staticmethod
     def _transform_async(model_path, X_path, nan_value):
-        import pandas as pd
         model = load_obj(model_path)
         XX_path = os.path.join(temporary_files_path, "fbprophet_XXt" + str(uuid.uuid4()))
         X = load_obj(X_path)
@@ -142,7 +144,6 @@ class MyParallelProphetTransformer(CustomTransformer):
         return XX_path
 
     def transform(self, X: dt.Frame):
-        import pandas as pd
         X = X.to_pandas()
         XX = X[self.tgc].copy()
         XX.rename(columns={self.time_column: "ds"}, inplace=True)

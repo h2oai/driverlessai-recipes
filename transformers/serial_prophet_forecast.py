@@ -1,6 +1,9 @@
+import importlib
+
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
+import pandas as pd
 import gc
 import os
 
@@ -47,7 +50,9 @@ class MySerialProphetTransformer(CustomTransformer):
         self.nan_value = np.nan
 
     def fit(self, X: dt.Frame, y: np.array = None):
-        from fbprophet import Prophet
+        mod = importlib.import_module('fbprophet')
+        Prophet = getattr(mod, "Prophet")
+        # from fbprophet import Prophet
         self.models = {}
         X = X.to_pandas()
         XX = X[self.tgc].copy()
@@ -75,7 +80,6 @@ class MySerialProphetTransformer(CustomTransformer):
         return self
 
     def transform(self, X: dt.Frame):
-        import pandas as pd
         X = X.to_pandas()
         XX = X[self.tgc].copy()
         XX.rename(columns={self.time_column: "ds"}, inplace=True)
