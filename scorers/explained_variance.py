@@ -9,6 +9,7 @@ class MyExplainedVarianceScorer(CustomScorer):
     _regression = True
     _maximize = True
     _perfect_score = 1
+    _display_name = "ExplainedVar"
 
     def score(self,
               actual: np.array,
@@ -17,4 +18,3 @@ class MyExplainedVarianceScorer(CustomScorer):
               labels: typing.Optional[np.array] = None) -> float:
         return sklearn.metrics.explained_variance_score(actual, predicted, sample_weight=sample_weight,
                                                         multioutput='uniform_average')
-

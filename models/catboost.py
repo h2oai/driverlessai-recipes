@@ -1,15 +1,19 @@
 import sys
-
-from h2oaicore.models import CustomModel
 import datatable as dt
 import numpy as np
 import _pickle as pickle
 import pandas as pd
-from h2oaicore.systemutils import config
+
+from h2oaicore.models import CustomModel
+from h2oaicore.systemutils import config, arch_type
 
 
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
 class MyCatBoostModel(CustomModel):
+    @staticmethod
+    def is_enabled():
+        return not (arch_type == "ppc64le")
+
     _boosters = ['catboost']
     _modules_needed_by_name = ['catboost']
 
