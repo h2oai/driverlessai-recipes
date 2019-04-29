@@ -6,7 +6,7 @@ import numpy as np
 class MySpecificColumnTransformer(CustomTransformer):
     @staticmethod
     def get_default_properties():
-        return dict(col_type="all", min_cols="all", max_cols="all", relative_importance=1)
+        return dict(col_type="all", min_cols="all", max_cols="all", relative_importance=1, num_default_instances=1)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         return self.transform(X)
