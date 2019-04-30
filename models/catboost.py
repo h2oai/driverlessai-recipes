@@ -93,14 +93,9 @@ class MyCatBoostModel(CustomModel):
         self.model = None
         return self
 
+
     def predict(self, X, **kwargs):
-        return self.predict_choose(X, proba=False, **kwargs)
-
-    def predict_proba(self, X, **kwargs):
-        return self.predict_choose(X, proba=True, **kwargs)
-
-    def predict_choose(self, X, proba, **kwargs):
-        # FIXME: Do equivalent throttling of predict size like def _predict_internal(self, X, proba, **kwargs), wrap-up.
+        # FIXME: Do equivalent throttling of predict size like def _predict_internal(self, X, **kwargs), wrap-up.
         if isinstance(X, dt.Frame):
             # dt -> lightgbm internally using buffer leaks, so convert here
             # assume predict is after pipeline collection or in subprocess so needs no protection
@@ -120,7 +115,7 @@ class MyCatBoostModel(CustomModel):
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
         if not pred_contribs:
             self.get_model()
-            if proba:
+            if self.num_classes >= 2:
                 preds = self.model.predict_proba(X,
                                                  ntree_start=self.best_ntree_limit,
                                                  thread_count=self.params.get('n_jobs', -1))
@@ -138,4 +133,5 @@ class MyCatBoostModel(CustomModel):
                                                      ntree_start=self.best_ntree_limit,
                                                      thread_count=self.params.get('n_jobs', -1),
                                                      type=EFstrType.ShapValues)
-            # FIXME: Do equivalent of preds = self._predict_internal_fixup(preds, proba, **mykwargs) or wrap-up
+            # FIXME: Do equivalent of preds = self._predict_internal_fixup(preds, **mykwargs) or wrap-up
+
