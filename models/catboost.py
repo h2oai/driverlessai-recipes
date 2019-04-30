@@ -17,26 +17,23 @@ class MyCatBoostModel(CustomModel):
     _boosters = ['catboost']
     _modules_needed_by_name = ['catboost']
 
-    def set_default_params(self, params, logger=None, num_classes=None, seed=1234, disable_gpus=False,
-                           score_f_name: str = None,
-                           lossguide=False,
-                           monotonicity_constraints=False, silent=True, dummy=False, accuracy=None,
-                           time_tolerance=None,
-                           interpretability=None, min_child_weight=1.0, params_orig=None, ensemble_level=0,
-                           train_shape=None, valid_shape=None, labels=None):
+    def set_default_params(self,
+                           params,
+                           accuracy, time_tolerance, interpretability,
+                           **kwargs):
+        params.update(dict(
+            iterations=config.max_nestimators,
+            learning_rate=config.min_learning_rate,
+            early_stopping_rounds=20
+        ))
 
-        params_new = {'iterations': config.max_nestimators, 'learning_rate': config.min_learning_rate}
-        params.update(params_new)
-        params['early_stopping_rounds'] = 20
-
-    def get_random_specialparams(self, get_best=False, time_tolerance=None, accuracy=None,
-                                 imbalance_ratio=None,
-                                 train_shape=None, ncol_effective=None,
-                                 params_orig=None, time_series=False, ensemble_level=None,
-                                 score_f_name: str = None):
+    def get_random_specialparams(self,
+                                 params,
+                                 accuracy, time_tolerance, interpretability,
+                                 **kwargs):
         # DUMMY version is do nothing
-        if params_orig is not None:
-            return params_orig
+        if params is not None:
+            return params
         else:
             return {}
 
