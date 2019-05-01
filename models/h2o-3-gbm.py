@@ -1,6 +1,5 @@
 from h2oaicore.models import CustomModel
 import h2o
-import uuid
 import os
 from h2o.estimators.gbm import H2OGradientBoostingEstimator
 
@@ -14,11 +13,12 @@ class H2OGBMModel(CustomModel):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.id = str(uuid.uuid4())[:10]
+        self.id = None
         self.raw_model_bytes = None
         self.target = "__target__"
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        X = dt.Frame(X)
         h2o.init()
         model_path = None
 
@@ -44,8 +44,8 @@ class H2OGBMModel(CustomModel):
             model.train(x=train_X.names,
                         y=self.target,
                         training_frame=train_frame,
-                        validation_frame=valid_frame,
-                        model_id=self.id)
+                        validation_frame=valid_frame)
+            self.id = model.model_id
             model_path = h2o.save_model(model=model)
             with open(model_path, "rb") as f:
                 self.raw_model_bytes = f.read()
@@ -58,6 +58,7 @@ class H2OGBMModel(CustomModel):
                     h2o.remove(xx)
 
         # need to move to wrapper
+        self.orig_cols = orig_cols
         self.feature_names_fitted = orig_cols
         self.transformed_features = self.feature_names_fitted
         self.best_ntree_limit = model.params['ntrees']['actual']
@@ -72,6 +73,7 @@ class H2OGBMModel(CustomModel):
         return self
 
     def predict(self, X, **kwargs):
+        X = dt.Frame(X)
         h2o.init()
         with open(self.id, "wb") as f:
             f.write(self.raw_model_bytes)
