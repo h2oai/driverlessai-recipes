@@ -24,7 +24,9 @@ class H2OGBMModel(CustomModel):
 
         orig_cols = list(X.names)
         train_X = h2o.H2OFrame(X.to_pandas())
-        train_y = h2o.H2OFrame(y, column_names=[self.target])
+        train_y = h2o.H2OFrame(y,
+                               column_names=[self.target],
+                               column_types=['categorical' if self.num_classes >= 2 else 'numeric'])
         train_frame = train_X.cbind(train_y)
         valid_frame = None
         valid_X = None
@@ -32,7 +34,9 @@ class H2OGBMModel(CustomModel):
         model = None
         if eval_set is not None:
             valid_X = h2o.H2OFrame(eval_set[0][0].to_pandas())
-            valid_y = h2o.H2OFrame(eval_set[0][1], column_names=[self.target])
+            valid_y = h2o.H2OFrame(eval_set[0][1],
+                                   column_names=[self.target],
+                                   column_types=['categorical' if self.num_classes >= 2 else 'numeric'])
             valid_frame = valid_X.cbind(valid_y)
 
         try:
@@ -82,7 +86,13 @@ class H2OGBMModel(CustomModel):
         try:
             if not pred_contribs:
                 preds_frame = model.predict(test_frame)
-                return preds_frame.as_data_frame(header=False).values
+                preds = preds_frame.as_data_frame(header=False).values
+                if self.num_classes == 1:
+                    return preds.ravel()
+                elif self.num_classes == 2:
+                    return preds[:, 1].ravel()
+                else:
+                    return preds[:, 1:]
             else:
                 raise NotImplementedError("H2O-3 has Shapley, just needs to be implemented")
         finally:
@@ -90,3 +100,4 @@ class H2OGBMModel(CustomModel):
             h2o.remove(test_frame)
             if preds_frame is not None:
                 h2o.remove(preds_frame)
+
