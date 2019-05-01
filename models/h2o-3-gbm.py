@@ -3,6 +3,7 @@ import h2o
 import os
 import datatable as dt
 from h2o.estimators.gbm import H2OGradientBoostingEstimator
+import _pickle as pickle
 
 
 class H2OGBMModel(CustomModel):
@@ -72,6 +73,8 @@ class H2OGBMModel(CustomModel):
         df_varimp = df_varimp.iloc[:, 1]  # relative importance
         df_varimp = df_varimp[self.feature_names_fitted]  # order by fitted features
         self.set_feature_importances(df_varimp.values)
+        self.model_bytes = pickle.dumps([0], protocol=4) # FIXME
+        self.model = None # FIXME
         return self
 
     def predict(self, X, **kwargs):
@@ -98,10 +101,9 @@ class H2OGBMModel(CustomModel):
                 else:
                     return preds[:, 1:]
             else:
-                raise NotImplementedError("H2O-3 has Shapley, just needs to be implemented")
+                raise NotImplementedError("Latest H2O-3 has Shapley - call predict_contribs")
         finally:
             h2o.remove(self.id)
             h2o.remove(test_frame)
             if preds_frame is not None:
                 h2o.remove(preds_frame)
-
