@@ -1,6 +1,7 @@
 from h2oaicore.models import CustomModel
 import h2o
 import os
+import datatable as dt
 from h2o.estimators.gbm import H2OGradientBoostingEstimator
 
 
