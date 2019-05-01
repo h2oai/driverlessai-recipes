@@ -65,7 +65,8 @@ class CatBoostModel(CustomModel):
                 valid_X = np.ascontiguousarray(valid_X,
                                                dtype=np.float32 if config.data_precision == "float32" else np.float64)
                 valid_y = eval_set[0][1]
-                valid_y = lb.transform(valid_y)
+                if self.num_classes >= 2:
+                    valid_y = lb.transform(valid_y)
                 eval_set[0] = (valid_X, valid_y)
         else:
             orig_cols = list(X.columns)
