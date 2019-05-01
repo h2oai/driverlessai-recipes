@@ -61,7 +61,6 @@ class H2OGBMModel(CustomModel):
                     h2o.remove(xx)
 
         # need to move to wrapper
-        self.orig_cols = orig_cols
         self.feature_names_fitted = orig_cols
         self.transformed_features = self.feature_names_fitted
         self.best_ntree_limit = model.params['ntrees']['actual']
