@@ -9,7 +9,7 @@ from h2oaicore.systemutils import config, arch_type
 
 
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
-class MyCatBoostModel(CustomModel):
+class CatBoostModel(CustomModel):
     _regression = True
     _binary = True
     _multiclass = False  # WIP
