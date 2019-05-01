@@ -56,7 +56,6 @@ class MyParallelProphetTransformer(CustomTransformer):
 
     def __init__(self, train_fraction=1, **kwargs):
         super().__init__(**kwargs)
-        print(kwargs)
         self.time_column = self.input_feature_names[0]
         self.tgc = kwargs['tgc']
         self.n_jobs = None
