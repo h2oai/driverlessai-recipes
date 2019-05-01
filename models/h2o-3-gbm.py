@@ -90,7 +90,7 @@ class H2OGBMModel(CustomModel):
                 if self.num_classes == 1:
                     return preds.ravel()
                 elif self.num_classes == 2:
-                    return preds[:, 1].ravel()
+                    return preds[:, -1].ravel()
                 else:
                     return preds[:, 1:]
             else:
