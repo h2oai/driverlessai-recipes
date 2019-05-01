@@ -42,7 +42,6 @@ class MySerialProphetTransformer(CustomTransformer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        print(kwargs)
         self.time_column = self.input_feature_names[0]
         self.tgc = kwargs['tgc']  # Needed - YES
         self.models = None

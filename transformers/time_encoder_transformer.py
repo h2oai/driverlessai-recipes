@@ -10,7 +10,6 @@ class MyTimeColTransformer(CustomTransformer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        print(kwargs)
         assert 'tgc' in kwargs
         self._encoder = kwargs['encoder']
 
