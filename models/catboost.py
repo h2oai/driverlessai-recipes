@@ -2,7 +2,7 @@ import sys
 import datatable as dt
 import numpy as np
 import _pickle as pickle
-import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel
 from h2oaicore.systemutils import config, arch_type
@@ -12,7 +12,9 @@ from h2oaicore.systemutils import config, arch_type
 class MyCatBoostModel(CustomModel):
     _regression = True
     _binary = True
-    _multiclass = True
+    _multiclass = False  # WIP
+    _display_name = "CatBoost"
+    _description = "Yandex CatBoost GBM"
 
     @staticmethod
     def is_enabled():
@@ -20,7 +22,7 @@ class MyCatBoostModel(CustomModel):
 
     @staticmethod
     def do_acceptance_test():
-        return False
+        return True
 
     _boosters = ['catboost']
     _modules_needed_by_name = ['catboost']
@@ -76,8 +78,6 @@ class MyCatBoostModel(CustomModel):
         else:
             self.model = CatBoostClassifier(**params)
         # Hit sometimes: Exception: catboost/libs/data_new/quantization.cpp:779: All features are either constant or ignored.
-        print("CATBOOST")
-        sys.stdout.flush()
         if 'param' in kwargs:
             baseline = kwargs['param'].get('base_score', None)
         else:
@@ -145,4 +145,3 @@ class MyCatBoostModel(CustomModel):
                                                      thread_count=self.params.get('n_jobs', -1),
                                                      type=EFstrType.ShapValues)
             # FIXME: Do equivalent of preds = self._predict_internal_fixup(preds, **mykwargs) or wrap-up
-
