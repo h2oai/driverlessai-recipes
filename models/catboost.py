@@ -10,9 +10,17 @@ from h2oaicore.systemutils import config, arch_type
 
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
 class MyCatBoostModel(CustomModel):
+    _regression = True
+    _binary = True
+    _multiclass = True
+
     @staticmethod
     def is_enabled():
         return not (arch_type == "ppc64le")
+
+    @staticmethod
+    def do_acceptance_test():
+        return False
 
     _boosters = ['catboost']
     _modules_needed_by_name = ['catboost']
@@ -39,6 +47,10 @@ class MyCatBoostModel(CustomModel):
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
+        lb = LabelEncoder()
+        if self.num_classes >= 2:
+            lb.fit(self.labels)
+            y = lb.transform(y)
 
         if isinstance(X, dt.Frame):
             orig_cols = list(X.names)
@@ -51,11 +63,14 @@ class MyCatBoostModel(CustomModel):
                 valid_X = np.ascontiguousarray(valid_X,
                                                dtype=np.float32 if config.data_precision == "float32" else np.float64)
                 valid_y = eval_set[0][1]
+                valid_y = lb.transform(valid_y)
                 eval_set[0] = (valid_X, valid_y)
         else:
             orig_cols = list(X.columns)
 
-        params = {'iterations': config.max_nestimators, 'learning_rate': config.min_learning_rate}
+        params = {'iterations': config.max_nestimators,
+                  'learning_rate': config.min_learning_rate,
+                  'thread_count': self.params.get('n_jobs', None)}  # -1 is not supported
         if self.num_classes == 1:
             self.model = CatBoostRegressor(**params)
         else:
@@ -90,7 +105,6 @@ class MyCatBoostModel(CustomModel):
         self.model = None
         return self
 
-
     def predict(self, X, **kwargs):
         # FIXME: Do equivalent throttling of predict size like def _predict_internal(self, X, **kwargs), wrap-up.
         if isinstance(X, dt.Frame):
@@ -115,7 +129,7 @@ class MyCatBoostModel(CustomModel):
             if self.num_classes >= 2:
                 preds = self.model.predict_proba(X,
                                                  ntree_start=self.best_ntree_limit,
-                                                 thread_count=self.params.get('n_jobs', -1))
+                                                 thread_count=self.params.get('n_jobs', -1))  # None is not supported
                 if preds.shape[1] == 2:
                     return preds[:, 1]
                 else:
