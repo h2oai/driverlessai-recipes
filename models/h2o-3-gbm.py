@@ -10,6 +10,8 @@ class H2OGBMModel(CustomModel):
     _multiclass = True
 
     _boosters = ['h2ogbm']
+    _display_name = "H2O GBM"
+    _description = "H2O-3 Gradient Boosting Machine"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
