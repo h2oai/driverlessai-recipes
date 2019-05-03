@@ -9,7 +9,7 @@ class MyExplainedVarianceScorer(CustomScorer):
     _regression = True
     _maximize = True
     _perfect_score = 1
-    _display_name = "ExplainedVar"
+    _display_name = "ExpVar"
 
     def score(self,
               actual: np.array,
