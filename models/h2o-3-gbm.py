@@ -25,7 +25,7 @@ class H2OGBMModel(CustomModel):
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         X = dt.Frame(X)
-        h2o.init()
+        h2o.init(port=config.h2o_recipes_port)
         model_path = None
 
         orig_cols = list(X.names)
@@ -76,15 +76,16 @@ class H2OGBMModel(CustomModel):
         df_varimp = df_varimp.iloc[:, 1]  # relative importance
         df_varimp = df_varimp[self.feature_names_fitted]  # order by fitted features
         self.set_feature_importances(df_varimp.values)
-        self.model_bytes = pickle.dumps([0], protocol=4) # FIXME
+        self.model_bytes = pickle.dumps(self.raw_model_bytes, protocol=4) # FIXME
+        self.raw_model_bytes = None
         self.model = None # FIXME
         return self
 
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
-        h2o.init()
+        h2o.init(port=config.h2o_recipes_port)
         with open(self.id, "wb") as f:
-            f.write(self.raw_model_bytes)
+            f.write(self.model)
         model = h2o.load_model(self.id)
         os.remove(self.id)
         test_frame = h2o.H2OFrame(X.to_pandas())

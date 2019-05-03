@@ -1,4 +1,3 @@
-import sys
 import datatable as dt
 import numpy as np
 import _pickle as pickle
