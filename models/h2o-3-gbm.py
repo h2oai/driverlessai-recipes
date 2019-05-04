@@ -97,13 +97,13 @@ class H2OGBMModel(CustomModel):
         try:
             if not pred_contribs:
                 preds_frame = model.predict(test_frame)
-                preds = preds_frame.as_data_frame(header=False).values
+                preds = preds_frame.as_data_frame(header=False)
                 if self.num_classes == 1:
-                    return preds.ravel()
+                    return preds.values.ravel()
                 elif self.num_classes == 2:
-                    return preds[:, -1].ravel()
+                    return preds.iloc[:, 2].values.ravel()
                 else:
-                    return preds[:, 1:]
+                    return preds.iloc[:, 1:].values
             else:
                 raise NotImplementedError("Latest H2O-3 has Shapley - call predict_contribs")
         finally:
