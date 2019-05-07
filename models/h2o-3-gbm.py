@@ -78,10 +78,11 @@ class H2OGBMModel(CustomModel):
         model, _, _, _ = self.get_model_properties()
         X = dt.Frame(X)
         h2o.init(port=config.h2o_recipes_port)
-        with open(self.id, "wb") as f:
+	model_path = os.path.join(temporary_files_path, self.id)
+        with open(model_path, "wb") as f:
             f.write(model)
-        model = h2o.load_model(self.id)
-        os.remove(self.id)
+        model = h2o.load_model(model_path)
+        os.remove(model_path)
         test_frame = h2o.H2OFrame(X.to_pandas())
         preds_frame = None
 
