@@ -35,17 +35,10 @@ class LinearSVMModel(CustomModel):
             assert X[dt.isna(dt.f[col]), col].nrows == 0
         X = X.to_numpy()
         model.fit(X, y, sample_weight=sample_weight)
-
-        # need to move to wrapper
-        self.feature_names_fitted = orig_cols
-        self.transformed_features = self.feature_names_fitted
-        self.best_ntree_limit = 0
-        # must always set best_iterations
-        self.best_iterations = self.best_ntree_limit + 1
-
-        self.set_feature_importances(abs(model.coef_[0]))
-        self.model_bytes = pickle.dumps(model, protocol=4)
-        self.model = None
+        self.set_model_properties(model=model,
+                                  features=orig_cols,
+                                  importances=abs(model.coef_[0]),
+                                  iterations=0)
         return self
 
     def predict(self, X, **kwargs):
@@ -58,12 +51,12 @@ class LinearSVMModel(CustomModel):
         pred_contribs = kwargs.get('pred_contribs', None)
         output_margin = kwargs.get('output_margin', None)
 
-        self.get_model()
+        model, _, _, _ = self.get_model_properties()
         if not pred_contribs:
             if self.num_classes == 1:
-                preds = self.model.predict(X.to_numpy())
+                preds = model.predict(X.to_numpy())
             else:
-                prob_pos = self.model.decision_function(X.to_numpy())
+                prob_pos = model.decision_function(X.to_numpy())
                 preds = (prob_pos - prob_pos.min()) / (prob_pos.max() - prob_pos.min())
             return preds
         else:
