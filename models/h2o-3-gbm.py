@@ -17,10 +17,9 @@ class H2OGBMModel(CustomModel):
     _display_name = "H2O GBM"
     _description = "H2O-3 Gradient Boosting Machine"
 
-    def __init__(self, **kwargs):
+    def __init__ (self, **kwargs):
         super().__init__(**kwargs)
         self.id = None
-        self.raw_model_bytes = None
         self.target = "__target__"
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
@@ -55,7 +54,7 @@ class H2OGBMModel(CustomModel):
             model_path = os.path.join(temporary_files_path, "h2o_model." + str(uuid.uuid4()))
             model_path = h2o.save_model(model=model, path=model_path)
             with open(model_path, "rb") as f:
-                self.raw_model_bytes = f.read()
+                raw_model_bytes = f.read()
 
         finally:
             if model_path is not None:
@@ -64,28 +63,23 @@ class H2OGBMModel(CustomModel):
                 if xx is not None:
                     h2o.remove(xx)
 
-        # need to move to wrapper
-        self.feature_names_fitted = orig_cols
-        self.transformed_features = self.feature_names_fitted
-        self.best_ntree_limit = model.params['ntrees']['actual']
-        # must always set best_iterations
-        self.best_iterations = self.best_ntree_limit + 1
-
         df_varimp = model.varimp(True)
         df_varimp.index = df_varimp['variable']
         df_varimp = df_varimp.iloc[:, 1]  # relative importance
-        df_varimp = df_varimp[self.feature_names_fitted]  # order by fitted features
-        self.set_feature_importances(df_varimp.values)
-        self.model_bytes = pickle.dumps(self.raw_model_bytes, protocol=4) # FIXME
-        self.raw_model_bytes = None
-        self.model = None # FIXME
+        df_varimp = df_varimp[orig_cols]  # order by fitted features
+
+        self.set_model_properties(model=raw_model_bytes,
+                                  features=orig_cols,
+                                  importances=df_varimp.values,
+                                  iterations=model.params['ntrees']['actual'] + 1)
         return self
 
     def predict(self, X, **kwargs):
+        model, _, _, _ = self.get_model_properties()
         X = dt.Frame(X)
         h2o.init(port=config.h2o_recipes_port)
         with open(self.id, "wb") as f:
-            f.write(self.model)
+            f.write(model)
         model = h2o.load_model(self.id)
         os.remove(self.id)
         test_frame = h2o.H2OFrame(X.to_pandas())

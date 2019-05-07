@@ -4,7 +4,7 @@ import _pickle as pickle
 from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel
-from h2oaicore.systemutils import config, arch_type
+from h2oaicore.systemutils import config, arch_type, physical_cores_count
 
 
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
@@ -70,42 +70,41 @@ class CatBoostModel(CustomModel):
         else:
             orig_cols = list(X.columns)
 
+        n_jobs = max(1, physical_cores_count)
         params = {'iterations': config.max_nestimators,
                   'learning_rate': config.min_learning_rate,
-                  'thread_count': self.params.get('n_jobs', None)}  # -1 is not supported
+                  'thread_count': self.params.get('n_jobs', n_jobs)}  # -1 is not supported
         if self.num_classes == 1:
-            self.model = CatBoostRegressor(**params)
+            model = CatBoostRegressor(**params)
         else:
-            self.model = CatBoostClassifier(**params)
+            model = CatBoostClassifier(**params)
         # Hit sometimes: Exception: catboost/libs/data_new/quantization.cpp:779: All features are either constant or ignored.
         if 'param' in kwargs:
             baseline = kwargs['param'].get('base_score', None)
         else:
             baseline = None
-        self.model.fit(X, y=y,
-                       sample_weight=sample_weight,
-                       baseline=baseline,
-                       eval_set=eval_set,
-                       early_stopping_rounds=kwargs.get('early_stopping_rounds', None),
-                       verbose=self.params.get('verbose', False)
-                       )
+        model.fit(X, y=y,
+                  sample_weight=sample_weight,
+                  baseline=baseline,
+                  eval_set=eval_set,
+                  early_stopping_rounds=kwargs.get('early_stopping_rounds', None),
+                  verbose=self.params.get('verbose', False)
+                  )
 
         # need to move to wrapper
-        self.feature_names_fitted = orig_cols
-        self.transformed_features = self.feature_names_fitted
-        if self.model.get_best_iteration() is not None:
-            self.best_ntree_limit = self.model.get_best_iteration()
+        if model.get_best_iteration() is not None:
+            iterations = model.get_best_iteration() + 1
         else:
-            self.best_ntree_limit = params['iterations']
+            iterations = params['iterations'] + 1
         # must always set best_iterations
-        self.best_iterations = self.best_ntree_limit + 1
-        self.set_feature_importances(self.model.feature_importances_)
-        self.model_bytes = pickle.dumps(self.model, protocol=4)
-        del self.model
-        self.model = None
+        self.set_model_properties(model=model,
+                                  features=orig_cols,
+                                  importances=model.feature_importances_,
+                                  iterations=iterations)
         return self
 
     def predict(self, X, **kwargs):
+        model, features, importances, iterations = self.get_model_properties()
         # FIXME: Do equivalent throttling of predict size like def _predict_internal(self, X, **kwargs), wrap-up.
         if isinstance(X, dt.Frame):
             # dt -> lightgbm internally using buffer leaks, so convert here
@@ -117,31 +116,30 @@ class CatBoostModel(CustomModel):
         output_margin = kwargs.get('output_margin', None)
         fast_approx = kwargs.pop('fast_approx', False)
         if fast_approx:
-            kwargs['ntree_limit'] = min(config.fast_approx_num_trees, self.best_ntree_limit)
+            kwargs['ntree_limit'] = min(config.fast_approx_num_trees, iterations - 1)
             kwargs['approx_contribs'] = pred_contribs
         else:
-            kwargs['ntree_limit'] = self.best_ntree_limit
+            kwargs['ntree_limit'] = iterations - 1
 
         # implicit import
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
         if not pred_contribs:
-            self.get_model()
             if self.num_classes >= 2:
-                preds = self.model.predict_proba(X,
-                                                 ntree_start=self.best_ntree_limit,
-                                                 thread_count=self.params.get('n_jobs', -1))  # None is not supported
+                preds = model.predict_proba(X,
+                                            ntree_start=iterations - 1,
+                                            thread_count=self.params.get('n_jobs', -1))  # None is not supported
                 if preds.shape[1] == 2:
                     return preds[:, 1]
                 else:
                     return preds
             else:
-                return self.model.predict(X,
-                                          ntree_start=self.best_ntree_limit,
-                                          thread_count=self.params.get('n_jobs', -1))
+                return model.predict(X,
+                                     ntree_start=iterations - 1,
+                                     thread_count=self.params.get('n_jobs', -1))
         else:
             # For Shapley, doesn't come from predict, instead:
-            return self.model.get_feature_importance(data=X,
-                                                     ntree_start=self.best_ntree_limit,
-                                                     thread_count=self.params.get('n_jobs', -1),
-                                                     type=EFstrType.ShapValues)
+            return model.get_feature_importance(data=X,
+                                                ntree_start=iterations - 1,
+                                                thread_count=self.params.get('n_jobs', -1),
+                                                type=EFstrType.ShapValues)
             # FIXME: Do equivalent of preds = self._predict_internal_fixup(preds, **mykwargs) or wrap-up
