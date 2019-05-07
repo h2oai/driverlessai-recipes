@@ -73,6 +73,8 @@ class CatBoostModel(CustomModel):
         n_jobs = max(1, physical_cores_count)
         params = {'iterations': config.max_nestimators,
                   'learning_rate': config.min_learning_rate,
+                  'train_dir': config.data_directory,
+                  'allow_writing_files': False,
                   'thread_count': self.params.get('n_jobs', n_jobs)}  # -1 is not supported
         if self.num_classes == 1:
             model = CatBoostRegressor(**params)
