@@ -3,7 +3,6 @@ import h2o
 import os
 import datatable as dt
 from h2o.estimators.gbm import H2OGradientBoostingEstimator
-import _pickle as pickle
 import uuid
 from h2oaicore.systemutils import config, temporary_files_path
 
@@ -78,7 +77,7 @@ class H2OGBMModel(CustomModel):
         model, _, _, _ = self.get_model_properties()
         X = dt.Frame(X)
         h2o.init(port=config.h2o_recipes_port)
-	model_path = os.path.join(temporary_files_path, self.id)
+        model_path = os.path.join(temporary_files_path, self.id)
         with open(model_path, "wb") as f:
             f.write(model)
         model = h2o.load_model(model_path)
