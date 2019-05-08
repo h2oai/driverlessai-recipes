@@ -161,6 +161,11 @@ class H2ODLModel(H2OBaseModel, CustomModel):
     _description = "H2O-3 DeepLearning"
     _class = H2ODeepLearningEstimator
 
+    @staticmethod
+    def do_acceptance_test():
+        return False  # for version 1.7.0-62, since didn't check _is_reproducible yet
+        # return True  # for version 1.7.0-63 and later
+
 
 from h2o.estimators.glm import H2OGeneralizedLinearEstimator
 
