@@ -3,29 +3,31 @@ import datatable as dt
 import _pickle as pickle
 import uuid
 from h2oaicore.systemutils import config, temporary_files_path
+import numpy as np
 
 
 
 import h2o
 import os
-from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 
-
-class H2ODLModel(CustomModel):
+class H2OBaseModel:
     _regression = True
     _binary = True
     _multiclass = True
     _can_handle_text = True
-    _is_reproducible = False
-
-    _boosters = ['h2odl']
-    _display_name = "H2O DL"
-    _description = "H2O-3 DeepLearning"
+    _is_reproducible = True
+    _class = NotImplemented
 
     def __init__ (self, **kwargs):
         super().__init__(**kwargs)
         self.id = None
         self.target = "__target__"
+
+    def get_iterations(self, model):
+        return 0
+
+    def make_instance(self):
+        return self.__class__._class(seed=self.random_state)
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         X = dt.Frame(X)
@@ -50,7 +52,7 @@ class H2ODLModel(CustomModel):
             valid_frame = valid_X.cbind(valid_y)
 
         try:
-            model = H2ODeepLearningEstimator()
+            model = self.make_instance()
             model.train(x=train_X.names,
                         y=self.target,
                         training_frame=train_frame,
@@ -69,14 +71,17 @@ class H2ODLModel(CustomModel):
                     h2o.remove(xx)
 
         df_varimp = model.varimp(True)
-        df_varimp.index = df_varimp['variable']
-        df_varimp = df_varimp.iloc[:, 1]  # relative importance
-        df_varimp = df_varimp[orig_cols]  # order by fitted features
+        if df_varimp is None:
+            varimp = np.ones(len(orig_cols))
+        else:
+            df_varimp.index = df_varimp['variable']
+            df_varimp = df_varimp.iloc[:, 1]  # relative importance
+            varimp = df_varimp[orig_cols].values  # order by fitted features
 
         self.set_model_properties(model=raw_model_bytes,
                                   features=orig_cols,
-                                  importances=df_varimp.values,
-                                  iterations=0)
+                                  importances=varimp,
+                                  iterations=self.get_iterations(model))
         return self
 
     def predict(self, X, **kwargs):
@@ -101,13 +106,75 @@ class H2ODLModel(CustomModel):
                 if self.num_classes == 1:
                     return preds.values.ravel()
                 elif self.num_classes == 2:
-                    return preds.iloc[:, 2].values.ravel()
+                    return preds.iloc[:, -1].values.ravel()
                 else:
                     return preds.iloc[:, 1:].values
             else:
-                raise NotImplementedError("Latest H2O-3 has Shapley - call predict_contribs")
+                raise NotImplementedError("Latest H2O-3 version has Shapley for some models - TODO")
         finally:
             h2o.remove(self.id)
             h2o.remove(test_frame)
             if preds_frame is not None:
                 h2o.remove(preds_frame)
+
+
+from h2o.estimators.naive_bayes import H2ONaiveBayesEstimator
+
+class H2ONBModel(H2OBaseModel, CustomModel):
+    _regression = False
+    _boosters = ['h2onb']
+    _display_name = "H2O NB"
+    _description = "H2O-3 Naive Bayes"
+    _class = H2ONaiveBayesEstimator
+
+
+from h2o.estimators.gbm import H2OGradientBoostingEstimator
+
+class H2OGBMModel(H2OBaseModel, CustomModel):
+    _boosters = ['h2ogbm']
+    _display_name = "H2O GBM"
+    _description = "H2O-3 Gradient Boosting Machine"
+    _class = H2OGradientBoostingEstimator
+
+    def get_iterations(self, model):
+        return model.params['ntrees']['actual'] + 1
+
+
+from h2o.estimators.random_forest import H2ORandomForestEstimator
+
+class H2ORFModel(H2OBaseModel, CustomModel):
+    _boosters = ['h2orf']
+    _display_name = "H2O RF"
+    _description = "H2O-3 Random Forest"
+    _class = H2OGradientBoostingEstimator
+
+    def get_iterations(self, model):
+        return model.params['ntrees']['actual'] + 1
+
+
+from h2o.estimators.deeplearning import H2ODeepLearningEstimator
+
+class H2ODLModel(H2OBaseModel, CustomModel):
+    _is_reproducible = False
+    _boosters = ['h2odl']
+    _display_name = "H2O DL"
+    _description = "H2O-3 DeepLearning"
+    _class = H2ODeepLearningEstimator
+
+
+from h2o.estimators.glm import H2OGeneralizedLinearEstimator
+
+class H2OGLMModel(H2OBaseModel, CustomModel):
+    _boosters = ['h2oglm']
+    _display_name = "H2O GLM"
+    _description = "H2O-3 Generalized Linear Model"
+    _class = H2OGeneralizedLinearEstimator
+
+    def make_instance(self):
+        if self.num_classes == 1:
+            return self.__class__._class(seed=self.random_state, family='gaussian')   # tweedie/poisson/tweedie/gamma
+        elif self.num_classes == 2:
+            return self.__class__._class(seed=self.random_state, family='binomial')
+        else:
+            return self.__class__._class(seed=self.random_state, family='multinomial')
+
