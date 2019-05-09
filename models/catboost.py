@@ -5,6 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel
 from h2oaicore.systemutils import config, arch_type, physical_cores_count
+from h2oaicore.systemutils import make_experiment_logger, loggerinfo
 
 
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
@@ -47,6 +48,13 @@ class CatBoostModel(CustomModel):
             return {}
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        # example use of logger, with required import of:
+        #  from h2oaicore.systemutils import make_experiment_logger, loggerinfo
+        # Can use loggerwarning, loggererror, etc. for different levels
+        logger = make_experiment_logger(experiment_id=self.context.experiment_id, tmp_dir=self.context.tmp_dir,
+                                        experiment_tmp_dir=self.context.experiment_tmp_dir)
+        loggerinfo(logger, "TestLOGGER: Fit CatBoost")
+
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
         lb = LabelEncoder()
         if self.num_classes >= 2:
