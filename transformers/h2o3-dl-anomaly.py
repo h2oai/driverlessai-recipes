@@ -4,6 +4,7 @@ import numpy as np
 import os
 import h2o
 import uuid
+from h2oaicore.systemutils import temporary_files_path
 from h2o.estimators.deeplearning import H2OAutoEncoderEstimator
 
 
@@ -15,7 +16,7 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
 
     @staticmethod
     def get_default_properties():
-        return dict(col_type="numcat", min_cols=1, max_cols=10, relative_importance=1)
+        return dict(col_type="numcat", min_cols=2, max_cols=10, relative_importance=1)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         h2o.init()
@@ -35,10 +36,11 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         h2o.init()
-        with open(self.id, "wb") as f:
+        model_path = os.path.join(temporary_files_path, self.id)
+        with open(model_path, "wb") as f:
             f.write(self.raw_model_bytes)
-        model = h2o.load_model(self.id)
-        os.remove(self.id)
+        model = h2o.load_model(model_path)
+        os.remove(model_path)
         frame = h2o.H2OFrame(X.to_pandas())
         try:
             return model.anomaly(frame).as_data_frame(header=False)
