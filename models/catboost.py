@@ -5,7 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel
 from h2oaicore.systemutils import config, arch_type, physical_cores_count
-from h2oaicore.systemutils import make_experiment_logger, loggerinfo
+from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 
 
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
@@ -48,12 +48,40 @@ class CatBoostModel(CustomModel):
             return {}
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
-        # example use of logger, with required import of:
+
+        # Example use of logger, with required import of:
         #  from h2oaicore.systemutils import make_experiment_logger, loggerinfo
         # Can use loggerwarning, loggererror, etc. for different levels
-        logger = make_experiment_logger(experiment_id=self.context.experiment_id, tmp_dir=self.context.tmp_dir,
-                                        experiment_tmp_dir=self.context.experiment_tmp_dir)
-        loggerinfo(logger, "TestLOGGER: Fit CatBoost")
+        if self.context is not None and self.context.experiment_id is not None:
+            logger = make_experiment_logger(experiment_id=self.context.experiment_id, tmp_dir=self.context.tmp_dir,
+                                            experiment_tmp_dir=self.context.experiment_tmp_dir)
+            loggerinfo(logger, "TestLOGGER: Fit CatBoost")
+        else:
+            logger = None
+
+        # Example task sync operations
+        if hasattr(self, 'testcount'):
+            self.test_count += 1
+        else:
+            self.test_count = 0
+
+        # The below generates a message in the GUI notifications panel
+        if self.test_count == 0 and self.context is not None and self.context.experiment_id is not None:
+            warning = "TestWarning: First CatBoost fit for this model instance"
+            loggerwarning(logger, warning)
+            task = kwargs.get('task', None)
+            if task is not None:
+                task.sync(key=self.context.experiment_id, progress=dict(type='warning', data=warning))
+                task.flush()
+
+        # The below generates a message in the GUI top-middle panel above the progress wheel
+        if self.test_count == 0 and self.context is not None and self.context.experiment_id is not None:
+            message = "TestMessage: CatBoost"
+            loggerinfo(logger, message)
+            task = kwargs.get('task', None)
+            if task is not None:
+                task.sync(key=self.context.experiment_id, progress=dict(type='update', message=message))
+                task.flush()
 
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
         lb = LabelEncoder()
