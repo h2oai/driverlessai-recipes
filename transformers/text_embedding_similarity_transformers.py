@@ -4,7 +4,7 @@ import datatable as dt
 import numpy as np
 
 class EmbeddingSimilarityTransformer(CustomTransformer):
-    _modules_needed_by_name = ['regex', 'segtok==1.5.7', 'flair==0.4.1']
+    _modules_needed_by_name = ['regex', 'flair==0.4.1', 'segtok==1.5.7']
 
     def __init__(self, embedding_name, **kwargs):
         super().__init__(**kwargs)
