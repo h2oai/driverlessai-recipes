@@ -4,7 +4,7 @@ import datatable as dt
 import numpy as np
 
 class EmbeddingSimilarityTransformer(CustomTransformer):
-    _modules_needed_by_name = ['regex', 'flair==0.4.1', 'segtok-1.5.7']
+    _modules_needed_by_name = ['regex', 'segtok==1.5.7', 'flair==0.4.1']
 
     def __init__(self, embedding_name, **kwargs):
         super().__init__(**kwargs)
@@ -16,19 +16,22 @@ class EmbeddingSimilarityTransformer(CustomTransformer):
 
     @staticmethod
     def get_parameter_choices():
-        return {"embedding_name": ["glove", "en"]}
+        return {"embedding_name": ["glove", "en", "bert"]}
 
     @property
     def display_name(self):
-        name_map = {"glove":"Glove", "en":"FastText"}
-        return "%sEmbedding_CosineSimilarity" % self.embedding_name
+        name_map = {"glove":"Glove", "en":"FastText", "bert":"BERT"}
+        return "%sEmbedding_CosineSimilarity" % name_map[self.embedding_name]
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        from flair.embeddings import WordEmbeddings, DocumentPoolEmbeddings, Sentence
-        self.embedding = WordEmbeddings(self.embedding_name)
+        from flair.embeddings import WordEmbeddings, BertEmbeddings, DocumentPoolEmbeddings, Sentence
+        if self.embedding_name in ["glove", "en"]:
+            self.embedding = WordEmbeddings(self.embedding_name)
+        elif self.embedding_name in ["bert"]:
+            self.embedding = BertEmbeddings()
         self.doc_embedding = DocumentPoolEmbeddings([self.embedding])
         output = []
         X = X.to_pandas()
@@ -37,10 +40,10 @@ class EmbeddingSimilarityTransformer(CustomTransformer):
         for ind, text1 in enumerate(text1_arr):
             try:
                 text1 = Sentence(str(text1).lower())
-                document_embeddings.embed(text1)
+                self.doc_embedding.embed(text1)
                 text2 = text2_arr[ind]
                 text2 = Sentence(str(text2).lower())
-                document_embeddings.embed(text2)
+                self.doc_embedding.embed(text2)
                 score = cosine_similarity(text1.get_embedding().reshape(1,-1), 
                                           text2.get_embedding().reshape(1,-1))[0,0]
                 output.append(score)
