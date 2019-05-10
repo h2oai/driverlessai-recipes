@@ -6,6 +6,8 @@ import datatable as dt
 import pandas as pd
 import numpy as np
 
+#Best applied on financial time series
+#The standard rolling window is 252 trading days per year, this may be change to any value you like
 
 class TradingVolatility(CustomTransformer):
 
@@ -16,7 +18,7 @@ class TradingVolatility(CustomTransformer):
     #Train
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         x = X.to_pandas()
-        vx = (np.log(x / x.shift(1))).rolling(252).std()
+        vx = (np.log(x / x.shift(1))).rolling(252).std() 
         return vx
 
 
