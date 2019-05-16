@@ -2,10 +2,12 @@ from h2oaicore.transformer_utils import CustomTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import datatable as dt
 import numpy as np
+import math
 
 class EmbeddingSimilarityTransformer(CustomTransformer):
     _modules_needed_by_name = ['regex==2018.1.10', 'flair==0.4.1', 'segtok==1.5.7']
     _is_reproducible = False
+    _repl_val = 0
 
     def __init__(self, embedding_name, **kwargs):
         super().__init__(**kwargs)
@@ -25,9 +27,11 @@ class EmbeddingSimilarityTransformer(CustomTransformer):
         return "%sEmbedding_CosineSimilarity" % name_map[self.embedding_name]
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
+        X.replace([None, math.inf, -math.inf], self._repl_val)
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
+        X.replace([None, math.inf, -math.inf], self._repl_val)
         from flair.embeddings import WordEmbeddings, BertEmbeddings, DocumentPoolEmbeddings, Sentence
         if self.embedding_name in ["glove", "en"]:
             self.embedding = WordEmbeddings(self.embedding_name)
