@@ -14,7 +14,8 @@ class MyTimeColTransformer(CustomTransformer):
         self._encoder = kwargs['encoder']
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
+        self._encoder.fit(X.to_pandas())
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        return self._encoder.fit_transform(X.to_pandas())
+        return self._encoder.transform(X.to_pandas())
