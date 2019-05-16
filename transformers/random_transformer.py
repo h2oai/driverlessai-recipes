@@ -4,6 +4,8 @@ import numpy as np
 
 
 class MyRandomTransformer(CustomTransformer):
+    _is_reproducible = False
+
     def __init__(self, seed=12345, **kwargs):
         super().__init__(**kwargs)
         self.seed = seed
