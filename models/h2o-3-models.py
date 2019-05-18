@@ -82,7 +82,6 @@ class H2OBaseModel:
                                   features=orig_cols,
                                   importances=varimp,
                                   iterations=self.get_iterations(model))
-        return self
 
     def predict(self, X, **kwargs):
         model, _, _, _ = self.get_model_properties()

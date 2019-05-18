@@ -138,7 +138,6 @@ class CatBoostModel(CustomModel):
                                   features=orig_cols,
                                   importances=model.feature_importances_,
                                   iterations=iterations)
-        return self
 
     def predict(self, X, **kwargs):
         model, features, importances, iterations = self.get_model_properties()
