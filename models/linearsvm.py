@@ -39,7 +39,6 @@ class LinearSVMModel(CustomModel):
                                   features=orig_cols,
                                   importances=abs(model.coef_[0]),
                                   iterations=0)
-        return self
 
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
