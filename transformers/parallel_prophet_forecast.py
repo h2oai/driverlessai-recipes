@@ -7,6 +7,7 @@ import uuid
 import random
 import importlib
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 
 class suppress_stdout_stderr(object):
@@ -34,10 +35,11 @@ def MyParallelProphetTransformer_transform_async(*args, **kwargs):
 
 
 class MyParallelProphetTransformer(CustomTransformer):
+    _is_reproducible = False
     _binary = False
     _multiclass = False
     # some package dependencies are best sequential to overcome known issues
-    _modules_needed_by_name = ['pystan==2.18', 'fbprophet==0.4.post2']
+    _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.4.post2']
     # _modules_needed_by_name = ['fbprophet']
     _allowed_boosters = None  # ["gblinear"] for strong trends - can extrapolate
 
@@ -72,30 +74,23 @@ class MyParallelProphetTransformer(CustomTransformer):
         if X.shape[0] < 20:
             print("prophet - small data work-around for group: %s" % grp_hash)
             return grp_hash, None
-        # print("%s load_obj" % X_path) ; sys.stdout.flush()
-        # print(X)
-        # print("%s model" % X_path) ; sys.stdout.flush()
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
-        # from fbprophet import Prophet
         model = Prophet()
-        # pmodel_path = os.path.join(temporary_files_path, "fbprophet_model" + str(uuid.uuid4()))
-        # save_obj(model, pmodel_path)
-        # print("modules %s" % str(sys.modules.keys()))
-        # print("%s psave %s" % (X_path, pmodel_path)) ; sys.stdout.flush()
         with suppress_stdout_stderr():
             model.fit(X[['ds', 'y']])
-        # print("%s fit" % X_path) ; sys.stdout.flush()
         model_path = os.path.join(temporary_files_path, "fbprophet_model" + str(uuid.uuid4()))
         save_obj(model, model_path)
-        # print("%s save" % X_path) ; sys.stdout.flush()
         remove(X_path)  # remove to indicate success
         return grp_hash, model_path
 
     def fit(self, X: dt.Frame, y: np.array = None):
         X = X.to_pandas()
+        X = X.replace([None, np.nan], 0)
         XX = X[self.tgc].copy()
         XX.rename(columns={self.time_column: "ds"}, inplace=True)
+        if self.labels is not None:
+            y = LabelEncoder().fit(self.labels).transform(y)
         XX['y'] = np.array(y)
         self.nan_value = np.mean(y)  # TODO - store mean per group, not just global
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
@@ -144,6 +139,7 @@ class MyParallelProphetTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         X = X.to_pandas()
+        X = X.replace([None, np.nan], 0)
         XX = X[self.tgc].copy()
         XX.rename(columns={self.time_column: "ds"}, inplace=True)
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
@@ -158,7 +154,6 @@ class MyParallelProphetTransformer(CustomTransformer):
             out.append(res)
 
         pool_to_use = small_job_pool
-        # pool_to_use = dummypool
         pool = pool_to_use(logger=None, processor=processor, max_workers=self.n_jobs, num_tasks=num_tasks)
         XX_paths = []
         model_paths = []

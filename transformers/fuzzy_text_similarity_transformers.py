@@ -11,6 +11,7 @@ import nltk
 class FuzzyBaseTransformer:
     _modules_needed_by_name = ['fuzzywuzzy==0.17.0']
     _method = NotImplemented
+    _parallel_task = False
 
     @staticmethod
     def get_default_properties():
