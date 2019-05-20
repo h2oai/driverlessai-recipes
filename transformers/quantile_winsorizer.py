@@ -5,6 +5,10 @@ import numpy as np
 
 class MyQuantileWinsorizer(CustomTransformer):
     @staticmethod
+    def get_default_properties():
+        return dict(col_type="numeric", min_cols=1, max_cols=1, relative_importance=1)
+
+    @staticmethod
     def get_parameter_choices():
         return {"quantile": [0.01, 0.001, 0.05]}
 
@@ -26,6 +30,6 @@ class MyQuantileWinsorizer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         X = dt.Frame(X)
-        X[self._lo > dt.f[0], :] = self._lo
-        X[self._hi < dt.f[0], :] = self._hi
+        X[self._lo > dt.f[0], float] = self._lo
+        X[self._hi < dt.f[0], float] = self._hi
         return X
