@@ -16,4 +16,3 @@ class MyExpDiffTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         return X[:, dt.exp(dt.f[0] - dt.f[1])]
-

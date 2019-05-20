@@ -3,6 +3,7 @@ import datatable as dt
 import numpy as np
 import nltk
 
+
 class CountCommonNGramsTransformer(CustomTransformer):
     def __init__(self, ngrams, **kwargs):
         super().__init__(**kwargs)
@@ -26,17 +27,18 @@ class CountCommonNGramsTransformer(CustomTransformer):
     def transform(self, X: dt.Frame):
         output = []
         X = X.to_pandas()
-        text1_arr = X.iloc[:,0].values
-        text2_arr = X.iloc[:,1].values
+        text1_arr = X.iloc[:, 0].values
+        text2_arr = X.iloc[:, 1].values
         for ind, text1 in enumerate(text1_arr):
             try:
-                text1 = set(nltk.ngrams(str(text1).lower().split(),self.ngrams))
+                text1 = set(nltk.ngrams(str(text1).lower().split(), self.ngrams))
                 text2 = text2_arr[ind]
-                text2 = set(nltk.ngrams(str(text2).lower().split(),self.ngrams))
+                text2 = set(nltk.ngrams(str(text2).lower().split(), self.ngrams))
                 output.append(len(text1.intersection(text2)))
             except:
                 output.append(-1)
         return np.array(output)
+
 
 class JaccardSimilarityTransformer(CustomTransformer):
     @staticmethod
@@ -49,8 +51,8 @@ class JaccardSimilarityTransformer(CustomTransformer):
     def transform(self, X: dt.Frame):
         output = []
         X = X.to_pandas()
-        text1_arr = X.iloc[:,0].values
-        text2_arr = X.iloc[:,1].values
+        text1_arr = X.iloc[:, 0].values
+        text2_arr = X.iloc[:, 1].values
         for ind, text1 in enumerate(text1_arr):
             try:
                 text1 = set(str(text1).lower().split())
@@ -60,6 +62,7 @@ class JaccardSimilarityTransformer(CustomTransformer):
             except:
                 output.append(-1)
         return np.array(output)
+
 
 class EditDistanceTransformer(CustomTransformer):
     _modules_needed_by_name = ['editdistance==0.5.3']
@@ -75,8 +78,8 @@ class EditDistanceTransformer(CustomTransformer):
         import editdistance
         output = []
         X = X.to_pandas()
-        text1_arr = X.iloc[:,0].values
-        text2_arr = X.iloc[:,1].values
+        text1_arr = X.iloc[:, 0].values
+        text2_arr = X.iloc[:, 1].values
         for ind, text1 in enumerate(text1_arr):
             try:
                 text1 = str(text1).lower().split()

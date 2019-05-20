@@ -5,10 +5,9 @@ import uuid
 from h2oaicore.systemutils import config, temporary_files_path
 import numpy as np
 
-
-
 import h2o
 import os
+
 
 class H2OBaseModel:
     _regression = True
@@ -18,7 +17,7 @@ class H2OBaseModel:
     _is_reproducible = True
     _class = NotImplemented
 
-    def __init__ (self, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.id = None
         self.target = "__target__"
@@ -119,6 +118,7 @@ class H2OBaseModel:
 
 from h2o.estimators.naive_bayes import H2ONaiveBayesEstimator
 
+
 class H2ONBModel(H2OBaseModel, CustomModel):
     _regression = False
     _boosters = ['h2onb']
@@ -128,6 +128,7 @@ class H2ONBModel(H2OBaseModel, CustomModel):
 
 
 from h2o.estimators.gbm import H2OGradientBoostingEstimator
+
 
 class H2OGBMModel(H2OBaseModel, CustomModel):
     _boosters = ['h2ogbm']
@@ -141,6 +142,7 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
 
 from h2o.estimators.random_forest import H2ORandomForestEstimator
 
+
 class H2ORFModel(H2OBaseModel, CustomModel):
     _boosters = ['h2orf']
     _display_name = "H2O RF"
@@ -152,6 +154,7 @@ class H2ORFModel(H2OBaseModel, CustomModel):
 
 
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
+
 
 class H2ODLModel(H2OBaseModel, CustomModel):
     _is_reproducible = False
@@ -168,6 +171,7 @@ class H2ODLModel(H2OBaseModel, CustomModel):
 
 from h2o.estimators.glm import H2OGeneralizedLinearEstimator
 
+
 class H2OGLMModel(H2OBaseModel, CustomModel):
     _boosters = ['h2oglm']
     _display_name = "H2O GLM"
@@ -176,9 +180,8 @@ class H2OGLMModel(H2OBaseModel, CustomModel):
 
     def make_instance(self):
         if self.num_classes == 1:
-            return self.__class__._class(seed=self.random_state, family='gaussian')   # tweedie/poisson/tweedie/gamma
+            return self.__class__._class(seed=self.random_state, family='gaussian')  # tweedie/poisson/tweedie/gamma
         elif self.num_classes == 2:
             return self.__class__._class(seed=self.random_state, family='binomial')
         else:
             return self.__class__._class(seed=self.random_state, family='multinomial')
-

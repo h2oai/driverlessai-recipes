@@ -18,7 +18,6 @@ class MyQuantileWinsorizer(CustomTransformer):
         self._lo = None
         self._hi = None
 
-
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         vals = X.to_numpy()
         self._lo = float(np.quantile(vals, self._quantile))

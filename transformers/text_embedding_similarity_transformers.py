@@ -4,6 +4,7 @@ import datatable as dt
 import numpy as np
 import math
 
+
 class EmbeddingSimilarityTransformer(CustomTransformer):
     _modules_needed_by_name = ['regex==2018.1.10', 'flair==0.4.1', 'segtok==1.5.7']
     _is_reproducible = False
@@ -23,7 +24,7 @@ class EmbeddingSimilarityTransformer(CustomTransformer):
 
     @property
     def display_name(self):
-        name_map = {"glove":"Glove", "en":"FastText", "bert":"BERT"}
+        name_map = {"glove": "Glove", "en": "FastText", "bert": "BERT"}
         return "%sEmbedding_CosineSimilarity" % name_map[self.embedding_name]
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
@@ -40,8 +41,8 @@ class EmbeddingSimilarityTransformer(CustomTransformer):
         self.doc_embedding = DocumentPoolEmbeddings([self.embedding])
         output = []
         X = X.to_pandas()
-        text1_arr = X.iloc[:,0].values
-        text2_arr = X.iloc[:,1].values
+        text1_arr = X.iloc[:, 0].values
+        text2_arr = X.iloc[:, 1].values
         for ind, text1 in enumerate(text1_arr):
             try:
                 text1 = Sentence(str(text1).lower())
@@ -49,8 +50,8 @@ class EmbeddingSimilarityTransformer(CustomTransformer):
                 text2 = text2_arr[ind]
                 text2 = Sentence(str(text2).lower())
                 self.doc_embedding.embed(text2)
-                score = cosine_similarity(text1.get_embedding().reshape(1,-1), 
-                                          text2.get_embedding().reshape(1,-1))[0,0]
+                score = cosine_similarity(text1.get_embedding().reshape(1, -1),
+                                          text2.get_embedding().reshape(1, -1))[0, 0]
                 output.append(score)
             except:
                 output.append(-99)

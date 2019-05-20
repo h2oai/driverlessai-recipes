@@ -18,4 +18,3 @@ class MyLargestErrorScorer(CustomScorer):
         if sample_weight is None:
             sample_weight = np.ones(actual.shape[0])
         return (np.abs(actual - predicted) * sample_weight).max()
-
