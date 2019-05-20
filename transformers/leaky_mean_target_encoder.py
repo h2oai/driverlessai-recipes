@@ -1,6 +1,7 @@
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
+from sklearn.preprocessing import LabelEncoder
 
 
 class MyLeakyCategoricalGroupMeanTargetEncoder(CustomTransformer):
@@ -21,7 +22,12 @@ class MyLeakyCategoricalGroupMeanTargetEncoder(CustomTransformer):
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         target = '__internal_target__'
         X[:, target] = dt.Frame(y)
-        self._group_means = X[:, dt.mean(dt.f[target]), dt.by(*self.input_feature_names)]
+        target_is_numeric = X[:, target][:, [bool, int, float]].shape[1] > 0
+        if target_is_numeric:
+            self._group_means = X[:, dt.mean(dt.f[target]), dt.by(*self.input_feature_names)]
+        else:
+            X[:, target] = dt.Frame(LabelEncoder().fit_transform(X[:, target].to_pandas().iloc[:, 0].values).ravel())
+            self._group_means = X[:, dt.median(dt.f[target]), dt.by(*self.input_feature_names)]
         del X[:, target]
         self._group_means.key = self.input_feature_names
         return self.transform(X)
