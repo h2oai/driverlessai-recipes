@@ -28,24 +28,26 @@ class CatBoostModel(CustomModel):
     _modules_needed_by_name = ['catboost']
 
     def set_default_params(self,
-                           params,
-                           accuracy, time_tolerance, interpretability,
+                           accuracy=None, time_tolerance=None, interpretability=None,
                            **kwargs):
-        params.update(dict(
-            iterations=config.max_nestimators,
-            learning_rate=config.min_learning_rate,
-            early_stopping_rounds=20
-        ))
+        n_jobs = max(1, physical_cores_count)
+        max_iterations = min(kwargs['n_estimators'],
+                             config.max_nestimators) if 'n_estimators' in kwargs else config.max_nestimators
+        max_iterations = min(kwargs['iterations'], max_iterations) if 'iterations' in kwargs else max_iterations
+        self.params = {'iterations': max_iterations,
+                       'learning_rate': config.min_learning_rate,
+                       'train_dir': config.data_directory,
+                       'allow_writing_files': False,
+                       'thread_count': self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
+                       'early_stopping_rounds': 20
+                       }
 
-    def get_random_specialparams(self,
-                                 params,
-                                 accuracy, time_tolerance, interpretability,
-                                 **kwargs):
-        # DUMMY version is do nothing
-        if params is not None:
-            return params
-        else:
-            return {}
+    def mutate_params(self,
+                      accuracy, time_tolerance, interpretability,
+                      **kwargs):
+        # Default version is do no mutation
+        # Otherwise, change self.params for this model
+        pass
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
 
@@ -105,21 +107,18 @@ class CatBoostModel(CustomModel):
         else:
             orig_cols = list(X.columns)
 
-        n_jobs = max(1, physical_cores_count)
-        params = {'iterations': config.max_nestimators,
-                  'learning_rate': config.min_learning_rate,
-                  'train_dir': config.data_directory,
-                  'allow_writing_files': False,
-                  'thread_count': self.params.get('n_jobs', n_jobs)}  # -1 is not supported
         if self.num_classes == 1:
-            model = CatBoostRegressor(**params)
+            model = CatBoostRegressor(**self.params)
         else:
-            model = CatBoostClassifier(**params)
+            model = CatBoostClassifier(**self.params)
         # Hit sometimes: Exception: catboost/libs/data_new/quantization.cpp:779: All features are either constant or ignored.
-        if 'param' in kwargs:
-            baseline = kwargs['param'].get('base_score', None)
+        if self.num_classes == 1:
+            # assume not mae, which would use median
+            # baseline = [np.mean(y)] * len(y)
+            baseline = None
         else:
             baseline = None
+
         model.fit(X, y=y,
                   sample_weight=sample_weight,
                   baseline=baseline,
@@ -132,7 +131,7 @@ class CatBoostModel(CustomModel):
         if model.get_best_iteration() is not None:
             iterations = model.get_best_iteration() + 1
         else:
-            iterations = params['iterations'] + 1
+            iterations = self.params['iterations'] + 1
         # must always set best_iterations
         self.set_model_properties(model=model,
                                   features=orig_cols,
@@ -163,7 +162,7 @@ class CatBoostModel(CustomModel):
             if self.num_classes >= 2:
                 preds = model.predict_proba(X,
                                             ntree_start=iterations - 1,
-                                            thread_count=self.params.get('n_jobs', -1))  # None is not supported
+                                            thread_count=self.params['thread_count'])
                 if preds.shape[1] == 2:
                     return preds[:, 1]
                 else:
@@ -171,11 +170,11 @@ class CatBoostModel(CustomModel):
             else:
                 return model.predict(X,
                                      ntree_start=iterations - 1,
-                                     thread_count=self.params.get('n_jobs', -1))
+                                     thread_count=self.params['thread_count'])
         else:
             # For Shapley, doesn't come from predict, instead:
             return model.get_feature_importance(data=X,
                                                 ntree_start=iterations - 1,
-                                                thread_count=self.params.get('n_jobs', -1),
+                                                thread_count=self.params['thread_count'],
                                                 type=EFstrType.ShapValues)
             # FIXME: Do equivalent of preds = self._predict_internal_fixup(preds, **mykwargs) or wrap-up
