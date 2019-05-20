@@ -27,3 +27,4 @@ class TradingVolatility(CustomTransformer):
         x = X.to_pandas()
         vx = (np.log(x / x.shift(1))).rolling(252).std()
         return vx
+
