@@ -13,4 +13,3 @@ class MyStrLenEncoderTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         return X.to_pandas().astype(str).iloc[:, 0].str.len()
-

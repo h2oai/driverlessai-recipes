@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import datetime as dttm
 
+
 class ParseExcelDateTransformer(CustomTransformer):
 
     @staticmethod
@@ -24,7 +25,6 @@ class ParseExcelDateTransformer(CustomTransformer):
 
     # Function for our training data sets
     def fit_transform(self, X: dt.Frame, y: np.array = None):
-
         df = X.to_pandas()
 
         # What's the best way to leave if we don't want to continue?
@@ -44,7 +44,6 @@ class ParseExcelDateTransformer(CustomTransformer):
 
     # Function for validation and testing data sets
     def transform(self, X: dt.Frame):
-
         df = X.to_pandas()
 
         # What's the best way to leave if we don't want to continue?
@@ -60,4 +59,3 @@ class ParseExcelDateTransformer(CustomTransformer):
 
         # Re-Write to show WHAT each component is... or call DAI date transformers
         return df.iloc[:, 2:]
-

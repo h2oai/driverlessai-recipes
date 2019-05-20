@@ -4,6 +4,7 @@ import numpy as np
 import pickle
 from sklearn.preprocessing import LabelEncoder
 
+
 class LinearSVMModel(CustomModel):
     _regression = True
     _binary = True

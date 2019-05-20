@@ -21,5 +21,3 @@ class MyRoundTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         return np.round(X.to_numpy(), decimals=self.decimals)
-
-

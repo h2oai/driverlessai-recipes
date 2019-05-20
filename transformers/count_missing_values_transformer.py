@@ -16,11 +16,12 @@ class CountMissingPerRowTransformer(CustomTransformer):
             return np.zeros(X.nrows)
         return X[:, dt.sum([dt.isna(dt.f[x]) for x in range(X.ncols)])]
 
+
 class CountMissingNumericsPerRowTransformer(CountMissingPerRowTransformer):
     def transform(self, X: dt.Frame):
         return super().transform(X[:, [int, float]])
 
+
 class CountMissingStringsPerRowTransformer(CountMissingPerRowTransformer):
     def transform(self, X: dt.Frame):
         return super().transform(X[:, [str]])
-

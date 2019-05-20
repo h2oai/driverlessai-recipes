@@ -2,6 +2,7 @@ from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
 
+
 class MyToStringTransformer(CustomTransformer):
     _numeric_output = False
 
