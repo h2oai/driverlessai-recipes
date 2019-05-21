@@ -7,7 +7,7 @@ class Pearson_Correlation(CustomScorer):
     _description = "Pearson Correlation coefficient"
     _regression = True
     _maximize = True
-    _perfect_score = 1
+    _perfect_score = 1.
     _display_name = "Pearson R"
 
     def score(self,
@@ -26,7 +26,7 @@ class Pearson_Correlation(CustomScorer):
         sxy=np.sum(predicted*actual*sample_weight)
         n=np.sum(sample_weight)                       
         sq=np.sqrt(np.abs(n*sx_2-(sx*sx))*np.abs(n*sy_2-(sy*sy)))        
-        cor=(n*sxy - sx*sy)/np.max(sq, 1E-30)
+        cor=(n*sxy - sx*sy)/max(sq, 1E-30)
         
         return cor    
     
