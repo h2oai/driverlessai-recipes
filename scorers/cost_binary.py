@@ -4,8 +4,8 @@ from h2oaicore.metrics import CustomScorer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import confusion_matrix
 
-class cost_bianary(CustomScorer):
-    _description = " Calculates cost in bianary classification: `$1*FP + $2*FN`"
+class cost_binary(CustomScorer):
+    _description = " Calculates cost in binary classification: `$1*FP + $2*FN`"
     _binary = True
     _multiclass = False
     _maximize = False
