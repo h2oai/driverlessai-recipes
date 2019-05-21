@@ -17,7 +17,7 @@ class MyFalseDiscoveryRateScorer(CustomScorer):
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-        lb = LabelEncoder()
+        lb = sklearn.preprocessing.LabelEncoder()
         labels = lb.fit_transform(labels)
         actual = lb.transform(actual)
         predicted = predicted >= self.__class__._threshold  # probability -> label
