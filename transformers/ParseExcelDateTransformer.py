@@ -1,4 +1,4 @@
-# Michelle Tanco - 05/19/2019
+# Michelle Tanco - 05/21/2019
 # Takes integers and decimals, treats them as an excel date sting, returns the date parts
 
 from h2oaicore.transformer_utils import CustomTransformer
@@ -6,7 +6,6 @@ import datatable as dt
 import numpy as np
 import pandas as pd
 import datetime as dttm
-
 
 class ParseExcelDateTransformer(CustomTransformer):
 
@@ -25,12 +24,12 @@ class ParseExcelDateTransformer(CustomTransformer):
 
     # Function for our training data sets
     def fit_transform(self, X: dt.Frame, y: np.array = None):
+
         df = X.to_pandas()
 
-        # What's the best way to leave if we don't want to continue?
-        # Currently will fail for numbers past 12/31/9999
-        # if (df.iloc[:, 0].max() > 2958464):
-        #    return None
+        # leave if any number is out of range of excel dates
+        if df.iloc[:, 0].max() > 2958464:
+            return np.zeros((X.shape[0], 5))
 
         df["new_date"] = pd.TimedeltaIndex(df.iloc[:, 0], unit='d') + dttm.datetime(1899, 12, 30)
         df["day"] = df["new_date"].dt.day
@@ -44,11 +43,12 @@ class ParseExcelDateTransformer(CustomTransformer):
 
     # Function for validation and testing data sets
     def transform(self, X: dt.Frame):
+
         df = X.to_pandas()
 
-        # What's the best way to leave if we don't want to continue?
-        # if (df.iloc[:, 0].max() > 2958464):
-        #    return df.iloc[:, 0]
+        # leave if any number is out of range of excel dates
+        if df.iloc[:, 0].max() > 2958464:
+            return np.zeros((X.shape[0], 5))
 
         df["new_date"] = pd.TimedeltaIndex(df.iloc[:, 0], unit='d') + dttm.datetime(1899, 12, 30)
         df["day"] = df["new_date"].dt.day
