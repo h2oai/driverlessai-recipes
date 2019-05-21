@@ -15,9 +15,7 @@ class Pearson_Correlation(CustomScorer):
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-        
-        predicted=predicted.tolist()
-        predicted=predicted.tolist()        
+            
         if sample_weight is None:
             sample_weight = np.ones(actual.shape[0])
             
