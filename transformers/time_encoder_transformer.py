@@ -11,11 +11,11 @@ class MyTimeColTransformer(CustomTransformer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         assert 'tgc' in kwargs
-        self._encoder = kwargs['encoder']
+        self.encoder = kwargs['encoder']
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
-        self._encoder.fit(X.to_pandas())
+        self.encoder.fit(X.to_pandas())
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        return self._encoder.transform(X.to_pandas())
+        return self.encoder.transform(X.to_pandas())
