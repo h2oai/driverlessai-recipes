@@ -16,9 +16,9 @@ class GeneralTimeSeriesTransformer(CustomTimeSeriesTransformer):
         # self.tsp
         # self.time_column
         # self.datetime_formats
-        self.encoder.fit(X.to_pandas())
+        self.encoder.fit(X[:, self.time_column].to_pandas())
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        return self.encoder.transform(X.to_pandas())
+        return self.encoder.transform(X[:, self.time_column].to_pandas())
 
