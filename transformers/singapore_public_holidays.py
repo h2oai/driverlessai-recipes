@@ -75,10 +75,6 @@ class SingaporePublicHolidayTransformer(CustomTimeSeriesTransformer):
         self.memo.sort_values(by=['year', 'doy']).drop_duplicates(subset=['year'], keep='first').reset_index(drop=True)
         self.memo.drop(self.time_column, axis=1, inplace=True)
 
-    @staticmethod
-    def get_default_properties():
-        return dict(col_type="all", min_cols="all", max_cols="all", relative_importance=1)
-
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         return self.transform(X)
 
