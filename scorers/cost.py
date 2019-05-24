@@ -1,3 +1,8 @@
+# Author: Michelle Tanco - michelle.tanco@h2o.ai
+# Last Updated: May 23rd, 2019
+# Purpose: Using hard-corded dollar amounts for false postivies and false negatives,
+#       calculate the cost of a model using: `$1*FP + $2*FN`
+
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
@@ -29,11 +34,11 @@ class cost_binary(CustomScorer):
         actual = lb.transform(actual)
 
         # label predictions as 1 or 0
-        predicted = predicted >= 0.5  # probability -> label
+        predicted = predicted >= 0.5
 
+        # use sklean to get fp and fn
         cm = confusion_matrix(actual, predicted, sample_weight=sample_weight, labels=labels)
         tn, fp, fn, tp = cm.ravel()
 
+        # calculate`$1*FP + $2*FN`
         return (fp * self.__class__._fp_cost) + (fn * self.__class__._fn_cost)
-
-
