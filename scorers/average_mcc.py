@@ -1,11 +1,11 @@
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
-import sklearn
+from sklearn.metrics import matthews_corrcoef
+from sklearn.preprocessing import LabelEncoder
 
 
 class MyAverageMCCScorer(CustomScorer):
-    _threshold = 0.1
     _description = "Average MCC over several thresholds"
     _binary = True
     _maximize = True
@@ -20,7 +20,7 @@ class MyAverageMCCScorer(CustomScorer):
         fn = np.sum((actual == 1) & (predicted == 0))
 
         numerator = (tp * tn - fp * fn)
-        denominator = ((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)) ** .5
+        denominator = ((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)) ** .5  # example only: not robust for large values
 
         return numerator / (denominator + 1e-15)
 
@@ -38,8 +38,9 @@ class MyAverageMCCScorer(CustomScorer):
         # If actual is provided as a class label
         # then use Label Encoding first on ground truth
         if labels is not None:
-            lb = sklearn.preprocessing.LabelEncoder()
-            actual = lb.fit_transform(actual)
+            actual = LabelEncoder().fit(labels).transform(actual)
+        else:
+            actual = LabelEncoder().fit_transform(actual)
 
         # Compute thresholds
         prior = np.mean(actual)
@@ -48,7 +49,7 @@ class MyAverageMCCScorer(CustomScorer):
         # Compute average MCC for the thresholds
         avg_score = 0
         for t in thresholds:
-            avg_score += sklearn.metrics.matthews_corrcoef(
+            avg_score += matthews_corrcoef(
                 y_true=actual,
                 y_pred=(predicted > t).astype(np.uint8),
                 sample_weight=sample_weight
