@@ -35,9 +35,9 @@ class QuadraticWeightedKappaScorer(CustomScorer):
         actual = lb.transform(actual)
         predicted = np.argmax(predicted, axis=1)
         if _min_rating is None:
-            _min_rating = int(np.min(actual))
+            _min_rating = int(np.min(labels))
         if _max_rating is None:
-            _max_rating = int(np.max(actual))
+            _max_rating = int(np.max(labels))
 
         return qwk(actual, predicted, min_rating=_min_rating, max_rating=_max_rating, sample_weight=sample_weight)
 
