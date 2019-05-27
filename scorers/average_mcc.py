@@ -12,18 +12,6 @@ class MyAverageMCCScorer(CustomScorer):
     _perfect_score = 0
     _display_name = "AVGMCC"
 
-    @staticmethod
-    def my_mcc(actual, predicted):
-        tp = np.sum((actual == 1) & (predicted == 1))
-        tn = np.sum((actual == 0) & (predicted == 0))
-        fp = np.sum((actual == 0) & (predicted == 1))
-        fn = np.sum((actual == 1) & (predicted == 0))
-
-        numerator = (tp * tn - fp * fn)
-        denominator = ((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)) ** .5  # example only: not robust for large values
-
-        return numerator / (denominator + 1e-15)
-
     def score(self,
               actual: np.array,
               predicted: np.array,
@@ -35,12 +23,9 @@ class MyAverageMCCScorer(CustomScorer):
         Using an average over thresholds close to the prior may lead to a flatter
         response and better generalization.
         """
-        # If actual is provided as a class label
-        # then use Label Encoding first on ground truth
-        if labels is not None:
-            actual = LabelEncoder().fit(labels).transform(actual)
-        else:
-            actual = LabelEncoder().fit_transform(actual)
+        lb = LabelEncoder()
+        labels = lb.fit_transform(labels)
+        actual = lb.transform(actual)
 
         # Compute thresholds
         prior = np.mean(actual)

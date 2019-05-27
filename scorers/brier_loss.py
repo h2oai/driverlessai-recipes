@@ -17,8 +17,7 @@ class MyBrierLoss(CustomScorer):
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-        if labels is not None:
-            actual = LabelEncoder().fit(labels).transform(actual)
-        else:
-            actual = LabelEncoder().fit_transform(actual)
-        return brier_score_loss(actual, predicted, sample_weight)
+        lb = LabelEncoder()
+        labels = lb.fit_transform(labels)
+        actual = lb.transform(actual)
+        return brier_score_loss(actual, predicted, sample_weight, pos_label=labels[1])

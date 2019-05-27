@@ -1,7 +1,8 @@
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
-import sklearn
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import confusion_matrix
 
 
 class MyFalseDiscoveryRateScorer(CustomScorer):
@@ -17,11 +18,11 @@ class MyFalseDiscoveryRateScorer(CustomScorer):
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-        lb = sklearn.preprocessing.LabelEncoder()
+        lb = LabelEncoder()
         labels = lb.fit_transform(labels)
         actual = lb.transform(actual)
         predicted = predicted >= self.__class__._threshold  # probability -> label
-        cm = sklearn.metrics.confusion_matrix(actual, predicted, sample_weight=sample_weight, labels=labels)
+        cm = confusion_matrix(actual, predicted, sample_weight=sample_weight, labels=labels)
         tn, fp, fn, tp = cm.ravel()
         if (fp + tp) != 0:
             return fp / (fp + tp)
