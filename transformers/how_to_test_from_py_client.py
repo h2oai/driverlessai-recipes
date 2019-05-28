@@ -1,36 +1,60 @@
-# Edited by: Michelle Tanco
-# Last update: 05/19/2019
-# Example script for testing transformers in DAI
+# Author: Michelle Tanco - michelle.tanco@h2o.ai
+# Last Updated: May 28th, 2019
+# Purpose: Functions to ease testing a new custom transformer from the python client
 
 import pandas as pd
 import os
 import shutil
 import sys
+from h2oai_client import Client
+
+pd.set_option('display.max_rows', 50)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+
+
+def connect():
+    # Login info
+    dai_url = "http://IPADDRESS:12345"
+    dai_user = "UserName"
+    dai_pwd = "Password"
+
+    return Client(dai_url, dai_user, dai_pwd)
+
+
+def print_system_custom_transformers():
+
+    h2oai = connect()
+
+    all_transformers = h2oai.list_transformers()
+
+    print(all_transformers[0].dump())
+
+    names = list(map(lambda x: x.name, all_transformers))
+    types = list(map(lambda x: x.is_custom, all_transformers))
+
+    all_trans = pd.DataFrame(
+        {'name': names,
+         'is_custom': types
+         })
+
+    print(list(all_trans[all_trans["is_custom"]]["name"]))
 
 
 def test_debug_pyclient():
-    from h2oai_client import Client
-
-    pd.set_option('display.max_rows', 50)
-    pd.set_option('display.max_columns', 500)
-    pd.set_option('display.width', 1000)
-
-    # Login info
-    dai_url = "http://****:12345"
-    dai_user = "h2oai"
-    dai_pwd = "****"
 
     # Data Information
     data_file_name = "****.csv"
     y = "****"
 
-    # Transformers information
+    # Transformers Information
     transformer_file_name = "****.py"
 
+    # Use empty lists if you want to test how the transformer does in relation to other transformers
     transformers_noncustom = []
     transformers_custom_nontesting = []
 
-    # All Offical Transformers
+    # All Official Transformers
     transformers_noncustom = ['CVCatNumEncode', 'CVTargetEncode'
         , 'CatOriginalTransformer', 'ClusterDistTransformer'
         , 'ClusterIdTransformer', 'ClusterTETransformer', 'DatesTransformer'
@@ -45,14 +69,15 @@ def test_debug_pyclient():
     # Any Installed Custom Transformers you don't want to test
     transformers_custom_nontesting = ['MyLogTransformer']
 
+    # A list of all transformers we don't want in our experiment
     all_nontest_transformers = transformers_noncustom + transformers_custom_nontesting
 
-    # STEP ZERO: Connect to Driverless AI
-    h2oai = Client(dai_url, dai_user, dai_pwd)
+    # Step Zero: Connect to Driverless AI
+    h2oai = connect()
 
-    # STEP ONE: Load data set (and related tasks)
+    # Step One: Load Data Set
 
-    # view all data sets in DAI
+    # Get all data sets that are already loaded into DAI
     all_data_sets = h2oai.list_datasets(0, 100)
     all_data_sets = pd.DataFrame({
         'key': list(map(lambda x: x.key, all_data_sets))
@@ -62,32 +87,34 @@ def test_debug_pyclient():
     print(all_data_sets)
 
     # check if data was pre-loaded - if so use that data set - if not load data
+    # this means that if your base data was changed you will need to delete the data from the UI
+    # or remove it using h2oai.delete_dataset(key)
     if data_file_name in all_data_sets['name'].values:
-        print("\nData already loaded ", data_file_name)
+        print("Data already loaded ", data_file_name)
         data_key = all_data_sets[all_data_sets["name"] == data_file_name]["key"][0]
-        data_load_job = h2oai.get_dataset_job(data_key).entity
+        # data_load_job = h2oai.get_dataset_job(data_key).entity
     else:
-        print("\nLoading file ", data_file_name)
+        print("Loading file ", data_file_name)
         data_load_job = h2oai.upload_dataset_sync(data_file_name)
         data_key = data_load_job.key
 
-    # STEP TWO: Load custom transformer (and related tasks)
+    # Step Two: Load custom transformer
     # probably not good to just upload every time
     # no function to delete from python, only from ssh-ing in
     # rm tmp/contrib/transformers/[function]_randomletters_content.py
 
-    print("\nUploading Transformer ", transformer_file_name)
+    print("Uploading Transformer ", transformer_file_name)
     my_transformer = h2oai.upload_custom_recipe_sync(transformer_file_name)
 
-    # returns true or false - exit if fails - check DAI UI for error message
+    # returns true or false - exit if fails - check DAI UI for error message (make new experiment & upload)
     if my_transformer:
-        print("\nTransformer uploaded successfully\n")
+        print("Transformer uploaded successfully")
     else:
-        print("\nTransformer uploaded failed, exiting program.\n")
+        print("Transformer uploaded failed, exiting program.")
         sys.exit()
 
-    # STEP THREE: Run experiment (and related tasks)
-    print("\nStarting Experiment\n")
+    # Step Three: Run experiment (and related tasks)
+    print("Starting Experiment")
     experiment = h2oai.start_experiment_sync(
         dataset_key=data_key
         , target_col=y
@@ -103,22 +130,22 @@ def test_debug_pyclient():
                                     """.format(dont_use=all_nontest_transformers)
     )
 
+    # if you have a pre-run experiment you want to examine
     # experiment = h2oai.get_model_job("lomotare").entity
 
-    # STEP FOUR: Check the transformation was used
+    # Step Four: Check the transformation was used
 
-    # Download Summary
     summary_path = h2oai.download(src_path=experiment.summary_path, dest_dir=".")
     dir_path = "h2oai_experiment_summary_" + experiment.key
     import zipfile
     with zipfile.ZipFile(summary_path, 'r') as z:
         z.extractall(dir_path)
 
-    # View Features
+    # View Features, hopefully your transformer is here!
     features = pd.read_table(dir_path + "/features.txt", sep=',', skipinitialspace=True)
     print(features)
 
-    # STEP FIVE: Transform data and ensure it looks as expected
+    # Step Five: Transform data and ensure it looks as expected
     transform = h2oai.fit_transform_batch_sync(model_key=experiment.key
                                                , training_dataset_key=data_key
                                                , validation_dataset_key=None
@@ -137,7 +164,9 @@ def test_debug_pyclient():
     print(transform_train.head())
     print(transform_validate.head())
 
-    # STEP 1000: Clean up
+    # Step Six: Join back to your training data
+
+    # Step Seven: Clean up
     os.remove(summary_path)
     os.remove(transform_train_path)
     os.remove(transform_validate_path)
@@ -146,4 +175,6 @@ def test_debug_pyclient():
 
 # run this test with `pytest -s how_to_test_from_py_client.py` or `python how_to_test_from_py_client.py`
 if __name__ == '__main__':
+    print_system_custom_transformers()
     test_debug_pyclient()
+
