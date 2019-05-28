@@ -90,7 +90,7 @@ class H2OBaseModel:
         model_path = os.path.join(temporary_files_path, self.id)
         with open(model_path, "wb") as f:
             f.write(model)
-        model = h2o.load_model(model_path)
+        model = h2o.load_model(os.path.abspath(model_path))
         os.remove(model_path)
         test_frame = h2o.H2OFrame(X.to_pandas())
         preds_frame = None
