@@ -8,8 +8,9 @@ import geopy
 from geopy.distance import geodesic
 from h2oaicore.transformer_utils import CustomTransformer
 
+_global_modules_needed_by_name = ['geopy==1.19.0']
+
 class Geodesic(CustomTransformer):
-    _modules_needed_by_name = ['geopy==1.19.0']
 
     @staticmethod
     def get_default_properties():
@@ -28,8 +29,6 @@ class Geodesic(CustomTransformer):
     # Validate
 
     def transform(self, X: dt.Frame):
-        import geopy
-        from geopy.distance import geodesic
 
         col_names = X.names
 
