@@ -5,8 +5,6 @@ from h2oaicore.models import CustomModel
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Ridge # will be used to derive feature importances
 from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
-from h2oaicore.systemutils import config, arch_type, physical_cores_count
-from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 
 class KNearestNeighbourModel(CustomModel):
     
@@ -22,7 +20,7 @@ class KNearestNeighbourModel(CustomModel):
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
                            **kwargs):
-        n_jobs = max(1, physical_cores_count)
+        n_jobs =-1
         n_neighbors = min(kwargs['n_neighbors'],1000) if 'n_neighbors' in kwargs else 10
         metric =kwargs['metric'] if "metric" in  kwargs  and kwargs['metric'] in ["minkowski","cityblock"] else "cityblock"
         self.params = {'n_neighbors': n_neighbors,
@@ -35,7 +33,7 @@ class KNearestNeighbourModel(CustomModel):
                       accuracy, time_tolerance, interpretability,
                       **kwargs):
         
-        n_jobs = max(1, physical_cores_count)
+        n_jobs =-1
         list_of_neibs=[10,50,100,150,200,250,300]
 
         if accuracy>8 :
