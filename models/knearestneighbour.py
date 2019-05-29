@@ -14,7 +14,7 @@ class KNearestNeighbourModel(CustomModel):
     _binary = True
     _multiclass = True  
     
-    #_boosters = ['knn']
+    _boosters = ['knn']
     _display_name = "KNearestNeighbour"
     _description = "K Nearest Neighbour Model based on sklearn. Not adviced if the data is larger than  200K rows"
 
