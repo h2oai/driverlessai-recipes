@@ -14,7 +14,7 @@ class KNearestNeighbourModel(CustomModel):
     _binary = True
     _multiclass = True  
     
-    _boosters = ['knn']
+    #_boosters = ['knn']
     _display_name = "KNearestNeighbour"
     _description = "K Nearest Neighbour Model based on sklearn. Not adviced if the data is larger than  200K rows"
 
@@ -36,12 +36,17 @@ class KNearestNeighbourModel(CustomModel):
                       **kwargs):
         
         n_jobs = max(1, physical_cores_count)
-        n_neighbors = min(kwargs['n_neighbors'],1000) if 'n_neighbors' in kwargs else 10
-        if  accuracy>5 :
-            n_neighbors = min(kwargs['n_neighbors'],1000) if 'n_neighbors' in kwargs else 100
-        elif  accuracy>8 :
-            n_neighbors = min(kwargs['n_neighbors'],1000) if 'n_neighbors' in kwargs else 300
+        list_of_neibs=[10,50,100,150,200,250,300]
+
+        if accuracy>8 :
+            list_of_neibs=[100,200,300,500,1000,2000]
+        elif   accuracy>=5 :
+             list_of_neibs=[50,100,200,300,400,500]  
                              
+                             
+        index=np.random.randint(0, high=len(list_of_neibs)) 
+        n_neighbors=  list_of_neibs[index]  
+        
         metric =kwargs['metric'] if "metric" in  kwargs  and kwargs['metric'] in ["minkowski","cityblock"] else "cityblock"
         self.params = {'n_neighbors': n_neighbors,
                        'metric': metric,
