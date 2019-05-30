@@ -16,7 +16,7 @@ class MyAutoArimaTransformer(CustomTransformer):
 
     @staticmethod
     def is_enabled():
-        return False
+        return True
 
     @staticmethod
     def get_default_properties():
