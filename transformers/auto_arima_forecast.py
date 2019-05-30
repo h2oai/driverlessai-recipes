@@ -4,8 +4,6 @@ from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
 import pandas as pd
-import gc
-import os
 
 
 class MyAutoArimaTransformer(CustomTransformer):
