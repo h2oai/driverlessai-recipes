@@ -1,3 +1,6 @@
+"""The intention of this custom model is to demonstrate how one can use the framework to use LightGBM with
+a custom objective function, i.e. a loss function that LightGBM would optimize for.
+"""
 from h2oaicore.models import BaseCustomModel, LightGBMModel
 import numpy as np
 
@@ -5,10 +8,6 @@ import numpy as np
 # The custom objective function will be pickled along with the underlying LightGBM model for persistance purposes
 # as a result it can't a lambda function or a method of the custom model object
 # The only option is to make the function global in the following manner
-global custom_asymmetric_objective
-
-
-# Custom Asymetric RMSE (for demonstration purposes)
 def custom_asymmetric_objective(y_true, y_pred):
     """Asymetric MSE loss
     A custom loss has to return the gradient and the hessian of the loss or objective function
