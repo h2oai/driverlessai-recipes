@@ -14,6 +14,9 @@ class MyImgTransformer(CustomTransformer):
     # I.e. wasn't enough to put keras imports inside fit/transform to delay after Pillow installed
     _modules_needed_by_name = ['Pillow==5.0.0']
     _tensorflow = True
+    _parallel_task = True  # assumes will use n_jobs in params_base
+    _can_use_gpu = True
+    _can_use_multi_gpu = True
 
     @staticmethod
     def is_enabled():
@@ -111,8 +114,15 @@ class MyImgTransformer(CustomTransformer):
         if not os.path.exists(self.model_path):
             with open(self.model_path, 'wb') as f:
                 f.write(self.model_bytes)
+
         import h2oaicore.keras as keras
-        importlib.reload(keras)
+        from h2oaicore.models import TensorFlowModel
+        self.tf_config = TensorFlowModel.ConfigProto()
+        # self.tf_config.gpu_options.allow_growth = True
+        self.tf_config.gpu_options.per_process_gpu_memory_fraction = 0.3
+        keras.backend.set_session(session=TensorFlowModel.make_sess(self.tf_config))
+
+        # importlib.reload(keras)
         self.model = keras.models.load_model(self.model_path)
         # remove(self.model_path) # can't remove, used by other procs or later
         values = X[:, self.col_name].to_numpy().ravel()
