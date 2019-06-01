@@ -89,7 +89,7 @@ class MyImgTransformer(CustomTransformer):
                 try:
                     self.download(source_img_path, final_img_path)
                 except requests.RequestException as e:
-                    print_debug("Error: %s for source_img_path: %s" % (str(e), str(source_img_path)))
+                    # print_debug("Error: %s for source_img_path: %s" % (str(e), str(source_img_path)))
                     return None
                 delete = False  # True to avoid re-download or a race condition between multiple procs
             else:
@@ -116,7 +116,7 @@ class MyImgTransformer(CustomTransformer):
         self.model = keras.models.load_model(self.model_path)
         # remove(self.model_path) # can't remove, used by other procs or later
         values = X[:, self.col_name].to_numpy().ravel()
-        batch_size = min(len(values), self.batch_size)
+        self.batch_size = min(len(values), self.batch_size)
         values_ = np.array_split(values, int(len(values) / self.batch_size) + 1)
         print(values_)
         results = []
@@ -136,10 +136,11 @@ class MyImgTransformer(CustomTransformer):
                     break
             if len(images) > 0:
                 msg = "no good images out of %d images" % len(images)
-                if False:  # for debugging only
+                if False:
                     assert good_imagei is not None, msg
                 elif good_imagei is None:
-                    print_debug(msg)
+                    pass
+                    # print_debug(msg)
             if good_imagei is not None:
                 for imagei, image in enumerate(images):
                     if image is None:
@@ -147,6 +148,6 @@ class MyImgTransformer(CustomTransformer):
                 images = np.vstack(images)
                 results.append(self.model.predict(images))
         if len(results) > 0:
-            return np.vstack(results)
+            return dt.Frame(np.vstack(results))
         else:
-            return [0] * X.shape[0]
+            return dt.Frame([0] * X.shape[0])
