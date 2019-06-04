@@ -44,11 +44,6 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
     _allowed_boosters = None  # ["gblinear"] for strong trends - can extrapolate
 
     @staticmethod
-    def get_parameter_choices():
-        # return dict(train_fraction=[1, 0.25, 0.5, 0.75])
-        return dict(train_fraction=[1])  # TODO - implement sliding windows
-
-    @staticmethod
     def get_default_properties():
         return dict(col_type="time_column", min_cols=1, max_cols=1, relative_importance=1)
 
