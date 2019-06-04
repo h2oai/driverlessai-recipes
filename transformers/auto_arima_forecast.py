@@ -50,7 +50,6 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         else:
             XX_grp = [([None], XX)]
         preds = []
-        is_train = self.ntrain == X.shape[0]
         for key, X in XX_grp:
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
@@ -59,7 +58,8 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
             if grp_hash in self.models:
                 model = self.models[grp_hash]
                 if model is not None:
-                    yhat = model.predict_in_sample() if is_train else model.predict(n_periods=X.shape[0])
+                    yhat = model.predict_in_sample() \
+                        if hasattr(self, 'is_train') else model.predict(n_periods=X.shape[0])
                     yhat = yhat[order]
                     XX = pd.DataFrame(yhat, columns=['yhat'])
                 else:
@@ -72,4 +72,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         return XX
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
-        return self.fit(X, y).transform(X)
+        self.is_train = True
+        ret = self.fit(X, y).transform(X)
+        del self.is_train
+        return ret
