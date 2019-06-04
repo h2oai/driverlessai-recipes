@@ -87,7 +87,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             out[res[0]] = res[1]
 
         pool_to_use = small_job_pool
-        pool = pool_to_use(logger=None, processor=processor, max_workers=self.n_jobs, num_tasks=num_tasks)
+        pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
         for key, X in XX_grp:
             X_path = os.path.join(temporary_files_path, "fbprophet_X" + str(uuid.uuid4()))
             X = X.reset_index(drop=True)
@@ -136,7 +136,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             out.append(res)
 
         pool_to_use = small_job_pool
-        pool = pool_to_use(logger=None, processor=processor, max_workers=self.n_jobs, num_tasks=num_tasks)
+        pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
         XX_paths = []
         model_paths = []
         for key, X in XX_grp:
