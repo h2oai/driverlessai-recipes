@@ -1,32 +1,20 @@
 import importlib
 
-from h2oaicore.transformer_utils import CustomTransformer
+from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 import datatable as dt
 import numpy as np
 import pandas as pd
 
 
-class MyAutoArimaTransformer(CustomTransformer):
+class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
     _binary = False
     _multiclass = False
     _modules_needed_by_name = ['pmdarima']
     _allowed_boosters = None
 
     @staticmethod
-    def is_enabled():
-        return True
-
-    @staticmethod
     def get_default_properties():
         return dict(col_type="time_column", min_cols=1, max_cols=1, relative_importance=1)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.time_column = self.input_feature_names[0]
-        self.tgc = kwargs['tgc']  # Needed - YES
-        self.models = None
-        self.holidays = None
-        self.nan_value = np.nan
 
     def fit(self, X: dt.Frame, y: np.array = None):
         pm = importlib.import_module('pmdarima')
