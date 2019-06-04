@@ -1,4 +1,4 @@
-from h2oaicore.transformer_utils import CustomTransformer
+from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 from h2oaicore.systemutils import small_job_pool, save_obj, load_obj, temporary_files_path, remove
 import datatable as dt
 import numpy as np
@@ -34,7 +34,7 @@ def MyParallelProphetTransformer_transform_async(*args, **kwargs):
     return MyParallelProphetTransformer._transform_async(*args, **kwargs)
 
 
-class MyParallelProphetTransformer(CustomTransformer):
+class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
     _is_reproducible = False
     _binary = False
     _multiclass = False
@@ -44,10 +44,6 @@ class MyParallelProphetTransformer(CustomTransformer):
     _allowed_boosters = None  # ["gblinear"] for strong trends - can extrapolate
 
     @staticmethod
-    def is_enabled():
-        return True
-
-    @staticmethod
     def get_parameter_choices():
         # return dict(train_fraction=[1, 0.25, 0.5, 0.75])
         return dict(train_fraction=[1])  # TODO - implement sliding windows
@@ -55,15 +51,6 @@ class MyParallelProphetTransformer(CustomTransformer):
     @staticmethod
     def get_default_properties():
         return dict(col_type="time_column", min_cols=1, max_cols=1, relative_importance=1)
-
-    def __init__(self, train_fraction=1, **kwargs):
-        super().__init__(**kwargs)
-        self.time_column = self.input_feature_names[0]
-        self.tgc = kwargs['tgc']
-        self.n_jobs = None
-        self.models = None
-        self._train_fraction = train_fraction
-        self.nan_value = np.nan
 
     @staticmethod
     def _fit_async(X_path, grp_hash):

@@ -1,6 +1,6 @@
 import importlib
 
-from h2oaicore.transformer_utils import CustomTransformer
+from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 import datatable as dt
 import numpy as np
 import pandas as pd
@@ -24,7 +24,7 @@ class suppress_stdout_stderr(object):
             os.close(fd)
 
 
-class MySerialProphetTransformer(CustomTransformer):
+class MySerialProphetTransformer(CustomTimeSeriesTransformer):
     _binary = False
     _multiclass = False
     # some package dependencies are best sequential to overcome known issues
@@ -39,14 +39,6 @@ class MySerialProphetTransformer(CustomTransformer):
     @staticmethod
     def get_default_properties():
         return dict(col_type="time_column", min_cols=1, max_cols=1, relative_importance=1)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.time_column = self.input_feature_names[0]
-        self.tgc = kwargs['tgc']  # Needed - YES
-        self.models = None
-        self.holidays = None
-        self.nan_value = np.nan
 
     def fit(self, X: dt.Frame, y: np.array = None):
         mod = importlib.import_module('fbprophet')
