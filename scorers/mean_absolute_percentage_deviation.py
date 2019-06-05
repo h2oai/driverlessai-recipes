@@ -16,3 +16,4 @@ class MyMeanAbsolutePercentageDeviation(CustomScorer):
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
         return np.mean(abs((actual - predicted)/predicted))
+

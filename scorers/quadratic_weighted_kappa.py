@@ -57,7 +57,7 @@ def histogram(ratings, sample_weight, min_rating=None, max_rating=None):
     return hist_ratings
 
 
-def confusion_matrix(rater_a, rater_b, sample_weight, min_rating=None, max_rating=None):
+def my_confusion_matrix(rater_a, rater_b, sample_weight, min_rating=None, max_rating=None):
     """
     Returns the (weighted) confusion matrix between rater's ratings
     """
@@ -84,8 +84,8 @@ def qwk(actual, predicted, min_rating=0, max_rating=20, sample_weight=None):
         min_rating = min(min(rater_a), min(rater_b))
     if max_rating is None:
         max_rating = max(max(rater_a), max(rater_b))
-    conf_mat = confusion_matrix(rater_a, rater_b, sample_weight,
-                                min_rating, max_rating)
+    conf_mat = my_confusion_matrix(rater_a, rater_b, sample_weight,
+                                   min_rating, max_rating)
     num_ratings = len(conf_mat)
     num_scored_items = float(np.sum(sample_weight))
 
@@ -104,3 +104,4 @@ def qwk(actual, predicted, min_rating=0, max_rating=20, sample_weight=None):
             denominator += d * expected_count / num_scored_items
 
     return 1.0 - numerator / denominator
+

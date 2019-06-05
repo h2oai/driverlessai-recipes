@@ -16,3 +16,4 @@ class MyMedianAbsoluteError(CustomScorer):
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
         return median_absolute_error(actual, predicted)
+
