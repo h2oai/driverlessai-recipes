@@ -20,3 +20,4 @@ class MyTopQuartileMedianAbsErrorScorer(CustomScorer):
         cutoff = np.quantile(predicted, 0.9)
         which = (predicted >= cutoff).ravel()
         return float(np.median(np.abs(actual[which] - predicted[which]) * sample_weight[which]))
+

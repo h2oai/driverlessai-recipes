@@ -42,3 +42,4 @@ class cost_binary(CustomScorer):
 
         # calculate`$1*FP + $2*FN`
         return (fp * self.__class__._fp_cost) + (fn * self.__class__._fn_cost)
+

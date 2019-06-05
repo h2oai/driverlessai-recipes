@@ -6,9 +6,7 @@ from sklearn.metrics import recall_score
 
 
 class recall(CustomScorer):
-  
-    
-    _description = " Calculates recall: `tp / (tp + fn)`"
+    _description = "Recall: `tp / (tp + fn)`"
     _binary = True    
     _multiclass = True
     _maximize = True
@@ -21,23 +19,17 @@ class recall(CustomScorer):
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-   
-        
-        if labels is not None:
-            actual = LabelEncoder().fit(labels).transform(actual)
+        lb = LabelEncoder()
+        labels = lb.fit_transform(labels)
+        actual = lb.transform(actual)
+        method= "binary"
+        if len(labels) > 2:
+            predicted = np.argmax(predicted, axis=1)
+            method = "micro"
         else:
-            actual = LabelEncoder().fit_transform(actual)
-            
-        unique_values=len(np.unique(actual))     
-        method="binary"
-        if unique_values>2:
-           predicted = np.argmax(predicted, axis=1)
-           method="micro"
-        else :
-            predicted=np.array([1 if pr>0.5 else 0 for pr in predicted])
+            predicted = (predicted > 0.5)
 
-
-        return  recall_score(actual, predicted, labels=None, average=method, sample_weight=sample_weight)
+        return recall_score(actual, predicted, labels=labels, average=method, sample_weight=sample_weight)
     
 
 

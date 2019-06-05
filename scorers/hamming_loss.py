@@ -17,9 +17,9 @@ class MyHammingLoss(CustomScorer):
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-        if labels is not None:
-            actual = LabelEncoder().fit(labels).transform(actual)
-        else:
-            actual = LabelEncoder().fit_transform(actual)
+        lb = LabelEncoder()
+        labels = lb.fit_transform(labels)
+        actual = lb.transform(actual)
         predicted = np.argmax(predicted, axis=1)
         return hamming_loss(actual, predicted, labels, sample_weight)
+
