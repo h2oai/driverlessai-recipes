@@ -1,40 +1,40 @@
 # driverlessai-recipes
 Recipes for Driverless AI
 
-## Models
+## [Algorithms](algorithms)
 
   * [Custom time-series models](algorithms/models/historic_mean.py) 
 
 
-## Scorers
+## [Scorers](scorers)
 
 
-## Transformers
+## [Transformers](transformers)
 
-### Augmentation
+### [Augmentation](transformers/augmentation)
 
-### Datetime
+### [Datetime](transformers/datetime)
 
-### Generic
+### [Generic](transformers/generic)
 
-### Geospatial
+### [Geospatial](transformers/geospatial)
 
-### Image
+### [Image](transformers/image)
 
-### NLP
+### [NLP](transformers/nlp)
 
   * [Sentiment Value](transformers/nlp/text_sentiment_transformer.py): extracts sentiment value from text features 
   * [Language Detector](transformers/nlp/text_lang_detect_transformer.py): detects language in text features
 
-### Numeric
+### [Numeric](transformers/numeric)
 
-### Outliers
+### [Outliers](transformers/outliers)
 
-### String
+### [String](transformers/string)
 
-### TE (Target Encoding)
+### [TE (Target Encoding)](transformers/targetencoding)
 
-### Time Series
+### [Time Series](transformers/timeseries)
   
   
 ## FAQ
