@@ -10,7 +10,8 @@ class HistoricMeanModel(CustomTimeSeriesModel):
     _regression = True
     _display_name = "HistoricMean"
     _description = "Historic Mean"
-    _allowed_genes = ['OriginalGene', 'CatOriginalGene', 'DateOriginalGene', 'DateTimeOriginalGene']
+    _allowed_transformers = ['OriginalTransformer', 'CatOriginalTransformer',
+                             'DateOriginalTransformer', 'DateTimeOriginalTransformer']
 
     @staticmethod
     def do_acceptance_test():
