@@ -49,7 +49,7 @@ class MyToStringTransformer(CustomTransformer):
 # And we add the CatBoost Classifier since it can handle string input directly
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
 class CatBoostModel(CustomModel):
-    _can_handle_text = True
+    _can_handle_non_numeric = True
     _binary = True
     _display_name = "CatBoost"
     _description = "Yandex CatBoost GBM"
