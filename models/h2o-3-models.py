@@ -14,7 +14,7 @@ class H2OBaseModel:
     _regression = True
     _binary = True
     _multiclass = True
-    _can_handle_text = True
+    _can_handle_non_numeric = True
     _is_reproducible = True
     _class = NotImplemented
 
