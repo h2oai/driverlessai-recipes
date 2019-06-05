@@ -67,9 +67,8 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         return grp_hash, model_path
 
     def fit(self, X: dt.Frame, y: np.array = None):
-        X = X.to_pandas()
-        X = X.replace([None, np.nan], 0)
-        XX = X[self.tgc].copy()
+        XX = X[:, self.tgc].to_pandas()
+        XX = XX.replace([None, np.nan], 0)
         XX.rename(columns={self.time_column: "ds"}, inplace=True)
         if self.labels is not None:
             y = LabelEncoder().fit(self.labels).transform(y)
@@ -120,9 +119,8 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         return XX_path
 
     def transform(self, X: dt.Frame):
-        X = X.to_pandas()
-        X = X.replace([None, np.nan], 0)
-        XX = X[self.tgc].copy()
+        XX = X[:, self.tgc].to_pandas()
+        XX = XX.replace([None, np.nan], 0)
         XX.rename(columns={self.time_column: "ds"}, inplace=True)
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
         if len(tgc_wo_time) > 0:

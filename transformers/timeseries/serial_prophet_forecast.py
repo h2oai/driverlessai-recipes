@@ -45,8 +45,7 @@ class MySerialProphetTransformer(CustomTimeSeriesTransformer):
         Prophet = getattr(mod, "Prophet")
         # from fbprophet import Prophet
         self.models = {}
-        X = X.to_pandas()
-        XX = X[self.tgc].copy()
+        XX = X[:, self.tgc].to_pandas()
         XX.rename(columns={self.time_column: "ds"}, inplace=True)
         XX['y'] = np.array(y)
         self.nan_value = np.mean(y)
@@ -71,8 +70,7 @@ class MySerialProphetTransformer(CustomTimeSeriesTransformer):
         return self
 
     def transform(self, X: dt.Frame):
-        X = X.to_pandas()
-        XX = X[self.tgc].copy()
+        XX = X[:, self.tgc].to_pandas()
         XX.rename(columns={self.time_column: "ds"}, inplace=True)
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
         if len(tgc_wo_time) > 0:
