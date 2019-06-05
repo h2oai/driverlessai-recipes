@@ -34,7 +34,7 @@ class MySerialProphetTransformer(CustomTimeSeriesTransformer):
 
     @staticmethod
     def is_enabled():
-        return True
+        return False
 
     @staticmethod
     def get_default_properties():
