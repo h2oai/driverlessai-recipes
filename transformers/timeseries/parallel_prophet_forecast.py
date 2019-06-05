@@ -35,7 +35,7 @@ def MyParallelProphetTransformer_transform_async(*args, **kwargs):
 
 
 class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
-    _is_reproducible = False
+    _is_reproducible = True
     _binary = False
     _multiclass = False
     # some package dependencies are best sequential to overcome known issues
@@ -52,9 +52,10 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         np.random.seed(1234)
         random.seed(1234)
         X = load_obj(X_path)
-        print("prophet - fitting on data of shape: %s for group: %s" % (str(X.shape), grp_hash))
+        # Commented for performance, uncomment for debug
+        # print("prophet - fitting on data of shape: %s for group: %s" % (str(X.shape), grp_hash))
         if X.shape[0] < 20:
-            print("prophet - small data work-around for group: %s" % grp_hash)
+            # print("prophet - small data work-around for group: %s" % grp_hash)
             return grp_hash, None
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
@@ -108,7 +109,21 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         XX_path = os.path.join(temporary_files_path, "fbprophet_XXt" + str(uuid.uuid4()))
         X = load_obj(X_path)
         if model is not None:
-            XX = model.predict(X[['ds']])[['yhat']]
+            # Facebook Prophet returns the predictions ordered by time
+            # So we should keep track of the times for each group so that
+            # predictions are ordered the same as the imput frame
+            # Make a copy of the input dates
+            X_ds = X.copy()
+            X_ds['ds'] = pd.to_datetime(X_ds['ds'])
+            # Predict with prophet, get the time and prediction and index by time as well
+            # In the case date repeats inside of a group (this happens at least in acceptance test)
+            # We groupby date and keep the max (prophet returns the same value for a given date)
+            # XX will contain the predictions indexed by date
+            XX = model.predict(X)[['ds', 'yhat']].groupby('ds').max()
+            # Now put yhat in the right order, simply by maping the dates to the predictions
+            X_ds['yhat'] = X_ds["ds"].map(XX['yhat'])
+            # Now set XX back to the predictions and drop the index
+            XX = X_ds[['yhat']].reset_index(drop=True)
         else:
             XX = pd.DataFrame(np.full((X.shape[0], 1), nan_value), columns=['yhat'])  # invalid models
         XX.index = X.index
@@ -141,7 +156,8 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
             X_path = os.path.join(temporary_files_path, "fbprophet_Xt" + str(uuid.uuid4()))
-            print("prophet - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
+            # Commented for performance, uncomment for debug
+            # print("prophet - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
             if grp_hash in self.models:
                 model = self.models[grp_hash]
                 model_path = os.path.join(temporary_files_path, "fbprophet_modelt" + str(uuid.uuid4()))
