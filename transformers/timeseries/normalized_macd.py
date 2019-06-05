@@ -3,19 +3,12 @@ import datatable as dt
 import numpy as np
 
 
-class NormalizedMACDTransformer(CustomTransformer):
+class NormalizedMACDTransformer(CustomTimeSeriesTransformer):
     """
     Moving Average Convergence Divergence
     Based on the difference between a long and a short moving average
     Should be used on Financial instruments or at least positively valued features
     """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.tgc = kwargs['tgc']  # Needed - YES
-        print("TimeSeries : ", self.tgc)
-        self.time_column = self.tgc[0]
-        self.group_cols = [_f for _f in self.tgc if _f != self.time_column]
-        self.models = None
 
     @staticmethod
     def get_default_properties():
@@ -53,8 +46,10 @@ class NormalizedMACDTransformer(CustomTransformer):
         # Move to pandas to use the apply method
         X = X.to_pandas()
 
+        group_cols = [_f for _f in self.tgc if _f != self.time_column]
+
         # Check if we really have any group columns available
-        if len(self.group_cols) == 0:
+        if len(group_cols) == 0:
             # Apply MACD directly on the available features but drop the time column
             features = [_f for _f in X.columns if _f != self.time_column]
             return self.normalized_macd(X[features])
@@ -64,7 +59,7 @@ class NormalizedMACDTransformer(CustomTransformer):
         if len(col) > 0:
             # Groupby by the TGC and apply normalized MACD to the data
             # Pandas.apply ios not time effective so should move this to data table
-            res = X.groupby(self.group_cols)[col].apply(self.normalized_macd)
+            res = X.groupby(group_cols)[col].apply(self.normalized_macd)
 
             res.index = X.index
             return res
