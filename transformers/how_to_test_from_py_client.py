@@ -78,7 +78,7 @@ def test_debug_pyclient():
     # Step One: Load Data Set
 
     # Get all data sets that are already loaded into DAI
-    all_data_sets = h2oai.list_datasets(0, 100)
+    all_data_sets = h2oai.list_datasets(0, 100, include_inactive=True).datasets
     all_data_sets = pd.DataFrame({
         'key': list(map(lambda x: x.key, all_data_sets))
         , 'name': list(map(lambda x: x.name, all_data_sets))})
