@@ -1,4 +1,4 @@
-from h2oaicore.transformer_utils import CustomTransformer
+from h2oaicore.transformer_utils import CustomTransformer, CustomTimeSeriesTransformer
 import datatable as dt
 import numpy as np
 
