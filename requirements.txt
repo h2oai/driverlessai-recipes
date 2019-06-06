@@ -1,6 +1,0 @@
-requests
-h2o
-datatable
-scikit-learn
-numpy
-pandas
