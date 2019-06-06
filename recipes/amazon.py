@@ -29,7 +29,7 @@ enable_ftrl = "on"
 # so we convert all numeric columns into string columns here, to not treat them as numerical.
 class MyToStringTransformer(CustomTransformer):
     _numeric_output = False
-    _allowed_boosters = ['catboost', 'ftrl']  # only want FTRL and CatBoost model below to consume these features
+    _included_boosters = ['catboost', 'ftrl']  # only want FTRL and CatBoost model below to consume these features
 
     @property
     def display_name(self):

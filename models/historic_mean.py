@@ -10,7 +10,7 @@ class HistoricMeanModel(CustomTimeSeriesModel):
     _regression = True
     _display_name = "HistoricMean"
     _description = "Historic Mean"
-    _allowed_transformers = ['OriginalTransformer', 'CatOriginalTransformer',
+    _included_transformers = ['OriginalTransformer', 'CatOriginalTransformer',
                              'DateOriginalTransformer', 'DateTimeOriginalTransformer']
 
     @staticmethod
