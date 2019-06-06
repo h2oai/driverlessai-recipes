@@ -8,6 +8,7 @@ import math
 class EmbeddingSimilarityTransformer(CustomTransformer):
     _modules_needed_by_name = ['regex==2018.1.10', 'flair==0.4.1', 'segtok==1.5.7']
     _is_reproducible = False
+    _can_use_gpu = True
     _repl_val = 0
 
     def __init__(self, embedding_name, **kwargs):
