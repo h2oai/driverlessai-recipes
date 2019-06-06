@@ -44,35 +44,28 @@ class HistoricMeanModel(CustomTimeSeriesModel):
             self.means[grp_hash] = X['y'].mean()
 
     def predict(self, X, **kwargs):
-        X = dt.Frame(X)
-        pred_contribs = kwargs.get('pred_contribs', None)
-        output_margin = kwargs.get('output_margin', None)
-
-        if not pred_contribs:
-            if self.tgc is None or not all([x in X.names for x in self.tgc]):
-                return np.ones(X.shape[0]) * self.nan_value
-            XX = X[:, self.tgc].to_pandas()
-            tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
-            if len(tgc_wo_time) > 0:
-                XX_grp = XX.groupby(tgc_wo_time)
-            else:
-                XX_grp = [([None], XX)]
-            preds = []
-            for key, X in XX_grp:
-                key = key if isinstance(key, list) else [key]
-                grp_hash = '_'.join(map(str, key))
-                if grp_hash in self.means:
-                    mean = self.means[grp_hash]
-                    if mean is not None:
-                        yhat = np.ones(X.shape[0]) * mean
-                        XX = pd.DataFrame(yhat, columns=['yhat'])
-                    else:
-                        XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # invalid model
-                else:
-                    XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # unseen groups
-                XX.index = X.index
-                preds.append(XX)
-            XX = pd.concat(tuple(preds), axis=0).sort_index()
-            return XX.values
+        if self.tgc is None or not all([x in X.names for x in self.tgc]):
+            return np.ones(X.shape[0]) * self.nan_value
+        XX = X[:, self.tgc].to_pandas()
+        tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
+        if len(tgc_wo_time) > 0:
+            XX_grp = XX.groupby(tgc_wo_time)
         else:
-            raise NotImplementedError("No Shapley for HistoricMeanModel")
+            XX_grp = [([None], XX)]
+        preds = []
+        for key, X in XX_grp:
+            key = key if isinstance(key, list) else [key]
+            grp_hash = '_'.join(map(str, key))
+            if grp_hash in self.means:
+                mean = self.means[grp_hash]
+                if mean is not None:
+                    yhat = np.ones(X.shape[0]) * mean
+                    XX = pd.DataFrame(yhat, columns=['yhat'])
+                else:
+                    XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # invalid model
+            else:
+                XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # unseen groups
+            XX.index = X.index
+            preds.append(XX)
+        XX = pd.concat(tuple(preds), axis=0).sort_index()
+        return XX.values
