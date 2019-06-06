@@ -23,6 +23,10 @@ class H2OBaseModel:
         self.id = None
         self.target = "__target__"
 
+        self.my_log_dir = os.path.join(config.data_directory, config.contrib_relative_directory, "h2o_log")
+        if not os.path.isdir(self.my_log_dir):
+            os.makedirs(self.my_log_dir, exist_ok=True)
+
     def get_iterations(self, model):
         return 0
 
@@ -31,7 +35,7 @@ class H2OBaseModel:
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         X = dt.Frame(X)
-        h2o.init(port=config.h2o_recipes_port)
+        h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = None
 
         orig_cols = list(X.names)
@@ -86,7 +90,7 @@ class H2OBaseModel:
     def predict(self, X, **kwargs):
         model, _, _, _ = self.get_model_properties()
         X = dt.Frame(X)
-        h2o.init(port=config.h2o_recipes_port)
+        h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = os.path.join(temporary_files_path, self.id)
         with open(model_path, "wb") as f:
             f.write(model)
