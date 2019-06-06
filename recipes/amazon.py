@@ -15,12 +15,12 @@ from h2oaicore.systemutils import config, physical_cores_count
 
 class MyLightGBMDeep(BaseCustomModel, LightGBMModel):
     _boosters = ['lightgbmdeep']
-    _regression = True
-    _binary = False
-    _multiclass = False  # WIP
+    _regression = False
+    _binary = True
+    _multiclass = False
     _display_name = "MYLGBMDEEP"
     _description = "LightGBM with more depth"
-    _exclude_transformers = ['NumToCatWoETransformer','NumToCatWoEMonotonicTransformer','NumToCatTETransformer','NumCatTETransformer','OriginalTransformer','InteractionsTransformer','TruncSVDNumTransformer','ClusterTETransformer','ClusterIdTransformer','ClusterDistTransformer','CVCatNumEncode']
+    _excluded_transformers = ['NumToCatWoETransformer','NumToCatWoEMonotonicTransformer','NumToCatTETransformer','NumCatTETransformer','OriginalTransformer','InteractionsTransformer','TruncSVDNumTransformer','ClusterTETransformer','ClusterIdTransformer','ClusterDistTransformer','CVCatNumEncode']
 
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
