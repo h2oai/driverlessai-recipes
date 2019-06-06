@@ -9,6 +9,7 @@
    * [false_discovery_rate.py](./scorers/false_discovery_rate.py)
    * [cost.py](./scorers/cost.py)
    * [hamming_loss.py](./scorers/hamming_loss.py)
+   * [huber_loss.py](./scorers/huber_loss.py) [The Huber loss](https://en.wikipedia.org/wiki/Huber_loss) is a loss function used in robust regression, that is less sensitive to outliers in data than the squared error loss. 
    * [largest_error.py](./scorers/largest_error.py)
    * [mean_absolute_percentage_deviation.py](./scorers/mean_absolute_percentage_deviation.py)
    * [mean_absolute_scaled_error.py](./scorers/mean_absolute_scaled_error.py)
