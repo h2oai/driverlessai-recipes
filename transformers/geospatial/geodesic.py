@@ -1,6 +1,7 @@
 # Created by Github User: Tomott12345 and kguruswamy
 # This Custom Transformer calculates the distance in miles between to latitude/longitude points in space
 # Using the Geodesic caclulation in the Geopy Library
+# Use sample taxi_small.csv file in /data
 
 import datatable as dt
 import numpy as np
