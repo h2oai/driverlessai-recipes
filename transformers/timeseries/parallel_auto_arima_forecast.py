@@ -173,3 +173,24 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         ret = self.fit(X, y).transform(X)
         del self.is_train
         return ret
+        
+    def update_history(self, X: dt.Frame, y: np.array = None):
+        print("auto arima - update history")
+        X = X.to_pandas()
+        XX = X[self.tgc].copy
+        XX['y'] = np.array(y)
+        tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
+        if len(tgc_wo_time) > 0:
+            XX_grp = XX.groupby(tgc_wo_time)
+        else:
+            XX_grp = [([None], XX)]
+        for key, X in XX_grp:
+            key = key if isinstance(key, list) else [key]
+            grp_hash = '_'.join(map(str, key))
+            print("auto arima - update history with data of shape: %s for group: %s" % (str(X.shape), grp_hash))
+            order = np.argsort(X[self.time_column])
+            if grp_hash in self.models:
+                model = self.models[grp_hash]
+                if model is not None:
+                    model.update(X['y'].values[order])
+        return self
