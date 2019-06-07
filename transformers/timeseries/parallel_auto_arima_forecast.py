@@ -51,8 +51,10 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
 
         pm = importlib.import_module('pmdarima')
         with suppress_stdout_stderr():
-            model = pm.auto_arima(X['y'].values[order], error_action='ignore')
-
+            try:
+                model = pm.auto_arima(X['y'].values[order], error_action='ignore')
+            except:
+                model = None
         model_path = os.path.join(temporary_files_path, "autoarima_model" + str(uuid.uuid4()))
         save_obj(model, model_path)
         remove(X_path)  # remove to indicate success
@@ -165,7 +167,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         XX = pd.concat((load_obj(XX_path) for XX_path in XX_paths), axis=0).sort_index()
         for p in XX_paths + model_paths:
             remove(p)
-        print(XX, flush=True)
+        # print(XX, flush=True)
         return XX
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
