@@ -83,7 +83,6 @@ class MySerialProphetTransformer(CustomTimeSeriesTransformer):
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
             print("prophet - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
-            print(X, flush=True)
             # Facebook Prophet returns the predictions ordered by time
             # So we should keep track of the time order for each group so that
             # predictions are ordered the same as the imput frame
