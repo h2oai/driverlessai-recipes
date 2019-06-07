@@ -83,30 +83,27 @@ class MySerialProphetTransformer(CustomTimeSeriesTransformer):
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
             print("prophet - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
+            print(X, flush=True)
+            # Facebook Prophet returns the predictions ordered by time
+            # So we should keep track of the time order for each group so that
+            # predictions are ordered the same as the imput frame
+            # Keep track of the order
+            order = np.argsort(pd.to_datetime(X["ds"]))
             if grp_hash in self.models:
                 model = self.models[grp_hash]
                 if model is not None:
-                    # Facebook Prophet returns the predictions ordered by time
-                    # So we should keep track of the times for each group so that
-                    # predictions are ordered the same as the imput frame
-                    # Make a copy of the input dates
-                    X_ds = X.copy()
-                    X_ds['ds'] = pd.to_datetime(X_ds['ds'])
-                    # Predict with prophet, get the time and prediction and index by time as well
-                    # In the case date repeats inside of a group (this happens at least in acceptance test)
-                    # We groupby date and keep the max (prophet returns the same value for a given date)
-                    # XX will contain the predictions indexed by date
-                    XX = model.predict(X)[['ds', 'yhat']].groupby('ds').max()
-                    # Now put yhat in the right order, simply by maping the dates to the predictions
-                    X_ds['yhat'] = X_ds["ds"].map(XX['yhat'])
-                    # Now set XX back to the predictions and drop the index
-                    XX = X_ds['yhat'].reset_index(drop=True)
+                    # Run prophet
+                    yhat = model.predict(X)['yhat'].values
+                    XX = pd.DataFrame(yhat, columns=['yhat'])
                 else:
                     XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # invalid model
             else:
                 XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # unseen groups
-            XX.index = X.index
+
+            # Reorder the index like prophet re-ordered the predictions
+            XX.index = X.index[order]
             preds.append(XX)
+
         XX = pd.concat(tuple(preds), axis=0).sort_index()
         return XX
 

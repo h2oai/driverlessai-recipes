@@ -108,25 +108,18 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         model = load_obj(model_path)
         XX_path = os.path.join(temporary_files_path, "fbprophet_XXt" + str(uuid.uuid4()))
         X = load_obj(X_path)
+        # Facebook Prophet returns the predictions ordered by time
+        # So we should keep track of the time order for each group so that
+        # predictions are ordered the same as the imput frame
+        # Keep track of the order
+        order = np.argsort(pd.to_datetime(X["ds"]))
         if model is not None:
-            # Facebook Prophet returns the predictions ordered by time
-            # So we should keep track of the times for each group so that
-            # predictions are ordered the same as the imput frame
-            # Make a copy of the input dates
-            X_ds = X.copy()
-            X_ds['ds'] = pd.to_datetime(X_ds['ds'])
-            # Predict with prophet, get the time and prediction and index by time as well
-            # In the case date repeats inside of a group (this happens at least in acceptance test)
-            # We groupby date and keep the max (prophet returns the same value for a given date)
-            # XX will contain the predictions indexed by date
-            XX = model.predict(X)[['ds', 'yhat']].groupby('ds').max()
-            # Now put yhat in the right order, simply by maping the dates to the predictions
-            X_ds['yhat'] = X_ds["ds"].map(XX['yhat'])
-            # Now set XX back to the predictions and drop the index
-            XX = X_ds[['yhat']].reset_index(drop=True)
+            # Run prophet
+            yhat = model.predict(X)['yhat'].values
+            XX = pd.DataFrame(yhat, columns=['yhat'])
         else:
             XX = pd.DataFrame(np.full((X.shape[0], 1), nan_value), columns=['yhat'])  # invalid models
-        XX.index = X.index
+        XX.index = X.index[order]
         assert XX.shape[1] == 1
         save_obj(XX, XX_path)
         remove(model_path)  # indicates success, no longer need
