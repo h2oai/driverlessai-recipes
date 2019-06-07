@@ -73,6 +73,7 @@
          * [auto_arima_forecast.py](./transformers/timeseries/auto_arima_forecast.py)
          * [general_time_series_transformer.py](./transformers/timeseries/general_time_series_transformer.py)
          * [normalized_macd.py](./transformers/timeseries/normalized_macd.py)
+         * [parallel_auto_arima_forecast.py](./transformers/timeseries/parallel_auto_arima_forecast.py)
          * [parallel_prophet_forecast.py](./transformers/timeseries/parallel_prophet_forecast.py)
          * [serial_prophet_forecast.py](./transformers/timeseries/serial_prophet_forecast.py)
          * [time_encoder_transformer.py](./transformers/timeseries/time_encoder_transformer.py)
