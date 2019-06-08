@@ -32,7 +32,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         for key, X in XX_grp:
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
-            print("auto arima - fitting on data of shape: %s for group: %s" % (str(X.shape), grp_hash))
+            # print("auto arima - fitting on data of shape: %s for group: %s" % (str(X.shape), grp_hash))
             order = np.argsort(X[self.time_column])
             try:
                 model = pm.auto_arima(X['y'].values[order], error_action='ignore')
@@ -53,7 +53,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         for key, X in XX_grp:
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
-            print("auto arima - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
+            # print("auto arima - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
             order = np.argsort(X[self.time_column])
             if grp_hash in self.models:
                 model = self.models[grp_hash]
@@ -69,6 +69,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
             XX.index = X.index
             preds.append(XX)
         XX = pd.concat(tuple(preds), axis=0).sort_index()
+
         return XX
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
