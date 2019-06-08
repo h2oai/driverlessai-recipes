@@ -113,9 +113,12 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
                 if has_is_train_attr else model.predict(n_periods=X.shape[0])
             yhat = yhat[order]
             XX = pd.DataFrame(yhat, columns=['yhat'])
+
         else:
             XX = pd.DataFrame(np.full((X.shape[0], 1), nan_value), columns=['yhat'])  # invalid model
 
+        # Sync index
+        XX.index = X.index
         assert XX.shape[1] == 1
         save_obj(XX, XX_path)
         remove(model_path)  # indicates success, no longer need
@@ -160,14 +163,16 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
                 pool.submit_tryget(None, MyParallelAutoArimaTransformer_transform_async, args=args, kwargs=kwargs,
                                    out=XX_paths)
             else:
+                # Don't go through pools
                 XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # unseen groups
+                # Sync indices
+                XX.index = X.index
                 save_obj(XX, X_path)
                 XX_paths.append(X_path)
         pool.finish()
         XX = pd.concat((load_obj(XX_path) for XX_path in XX_paths), axis=0).sort_index()
         for p in XX_paths + model_paths:
             remove(p)
-        # print(XX, flush=True)
         return XX
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
