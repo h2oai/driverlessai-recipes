@@ -44,7 +44,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         return dict(col_type="time_column", min_cols=1, max_cols=1, relative_importance=1)
 
     @staticmethod
-    def _fit_async(X_path, grp_hash, order):
+    def _fit_async(X_path, grp_hash, time_column):
         np.random.seed(1234)
         random.seed(1234)
         X = load_obj(X_path)
@@ -52,6 +52,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         pm = importlib.import_module('pmdarima')
         with suppress_stdout_stderr():
             try:
+                order = order = np.argsort(X[time_column])
                 model = pm.auto_arima(X['y'].values[order], error_action='ignore')
             except:
                 model = None
@@ -81,14 +82,16 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
 
         pool_to_use = small_job_pool
         pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
-        for key, X in XX_grp:
+        nb_groups = len(XX_grp)
+        for _i_g, (key, X) in enumerate(XX_grp):
+            if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+                print("Auto ARIMA - ", 100 * (_i_g + 1) // nb_groups, " %% of Groups Fitted")
             X_path = os.path.join(temporary_files_path, "autoarima_X" + str(uuid.uuid4()))
-            order = np.argsort(X[self.time_column])
             X = X.reset_index(drop=True)
             save_obj(X, X_path)
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
-            args = (X_path, grp_hash, order,)
+            args = (X_path, grp_hash, self.time_column,)
             kwargs = {}
             pool.submit_tryget(None, MyParallelAutoArimaTransformer_fit_async, args=args, kwargs=kwargs, out=self.models)
         pool.finish()
@@ -99,7 +102,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         return self
 
     @staticmethod
-    def _transform_async(model_path, X_path, nan_value, has_is_train_attr, order):
+    def _transform_async(model_path, X_path, nan_value, has_is_train_attr, time_column):
         model = load_obj(model_path)
         XX_path = os.path.join(temporary_files_path, "autoarima_XXt" + str(uuid.uuid4()))
         X = load_obj(X_path)
@@ -108,6 +111,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         # predictions are ordered the same as the imput frame
         # Keep track of the order
 
+        order = np.argsort(X[time_column])
         if model is not None:
             yhat = model.predict_in_sample() \
                 if has_is_train_attr else model.predict(n_periods=X.shape[0])
@@ -144,11 +148,14 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
         XX_paths = []
         model_paths = []
-        for key, X in XX_grp:
+        nb_groups = len(XX_grp)
+        for _i_g, (key, X) in enumerate(XX_grp):
+            if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+                print("Auto ARIMA - ", 100 * (_i_g + 1) // nb_groups, " %% of Groups Transformed")
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
             X_path = os.path.join(temporary_files_path, "autoarima_Xt" + str(uuid.uuid4()))
-            order = np.argsort(X[self.time_column])
+
             # Commented for performance, uncomment for debug
             # print("prophet - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
             if grp_hash in self.models:
@@ -158,7 +165,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
                 save_obj(X, X_path)
                 model_paths.append(model_path)
 
-                args = (model_path, X_path, self.nan_value, hasattr(self, 'is_train'), order,)
+                args = (model_path, X_path, self.nan_value, hasattr(self, 'is_train'), self.time_column,)
                 kwargs = {}
                 pool.submit_tryget(None, MyParallelAutoArimaTransformer_transform_async, args=args, kwargs=kwargs,
                                    out=XX_paths)

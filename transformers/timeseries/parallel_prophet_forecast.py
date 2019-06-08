@@ -88,7 +88,10 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
         pool_to_use = small_job_pool
         pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
-        for key, X in XX_grp:
+        nb_groups = len(XX_grp)
+        for _i_g, (key, X) in enumerate(XX_grp):
+            if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+                print(100 * (_i_g + 1) // nb_groups, " of Groups Fitted")
             X_path = os.path.join(temporary_files_path, "fbprophet_X" + str(uuid.uuid4()))
             X = X.reset_index(drop=True)
             save_obj(X, X_path)
@@ -145,7 +148,11 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
         XX_paths = []
         model_paths = []
-        for key, X in XX_grp:
+        nb_groups = len(XX_grp)
+        print("Nb Groups = ", nb_groups)
+        for _i_g, (key, X) in enumerate(XX_grp):
+            if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+                print(100 * (_i_g + 1) // nb_groups, " of Groups Transformed")
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
             X_path = os.path.join(temporary_files_path, "fbprophet_Xt" + str(uuid.uuid4()))
@@ -164,6 +171,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
                                    out=XX_paths)
             else:
                 XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # unseen groups
+                XX.index = X.index
                 save_obj(XX, X_path)
                 XX_paths.append(X_path)
         pool.finish()
