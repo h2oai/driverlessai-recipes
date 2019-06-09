@@ -10,8 +10,6 @@ class HistoricMeanModel(CustomTimeSeriesModel):
     _regression = True
     _display_name = "HistoricMean"
     _description = "Historic Mean"
-    _included_transformers = ['OriginalTransformer', 'CatOriginalTransformer',
-                             'DateOriginalTransformer', 'DateTimeOriginalTransformer']
 
     @staticmethod
     def do_acceptance_test():
@@ -19,7 +17,7 @@ class HistoricMeanModel(CustomTimeSeriesModel):
 
     @staticmethod
     def is_enabled():
-        return False
+        return True
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         self.tgc = self.params_base.get('tgc')
