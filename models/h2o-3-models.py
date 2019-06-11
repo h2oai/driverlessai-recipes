@@ -22,7 +22,7 @@ class H2OBaseModel:
         super().__init__(**kwargs)
         self.id = None
         self.target = "__target__"
-
+        self.col_types = None
         self.my_log_dir = os.path.join(config.data_directory, config.contrib_relative_directory, "h2o_log")
         if not os.path.isdir(self.my_log_dir):
             os.makedirs(self.my_log_dir, exist_ok=True)
@@ -40,6 +40,7 @@ class H2OBaseModel:
 
         orig_cols = list(X.names)
         train_X = h2o.H2OFrame(X.to_pandas())
+        self.col_types = train_X.types
         train_y = h2o.H2OFrame(y,
                                column_names=[self.target],
                                column_types=['categorical' if self.num_classes >= 2 else 'numeric'])
@@ -49,7 +50,7 @@ class H2OBaseModel:
         valid_y = None
         model = None
         if eval_set is not None:
-            valid_X = h2o.H2OFrame(eval_set[0][0].to_pandas())
+            valid_X = h2o.H2OFrame(eval_set[0][0].to_pandas(), column_types=self.col_types)
             valid_y = h2o.H2OFrame(eval_set[0][1],
                                    column_names=[self.target],
                                    column_types=['categorical' if self.num_classes >= 2 else 'numeric'])
@@ -96,24 +97,18 @@ class H2OBaseModel:
             f.write(model)
         model = h2o.load_model(os.path.abspath(model_path))
         os.remove(model_path)
-        test_frame = h2o.H2OFrame(X.to_pandas())
+        test_frame = h2o.H2OFrame(X.to_pandas(), column_types=self.col_types)
         preds_frame = None
 
-        pred_contribs = kwargs.get('pred_contribs', None)
-        output_margin = kwargs.get('output_margin', None)
-
         try:
-            if not pred_contribs:
-                preds_frame = model.predict(test_frame)
-                preds = preds_frame.as_data_frame(header=False)
-                if self.num_classes == 1:
-                    return preds.values.ravel()
-                elif self.num_classes == 2:
-                    return preds.iloc[:, -1].values.ravel()
-                else:
-                    return preds.iloc[:, 1:].values
+            preds_frame = model.predict(test_frame)
+            preds = preds_frame.as_data_frame(header=False)
+            if self.num_classes == 1:
+                return preds.values.ravel()
+            elif self.num_classes == 2:
+                return preds.iloc[:, -1].values.ravel()
             else:
-                raise NotImplementedError("Latest H2O-3 version has Shapley for some models - TODO")
+                return preds.iloc[:, 1:].values
         finally:
             h2o.remove(self.id)
             h2o.remove(test_frame)
