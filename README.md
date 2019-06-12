@@ -33,6 +33,7 @@
  * [transformers](./transformers)
      * [augmentation](./transformers/augmentation)
        * [france_bank_holidays.py](./transformers/augmentation/france_bank_holidays.py)
+       * [is_ramadan.py](./transformers/augmentation/is_ramadan.py)
        * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py)
      * [datetime](./transformers/datetime)
        * [datetime_diff_transformer.py](./transformers/datetime/datetime_diff_transformer.py)
