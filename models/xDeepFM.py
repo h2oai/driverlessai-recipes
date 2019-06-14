@@ -124,6 +124,10 @@ class CIN(Layer):
 
         - **activation** : activation function used on feature maps.
 
+        - **split_half** : split feature map into two equal parts and use first part for a next level and the other part in output. It was not described in the original work, but presented in the code and improves results.
+
+        - **l2_reg**     : l2 regularization
+        
         - **seed** : A Python integer to use as random seed.
 
       References
