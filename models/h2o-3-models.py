@@ -27,11 +27,16 @@ class H2OBaseModel:
         if not os.path.isdir(self.my_log_dir):
             os.makedirs(self.my_log_dir, exist_ok=True)
 
+    def set_default_params(self,
+                           accuracy=None, time_tolerance=None, interpretability=None,
+                           **kwargs):
+        self.params = dict(max_runtime_secs=accuracy * max(1, time_tolerance) * 5)
+
     def get_iterations(self, model):
         return 0
 
-    def make_instance(self):
-        return self.__class__._class(seed=self.random_state)
+    def make_instance(self, **kwargs):
+        return self.__class__._class(seed=self.random_state, **kwargs)
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         X = dt.Frame(X)
@@ -57,11 +62,10 @@ class H2OBaseModel:
             valid_frame = valid_X.cbind(valid_y)
 
         try:
-            model = self.make_instance()
-            model.train(x=train_X.names,
-                        y=self.target,
-                        training_frame=train_frame,
-                        validation_frame=valid_frame)
+            max_runtime_secs = self.params.pop('max_runtime_secs')
+            model = self.make_instance(**self.params)
+            model.train(x=train_X.names, y=self.target, training_frame=train_frame, validation_frame=valid_frame,
+                        max_runtime_secs=max_runtime_secs)
             self.id = model.model_id
             model_path = os.path.join(temporary_files_path, "h2o_model." + str(uuid.uuid4()))
             model_path = h2o.save_model(model=model, path=model_path)
@@ -73,10 +77,10 @@ class H2OBaseModel:
                 os.remove(model_path)
             for xx in [train_frame, train_X, train_y, model, valid_frame, valid_X, valid_y]:
                 if xx is not None:
-                    try:
+                    if isinstance(xx, H2OAutoML):
+                        h2o.remove(xx.project_name)
+                    else:
                         h2o.remove(xx)
-                    except:
-                        pass  # can't remove AutoML model etc.
 
         df_varimp = model.varimp(True)
         if df_varimp is None:
@@ -145,8 +149,11 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
     def mutate_params(self,
                       accuracy, time_tolerance, interpretability,
                       **kwargs):
+        max_iterations = min(kwargs['n_estimators'],
+                             config.max_nestimators) if 'n_estimators' in kwargs else config.max_nestimators
+        max_iterations = min(kwargs['iterations'], max_iterations) if 'iterations' in kwargs else max_iterations
+        self.params['ntrees'] = max_iterations
         self.params['stopping_rounds'] = np.random.choice([5, 10, 20])
-        self.params['ntrees'] = 10 * accuracy * max(1, time_tolerance)
         self.params['learning_rate'] = max(1./self.params['ntrees'], 0.005)
         self.params['max_depth'] = np.random.choice(range(2, 11))
         self.params['col_sample_rate'] = np.random.choice([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
@@ -168,8 +175,11 @@ class H2ORFModel(H2OBaseModel, CustomModel):
     def mutate_params(self,
                       accuracy, time_tolerance, interpretability,
                       **kwargs):
+        max_iterations = min(kwargs['n_estimators'],
+                             config.max_nestimators) if 'n_estimators' in kwargs else config.max_nestimators
+        max_iterations = min(kwargs['iterations'], max_iterations) if 'iterations' in kwargs else max_iterations
+        self.params['ntrees'] = max_iterations
         self.params['stopping_rounds'] = np.random.choice([5, 10, 20])
-        self.params['ntrees'] = 10 * accuracy * max(1, time_tolerance)
         self.params['max_depth'] = np.random.choice(range(2, 11))
         self.params['col_sample_rate'] = np.random.choice([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
         self.params['sample_rate'] = np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
@@ -198,7 +208,6 @@ class H2ODLModel(H2OBaseModel, CustomModel):
                                                   [500], [500, 500], [500, 500, 500]])
         self.params['epochs'] = accuracy * max(1, time_tolerance)
         self.params['input_dropout_ratio'] = np.random.choice([0, 0.1, 0.2])
-        self.params['max_runtime_secs'] = accuracy * max(1, time_tolerance) * 5
 
 
 from h2o.estimators.glm import H2OGeneralizedLinearEstimator
@@ -219,16 +228,15 @@ class H2OGLMModel(H2OBaseModel, CustomModel):
             return self.__class__._class(seed=self.random_state, family='multinomial')
 
 
-# from h2o.automl import H2OAutoML
-#
-#
-# class H2OAutoMLModel(H2OBaseModel, CustomModel):
-#     _boosters = ['h2oautoml']
-#     _display_name = "H2O AutoML"
-#     _description = "H2O-3 AutoML"
-#     _class = H2OAutoML
-#
-#     def mutate_params(self,
-#                       accuracy, time_tolerance, interpretability,
-#                       **kwargs):
-#         self.params['max_runtime_secs'] = accuracy * max(1, time_tolerance) * 50
+from h2o.automl import H2OAutoML
+
+
+class H2OAutoMLModel(H2OBaseModel, CustomModel):
+    @staticmethod
+    def is_enabled():
+        return False
+
+    _boosters = ['h2oautoml']
+    _display_name = "H2O AutoML"
+    _description = "H2O-3 AutoML"
+    _class = H2OAutoML
