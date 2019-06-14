@@ -167,7 +167,7 @@ class H2ORFModel(H2OBaseModel, CustomModel):
     _boosters = ['h2orf']
     _display_name = "H2O RF"
     _description = "H2O-3 Random Forest"
-    _class = H2OGradientBoostingEstimator
+    _class = H2ORandomForestEstimator
 
     def get_iterations(self, model):
         return model.params['ntrees']['actual'] + 1
