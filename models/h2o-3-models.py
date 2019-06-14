@@ -23,7 +23,8 @@ class H2OBaseModel:
         self.id = None
         self.target = "__target__"
         self.col_types = None
-        self.my_log_dir = os.path.join(config.data_directory, config.contrib_relative_directory, "h2o_log")
+        self.my_log_dir = os.path.abspath(os.path.join(config.data_directory,
+                                                       config.contrib_relative_directory, "h2o_log"))
         if not os.path.isdir(self.my_log_dir):
             os.makedirs(self.my_log_dir, exist_ok=True)
 
