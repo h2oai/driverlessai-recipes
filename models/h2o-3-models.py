@@ -73,7 +73,10 @@ class H2OBaseModel:
                 os.remove(model_path)
             for xx in [train_frame, train_X, train_y, model, valid_frame, valid_X, valid_y]:
                 if xx is not None:
-                    h2o.remove(xx)
+                    try:
+                        h2o.remove(xx)
+                    except:
+                        pass  # can't remove AutoML model etc.
 
         df_varimp = model.varimp(True)
         if df_varimp is None:
@@ -139,6 +142,16 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
     def get_iterations(self, model):
         return model.params['ntrees']['actual'] + 1
 
+    def mutate_params(self,
+                      accuracy, time_tolerance, interpretability,
+                      **kwargs):
+        self.params['stopping_rounds'] = np.random.choice([5, 10, 20])
+        self.params['ntrees'] = 10 * accuracy * max(1, time_tolerance)
+        self.params['learning_rate'] = max(1./self.params['ntrees'], 0.005)
+        self.params['max_depth'] = np.random.choice(range(2, 11))
+        self.params['col_sample_rate'] = np.random.choice([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+        self.params['sample_rate'] = np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+
 
 from h2o.estimators.random_forest import H2ORandomForestEstimator
 
@@ -152,6 +165,15 @@ class H2ORFModel(H2OBaseModel, CustomModel):
     def get_iterations(self, model):
         return model.params['ntrees']['actual'] + 1
 
+    def mutate_params(self,
+                      accuracy, time_tolerance, interpretability,
+                      **kwargs):
+        self.params['stopping_rounds'] = np.random.choice([5, 10, 20])
+        self.params['ntrees'] = 10 * accuracy * max(1, time_tolerance)
+        self.params['max_depth'] = np.random.choice(range(2, 11))
+        self.params['col_sample_rate'] = np.random.choice([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+        self.params['sample_rate'] = np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+
 
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 
@@ -163,10 +185,20 @@ class H2ODLModel(H2OBaseModel, CustomModel):
     _description = "H2O-3 DeepLearning"
     _class = H2ODeepLearningEstimator
 
-    @staticmethod
-    def do_acceptance_test():
-        return False  # for version 1.7.0-62, since didn't check _is_reproducible yet
-        # return True  # for version 1.7.0-63 and later
+    def mutate_params(self,
+                      accuracy, time_tolerance, interpretability,
+                      **kwargs):
+        self.params['activation'] = np.random.choice(["rectifier", "rectifier",   # upweight
+                                                      "rectifier_with_dropout",
+                                                      "tanh"])
+        self.params['hidden'] = np.random.choice([[20, 20, 20],
+                                                  [50, 50, 50],
+                                                  [100, 100, 100],
+                                                  [200, 200], [200, 200, 200],
+                                                  [500], [500, 500], [500, 500, 500]])
+        self.params['epochs'] = accuracy * max(1, time_tolerance)
+        self.params['input_dropout_ratio'] = np.random.choice([0, 0.1, 0.2])
+        self.params['max_runtime_secs'] = accuracy * max(1, time_tolerance) * 5
 
 
 from h2o.estimators.glm import H2OGeneralizedLinearEstimator
@@ -185,3 +217,18 @@ class H2OGLMModel(H2OBaseModel, CustomModel):
             return self.__class__._class(seed=self.random_state, family='binomial')
         else:
             return self.__class__._class(seed=self.random_state, family='multinomial')
+
+
+# from h2o.automl import H2OAutoML
+#
+#
+# class H2OAutoMLModel(H2OBaseModel, CustomModel):
+#     _boosters = ['h2oautoml']
+#     _display_name = "H2O AutoML"
+#     _description = "H2O-3 AutoML"
+#     _class = H2OAutoML
+#
+#     def mutate_params(self,
+#                       accuracy, time_tolerance, interpretability,
+#                       **kwargs):
+#         self.params['max_runtime_secs'] = accuracy * max(1, time_tolerance) * 50
