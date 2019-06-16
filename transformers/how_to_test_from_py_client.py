@@ -126,7 +126,7 @@ def test_debug_pyclient():
         , score_f_name=None
         , config_overrides="""
                                     feature_brain_level=0
-                                    exclude_transformers={dont_use}
+                                    excluded_transformers={dont_use}
                                     """.format(dont_use=all_nontest_transformers)
     )
 

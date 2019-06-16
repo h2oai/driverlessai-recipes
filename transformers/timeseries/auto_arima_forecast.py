@@ -32,7 +32,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         for key, X in XX_grp:
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
-            print("auto arima - fitting on data of shape: %s for group: %s" % (str(X.shape), grp_hash))
+            # print("auto arima - fitting on data of shape: %s for group: %s" % (str(X.shape), grp_hash))
             order = np.argsort(X[self.time_column])
             try:
                 model = pm.auto_arima(X['y'].values[order], error_action='ignore')
@@ -53,7 +53,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         for key, X in XX_grp:
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
-            print("auto arima - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
+            # print("auto arima - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
             order = np.argsort(X[self.time_column])
             if grp_hash in self.models:
                 model = self.models[grp_hash]
@@ -69,6 +69,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
             XX.index = X.index
             preds.append(XX)
         XX = pd.concat(tuple(preds), axis=0).sort_index()
+
         return XX
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
@@ -76,3 +77,23 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         ret = self.fit(X, y).transform(X)
         del self.is_train
         return ret
+        
+    def update_history(self, X: dt.Frame, y: np.array = None):
+        X = X.to_pandas()
+        XX = X[self.tgc].copy
+        XX['y'] = np.array(y)
+        tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
+        if len(tgc_wo_time) > 0:
+            XX_grp = XX.groupby(tgc_wo_time)
+        else:
+            XX_grp = [([None], XX)]
+        for key, X in XX_grp:
+            key = key if isinstance(key, list) else [key]
+            grp_hash = '_'.join(map(str, key))
+            print("auto arima - update history with data of shape: %s for group: %s" % (str(X.shape), grp_hash))
+            order = np.argsort(X[self.time_column])
+            if grp_hash in self.models:
+                model = self.models[grp_hash]
+                if model is not None:
+                    model.update(X['y'].values[order])
+        return self
