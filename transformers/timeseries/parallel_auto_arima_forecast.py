@@ -1,13 +1,12 @@
-from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
+import importlib
 from h2oaicore.systemutils import small_job_pool, save_obj, load_obj, temporary_files_path, remove
+from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 import datatable as dt
 import numpy as np
+import pandas as pd
+import random
 import os
 import uuid
-import random
-import importlib
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder
 
 
 class suppress_stdout_stderr(object):
@@ -26,61 +25,56 @@ class suppress_stdout_stderr(object):
             os.close(fd)
 
 
-def MyParallelProphetTransformer_fit_async(*args, **kwargs):
-    return MyParallelProphetTransformer._fit_async(*args, **kwargs)
+def MyParallelAutoArimaTransformer_fit_async(*args, **kwargs):
+    return MyParallelAutoArimaTransformer._fit_async(*args, **kwargs)
 
 
-def MyParallelProphetTransformer_transform_async(*args, **kwargs):
-    return MyParallelProphetTransformer._transform_async(*args, **kwargs)
+def MyParallelAutoArimaTransformer_transform_async(*args, **kwargs):
+    return MyParallelAutoArimaTransformer._transform_async(*args, **kwargs)
 
 
-class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
-    _is_reproducible = True
+class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
     _binary = False
     _multiclass = False
-    # some package dependencies are best sequential to overcome known issues
-    _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.4.post2']
-    # _modules_needed_by_name = ['fbprophet']
-    _included_boosters = None  # ["gblinear"] for strong trends - can extrapolate
+    _modules_needed_by_name = ['pmdarima']
+    _included_boosters = None
 
     @staticmethod
     def get_default_properties():
         return dict(col_type="time_column", min_cols=1, max_cols=1, relative_importance=1)
 
     @staticmethod
-    def _fit_async(X_path, grp_hash):
+    def _fit_async(X_path, grp_hash, time_column):
         np.random.seed(1234)
         random.seed(1234)
         X = load_obj(X_path)
-        # Commented for performance, uncomment for debug
-        # print("prophet - fitting on data of shape: %s for group: %s" % (str(X.shape), grp_hash))
-        if X.shape[0] < 20:
-            # print("prophet - small data work-around for group: %s" % grp_hash)
-            return grp_hash, None
-        mod = importlib.import_module('fbprophet')
-        Prophet = getattr(mod, "Prophet")
-        model = Prophet()
+
+        pm = importlib.import_module('pmdarima')
         with suppress_stdout_stderr():
-            model.fit(X[['ds', 'y']])
-        model_path = os.path.join(temporary_files_path, "fbprophet_model" + str(uuid.uuid4()))
+            try:
+                order = order = np.argsort(X[time_column])
+                model = pm.auto_arima(X['y'].values[order], error_action='ignore')
+            except:
+                model = None
+        model_path = os.path.join(temporary_files_path, "autoarima_model" + str(uuid.uuid4()))
         save_obj(model, model_path)
         remove(X_path)  # remove to indicate success
         return grp_hash, model_path
 
     def fit(self, X: dt.Frame, y: np.array = None):
-        XX = X[:, self.tgc].to_pandas()
-        XX = XX.replace([None, np.nan], 0)
-        XX.rename(columns={self.time_column: "ds"}, inplace=True)
-        if self.labels is not None:
-            y = LabelEncoder().fit(self.labels).transform(y)
+        pm = importlib.import_module('pmdarima')
+        self.models = {}
+        X = X.to_pandas()
+        XX = X[self.tgc].copy()
         XX['y'] = np.array(y)
-        self.nan_value = np.mean(y)  # TODO - store mean per group, not just global
+        self.nan_value = np.mean(y)
+        self.ntrain = X.shape[0]
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
         if len(tgc_wo_time) > 0:
             XX_grp = XX.groupby(tgc_wo_time)
         else:
             XX_grp = [([None], XX)]
-        self.models = {}
+
         num_tasks = len(XX_grp)
 
         def processor(out, res):
@@ -91,38 +85,44 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         nb_groups = len(XX_grp)
         for _i_g, (key, X) in enumerate(XX_grp):
             if (_i_g + 1) % max(1, nb_groups // 20) == 0:
-                print(100 * (_i_g + 1) // nb_groups, " of Groups Fitted")
-            X_path = os.path.join(temporary_files_path, "fbprophet_X" + str(uuid.uuid4()))
+                print("Auto ARIMA - ", 100 * (_i_g + 1) // nb_groups, " %% of Groups Fitted")
+            X_path = os.path.join(temporary_files_path, "autoarima_X" + str(uuid.uuid4()))
             X = X.reset_index(drop=True)
             save_obj(X, X_path)
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
-            args = (X_path, grp_hash,)
+            args = (X_path, grp_hash, self.time_column,)
             kwargs = {}
-            pool.submit_tryget(None, MyParallelProphetTransformer_fit_async, args=args, kwargs=kwargs, out=self.models)
+            pool.submit_tryget(None, MyParallelAutoArimaTransformer_fit_async, args=args, kwargs=kwargs, out=self.models)
         pool.finish()
+
         for k, v in self.models.items():
             self.models[k] = load_obj(v) if v is not None else None
             remove(v)
         return self
 
     @staticmethod
-    def _transform_async(model_path, X_path, nan_value):
+    def _transform_async(model_path, X_path, nan_value, has_is_train_attr, time_column):
         model = load_obj(model_path)
-        XX_path = os.path.join(temporary_files_path, "fbprophet_XXt" + str(uuid.uuid4()))
+        XX_path = os.path.join(temporary_files_path, "autoarima_XXt" + str(uuid.uuid4()))
         X = load_obj(X_path)
         # Facebook Prophet returns the predictions ordered by time
         # So we should keep track of the time order for each group so that
         # predictions are ordered the same as the imput frame
         # Keep track of the order
-        order = np.argsort(pd.to_datetime(X["ds"]))
+
+        order = np.argsort(X[time_column])
         if model is not None:
-            # Run prophet
-            yhat = model.predict(X)['yhat'].values
+            yhat = model.predict_in_sample() \
+                if has_is_train_attr else model.predict(n_periods=X.shape[0])
+            yhat = yhat[order]
             XX = pd.DataFrame(yhat, columns=['yhat'])
+
         else:
-            XX = pd.DataFrame(np.full((X.shape[0], 1), nan_value), columns=['yhat'])  # invalid models
-        XX.index = X.index[order]
+            XX = pd.DataFrame(np.full((X.shape[0], 1), nan_value), columns=['yhat'])  # invalid model
+
+        # Sync index
+        XX.index = X.index
         assert XX.shape[1] == 1
         save_obj(XX, XX_path)
         remove(model_path)  # indicates success, no longer need
@@ -130,14 +130,14 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         return XX_path
 
     def transform(self, X: dt.Frame):
-        XX = X[:, self.tgc].to_pandas()
-        XX = XX.replace([None, np.nan], 0)
-        XX.rename(columns={self.time_column: "ds"}, inplace=True)
+        X = X.to_pandas()
+        XX = X[self.tgc].copy()
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
         if len(tgc_wo_time) > 0:
             XX_grp = XX.groupby(tgc_wo_time)
         else:
             XX_grp = [([None], XX)]
+
         assert len(XX_grp) > 0
         num_tasks = len(XX_grp)
 
@@ -149,28 +149,30 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         XX_paths = []
         model_paths = []
         nb_groups = len(XX_grp)
-        print("Nb Groups = ", nb_groups)
         for _i_g, (key, X) in enumerate(XX_grp):
             if (_i_g + 1) % max(1, nb_groups // 20) == 0:
-                print(100 * (_i_g + 1) // nb_groups, " of Groups Transformed")
+                print("Auto ARIMA - ", 100 * (_i_g + 1) // nb_groups, " %% of Groups Transformed")
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
-            X_path = os.path.join(temporary_files_path, "fbprophet_Xt" + str(uuid.uuid4()))
+            X_path = os.path.join(temporary_files_path, "autoarima_Xt" + str(uuid.uuid4()))
+
             # Commented for performance, uncomment for debug
             # print("prophet - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
             if grp_hash in self.models:
                 model = self.models[grp_hash]
-                model_path = os.path.join(temporary_files_path, "fbprophet_modelt" + str(uuid.uuid4()))
+                model_path = os.path.join(temporary_files_path, "autoarima_modelt" + str(uuid.uuid4()))
                 save_obj(model, model_path)
                 save_obj(X, X_path)
                 model_paths.append(model_path)
 
-                args = (model_path, X_path, self.nan_value)
+                args = (model_path, X_path, self.nan_value, hasattr(self, 'is_train'), self.time_column,)
                 kwargs = {}
-                pool.submit_tryget(None, MyParallelProphetTransformer_transform_async, args=args, kwargs=kwargs,
+                pool.submit_tryget(None, MyParallelAutoArimaTransformer_transform_async, args=args, kwargs=kwargs,
                                    out=XX_paths)
             else:
+                # Don't go through pools
                 XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # unseen groups
+                # Sync indices
                 XX.index = X.index
                 save_obj(XX, X_path)
                 XX_paths.append(X_path)
@@ -181,4 +183,28 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         return XX
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
-        return self.fit(X, y).transform(X)
+        self.is_train = True
+        ret = self.fit(X, y).transform(X)
+        del self.is_train
+        return ret
+        
+    def update_history(self, X: dt.Frame, y: np.array = None):
+        print("auto arima - update history")
+        X = X.to_pandas()
+        XX = X[self.tgc].copy
+        XX['y'] = np.array(y)
+        tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
+        if len(tgc_wo_time) > 0:
+            XX_grp = XX.groupby(tgc_wo_time)
+        else:
+            XX_grp = [([None], XX)]
+        for key, X in XX_grp:
+            key = key if isinstance(key, list) else [key]
+            grp_hash = '_'.join(map(str, key))
+            print("auto arima - update history with data of shape: %s for group: %s" % (str(X.shape), grp_hash))
+            order = np.argsort(X[self.time_column])
+            if grp_hash in self.models:
+                model = self.models[grp_hash]
+                if model is not None:
+                    model.update(X['y'].values[order])
+        return self
