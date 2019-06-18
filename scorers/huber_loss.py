@@ -62,5 +62,5 @@ class MyHuberLossScorer(CustomScorer):
                             np.square(np.maximum(all0s, np.subtract(1, actual_mult_predict))),
                             -4 * actual_mult_predict)
             
-        return np.sum(loss)
+        return np.mean(loss) if actual.shape[0] > 0 else 0
          
