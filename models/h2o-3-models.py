@@ -154,11 +154,11 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
                              config.max_nestimators) if 'n_estimators' in kwargs else config.max_nestimators
         max_iterations = min(kwargs['iterations'], max_iterations) if 'iterations' in kwargs else max_iterations
         self.params['ntrees'] = max_iterations
-        self.params['stopping_rounds'] = np.random.choice([5, 10, 20])
+        self.params['stopping_rounds'] = int(np.random.choice([5, 10, 20]))
         self.params['learning_rate'] = max(1./self.params['ntrees'], 0.005)
-        self.params['max_depth'] = np.random.choice(range(2, 11))
-        self.params['col_sample_rate'] = np.random.choice([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-        self.params['sample_rate'] = np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+        self.params['max_depth'] = int(np.random.choice(range(2, 11)))
+        self.params['col_sample_rate'] = float(np.random.choice([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
+        self.params['sample_rate'] = float(np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
 
 
 from h2o.estimators.random_forest import H2ORandomForestEstimator
@@ -180,10 +180,10 @@ class H2ORFModel(H2OBaseModel, CustomModel):
                              config.max_nestimators) if 'n_estimators' in kwargs else config.max_nestimators
         max_iterations = min(kwargs['iterations'], max_iterations) if 'iterations' in kwargs else max_iterations
         self.params['ntrees'] = max_iterations
-        self.params['stopping_rounds'] = np.random.choice([5, 10, 20])
-        self.params['max_depth'] = np.random.choice(range(2, 11))
-        self.params['col_sample_rate'] = np.random.choice([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-        self.params['sample_rate'] = np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+        self.params['stopping_rounds'] = int(np.random.choice([5, 10, 20]))
+        self.params['max_depth'] = int(np.random.choice(range(2, 11)))
+        self.params['col_sample_rate'] = float(np.random.choice([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
+        self.params['sample_rate'] = float(np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
 
 
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
@@ -208,7 +208,7 @@ class H2ODLModel(H2OBaseModel, CustomModel):
                                                   [200, 200], [200, 200, 200],
                                                   [500], [500, 500], [500, 500, 500]])
         self.params['epochs'] = accuracy * max(1, time_tolerance)
-        self.params['input_dropout_ratio'] = np.random.choice([0, 0.1, 0.2])
+        self.params['input_dropout_ratio'] = float(np.random.choice([0, 0.1, 0.2]))
 
 
 from h2o.estimators.glm import H2OGeneralizedLinearEstimator
