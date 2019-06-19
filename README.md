@@ -38,6 +38,7 @@
      * [datetime](./transformers/datetime)
        * [datetime_diff_transformer.py](./transformers/datetime/datetime_diff_transformer.py)
        * [datetime_encoder_transformer.py](./transformers/datetime/datetime_encoder_transformer.py)
+       * [days_until_dec2020.py](./transformers/datetime/days_until_dec2020.py)
        * [parse_excel_date_transformer.py](./transformers/datetime/parse_excel_date_transformer.py)
      * [generic](./transformers/generic)
        * [count_missing_values_transformer.py](./transformers/generic/count_missing_values_transformer.py)
