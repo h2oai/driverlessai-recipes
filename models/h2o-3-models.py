@@ -155,7 +155,7 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
         max_iterations = min(kwargs['iterations'], max_iterations) if 'iterations' in kwargs else max_iterations
         self.params['ntrees'] = max_iterations
         self.params['stopping_rounds'] = int(np.random.choice([5, 10, 20]))
-        self.params['learning_rate'] = max(1./self.params['ntrees'], 0.005)
+        self.params['learn_rate'] = max(1./self.params['ntrees'], 0.005)
         self.params['max_depth'] = int(np.random.choice(range(2, 11)))
         self.params['col_sample_rate'] = float(np.random.choice([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
         self.params['sample_rate'] = float(np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
