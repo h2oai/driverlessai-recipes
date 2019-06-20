@@ -1,3 +1,4 @@
+"""False Discovery Rate: FP / (FP + TP)"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer

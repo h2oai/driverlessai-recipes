@@ -1,3 +1,4 @@
+"""K-Nearest Neighbor implementation by sklearn. For small data (< 200k rows)."""
 import datatable as dt
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
@@ -14,8 +15,7 @@ class KNearestNeighbourModel(CustomModel):
     
     _boosters = ['knn']
     _display_name = "KNearestNeighbour"
-    _description = "K Nearest Neighbour Model based on sklearn. Not adviced if the data is larger than  200K rows"
-
+    _description = "K Nearest Neighbour Model based on sklearn. Not adviced if the data is larger than 200K rows"
 
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,

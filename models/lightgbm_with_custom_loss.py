@@ -1,5 +1,4 @@
-"""The intention of this custom model is to demonstrate how one can use the framework to use LightGBM with
-a custom objective function, i.e. a loss function that LightGBM would optimize for.
+"""Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).
 """
 from h2oaicore.models import BaseCustomModel, LightGBMModel
 import numpy as np
