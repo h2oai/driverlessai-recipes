@@ -10,4 +10,4 @@ for dirpath, dirs, files in os.walk("."):
             for f in files:
                 if f not in exclude:
                     if f[-3:] == ".py":
-                        print(' ' * (len(path)) + "* [" + f + "](" + dirpath + "/" + f + ")")
+                        print(' ' * (len(path) + 2) + "* [" + f + "](" + dirpath + "/" + f + ")")
