@@ -1,3 +1,5 @@
+"""Historic Mean for Time-Series problems. Predicts the mean of the target for each time
+group for regression problems."""
 import datatable as dt
 import numpy as np
 import pandas as pd

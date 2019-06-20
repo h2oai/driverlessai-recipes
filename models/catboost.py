@@ -1,3 +1,4 @@
+"""CatBoost gradient boosting by Yandex. Currently supports regression and binary classification."""
 import datatable as dt
 import numpy as np
 import _pickle as pickle

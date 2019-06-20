@@ -1,3 +1,4 @@
+"""Recipe for Kaggle Competition: Amazon.com - Employee Access Challenge"""
 import datatable as dt
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
@@ -7,7 +8,6 @@ from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.systemutils import config, physical_cores_count
 
 
-# Kaggle Problem: Amazon.com - Employee Access Challenge
 # https://www.kaggle.com/c/amazon-employee-access-challenge
 
 # Data: https://www.kaggle.com/c/amazon-employee-access-challenge/data
