@@ -51,35 +51,30 @@
   * [image](./transformers/image)
     * [image_url_transformer.py](./transformers/image/image_url_transformer.py) [please add documentation]
 * [recipes](./recipes)
-  * [amazon.py](./recipes/amazon.py) [please add documentation]
+  * [amazon.py](./recipes/amazon.py) [Recipe for Kaggle Competition: Amazon.com - Employee Access Challenge]
 * [models](./models)
-  * [knearestneighbour.py](./models/knearestneighbour.py) [please add documentation]
-  * [linear_svm.py](./models/linear_svm.py) [please add documentation]
-  * [historic_mean.py](./models/historic_mean.py) [please add documentation]
-  * [catboost.py](./models/catboost.py) [please add documentation]
-  * [h2o-3-models.py](./models/h2o-3-models.py) [please add documentation]
-  * [xgboost_with_custom_loss.py](./models/xgboost_with_custom_loss.py) [The intention of this custom model is to demonstrate how one can use the framework to use XGBoost with
-    a custom objective function, i.e. a loss function that XGBoost would optimize for.
-    The code is almost a clone of lightgbm_with_custom_loss.py
-    only parent class changes.
-    ]
-  * [lightgbm_with_custom_loss.py](./models/lightgbm_with_custom_loss.py) [The intention of this custom model is to demonstrate how one can use the framework to use LightGBM with
-    a custom objective function, i.e. a loss function that LightGBM would optimize for.
-    ]
+  * [knearestneighbour.py](./models/knearestneighbour.py) [K-Nearest Neighbor implementation by sklearn. For small data (< 200k rows).]
+  * [linear_svm.py](./models/linear_svm.py) [Linear Support Vector Machine (SVM) implementation by sklearn. For small data.]
+  * [historic_mean.py](./models/historic_mean.py) [Historic Mean for Time-Series problems. Predicts the mean of the target for each timegroup for regression problems.]
+  * [catboost.py](./models/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.]
+  * [h2o-3-models.py](./models/h2o-3-models.py) [H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB)]
+  * [xgboost_with_custom_loss.py](./models/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).]
+  * [lightgbm_with_custom_loss.py](./models/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).]
+* [tmp](./tmp)
 * [scorers](./scorers)
   * [mean_absolute_percentage_deviation.py](./scorers/mean_absolute_percentage_deviation.py) [please add documentation]
   * [precision.py](./scorers/precision.py) [please add documentation]
   * [recall.py](./scorers/recall.py) [please add documentation]
-  * [hamming_loss.py](./scorers/hamming_loss.py) [please add documentation]
-  * [explained_variance.py](./scorers/explained_variance.py) [please add documentation]
-  * [huber_loss.py](./scorers/huber_loss.py) [please add documentation]
-  * [average_mcc.py](./scorers/average_mcc.py) [please add documentation]
+  * [hamming_loss.py](./scorers/hamming_loss.py) [Hamming Loss - Misclassification Rate]
+  * [explained_variance.py](./scorers/explained_variance.py) [Explained Variance. Fraction of variance that is explained by the model.]
+  * [huber_loss.py](./scorers/huber_loss.py) [Huber Loss for Regression or Binary Classification. Robust loss, combination of quadratic loss and linear loss.]
+  * [average_mcc.py](./scorers/average_mcc.py) [Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems)]
   * [pearson_correlation.py](./scorers/pearson_correlation.py) [please add documentation]
   * [median_absolute_error.py](./scorers/median_absolute_error.py) [please add documentation]
   * [mean_absolute_scaled_error.py](./scorers/mean_absolute_scaled_error.py) [please add documentation]
-  * [cost.py](./scorers/cost.py) [please add documentation]
-  * [largest_error.py](./scorers/largest_error.py) [please add documentation]
+  * [cost.py](./scorers/cost.py) [Using hard-corded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `x * FP + y * FN`]
+  * [largest_error.py](./scorers/largest_error.py) [Largest error for regression problems. Highly sensitive to outliers.]
   * [quadratic_weighted_kappa.py](./scorers/quadratic_weighted_kappa.py) [please add documentation]
   * [top_decile.py](./scorers/top_decile.py) [please add documentation]
-  * [false_discovery_rate.py](./scorers/false_discovery_rate.py) [please add documentation]
-  * [brier_loss.py](./scorers/brier_loss.py) [please add documentation]
+  * [false_discovery_rate.py](./scorers/false_discovery_rate.py) [False Discovery Rate: FP / (FP + TP)]
+  * [brier_loss.py](./scorers/brier_loss.py) [Brier Loss]
