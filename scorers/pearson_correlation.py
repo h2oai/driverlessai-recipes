@@ -1,3 +1,4 @@
+"""Pearson Correlation Coefficient for regression"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
@@ -8,7 +9,7 @@ class Pearson_Correlation(CustomScorer):
     _regression = True
     _maximize = True
     _perfect_score = 1.
-    _display_name = "Pearson R"
+    _display_name = "PearsonR"
 
     def score(self,
               actual: np.array,
