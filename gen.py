@@ -1,4 +1,4 @@
-exclude = ['.', '.git', 'data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py']
+exclude = ['.', 'pycache', '.git', 'data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py']
 sep = '  '
 
 def get_module_docstring(filepath):
