@@ -10,14 +10,15 @@ class MyTopQuartileMedianAbsErrorScorer(CustomScorer):
     _maximize = False
     _perfect_score = 0
     _display_name = "TopDecile"
+    _supports_sample_weight = False
 
     def score(self,
               actual: np.array,
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-        if sample_weight is None:
-            sample_weight = np.ones(actual.shape[0])
+        if sample_weight is not None:
+            raise NotImplementedError
         cutoff = np.quantile(predicted, 0.9)
         which = (predicted >= cutoff).ravel()
-        return float(np.median(np.abs(actual[which] - predicted[which]) * sample_weight[which]))
+        return float(np.median(np.abs(actual[which] - predicted[which])))
