@@ -6,8 +6,9 @@ for dirpath, dirs, files in os.walk("."):
         path = dirpath.split('/')
         pdir = os.path.basename(dirpath)
         if pdir not in exclude:
-            print(' ' * (len(path) - 2) + "* " + "[" + pdir + "](" + dirpath + ")")
+            print(len(path))
+            print('\t' * (len(path) - 2) + "* " + "[" + pdir + "](" + dirpath + ")")
             for f in files:
                 if f not in exclude:
                     if f[-3:] == ".py":
-                        print(' ' * (len(path) + 2) + "* [" + f + "](" + dirpath + "/" + f + ")")
+                        print('\t' * (len(path)) + "* [" + f + "](" + dirpath + "/" + f + ")")
