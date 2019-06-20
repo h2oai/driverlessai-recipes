@@ -1,3 +1,4 @@
+"""Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems)"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer

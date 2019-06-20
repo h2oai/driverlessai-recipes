@@ -1,3 +1,4 @@
+"""Explained Variance. Fraction of variance that is explained by the model."""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer

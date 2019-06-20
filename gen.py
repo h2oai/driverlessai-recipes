@@ -4,7 +4,7 @@ sep = '  '
 def get_module_docstring(filepath):
     co = compile(open(filepath).read(), filepath, 'exec')
     if co.co_consts and isinstance(co.co_consts[0], str):
-        docstring = co.co_consts[0]
+        docstring = co.co_consts[0].replace("\n", "")
     else:
         docstring = None
     return docstring
@@ -24,7 +24,6 @@ for dirpath, dirs, files in os.walk("."):
         pdir = os.path.basename(dirpath)
         if pdir not in exclude:
             depth = len(path) - 2
-            # print(sep * depth + "* " + "[" + pdir + "](" + dirpath + ")")
             print_offset(depth, "[" + pdir + "](" + dirpath + ")")
             for f in files:
                 if f not in exclude:

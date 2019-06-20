@@ -1,3 +1,4 @@
+"""Linear Support Vector Machine (SVM) implementation by sklearn. For small data."""
 import datatable as dt
 import numpy as np
 from sklearn.preprocessing import LabelEncoder

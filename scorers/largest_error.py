@@ -1,3 +1,4 @@
+"""Largest error for regression problems. Highly sensitive to outliers."""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer

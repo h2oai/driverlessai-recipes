@@ -1,3 +1,5 @@
+"""H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB)
+"""
 from h2oaicore.models import CustomModel
 import datatable as dt
 import _pickle as pickle
