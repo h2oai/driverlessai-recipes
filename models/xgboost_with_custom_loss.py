@@ -1,7 +1,4 @@
-"""The intention of this custom model is to demonstrate how one can use the framework to use XGBoost with
-a custom objective function, i.e. a loss function that XGBoost would optimize for.
-The code is almost a clone of lightgbm_with_custom_loss.py
-only parent class changes.
+"""Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).
 """
 from h2oaicore.models import BaseCustomModel, XGBoostGBMModel
 import numpy as np

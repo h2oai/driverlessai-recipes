@@ -1,3 +1,4 @@
+"""Huber Loss for Regression or Binary Classification. Robust loss, combination of quadratic loss and linear loss."""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
