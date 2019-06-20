@@ -28,6 +28,6 @@ class recall(CustomScorer):
             predicted = np.argmax(predicted, axis=1)
             method = "micro"
         else:
-            predicted = (predicted > _threshold)
+            predicted = (predicted > self._threshold)
 
         return recall_score(actual, predicted, labels=labels, average=method, sample_weight=sample_weight)
