@@ -56,7 +56,6 @@ class MyXGBMAsymMSE(BaseCustomModel, XGBoostGBMModel):
                       train_shape=None, ncol_effective=None,
                       time_series=False, ensemble_level=None,
                       score_f_name: str = None, **kwargs):
-
         # If we don't override the parent mutate_params method, DAI would have the opportunity
         # to modify the objective and select the winner
         # For demonstration purposes we purposely make sure that the objective

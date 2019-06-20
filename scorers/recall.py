@@ -8,14 +8,13 @@ from sklearn.metrics import recall_score
 
 class recall(CustomScorer):
     _description = "Recall: `tp / (tp + fn)`"
-    _binary = True    
+    _binary = True
     _multiclass = True
     _maximize = True
     _perfect_score = 1
     _display_name = "Recall"
     _threshold = 0.5
-    
-    
+
     def score(self,
               actual: np.array,
               predicted: np.array,
@@ -24,7 +23,7 @@ class recall(CustomScorer):
         lb = LabelEncoder()
         labels = lb.fit_transform(labels)
         actual = lb.transform(actual)
-        method= "binary"
+        method = "binary"
         if len(labels) > 2:
             predicted = np.argmax(predicted, axis=1)
             method = "micro"
@@ -32,6 +31,3 @@ class recall(CustomScorer):
             predicted = (predicted > _threshold)
 
         return recall_score(actual, predicted, labels=labels, average=method, sample_weight=sample_weight)
-    
-
-

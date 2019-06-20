@@ -142,7 +142,7 @@ class MyImgTransformer(CustomTransformer, TensorFlowModel):
         if len(results) > 0:
             # don't use GPU memory unless actually found relevant data
             import h2oaicore.keras as keras
-            #self.tf_config = self.set_tf_config(kwargs)
+            # self.tf_config = self.set_tf_config(kwargs)
             self.tf_config = self.ConfigProto()
             # self.tf_config.gpu_options.allow_growth = True
             self.tf_config.gpu_options.per_process_gpu_memory_fraction = 0.3

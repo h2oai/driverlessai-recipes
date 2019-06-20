@@ -3,19 +3,20 @@ import datatable as dt
 import numpy as np
 import pandas as pd
 
+
 # from https://github.com/rjchow/singapore_public_holidays
 def get_ramadan_dates():
     return dt.fread(
-"""	
-DateStart,DateEnd
-2014-06-28,2014-07-28
-2015-06-17,2015-07-16
-2016-06-06,2016-07-05
-2017-05-26,2017-06-24
-2018-05-16,2018-06-14
-2019-05-05,2019-06-03
-2020-04-23,2020-05-23
-""").to_pandas()
+        """	
+        DateStart,DateEnd
+        2014-06-28,2014-07-28
+        2015-06-17,2015-07-16
+        2016-06-06,2016-07-05
+        2017-05-26,2017-06-24
+        2018-05-16,2018-06-14
+        2019-05-05,2019-06-03
+        2020-04-23,2020-05-23
+        """).to_pandas()
 
 
 class RamadanTransformer(CustomTimeSeriesTransformer):
@@ -23,16 +24,17 @@ class RamadanTransformer(CustomTimeSeriesTransformer):
     Create feature 'is_ramadan' for ramadan days 
     Data are initialized for Saudia Arabia. Modify dates in get_ramadan_dates for other countries
     """
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         ramadan_dates = get_ramadan_dates()
         hramadan = pd.DataFrame([])
         for i in range(len(ramadan_dates)):
-            hdates = pd.date_range(start = ramadan_dates['DateStart'][i], end = ramadan_dates['DateEnd'][i])
-            if i==0:
-            	hramadan = hdates
-            else: 
-            	hramadan = hramadan.append(hdates)
+            hdates = pd.date_range(start=ramadan_dates['DateStart'][i], end=ramadan_dates['DateEnd'][i])
+            if i == 0:
+                hramadan = hdates
+            else:
+                hramadan = hramadan.append(hdates)
         self.memo = pd.DataFrame(hramadan, columns=[self.time_column], dtype='datetime64[ns]')
         self.memo['year'] = self.memo[self.time_column].dt.year
         self.memo['doy'] = self.memo[self.time_column].dt.dayofyear

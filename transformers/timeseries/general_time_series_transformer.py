@@ -21,4 +21,3 @@ class GeneralTimeSeriesTransformer(CustomTimeSeriesTransformer):
 
     def transform(self, X: dt.Frame):
         return self.encoder.transform(X[:, self.time_column].to_pandas())
-

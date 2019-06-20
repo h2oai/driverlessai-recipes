@@ -105,4 +105,3 @@ def qwk(actual, predicted, min_rating=0, max_rating=20, sample_weight=None):
             denominator += d * expected_count / num_scored_items
 
     return 1.0 - numerator / denominator
-

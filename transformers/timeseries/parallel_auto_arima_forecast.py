@@ -93,7 +93,8 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
             grp_hash = '_'.join(map(str, key))
             args = (X_path, grp_hash, self.time_column,)
             kwargs = {}
-            pool.submit_tryget(None, MyParallelAutoArimaTransformer_fit_async, args=args, kwargs=kwargs, out=self.models)
+            pool.submit_tryget(None, MyParallelAutoArimaTransformer_fit_async, args=args, kwargs=kwargs,
+                               out=self.models)
         pool.finish()
 
         for k, v in self.models.items():
@@ -187,7 +188,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         ret = self.fit(X, y).transform(X)
         del self.is_train
         return ret
-        
+
     def update_history(self, X: dt.Frame, y: np.array = None):
         print("auto arima - update history")
         X = X.to_pandas()

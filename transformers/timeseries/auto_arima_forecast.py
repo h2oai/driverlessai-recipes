@@ -77,7 +77,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         ret = self.fit(X, y).transform(X)
         del self.is_train
         return ret
-        
+
     def update_history(self, X: dt.Frame, y: np.array = None):
         X = X.to_pandas()
         XX = X[self.tgc].copy
