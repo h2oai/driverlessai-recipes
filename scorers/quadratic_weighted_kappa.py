@@ -1,3 +1,4 @@
+"""Qudratic Weighted Kappa"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
@@ -6,7 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 
 
 class QuadraticWeightedKappaScorer(CustomScorer):
-    _description = " Calculates the quadratic weighted kappa quadratic_weighted_kappa calculates the quadratic weighted kappa value, which is a measure of inter-rater agreement between two raters that provide discrete numeric ratings. Potential values range from -1 (representing complete disagreement) to 1 (representing complete agreement). A kappa value of 0 is expected if all agreement is due tochance."
+    _description = "Quadratic Weighted Kappa - A measure of inter-rater agreement between two raters that provide discrete numeric ratings. Potential values range from -1 (representing complete disagreement) to 1 (representing complete agreement). A kappa value of 0 is expected if all agreement is due tochance."
     _multiclass = True
     _maximize = True
     _perfect_score = 0

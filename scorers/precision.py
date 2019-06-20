@@ -1,3 +1,4 @@
+"""Precision: `TP / (TP + FP)`"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer

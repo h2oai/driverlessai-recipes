@@ -1,4 +1,4 @@
-"""Hamming Loss - Misclassification Rate"""
+"""Hamming Loss - Misclassification Rate (1 - Accuracy)"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer

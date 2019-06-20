@@ -1,3 +1,4 @@
+"""Computes miles between first two *_latitude and *_longitude named columns in the data set"""
 #
 # Custom transformer: MyHaversine
 #
