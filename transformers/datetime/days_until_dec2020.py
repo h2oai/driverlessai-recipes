@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import dateparser
 
-_global_modules_needed_by_name = ['dateparser==0.7.1']
+_global_modules_needed_by_name = ['regex==2018.1.10', 'dateparser==0.7.1']
 
 def convert_to_age(ts):
     if (type(ts) == "date"):
