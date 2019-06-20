@@ -1,3 +1,4 @@
+"""Recall: `TP / (TP + FN). Binary uses threshold of 0.5, multiclass uses argmax to assign labels.`"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
@@ -12,6 +13,7 @@ class recall(CustomScorer):
     _maximize = True
     _perfect_score = 1
     _display_name = "Recall"
+    _threshold = 0.5
     
     
     def score(self,
@@ -27,7 +29,7 @@ class recall(CustomScorer):
             predicted = np.argmax(predicted, axis=1)
             method = "micro"
         else:
-            predicted = (predicted > 0.5)
+            predicted = (predicted > _threshold)
 
         return recall_score(actual, predicted, labels=labels, average=method, sample_weight=sample_weight)
     

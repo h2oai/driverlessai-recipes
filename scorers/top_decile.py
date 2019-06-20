@@ -1,3 +1,4 @@
+"""Median Absolute Error for predictions in the top decile"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer

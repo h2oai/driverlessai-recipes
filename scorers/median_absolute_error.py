@@ -1,3 +1,4 @@
+"""Median Absolute Error for regression"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
@@ -8,7 +9,7 @@ class MyMedianAbsoluteError(CustomScorer):
     _regression = True
     _maximize = False
     _perfect_score = 0
-    _display_name = "MED_ABS_ERR"
+    _display_name = "MEDAE"
 
     def score(self,
               actual: np.array,
