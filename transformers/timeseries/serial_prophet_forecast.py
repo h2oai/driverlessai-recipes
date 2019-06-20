@@ -57,8 +57,8 @@ class MySerialProphetTransformer(CustomTimeSeriesTransformer):
 
         nb_groups = len(XX_grp)
         for _i_g, (key, X) in enumerate(XX_grp):
-            if (100 * (_i_g+1) // nb_groups) % 5 == 0:
-                print("FB Prophet - ", 100 * (_i_g+1) // nb_groups, "%% of Groups Fitted")
+            if (100 * (_i_g + 1) // nb_groups) % 5 == 0:
+                print("FB Prophet - ", 100 * (_i_g + 1) // nb_groups, "%% of Groups Fitted")
             model = Prophet()
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
@@ -123,7 +123,6 @@ class MySerialProphetTransformer(CustomTimeSeriesTransformer):
         XX = pd.concat(tuple(preds), axis=0).sort_index()
         # print("Transformed results")
         # print(XX)
-
 
         return XX
 

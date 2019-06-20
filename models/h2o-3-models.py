@@ -157,7 +157,7 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
         max_iterations = min(kwargs['iterations'], max_iterations) if 'iterations' in kwargs else max_iterations
         self.params['ntrees'] = max_iterations
         self.params['stopping_rounds'] = int(np.random.choice([5, 10, 20]))
-        self.params['learn_rate'] = max(1./self.params['ntrees'], 0.005)
+        self.params['learn_rate'] = max(1. / self.params['ntrees'], 0.005)
         self.params['max_depth'] = int(np.random.choice(range(2, 11)))
         self.params['col_sample_rate'] = float(np.random.choice([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
         self.params['sample_rate'] = float(np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
@@ -200,7 +200,7 @@ class H2ODLModel(H2OBaseModel, CustomModel):
     def mutate_params(self,
                       accuracy, time_tolerance, interpretability,
                       **kwargs):
-        self.params['activation'] = np.random.choice(["rectifier", "rectifier",   # upweight
+        self.params['activation'] = np.random.choice(["rectifier", "rectifier",  # upweight
                                                       "rectifier_with_dropout",
                                                       "tanh"])
         self.params['hidden'] = np.random.choice([[20, 20, 20],

@@ -21,5 +21,4 @@ class MyMeanAbsoluteScaledErrorScorer(CustomScorer):
 
         naive_errors = np.abs(np.diff(actual)).mean()
         errors = np.abs(actual - predicted)
-        return errors.mean()/naive_errors
-
+        return errors.mean() / naive_errors

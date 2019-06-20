@@ -1,6 +1,7 @@
 exclude = ['.', 'pycache', '.git', 'data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py']
 sep = '  '
 
+
 def get_module_docstring(filepath):
     co = compile(open(filepath).read(), filepath, 'exec')
     if co.co_consts and isinstance(co.co_consts[0], str):
@@ -9,6 +10,7 @@ def get_module_docstring(filepath):
         docstring = None
     return docstring
 
+
 def print_offset(depth, str_content):
     for i, line in enumerate(str_content.split("\n")):
         if i == 0:
@@ -16,7 +18,9 @@ def print_offset(depth, str_content):
         else:
             print(sep * depth + "  " + line)
 
+
 import os
+
 print("# Recipes for H2O Driverless AI\n")
 for dirpath, dirs, files in os.walk("."):
     if all(x not in dirpath for x in exclude if len(x) > 1):

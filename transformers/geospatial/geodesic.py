@@ -11,6 +11,7 @@ from h2oaicore.transformer_utils import CustomTransformer
 
 _global_modules_needed_by_name = ['geopy==1.19.0']
 
+
 class Geodesic(CustomTransformer):
 
     @staticmethod
@@ -25,7 +26,6 @@ class Geodesic(CustomTransformer):
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         return self.transform(X)
-
 
     # Validate
 
@@ -43,6 +43,6 @@ class Geodesic(CustomTransformer):
 
         x = X.to_pandas()  # original line
 
-
-        return x.apply(lambda x: geodesic((x[col_names_to_pick[0]], x[col_names_to_pick[1]]), (x[col_names_to_pick[2]], x[col_names_to_pick[3]])).miles,
+        return x.apply(lambda x: geodesic((x[col_names_to_pick[0]], x[col_names_to_pick[1]]),
+                                          (x[col_names_to_pick[2]], x[col_names_to_pick[3]])).miles,
                        axis=1)

@@ -3,67 +3,69 @@ import datatable as dt
 import numpy as np
 import pandas as pd
 
+
 # https://github.com/rjchow/singapore_public_holidays
 def make_holiday_frame():
     return dt.fread(
-"""
-Date,Name,Day,Observance,Observance Strategy
-2016-01-01,New Year's Day,Friday,2016-01-01,actual_day
-2016-02-08,Chinese New Year Day 1,Monday,2016-02-08,actual_day
-2016-02-09,Chinese New Year Day 2,Tuesday,2016-02-09,actual_day
-2016-03-25,Good Friday,Friday,2016-03-25,actual_day
-2016-05-01,Labour Day,Sunday,2016-05-01,next_monday
-2016-05-21,Vesak Day,Saturday,2016-05-21,actual_day
-2016-07-06,Hari Raya Puasa,Wednesday,2016-07-06,actual_day
-2016-08-09,National Day,Tuesday,2016-08-09,actual_day
-2016-09-12,Hari Raya Haji,Monday,2016-09-12,actual_day
-2016-10-29,Deepavali,Saturday,2016-10-29,actual_day
-2016-12-25,Christmas Day,Sunday,2016-12-26,next_monday
-2017-01-01,New Year's Day,Sunday,2017-01-02,next_monday
-2017-01-28,Chinese New Year Day 1,Saturday,2017-01-28,actual_day
-2017-01-29,Chinese New Year Day 2,Sunday,2017-01-30,next_monday
-2017-04-14,Good Friday,Friday,2017-04-14,actual_day
-2017-05-01,Labour Day,Monday,2017-05-01,actual_day
-2017-05-10,Vesak Day,Wednesday,2017-05-10,actual_day
-2017-06-25,Hari Raya Puasa,Sunday,2017-06-26,next_monday
-2017-08-09,National Day,Wednesday,2017-08-09,actual_day
-2017-09-01,Hari Raya Haji,Friday,2017-09-01,actual_day
-2017-10-18,Deepavali,Wednesday,2017-10-18,actual_day
-2017-12-25,Christmas Day,Monday,2017-12-25,actual_day
-2018-01-01,New Year's Day,Monday,2018-01-01,actual_day
-2018-02-16,Chinese New Year Day 1,Friday,2018-02-16,actual_day
-2018-02-17,Chinese New Year Day 2,Saturday,2018-02-17,actual_day
-2018-03-30,Good Friday,Friday,2018-03-30,actual_day
-2018-05-01,Labour Day,Tuesday,2018-05-01,actual_day
-2018-05-29,Vesak Day,Tuesday,2018-05-29,actual_day
-2018-06-15,Hari Raya Puasa,Friday,2018-06-15,actual_day
-2018-08-09,National Day,Thursday,2018-08-09,actual_day
-2018-08-22,Hari Raya Haji,Wednesday,2018-08-22,actual_day
-2018-11-06,Deepavali,Tuesday,2018-11-06,actual_day
-2018-12-25,Christmas Day,Tuesday,2018-12-25,actual_day
-2019-01-01,New Year's Day,Monday,2019-01-01,actual_day
-2019-02-05,Chinese New Year Day 1,Tuesday,2019-02-05,actual_day
-2019-02-06,Chinese New Year Day 2,Wednesday,2019-02-06,actual_day
-2019-04-19,Good Friday,Friday,2019-04-19,actual_day
-2019-05-01,Labour Day,Wednesday,2019-05-01,actual_day
-2019-05-19,Vesak Day,Sunday,2019-05-20,next_monday
-2019-06-05,Hari Raya Puasa,Wednesday,2019-06-05,actual_day
-2019-08-09,National Day,Friday,2019-08-09,actual_day
-2019-08-11,Hari Raya Haji,Sunday,2019-08-12,next_monday
-2019-10-27,Deepavali,Sunday,2019-10-27,next_monday
-2019-12-25,Christmas Day,Wednesday,2019-12-25,actual_day
-2020-01-01,New Year's Day,Wednesday,2020-01-01,actual_day
-2020-01-25,Chinese New Year Day 1,Saturday,2020-01-25,actual_day
-2020-01-26,Chinese New Year Day 2,Sunday,2020-01-27,next_monday
-2020-04-10,Good Friday,Friday,2020-04-10,actual_day
-2020-05-01,Labour Day,Friday,2020-05-01,actual_day
-2020-05-07,Vesak Day,Thursday,2020-05-07,actual_day
-2020-05-24,Hari Raya Puasa,Sunday,2020-05-25,next_monday
-2020-07-31,Hari Raya Haji,Friday,2020-07-31,actual_day
-2020-08-09,National Day,Sunday,2020-08-10,next_monday
-2020-11-14,Deepavali,Saturday,2020-11-14,actual_day
-2020-12-25,Christmas Day,Friday,2020-12-25,actual_day
-""").to_pandas()
+        """
+        Date,Name,Day,Observance,Observance Strategy
+        2016-01-01,New Year's Day,Friday,2016-01-01,actual_day
+        2016-02-08,Chinese New Year Day 1,Monday,2016-02-08,actual_day
+        2016-02-09,Chinese New Year Day 2,Tuesday,2016-02-09,actual_day
+        2016-03-25,Good Friday,Friday,2016-03-25,actual_day
+        2016-05-01,Labour Day,Sunday,2016-05-01,next_monday
+        2016-05-21,Vesak Day,Saturday,2016-05-21,actual_day
+        2016-07-06,Hari Raya Puasa,Wednesday,2016-07-06,actual_day
+        2016-08-09,National Day,Tuesday,2016-08-09,actual_day
+        2016-09-12,Hari Raya Haji,Monday,2016-09-12,actual_day
+        2016-10-29,Deepavali,Saturday,2016-10-29,actual_day
+        2016-12-25,Christmas Day,Sunday,2016-12-26,next_monday
+        2017-01-01,New Year's Day,Sunday,2017-01-02,next_monday
+        2017-01-28,Chinese New Year Day 1,Saturday,2017-01-28,actual_day
+        2017-01-29,Chinese New Year Day 2,Sunday,2017-01-30,next_monday
+        2017-04-14,Good Friday,Friday,2017-04-14,actual_day
+        2017-05-01,Labour Day,Monday,2017-05-01,actual_day
+        2017-05-10,Vesak Day,Wednesday,2017-05-10,actual_day
+        2017-06-25,Hari Raya Puasa,Sunday,2017-06-26,next_monday
+        2017-08-09,National Day,Wednesday,2017-08-09,actual_day
+        2017-09-01,Hari Raya Haji,Friday,2017-09-01,actual_day
+        2017-10-18,Deepavali,Wednesday,2017-10-18,actual_day
+        2017-12-25,Christmas Day,Monday,2017-12-25,actual_day
+        2018-01-01,New Year's Day,Monday,2018-01-01,actual_day
+        2018-02-16,Chinese New Year Day 1,Friday,2018-02-16,actual_day
+        2018-02-17,Chinese New Year Day 2,Saturday,2018-02-17,actual_day
+        2018-03-30,Good Friday,Friday,2018-03-30,actual_day
+        2018-05-01,Labour Day,Tuesday,2018-05-01,actual_day
+        2018-05-29,Vesak Day,Tuesday,2018-05-29,actual_day
+        2018-06-15,Hari Raya Puasa,Friday,2018-06-15,actual_day
+        2018-08-09,National Day,Thursday,2018-08-09,actual_day
+        2018-08-22,Hari Raya Haji,Wednesday,2018-08-22,actual_day
+        2018-11-06,Deepavali,Tuesday,2018-11-06,actual_day
+        2018-12-25,Christmas Day,Tuesday,2018-12-25,actual_day
+        2019-01-01,New Year's Day,Monday,2019-01-01,actual_day
+        2019-02-05,Chinese New Year Day 1,Tuesday,2019-02-05,actual_day
+        2019-02-06,Chinese New Year Day 2,Wednesday,2019-02-06,actual_day
+        2019-04-19,Good Friday,Friday,2019-04-19,actual_day
+        2019-05-01,Labour Day,Wednesday,2019-05-01,actual_day
+        2019-05-19,Vesak Day,Sunday,2019-05-20,next_monday
+        2019-06-05,Hari Raya Puasa,Wednesday,2019-06-05,actual_day
+        2019-08-09,National Day,Friday,2019-08-09,actual_day
+        2019-08-11,Hari Raya Haji,Sunday,2019-08-12,next_monday
+        2019-10-27,Deepavali,Sunday,2019-10-27,next_monday
+        2019-12-25,Christmas Day,Wednesday,2019-12-25,actual_day
+        2020-01-01,New Year's Day,Wednesday,2020-01-01,actual_day
+        2020-01-25,Chinese New Year Day 1,Saturday,2020-01-25,actual_day
+        2020-01-26,Chinese New Year Day 2,Sunday,2020-01-27,next_monday
+        2020-04-10,Good Friday,Friday,2020-04-10,actual_day
+        2020-05-01,Labour Day,Friday,2020-05-01,actual_day
+        2020-05-07,Vesak Day,Thursday,2020-05-07,actual_day
+        2020-05-24,Hari Raya Puasa,Sunday,2020-05-25,next_monday
+        2020-07-31,Hari Raya Haji,Friday,2020-07-31,actual_day
+        2020-08-09,National Day,Sunday,2020-08-10,next_monday
+        2020-11-14,Deepavali,Saturday,2020-11-14,actual_day
+        2020-12-25,Christmas Day,Friday,2020-12-25,actual_day
+        """).to_pandas()
+
 
 class SingaporePublicHolidayTransformer(CustomTimeSeriesTransformer):
     def __init__(self, **kwargs):

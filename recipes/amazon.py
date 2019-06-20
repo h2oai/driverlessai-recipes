@@ -157,7 +157,6 @@ class MyToStringTransformer(CustomTransformer):
     def transform(self, X: dt.Frame):
         return X[:, dt.stype.str32(dt.f[0])]
 
-
 # class MyLabelEncoderTransformer(CustomTransformer):
 #     _included_boosters = ['lightgbmdeep']
 #
@@ -176,4 +175,3 @@ class MyToStringTransformer(CustomTransformer):
 #
 #     def transform(self, X: dt.Frame):
 #         return self.lb.transform(X[:, self.input_feature_names[0]].to_numpy().ravel())
-

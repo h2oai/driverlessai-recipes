@@ -23,7 +23,6 @@ def connect():
 
 
 def print_system_custom_transformers():
-
     h2oai = connect()
 
     all_transformers = h2oai.list_transformers()
@@ -42,7 +41,6 @@ def print_system_custom_transformers():
 
 
 def test_debug_pyclient():
-
     # Data Information
     data_file_name = "****.csv"
     y = "****"
@@ -177,4 +175,3 @@ def test_debug_pyclient():
 if __name__ == '__main__':
     print_system_custom_transformers()
     test_debug_pyclient()
-

@@ -5,15 +5,15 @@ from h2oaicore.metrics import CustomScorer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import precision_score
 
+
 class precision(CustomScorer):
     _description = "Precision: `tp / (tp + fp)`"
-    _binary = True    
+    _binary = True
     _multiclass = True
     _maximize = True
     _perfect_score = 1
     _display_name = "Precision"
-    
-    
+
     def score(self,
               actual: np.array,
               predicted: np.array,
@@ -30,6 +30,3 @@ class precision(CustomScorer):
             predicted = (predicted > 0.5)
 
         return precision_score(actual, predicted, labels=labels, average=method, sample_weight=sample_weight)
-    
-
-
