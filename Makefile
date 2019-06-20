@@ -1,4 +1,4 @@
 .PHONY: README.md
 
 README.md:
-	$(shell ./gen.sh)
+	python ./gen.py > README.md
