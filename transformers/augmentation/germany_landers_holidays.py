@@ -1,4 +1,6 @@
 # Return holidays columns for all landers in Germany
+# holidays python library returns only national holidays or holidays for one lander
+
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 import datatable as dt
 import numpy as np
