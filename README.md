@@ -6,7 +6,7 @@
   * [targetencoding](./transformers/targetencoding)
     * [leaky_mean_target_encoder.py](./transformers/targetencoding/leaky_mean_target_encoder.py) [please add documentation]
   * [datetime](./transformers/datetime)
-    * [days_until_dec2020.py](./transformers/datetime/days_until_dec2020.py) [please add documentation]
+    * [days_until_dec2020.py](./transformers/datetime/days_until_dec2020.py) [Creates new feature for any date columns, by computing the difference in days between the date value and 31st Dec 2020]
     * [parse_excel_date_transformer.py](./transformers/datetime/parse_excel_date_transformer.py) [please add documentation]
     * [datetime_encoder_transformer.py](./transformers/datetime/datetime_encoder_transformer.py) [please add documentation]
     * [datetime_diff_transformer.py](./transformers/datetime/datetime_diff_transformer.py) [please add documentation]
@@ -24,7 +24,7 @@
     * [strlen_transformer.py](./transformers/string/strlen_transformer.py) [please add documentation]
   * [geospatial](./transformers/geospatial)
     * [geodesic.py](./transformers/geospatial/geodesic.py) [please add documentation]
-    * [myhaversine.py](./transformers/geospatial/myhaversine.py) [please add documentation]
+    * [myhaversine.py](./transformers/geospatial/myhaversine.py) [Computes miles between first two *_latitude and *_longitude named columns in the data set]
   * [timeseries](./transformers/timeseries)
     * [parallel_auto_arima_forecast.py](./transformers/timeseries/parallel_auto_arima_forecast.py) [please add documentation]
     * [auto_arima_forecast.py](./transformers/timeseries/auto_arima_forecast.py) [please add documentation]
@@ -35,9 +35,9 @@
     * [normalized_macd.py](./transformers/timeseries/normalized_macd.py) [please add documentation]
     * [trading_volatility.py](./transformers/timeseries/trading_volatility.py) [please add documentation]
   * [augmentation](./transformers/augmentation)
+    * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [please add documentation]
     * [is_ramadan.py](./transformers/augmentation/is_ramadan.py) [please add documentation]
     * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py) [please add documentation]
-    * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [please add documentation]
   * [nlp](./transformers/nlp)
     * [text_embedding_similarity_transformers.py](./transformers/nlp/text_embedding_similarity_transformers.py) [please add documentation]
     * [text_lang_detect_transformer.py](./transformers/nlp/text_lang_detect_transformer.py) [please add documentation]
