@@ -1,4 +1,5 @@
 exclude = ['.', '.git', 'data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py']
+sep = '  '
 import os
 print("# Recipes for H2O Driverless AI\n")
 for dirpath, dirs, files in os.walk("."):
@@ -6,9 +7,9 @@ for dirpath, dirs, files in os.walk("."):
         path = dirpath.split('/')
         pdir = os.path.basename(dirpath)
         if pdir not in exclude:
-            print(len(path))
-            print('\t' * (len(path) - 2) + "* " + "[" + pdir + "](" + dirpath + ")")
+            depth = len(path) - 2
+            print(sep * depth + "* " + "[" + pdir + "](" + dirpath + ")")
             for f in files:
                 if f not in exclude:
                     if f[-3:] == ".py":
-                        print('\t' * (len(path)) + "* [" + f + "](" + dirpath + "/" + f + ")")
+                        print(sep * (depth + 1) + "* [" + f + "](" + dirpath + "/" + f + ")")
