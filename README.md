@@ -60,7 +60,6 @@
   * [h2o-3-models.py](./models/h2o-3-models.py) [H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB)]
   * [xgboost_with_custom_loss.py](./models/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).]
   * [lightgbm_with_custom_loss.py](./models/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).]
-* [tmp](./tmp)
 * [scorers](./scorers)
   * [mean_absolute_percentage_deviation.py](./scorers/mean_absolute_percentage_deviation.py) [please add documentation]
   * [precision.py](./scorers/precision.py) [please add documentation]
