@@ -1,4 +1,4 @@
-exclude = ['.', 'pycache', '.git', 'data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py']
+exclude = ['.', '.idea', 'pycache', '.git', 'data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py']
 sep = '  '
 
 
