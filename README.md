@@ -37,7 +37,7 @@
   * [augmentation](./transformers/augmentation)
     * [is_ramadan.py](./transformers/augmentation/is_ramadan.py) [please add documentation]
     * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py) [please add documentation]
-    * [france_bank_holidays.py](./transformers/augmentation/france_bank_holidays.py) [please add documentation]
+    * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [please add documentation]
   * [nlp](./transformers/nlp)
     * [text_embedding_similarity_transformers.py](./transformers/nlp/text_embedding_similarity_transformers.py) [please add documentation]
     * [text_lang_detect_transformer.py](./transformers/nlp/text_lang_detect_transformer.py) [please add documentation]
