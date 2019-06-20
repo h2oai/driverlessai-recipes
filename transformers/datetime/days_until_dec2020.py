@@ -1,3 +1,4 @@
+"""Creates new feature for any date columns, by computing the difference in days between the date value and 31st Dec 2020"""
 #days_until_dec2020.py
 
 # Transformer creates an "Days Until" feature based on date columns. "Days Until"
