@@ -1,3 +1,11 @@
+"""Parallel Auto ARIMA transformer is a time series transformer that predicts target using ARIMA models.
+In this implementation, Time Group Models are fitted in parallel"""
+
+# For more information about the python ARIMA package
+# please visit https://www.alkaline-ml.com/pmdarima/index.html
+
+# Please note that depending on your server setup, the parallel implementation may not be faster
+
 import importlib
 from h2oaicore.systemutils import small_job_pool, save_obj, load_obj, temporary_files_path, remove
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
@@ -25,6 +33,9 @@ class suppress_stdout_stderr(object):
             os.close(fd)
 
 
+# Parallel implementation requires methods being called from different processes
+# Global methods support this feature
+# We use global methods as a wrapper for member methods of the transformer
 def MyParallelAutoArimaTransformer_fit_async(*args, **kwargs):
     return MyParallelAutoArimaTransformer._fit_async(*args, **kwargs)
 
@@ -34,6 +45,7 @@ def MyParallelAutoArimaTransformer_transform_async(*args, **kwargs):
 
 
 class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
+    """Implementation of the ARIMA transformer using a pool of processes to fit models in parallel"""
     _binary = False
     _multiclass = False
     _modules_needed_by_name = ['pmdarima']
@@ -45,6 +57,13 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
 
     @staticmethod
     def _fit_async(X_path, grp_hash, time_column):
+        """
+        Fits an ARIMA model for a particular time group
+        :param X_path: Path to the data used to fit the ARIMA model
+        :param grp_hash: Time group identifier
+        :param time_column: Name of the time column in the input data
+        :return: time group identifier and path to the pickled model
+        """
         np.random.seed(1234)
         random.seed(1234)
         X = load_obj(X_path)
@@ -62,19 +81,32 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         return grp_hash, model_path
 
     def fit(self, X: dt.Frame, y: np.array = None):
+        """
+        Fits ARIMA models (1 per time group) using historical target values contained in y
+        Model fitting is distributed over a pool of processes and uses file storage to share the data with workers
+        :param X: Datatable frame containing the features
+        :param y: numpy array containing the historical values of the target
+        :return: self
+        """
+        # Import the ARIMA python module
         pm = importlib.import_module('pmdarima')
+        # Init models
         self.models = {}
+        # Convert to pandas
         X = X.to_pandas()
         XX = X[self.tgc].copy()
         XX['y'] = np.array(y)
         self.nan_value = np.mean(y)
         self.ntrain = X.shape[0]
+
+        # Group the input by TGC (Time group column) excluding the time column itself
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
         if len(tgc_wo_time) > 0:
             XX_grp = XX.groupby(tgc_wo_time)
         else:
             XX_grp = [([None], XX)]
 
+        # Prepare for multi processing
         num_tasks = len(XX_grp)
 
         def processor(out, res):
@@ -82,8 +114,11 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
 
         pool_to_use = small_job_pool
         pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
+
+        # Build 1 ARIMA model per time group columns
         nb_groups = len(XX_grp)
         for _i_g, (key, X) in enumerate(XX_grp):
+            # Just say where we are in the fitting process
             if (_i_g + 1) % max(1, nb_groups // 20) == 0:
                 print("Auto ARIMA - ", 100 * (_i_g + 1) // nb_groups, " %% of Groups Fitted")
             X_path = os.path.join(temporary_files_path, "autoarima_X" + str(uuid.uuid4()))
@@ -104,6 +139,14 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
 
     @staticmethod
     def _transform_async(model_path, X_path, nan_value, has_is_train_attr, time_column):
+        """
+        Predicts target for a particular time group
+        :param X_path: Path to the data used to fit the ARIMA model
+        :param nan_value: Value of target prior, used when no fitted model has been found
+        :param has_is_train_attr: indicates if we predict in-sample or out-of-sample
+        :param time_column: Name of the time column in the input data
+        :return: self
+        """
         model = load_obj(model_path)
         XX_path = os.path.join(temporary_files_path, "autoarima_XXt" + str(uuid.uuid4()))
         X = load_obj(X_path)
@@ -131,6 +174,13 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         return XX_path
 
     def transform(self, X: dt.Frame):
+        """
+        Uses fitted models (1 per time group) to predict the target
+        If self.is_train exists, it means we are doing in-sample predictions
+        if it does not then we Arima is used to predict the future
+        :param X: Datatable Frame containing the features
+        :return: ARIMA predictions
+        """
         X = X.to_pandas()
         XX = X[self.tgc].copy()
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
@@ -151,10 +201,13 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         model_paths = []
         nb_groups = len(XX_grp)
         for _i_g, (key, X) in enumerate(XX_grp):
+            # Just print where we are in the process of fitting models
             if (_i_g + 1) % max(1, nb_groups // 20) == 0:
                 print("Auto ARIMA - ", 100 * (_i_g + 1) // nb_groups, " %% of Groups Transformed")
+            # Create time group key to store and retrieve fitted models
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
+            # Create file path to store data and pass it to the fitting pool
             X_path = os.path.join(temporary_files_path, "autoarima_Xt" + str(uuid.uuid4()))
 
             # Commented for performance, uncomment for debug
@@ -184,12 +237,26 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         return XX
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
+        """
+        Fits the ARIMA models (1 per time group) and outputs the corresponding predictions
+        :param X: Datatable Frame
+        :param y: Target to be used to fit the ARIMA model and perdict in-sample
+        :return: in-sample ARIMA predictions
+        """
         self.is_train = True
         ret = self.fit(X, y).transform(X)
         del self.is_train
         return ret
 
     def update_history(self, X: dt.Frame, y: np.array = None):
+        """
+        Update the model fit with additional observed endog/exog values.
+        Updating an ARIMA adds new observations to the model, updating the MLE of the parameters
+        accordingly by performing several new iterations (maxiter) from the existing model parameters.
+        :param X: Datatable Frame containing input features
+        :param y: Numpy array containing new observations to update the ARIMA model
+        :return: self
+        """
         print("auto arima - update history")
         X = X.to_pandas()
         XX = X[self.tgc].copy
