@@ -32,16 +32,16 @@
   * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [please add description]
   * [AUGMENTATION](./transformers/augmentation)
     * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [please add description]
-    * [is_ramadan.py](./transformers/augmentation/is_ramadan.py) [please add description]
-    * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py) [please add description]
+    * [is_ramadan.py](./transformers/augmentation/is_ramadan.py) [Returns a flag for whether a date falls on Ramadan in Saudi Arabia]
+    * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py) [Flag for whether a date falls on a public holiday in Singapore.]
   * [DATETIME](./transformers/datetime)
     * [datetime_diff_transformer.py](./transformers/datetime/datetime_diff_transformer.py) [please add description]
     * [datetime_encoder_transformer.py](./transformers/datetime/datetime_encoder_transformer.py) [please add description]
     * [days_until_dec2020.py](./transformers/datetime/days_until_dec2020.py) [Creates new feature for any date columns, by computing the difference in days between the date value and 31st Dec 2020]
     * [parse_excel_date_transformer.py](./transformers/datetime/parse_excel_date_transformer.py) [please add description]
   * [GENERIC](./transformers/generic)
-    * [count_missing_values_transformer.py](./transformers/generic/count_missing_values_transformer.py) [please add description]
-    * [specific_column_transformer.py](./transformers/generic/specific_column_transformer.py) [please add description]
+    * [count_missing_values_transformer.py](./transformers/generic/count_missing_values_transformer.py) [Count of missing values per row]
+    * [specific_column_transformer.py](./transformers/generic/specific_column_transformer.py) [Example of a transformer that operates on the entire original frame, and hence on any column(s) desired.]
   * [GEOSPATIAL](./transformers/geospatial)
     * [geodesic.py](./transformers/geospatial/geodesic.py) [please add description]
     * [myhaversine.py](./transformers/geospatial/myhaversine.py) [Computes miles between first two *_latitude and *_longitude named columns in the data set]

@@ -1,3 +1,4 @@
+"""Flag for whether a date falls on a public holiday in Singapore."""
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 import datatable as dt
 import numpy as np
