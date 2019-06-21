@@ -1,3 +1,6 @@
+"""Transformer that uses FB Prophet for time series prediction.
+Please see the parallel implementation for more information"""
+
 import importlib
 
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
