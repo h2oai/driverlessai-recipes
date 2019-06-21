@@ -13,6 +13,7 @@
 * [SCORERS](./scorers)
   * [average_mcc.py](./scorers/average_mcc.py) [Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems)]
   * [brier_loss.py](./scorers/brier_loss.py) [Brier Loss]
+  * [cosh_loss.py](./scorers/cosh_loss.py) [Hyperbolic Cosine Loss]
   * [cost.py](./scorers/cost.py) [Using hard-corded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `x * FP + y * FN`]
   * [explained_variance.py](./scorers/explained_variance.py) [Explained Variance. Fraction of variance that is explained by the model.]
   * [false_discovery_rate.py](./scorers/false_discovery_rate.py) [False Discovery Rate: `FP / (FP + TP) for binary classification. Threshold of 0.1 for assigning labels.`]
