@@ -1,3 +1,4 @@
+"""Returns a flag for whether a date falls on Ramadan in Saudi Arabia"""
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 import datatable as dt
 import numpy as np
@@ -22,7 +23,7 @@ def get_ramadan_dates():
 class RamadanTransformer(CustomTimeSeriesTransformer):
     """
     Create feature 'is_ramadan' for ramadan days 
-    Data are initialized for Saudia Arabia. Modify dates in get_ramadan_dates for other countries
+    Data are initialized for Saudi Arabia. Modify dates in get_ramadan_dates for other countries
     """
 
     def __init__(self, **kwargs):
