@@ -56,6 +56,7 @@
     * [text_sentiment_transformer.py](./transformers/nlp/text_sentiment_transformer.py) [please add description]
     * [text_similarity_transformers.py](./transformers/nlp/text_similarity_transformers.py) [please add description]
   * [NUMERIC](./transformers/numeric)
+    * [boxcox_transformer.py](./transformers/numeric/boxcox_transformer.py) [Box-Cox Transform]
     * [exp_diff_transformer.py](./transformers/numeric/exp_diff_transformer.py) [please add description]
     * [log_transformer.py](./transformers/numeric/log_transformer.py) [please add description]
     * [random_transformer.py](./transformers/numeric/random_transformer.py) [please add description]
