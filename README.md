@@ -19,6 +19,7 @@
   * [hamming_loss.py](./scorers/hamming_loss.py) [Hamming Loss - Misclassification Rate (1 - Accuracy)]
   * [huber_loss.py](./scorers/huber_loss.py) [Huber Loss for Regression or Binary Classification. Robust loss, combination of quadratic loss and linear loss.]
   * [largest_error.py](./scorers/largest_error.py) [Largest error for regression problems. Highly sensitive to outliers.]
+  * [mean_absolute_relative_deviation.py](./scorers/mean_absolute_relative_deviation.py) [Mean absolute relative deviation mean(abs(actual-predicted)/predicted)]
   * [mean_absolute_scaled_error.py](./scorers/mean_absolute_scaled_error.py) [Mean Absolute Scaled Error for time-series regression]
   * [median_absolute_error.py](./scorers/median_absolute_error.py) [Median Absolute Error for regression]
   * [pearson_correlation.py](./scorers/pearson_correlation.py) [Pearson Correlation Coefficient for regression]
@@ -68,11 +69,11 @@
   * [TARGETENCODING](./transformers/targetencoding)
     * [leaky_mean_target_encoder.py](./transformers/targetencoding/leaky_mean_target_encoder.py) [please add description]
   * [TIMESERIES](./transformers/timeseries)
-    * [auto_arima_forecast.py](./transformers/timeseries/auto_arima_forecast.py) [please add description]
+    * [auto_arima_forecast.py](./transformers/timeseries/auto_arima_forecast.py) [Auto ARIMA transformer is a time series transformer that predicts target using ARIMA models]
     * [general_time_series_transformer.py](./transformers/timeseries/general_time_series_transformer.py) [please add description]
     * [normalized_macd.py](./transformers/timeseries/normalized_macd.py) [please add description]
-    * [parallel_auto_arima_forecast.py](./transformers/timeseries/parallel_auto_arima_forecast.py) [please add description]
-    * [parallel_prophet_forecast.py](./transformers/timeseries/parallel_prophet_forecast.py) [please add description]
-    * [serial_prophet_forecast.py](./transformers/timeseries/serial_prophet_forecast.py) [please add description]
+    * [parallel_auto_arima_forecast.py](./transformers/timeseries/parallel_auto_arima_forecast.py) [Parallel Auto ARIMA transformer is a time series transformer that predicts target using ARIMA models.In this implementation, Time Group Models are fitted in parallel]
+    * [parallel_prophet_forecast.py](./transformers/timeseries/parallel_prophet_forecast.py) [Parallel FB Prophet transformer is a time series transformer that predicts target using FBProhet models.In this implementation, Time Group Models are fitted in parallel]
+    * [serial_prophet_forecast.py](./transformers/timeseries/serial_prophet_forecast.py) [Transformer that uses FB Prophet for time series prediction.Please see the parallel implementation for more information]
     * [time_encoder_transformer.py](./transformers/timeseries/time_encoder_transformer.py) [please add description]
     * [trading_volatility.py](./transformers/timeseries/trading_volatility.py) [please add description]
