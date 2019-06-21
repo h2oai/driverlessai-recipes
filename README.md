@@ -20,13 +20,12 @@
   * [hamming_loss.py](./scorers/hamming_loss.py) [Hamming Loss - Misclassification Rate (1 - Accuracy)]
   * [huber_loss.py](./scorers/huber_loss.py) [Huber Loss for Regression or Binary Classification. Robust loss, combination of quadratic loss and linear loss.]
   * [largest_error.py](./scorers/largest_error.py) [Largest error for regression problems. Highly sensitive to outliers.]
-  * [mean_absolute_relative_deviation.py](./scorers/mean_absolute_relative_deviation.py) [Mean absolute relative deviation mean(abs(actual-predicted)/predicted)]
   * [mean_absolute_scaled_error.py](./scorers/mean_absolute_scaled_error.py) [Mean Absolute Scaled Error for time-series regression]
   * [median_absolute_error.py](./scorers/median_absolute_error.py) [Median Absolute Error for regression]
   * [pearson_correlation.py](./scorers/pearson_correlation.py) [Pearson Correlation Coefficient for regression]
-  * [precision.py](./scorers/precision.py) [Precision: `TP / (TP + FP)`]
+  * [precision.py](./scorers/precision.py) [Precision: `TP / (TP + FP)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels.]
   * [quadratic_weighted_kappa.py](./scorers/quadratic_weighted_kappa.py) [Qudratic Weighted Kappa]
-  * [recall.py](./scorers/recall.py) [Recall: `TP / (TP + FN). Binary uses threshold of 0.5, multiclass uses argmax to assign labels.`]
+  * [recall.py](./scorers/recall.py) [Recall: `TP / (TP + FN)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels.]
   * [top_decile.py](./scorers/top_decile.py) [Median Absolute Error for predictions in the top decile]
 * [TRANSFORMERS](./transformers)
   * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [please add description]
@@ -39,7 +38,6 @@
     * [datetime_diff_transformer.py](./transformers/datetime/datetime_diff_transformer.py) [please add description]
     * [datetime_encoder_transformer.py](./transformers/datetime/datetime_encoder_transformer.py) [please add description]
     * [days_until_dec2020.py](./transformers/datetime/days_until_dec2020.py) [Creates new feature for any date columns, by computing the difference in days between the date value and 31st Dec 2020]
-    * [parse_excel_date_transformer.py](./transformers/datetime/parse_excel_date_transformer.py) [please add description]
   * [GENERIC](./transformers/generic)
     * [count_missing_values_transformer.py](./transformers/generic/count_missing_values_transformer.py) [Count of missing values per row]
     * [specific_column_transformer.py](./transformers/generic/specific_column_transformer.py) [Example of a transformer that operates on the entire original frame, and hence on any column(s) desired.]
