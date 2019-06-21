@@ -141,6 +141,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
     def _transform_async(model_path, X_path, nan_value, has_is_train_attr, time_column):
         """
         Predicts target for a particular time group
+        :param model_path: path to the stored model
         :param X_path: Path to the data used to fit the ARIMA model
         :param nan_value: Value of target prior, used when no fitted model has been found
         :param has_is_train_attr: indicates if we predict in-sample or out-of-sample
@@ -150,7 +151,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         model = load_obj(model_path)
         XX_path = os.path.join(temporary_files_path, "autoarima_XXt" + str(uuid.uuid4()))
         X = load_obj(X_path)
-        # Facebook Prophet returns the predictions ordered by time
+        # Arima returns the predictions ordered by time
         # So we should keep track of the time order for each group so that
         # predictions are ordered the same as the imput frame
         # Keep track of the order
@@ -211,7 +212,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
             X_path = os.path.join(temporary_files_path, "autoarima_Xt" + str(uuid.uuid4()))
 
             # Commented for performance, uncomment for debug
-            # print("prophet - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
+            # print("ARIMA - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
             if grp_hash in self.models:
                 model = self.models[grp_hash]
                 model_path = os.path.join(temporary_files_path, "autoarima_modelt" + str(uuid.uuid4()))
