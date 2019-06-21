@@ -1,7 +1,6 @@
 # Recipes for H2O Driverless AI
 
-
-##[TRANSFORMERS](./transformers)
+* [TRANSFORMERS](./transformers)
   * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [please add documentation]
   * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [please add documentation]
   * [TARGETENCODING](./transformers/targetencoding)
@@ -51,11 +50,9 @@
     * [specific_column_transformer.py](./transformers/generic/specific_column_transformer.py) [please add documentation]
   * [IMAGE](./transformers/image)
     * [image_url_transformer.py](./transformers/image/image_url_transformer.py) [please add documentation]
-
-##[RECIPES](./recipes)
+* [RECIPES](./recipes)
   * [amazon.py](./recipes/amazon.py) [Recipe for Kaggle Competition: Amazon.com - Employee Access Challenge]
-
-##[MODELS](./models)
+* [MODELS](./models)
   * [knearestneighbour.py](./models/knearestneighbour.py) [K-Nearest Neighbor implementation by sklearn. For small data (< 200k rows).]
   * [linear_svm.py](./models/linear_svm.py) [Linear Support Vector Machine (SVM) implementation by sklearn. For small data.]
   * [historic_mean.py](./models/historic_mean.py) [Historic Mean for Time-Series problems. Predicts the mean of the target for each timegroup for regression problems.]
@@ -63,8 +60,7 @@
   * [h2o-3-models.py](./models/h2o-3-models.py) [H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB)]
   * [xgboost_with_custom_loss.py](./models/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).]
   * [lightgbm_with_custom_loss.py](./models/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).]
-
-##[SCORERS](./scorers)
+* [SCORERS](./scorers)
   * [mean_absolute_relative_deviation.py](./scorers/mean_absolute_relative_deviation.py) [Mean absolute relative deviation mean(abs(actual-predicted)/predicted)]
   * [precision.py](./scorers/precision.py) [Precision: `TP / (TP + FP)`]
   * [recall.py](./scorers/recall.py) [Recall: `TP / (TP + FN). Binary uses threshold of 0.5, multiclass uses argmax to assign labels.`]

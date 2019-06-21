@@ -14,10 +14,7 @@ def get_module_docstring(filepath):
 def print_offset(depth, str_content):
     for i, line in enumerate(str_content.split("\n")):
         if i == 0:
-            if depth == 0:
-                print("\n" + sep * depth + "##" + line)
-            else:
-                print(sep * depth + "* " + line)
+            print(sep * depth + "* " + line)
         else:
             print(sep * depth + "  " + line)
 
