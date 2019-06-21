@@ -33,6 +33,6 @@ for dirpath, dirs, files in os.walk("."):
                 if f not in exclude:
                     if f[-3:] == ".py":
                         docstring = get_module_docstring(os.path.join(dirpath, f)) or \
-                                    "please add documentation"
+                                    "please add description"
                         what = "[" + f + "](" + dirpath + "/" + f + ")"
                         print_offset(depth + 1, "%s [%s]" % (what, docstring))
