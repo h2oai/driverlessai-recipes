@@ -1,4 +1,4 @@
-"""Recall: `TP / (TP + FN). Binary uses threshold of 0.5, multiclass uses argmax to assign labels.`"""
+"""Recall: `TP / (TP + FN)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels."""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
