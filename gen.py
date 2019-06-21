@@ -23,13 +23,14 @@ import os
 
 print("# Recipes for H2O Driverless AI\n")
 for dirpath, dirs, files in os.walk("."):
+    dirs.sort()
     if all(x not in dirpath for x in exclude if len(x) > 1):
         path = dirpath.split('/')
         pdir = os.path.basename(dirpath)
         if pdir not in exclude:
             depth = len(path) - 2
             print_offset(depth, "[" + pdir.upper() + "](" + dirpath + ")")
-            for f in files:
+            for f in sorted(files):
                 if f not in exclude:
                     if f[-3:] == ".py":
                         docstring = get_module_docstring(os.path.join(dirpath, f)) or \
