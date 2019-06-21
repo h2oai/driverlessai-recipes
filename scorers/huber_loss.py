@@ -28,7 +28,7 @@ class MyHuberLossScorer(CustomScorer):
     _delta_regression = 1.345
     _delta_binary = 0.1
     _description = "My Huber Loss for Regression or Binary Classification [delta=%f or %f]." % (
-    _delta_regression, _delta_binary)
+        _delta_regression, _delta_binary)
     _binary = True
     _regression = True
     _maximize = False
@@ -63,6 +63,5 @@ class MyHuberLossScorer(CustomScorer):
             loss = np.where(actual_mult_predict >= -1,
                             np.square(np.maximum(all0s, np.subtract(1, actual_mult_predict))),
                             -4 * actual_mult_predict)
-            
-        loss = np.multiply(sample_weight, loss)
-        return np.mean(loss) if actual.shape[0] > 0 else 0
+        loss = np.sum(np.multiply(sample_weight, loss)) / np.sum(sample_weight)
+        return loss if actual.shape[0] > 0 else 0
