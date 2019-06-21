@@ -28,7 +28,7 @@ for dirpath, dirs, files in os.walk("."):
         pdir = os.path.basename(dirpath)
         if pdir not in exclude:
             depth = len(path) - 2
-            print_offset(depth, "[" + pdir + "](" + dirpath + ")")
+            print_offset(depth, "[" + pdir.upper() + "](" + dirpath + ")")
             for f in files:
                 if f not in exclude:
                     if f[-3:] == ".py":

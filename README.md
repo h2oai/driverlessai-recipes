@@ -1,31 +1,31 @@
 # Recipes for H2O Driverless AI
 
-* [transformers](./transformers)
+* [TRANSFORMERS](./transformers)
   * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [please add documentation]
   * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [please add documentation]
-  * [targetencoding](./transformers/targetencoding)
+  * [TARGETENCODING](./transformers/targetencoding)
     * [leaky_mean_target_encoder.py](./transformers/targetencoding/leaky_mean_target_encoder.py) [please add documentation]
-  * [datetime](./transformers/datetime)
+  * [DATETIME](./transformers/datetime)
     * [days_until_dec2020.py](./transformers/datetime/days_until_dec2020.py) [Creates new feature for any date columns, by computing the difference in days between the date value and 31st Dec 2020]
     * [parse_excel_date_transformer.py](./transformers/datetime/parse_excel_date_transformer.py) [please add documentation]
     * [datetime_encoder_transformer.py](./transformers/datetime/datetime_encoder_transformer.py) [please add documentation]
     * [datetime_diff_transformer.py](./transformers/datetime/datetime_diff_transformer.py) [please add documentation]
-  * [numeric](./transformers/numeric)
+  * [NUMERIC](./transformers/numeric)
     * [random_transformer.py](./transformers/numeric/random_transformer.py) [please add documentation]
     * [log_transformer.py](./transformers/numeric/log_transformer.py) [please add documentation]
     * [exp_diff_transformer.py](./transformers/numeric/exp_diff_transformer.py) [please add documentation]
     * [round_transformer.py](./transformers/numeric/round_transformer.py) [please add documentation]
-  * [outliers](./transformers/outliers)
+  * [OUTLIERS](./transformers/outliers)
     * [quantile_winsorizer.py](./transformers/outliers/quantile_winsorizer.py) [please add documentation]
     * [twosigma_winsorizer.py](./transformers/outliers/twosigma_winsorizer.py) [please add documentation]
     * [h2o3-dl-anomaly.py](./transformers/outliers/h2o3-dl-anomaly.py) [please add documentation]
-  * [string](./transformers/string)
+  * [STRING](./transformers/string)
     * [to_string_transformer.py](./transformers/string/to_string_transformer.py) [please add documentation]
     * [strlen_transformer.py](./transformers/string/strlen_transformer.py) [please add documentation]
-  * [geospatial](./transformers/geospatial)
+  * [GEOSPATIAL](./transformers/geospatial)
     * [geodesic.py](./transformers/geospatial/geodesic.py) [please add documentation]
     * [myhaversine.py](./transformers/geospatial/myhaversine.py) [Computes miles between first two *_latitude and *_longitude named columns in the data set]
-  * [timeseries](./transformers/timeseries)
+  * [TIMESERIES](./transformers/timeseries)
     * [parallel_auto_arima_forecast.py](./transformers/timeseries/parallel_auto_arima_forecast.py) [please add documentation]
     * [auto_arima_forecast.py](./transformers/timeseries/auto_arima_forecast.py) [please add documentation]
     * [time_encoder_transformer.py](./transformers/timeseries/time_encoder_transformer.py) [please add documentation]
@@ -34,25 +34,25 @@
     * [parallel_prophet_forecast.py](./transformers/timeseries/parallel_prophet_forecast.py) [please add documentation]
     * [normalized_macd.py](./transformers/timeseries/normalized_macd.py) [please add documentation]
     * [trading_volatility.py](./transformers/timeseries/trading_volatility.py) [please add documentation]
-  * [augmentation](./transformers/augmentation)
+  * [AUGMENTATION](./transformers/augmentation)
     * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [please add documentation]
     * [is_ramadan.py](./transformers/augmentation/is_ramadan.py) [please add documentation]
     * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py) [please add documentation]
-  * [nlp](./transformers/nlp)
+  * [NLP](./transformers/nlp)
     * [text_embedding_similarity_transformers.py](./transformers/nlp/text_embedding_similarity_transformers.py) [please add documentation]
     * [text_lang_detect_transformer.py](./transformers/nlp/text_lang_detect_transformer.py) [please add documentation]
     * [text_similarity_transformers.py](./transformers/nlp/text_similarity_transformers.py) [please add documentation]
     * [fuzzy_text_similarity_transformers.py](./transformers/nlp/fuzzy_text_similarity_transformers.py) [please add documentation]
     * [text_meta_transformers.py](./transformers/nlp/text_meta_transformers.py) [please add documentation]
     * [text_sentiment_transformer.py](./transformers/nlp/text_sentiment_transformer.py) [please add documentation]
-  * [generic](./transformers/generic)
+  * [GENERIC](./transformers/generic)
     * [count_missing_values_transformer.py](./transformers/generic/count_missing_values_transformer.py) [please add documentation]
     * [specific_column_transformer.py](./transformers/generic/specific_column_transformer.py) [please add documentation]
-  * [image](./transformers/image)
+  * [IMAGE](./transformers/image)
     * [image_url_transformer.py](./transformers/image/image_url_transformer.py) [please add documentation]
-* [recipes](./recipes)
+* [RECIPES](./recipes)
   * [amazon.py](./recipes/amazon.py) [Recipe for Kaggle Competition: Amazon.com - Employee Access Challenge]
-* [models](./models)
+* [MODELS](./models)
   * [knearestneighbour.py](./models/knearestneighbour.py) [K-Nearest Neighbor implementation by sklearn. For small data (< 200k rows).]
   * [linear_svm.py](./models/linear_svm.py) [Linear Support Vector Machine (SVM) implementation by sklearn. For small data.]
   * [historic_mean.py](./models/historic_mean.py) [Historic Mean for Time-Series problems. Predicts the mean of the target for each timegroup for regression problems.]
@@ -60,7 +60,7 @@
   * [h2o-3-models.py](./models/h2o-3-models.py) [H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB)]
   * [xgboost_with_custom_loss.py](./models/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).]
   * [lightgbm_with_custom_loss.py](./models/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).]
-* [scorers](./scorers)
+* [SCORERS](./scorers)
   * [mean_absolute_relative_deviation.py](./scorers/mean_absolute_relative_deviation.py) [Mean absolute relative deviation mean(abs(actual-predicted)/predicted)]
   * [precision.py](./scorers/precision.py) [Precision: `TP / (TP + FP)`]
   * [recall.py](./scorers/recall.py) [Recall: `TP / (TP + FN). Binary uses threshold of 0.5, multiclass uses argmax to assign labels.`]
