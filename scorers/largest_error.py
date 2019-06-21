@@ -16,4 +16,7 @@ class MyLargestErrorScorer(CustomScorer):
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-        return np.abs(actual - predicted).max()
+        absdiff = np.abs(actual - predicted)
+        if sample_weight is not None:
+            return absdiff[sample_weight != 0].max()
+        return absdiff.max()

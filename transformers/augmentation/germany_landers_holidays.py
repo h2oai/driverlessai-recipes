@@ -10,6 +10,7 @@ import holidays
 
 class GermanyLandersHolidayTransformer(CustomTimeSeriesTransformer):
     _modules_needed_by_name = ['holidays']
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
