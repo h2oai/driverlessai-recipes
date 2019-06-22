@@ -12,7 +12,6 @@ from sklearn.metrics import confusion_matrix
 class cost_binary(CustomScorer):
     _description = "Calculates cost in binary classification: `$1*FP + $2*FN`"
     _binary = True
-    _multiclass = False
     _maximize = False
     _perfect_score = 0
     _display_name = "Cost"
