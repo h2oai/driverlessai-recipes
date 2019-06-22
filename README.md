@@ -28,15 +28,15 @@
   * [recall.py](./scorers/recall.py) [Recall: `TP / (TP + FN)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels.]
   * [top_decile.py](./scorers/top_decile.py) [Median Absolute Error for predictions in the top decile]
 * [TRANSFORMERS](./transformers)
-  * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [please add description]
-  * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [please add description]
+  * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [Example how to debug a transformer outside of Driverless AI (optional)]
+  * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [Functions to ease testing a new custom transformer from the python client]
   * [AUGMENTATION](./transformers/augmentation)
-    * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [please add description]
+    * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [Returns a flag for whether a date falls on a holiday in Germany (in any of the Bundeslaender)]
     * [is_ramadan.py](./transformers/augmentation/is_ramadan.py) [Returns a flag for whether a date falls on Ramadan in Saudi Arabia]
     * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py) [Flag for whether a date falls on a public holiday in Singapore.]
   * [DATETIME](./transformers/datetime)
-    * [datetime_diff_transformer.py](./transformers/datetime/datetime_diff_transformer.py) [please add description]
-    * [datetime_encoder_transformer.py](./transformers/datetime/datetime_encoder_transformer.py) [please add description]
+    * [datetime_diff_transformer.py](./transformers/datetime/datetime_diff_transformer.py) [Difference in time between two datetime columns]
+    * [datetime_encoder_transformer.py](./transformers/datetime/datetime_encoder_transformer.py) [Converts datetime column into an integer (milliseconds since 1970)]
     * [days_until_dec2020.py](./transformers/datetime/days_until_dec2020.py) [Creates new feature for any date columns, by computing the difference in days between the date value and 31st Dec 2020]
   * [GENERIC](./transformers/generic)
     * [count_missing_values_transformer.py](./transformers/generic/count_missing_values_transformer.py) [Count of missing values per row]

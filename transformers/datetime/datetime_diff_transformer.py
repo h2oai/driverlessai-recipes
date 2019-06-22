@@ -1,3 +1,4 @@
+"""Difference in time between two datetime columns"""
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np

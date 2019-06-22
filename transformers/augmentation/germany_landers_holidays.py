@@ -1,4 +1,4 @@
-# Return holidays columns for all landers in Germany
+"""Returns a flag for whether a date falls on a holiday in Germany (in any of the Bundeslaender)"""
 # holidays python library returns only national holidays or holidays for one lander
 
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer

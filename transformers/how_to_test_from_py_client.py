@@ -1,7 +1,4 @@
-# Author: Michelle Tanco - michelle.tanco@h2o.ai
-# Last Updated: May 28th, 2019
-# Purpose: Functions to ease testing a new custom transformer from the python client
-
+"""Functions to ease testing a new custom transformer from the python client"""
 import pandas as pd
 import os
 import shutil
@@ -53,12 +50,12 @@ def test_debug_pyclient():
     transformers_custom_nontesting = []
 
     # All Official Transformers
-    transformers_noncustom = ['CVCatNumEncode', 'CVTargetEncode'
+    transformers_noncustom = ['CVCatNumEncodeTransformer', 'CVTargetEncodeTransformer'
         , 'CatOriginalTransformer', 'ClusterDistTransformer'
         , 'ClusterIdTransformer', 'ClusterTETransformer', 'DatesTransformer'
         , 'EwmaLagsTransformer', 'FrequentTransformer', 'InteractionsTransformer'
         , 'IsHolidayTransformer', 'LagsAggregatesTransformer', 'LagsInteractionTransformer'
-        , 'LagsTransformer', 'LexiLabelEncoder', 'NumCatTETransformer', 'NumToCatTETransformer'
+        , 'LagsTransformer', 'LexiLabelEncoderTransformer', 'NumCatTETransformer', 'NumToCatTETransformer'
         , 'NumToCatWoEMonotonicTransformer', 'NumToCatWoETransformer', 'OneHotEncodingTransformer'
         , 'OriginalTransformer', 'SortedLETransformer', 'StrFeatureTransformer', 'TextClustDistTransformer'
         , 'TextClustTETransformer', 'TextLinModelTransformer', 'TextTransformer', 'TruncSVDNumTransformer'
