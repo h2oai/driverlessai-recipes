@@ -17,7 +17,13 @@ class CoshLossScorer(CustomScorer):
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-        loss = np.log1p(np.cosh(predicted - actual))
         if sample_weight is None:
             sample_weight = np.ones(actual.shape[0])
+        good_rows = predicted >= 0
+        if good_rows == 0:
+            return 30
+        delta = predicted[good_rows] - actual[good_rows]
+        sample_weight = sample_weight[good_rows]
+        loss = np.log1p(np.cosh(delta))
         return np.sum(sample_weight * loss) / np.sum(sample_weight)
+
