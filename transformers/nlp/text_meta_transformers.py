@@ -1,3 +1,4 @@
+"""Extract common meta features from text"""
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np

@@ -1,3 +1,4 @@
+"""Convert a path to an image (JPG/JPEG/PNG) to a vector of class probabilities created by a pretrained ImageNet deeplearning model (Keras, TensorFlow)."""
 import importlib
 from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.models import TensorFlowModel

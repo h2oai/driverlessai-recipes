@@ -1,3 +1,4 @@
+"""Example implementation of a out-of-fold target encoder (leaky, not recommended)"""
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np

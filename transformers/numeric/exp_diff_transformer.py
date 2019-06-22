@@ -1,3 +1,4 @@
+"""Exponentiated difference of two numbers"""
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np

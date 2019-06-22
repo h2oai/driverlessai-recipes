@@ -1,3 +1,4 @@
+"""Row-by-row similarity between two text columns based on FuzzyWuzzy"""
 # https://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 # https://github.com/seatgeek/fuzzywuzzy 
 from h2oaicore.transformer_utils import CustomTransformer
