@@ -38,10 +38,6 @@
 * [TRANSFORMERS](./transformers)
   * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [Example how to debug a transformer outside of Driverless AI (optional)]
   * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [Functions to ease testing a new custom transformer from the python client]
-  * [AUGMENTATION](./transformers/augmentation)
-    * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [Returns a flag for whether a date falls on a holiday in Germany (in any of the Bundeslaender)]
-    * [is_ramadan.py](./transformers/augmentation/is_ramadan.py) [Returns a flag for whether a date falls on Ramadan in Saudi Arabia]
-    * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py) [Flag for whether a date falls on a public holiday in Singapore.]
   * [DATETIME](./transformers/datetime)
     * [datetime_diff_transformer.py](./transformers/datetime/datetime_diff_transformer.py) [Difference in time between two datetime columns]
     * [datetime_encoder_transformer.py](./transformers/datetime/datetime_encoder_transformer.py) [Converts datetime column into an integer (milliseconds since 1970)]
@@ -86,3 +82,7 @@
     * [serial_prophet_forecast.py](./transformers/timeseries/serial_prophet_forecast.py) [Transformer that uses FB Prophet for time series prediction.Please see the parallel implementation for more information]
     * [time_encoder_transformer.py](./transformers/timeseries/time_encoder_transformer.py) [please add description]
     * [trading_volatility.py](./transformers/timeseries/trading_volatility.py) [Calculates Historical Volatility for numeric features (makes assumptions on the data)]
+    * [AUGMENTATION](./transformers/timeseries/augmentation)
+      * [germany_landers_holidays.py](./transformers/timeseries/augmentation/germany_landers_holidays.py) [Returns a flag for whether a date falls on a holiday in Germany (in any of the Bundeslaender)]
+      * [is_ramadan.py](./transformers/timeseries/augmentation/is_ramadan.py) [Returns a flag for whether a date falls on Ramadan in Saudi Arabia]
+      * [singapore_public_holidays.py](./transformers/timeseries/augmentation/singapore_public_holidays.py) [Flag for whether a date falls on a public holiday in Singapore.]
