@@ -20,7 +20,7 @@ class CoshLossScorer(CustomScorer):
         if sample_weight is None:
             sample_weight = np.ones(actual.shape[0])
         good_rows = predicted >= 0
-        if good_rows == 0:
+        if not good_rows.any():
             return 30
         delta = predicted[good_rows] - actual[good_rows]
         sample_weight = sample_weight[good_rows]
