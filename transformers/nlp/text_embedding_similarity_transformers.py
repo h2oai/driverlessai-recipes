@@ -1,3 +1,4 @@
+"""Row-by-row similarity between two text columns based on pretrained Deep Learning embedding space"""
 from h2oaicore.transformer_utils import CustomTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import datatable as dt
