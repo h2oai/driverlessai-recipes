@@ -12,6 +12,7 @@ class MyAverageMCCScorer(CustomScorer):
     _maximize = True
     _perfect_score = 0
     _display_name = "AVGMCC"
+    _supports_sample_weight = False
 
     def score(self,
               actual: np.array,
@@ -31,6 +32,8 @@ class MyAverageMCCScorer(CustomScorer):
         # Compute thresholds
         prior = np.mean(actual)
         thresholds = [rate * prior for rate in np.arange(0.8, 1.3, 0.1)]
+        if sample_weight is not None:
+            raise NotImplementedError("sklearn MCC has buggy implementation of sample_weights")
 
         # Compute average MCC for the thresholds
         avg_score = 0
