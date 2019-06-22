@@ -1,3 +1,4 @@
+"""Returns the string length of categorical values"""
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np

@@ -1,3 +1,4 @@
+"""Anomaly score for each row based on reconstruction error of a H2O-3 deep learning autoencoder"""
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
