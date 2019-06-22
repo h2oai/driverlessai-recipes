@@ -1,5 +1,4 @@
-"""Returns a flag for whether a date falls on a holiday in Germany (in any of the Bundeslaender)"""
-# holidays python library returns only national holidays or holidays for one lander
+"""Returns a flag for whether a date falls on a holiday for each of Germany's Bundeslaender"""
 
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 import datatable as dt
@@ -8,6 +7,8 @@ import pandas as pd
 import holidays
 
 
+# Inherit from CustomTimeSeriesTransformer
+# That means we only get the time_column, not any date/datetime column
 class GermanyLandersHolidayTransformer(CustomTimeSeriesTransformer):
     _modules_needed_by_name = ['holidays']
 

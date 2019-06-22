@@ -1,5 +1,5 @@
 """Flag for whether a date falls on a public holiday in Singapore."""
-from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
+from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
 import pandas as pd
@@ -68,9 +68,15 @@ def make_holiday_frame():
         """).to_pandas()
 
 
-class SingaporePublicHolidayTransformer(CustomTimeSeriesTransformer):
+class SingaporePublicHolidayTransformer(CustomTransformer):
+
+    @staticmethod
+    def get_default_properties():
+        return dict(col_type="date", min_cols=1, max_cols=1, relative_importance=1)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.time_column = self.input_feature_names[0]
         hdays = make_holiday_frame()['Observance']
         self.memo = pd.DataFrame(hdays, columns=[self.time_column], dtype='datetime64[ns]')
         self.memo['year'] = self.memo[self.time_column].dt.year
