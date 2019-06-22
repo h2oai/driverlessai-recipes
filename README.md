@@ -17,14 +17,16 @@
 * [SCORERS](./scorers)
   * [huber_loss.py](./scorers/huber_loss.py) [Huber Loss for Regression or Binary Classification. Robust loss, combination of quadratic loss and linear loss.]
   * [CLASSIFICATION](./scorers/classification)
-    * [average_mcc.py](./scorers/classification/average_mcc.py) [Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems)]
-    * [brier_loss.py](./scorers/classification/brier_loss.py) [Brier Loss]
-    * [cost.py](./scorers/classification/cost.py) [Using hard-corded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `x * FP + y * FN`]
-    * [false_discovery_rate.py](./scorers/classification/false_discovery_rate.py) [False Discovery Rate: `FP / (FP + TP) for binary classification. Threshold of 0.1 for assigning labels.`]
-    * [hamming_loss.py](./scorers/classification/hamming_loss.py) [Hamming Loss - Misclassification Rate (1 - Accuracy)]
     * [precision.py](./scorers/classification/precision.py) [Precision: `TP / (TP + FP)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels.]
-    * [quadratic_weighted_kappa.py](./scorers/classification/quadratic_weighted_kappa.py) [Qudratic Weighted Kappa]
     * [recall.py](./scorers/classification/recall.py) [Recall: `TP / (TP + FN)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels.]
+    * [BINARY](./scorers/classification/binary)
+      * [average_mcc.py](./scorers/classification/binary/average_mcc.py) [Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems)]
+      * [brier_loss.py](./scorers/classification/binary/brier_loss.py) [Brier Loss]
+      * [cost.py](./scorers/classification/binary/cost.py) [Using hard-corded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `x * FP + y * FN`]
+      * [false_discovery_rate.py](./scorers/classification/binary/false_discovery_rate.py) [False Discovery Rate: `FP / (FP + TP) for binary classification. Threshold of 0.1 for assigning labels.`]
+    * [MULTICLASS](./scorers/classification/multiclass)
+      * [hamming_loss.py](./scorers/classification/multiclass/hamming_loss.py) [Hamming Loss - Misclassification Rate (1 - Accuracy)]
+      * [quadratic_weighted_kappa.py](./scorers/classification/multiclass/quadratic_weighted_kappa.py) [Qudratic Weighted Kappa]
   * [REGRESSION](./scorers/regression)
     * [cosh_loss.py](./scorers/regression/cosh_loss.py) [Hyperbolic Cosine Loss]
     * [explained_variance.py](./scorers/regression/explained_variance.py) [Explained Variance. Fraction of variance that is explained by the model.]
