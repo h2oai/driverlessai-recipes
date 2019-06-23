@@ -21,7 +21,7 @@ class MyHuberLossScorer(CustomScorer):
     Parameters
     ----------
     delta : numeric
-        Hyperparemeter with defaults =1.345 for regression and =0.1 for binary
+        Hyperparameter with defaults =1.345 for regression and =0.1 for binary
         classification
     '''
     _delta_regression = 1.345
@@ -61,4 +61,4 @@ class MyHuberLossScorer(CustomScorer):
                             -4 * actual_mult_predict)
 
         loss = np.sum(np.multiply(sample_weight, loss)) / np.sum(sample_weight)
-        return loss if actual.shape[0] > 0 else 0
+        return float(loss) if actual.shape[0] > 0 else 0
