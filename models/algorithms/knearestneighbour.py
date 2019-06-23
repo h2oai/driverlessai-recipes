@@ -61,6 +61,8 @@ class KNearestNeighbourModel(CustomModel):
         orig_cols = list(X.names)
         feature_model = Ridge(alpha=1., random_state=self.random_state)
 
+        self.params['n_neighbors'] = min(self.params['n_neighbors'], X.shape[0])
+
         if self.num_classes >= 2:
 
             model = KNeighborsClassifier(n_neighbors=self.params['n_neighbors'], metric=self.params['metric'],
