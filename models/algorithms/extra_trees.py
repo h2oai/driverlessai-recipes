@@ -4,7 +4,7 @@ import numpy as np
 from h2oaicore.models import CustomModel
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor
 from sklearn.preprocessing import LabelEncoder
-
+from h2oaicore.systemutils import physical_cores_count
 
 class ExtraTreesModel(CustomModel):
     _regression = True
@@ -15,11 +15,11 @@ class ExtraTreesModel(CustomModel):
 
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
-        n_jobs = -1
-        n_estimators = min(kwargs.get("n_estimators", 10), 1000)
+        n_jobs = max(1, physical_cores_count)
+        n_estimators = min(kwargs.get("n_estimators", 100), 1000)
         self.params["n_estimators"] = n_estimators
         self.params["criterion"] = "gini" if self.num_classes >= 2 else "mse"
-        self.params["n_jobs"] = n_jobs
+        self.params["n_jobs"] = self.params_base.get('n_jobs', n_jobs)
 
     def mutate_params(self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs):
         if accuracy > 8:
@@ -34,18 +34,20 @@ class ExtraTreesModel(CustomModel):
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         orig_cols = list(X.names)
+        fit_params = dict(((k, self.params[k]) for k in ["n_estimators", "criterion", "n_jobs", "random_state"]))
         if self.num_classes >= 2:
             lb = LabelEncoder()
             lb.fit(self.labels)
             y = lb.transform(y)
-            model = ExtraTreesClassifier(random_state=1, **self.params)
+            model = ExtraTreesClassifier(**fit_params)
         else:
-            model = ExtraTreesRegressor(random_state=1, **self.params)
+            model = ExtraTreesRegressor(**fit_params)
 
+        # Replace missing values with a value smaller than all observed values
         self.min = dict()
         for col in X.names:
             XX = X[:, col]
-            self.min[col] = XX.min1()
+            self.min[col] = XX.min1() - 1
             if np.isnan(self.min[col]):
                 self.min[col] = -1e10
             XX.replace(None, self.min[col])
@@ -58,7 +60,7 @@ class ExtraTreesModel(CustomModel):
         self.set_model_properties(model=model,
                                   features=orig_cols,
                                   importances=importances.tolist(),
-                                  iterations=len(model.estimators))
+                                  iterations=fit_params['n_estimators'])
 
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
