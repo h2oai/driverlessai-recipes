@@ -74,7 +74,7 @@ class H2OBaseModel:
             if not isinstance(self, H2OAutoMLModel):
                 # AutoML needs max_runtime_secs in initializer, all others in train() method
                 max_runtime_secs = self.params.pop('max_runtime_secs')
-                train_kwargs = dict(max_runtime_secs = max_runtime_secs)
+                train_kwargs = dict(max_runtime_secs=max_runtime_secs)
             if valid_frame is not None:
                 train_kwargs['validation_frame'] = valid_frame
             model = self.make_instance(**self.params)

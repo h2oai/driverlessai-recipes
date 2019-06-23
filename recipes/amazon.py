@@ -101,4 +101,3 @@ class MyToStringTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         return X[:, dt.stype.str32(dt.f[0])]
-

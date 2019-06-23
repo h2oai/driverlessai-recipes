@@ -51,7 +51,7 @@
     * [missing_flag_transformer.py](./transformers/generic/missing_flag_transformer.py) [Returns 1 if a value is missing, or 0 otherwise]
     * [specific_column_transformer.py](./transformers/generic/specific_column_transformer.py) [Example of a transformer that operates on the entire original frame, and hence on any column(s) desired.]
   * [GEOSPATIAL](./transformers/geospatial)
-    * [geodesic.py](./transformers/geospatial/geodesic.py) [please add description]
+    * [geodesic.py](./transformers/geospatial/geodesic.py) [Calculates the distance in miles between two latitude/longitude points in space]
     * [myhaversine.py](./transformers/geospatial/myhaversine.py) [Computes miles between first two *_latitude and *_longitude named columns in the data set]
   * [IMAGE](./transformers/image)
     * [image_url_transformer.py](./transformers/image/image_url_transformer.py) [Convert a path to an image (JPG/JPEG/PNG) to a vector of class probabilities created by a pretrained ImageNet deeplearning model (Keras, TensorFlow).]
