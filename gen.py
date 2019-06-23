@@ -38,5 +38,5 @@ for dirpath, dirs, files in os.walk("."):
                                     "please add description"
                         what = "[" + f + "](" + dirpath + "/" + f + ")"
                         print_offset(depth + 1, "%s [%s]" % (what, docstring))
-                        count +=1
+                        count += 1
 print("## Total count: %d" % count)
