@@ -22,6 +22,7 @@ def print_offset(depth, str_content):
 import os
 
 print("# Recipes for H2O Driverless AI\n")
+count = 0
 for dirpath, dirs, files in os.walk("."):
     dirs.sort()
     if all(x not in dirpath for x in exclude if len(x) > 1):
@@ -37,3 +38,5 @@ for dirpath, dirs, files in os.walk("."):
                                     "please add description"
                         what = "[" + f + "](" + dirpath + "/" + f + ")"
                         print_offset(depth + 1, "%s [%s]" % (what, docstring))
+                        count +=1
+print("## Total count: %d" % count)
