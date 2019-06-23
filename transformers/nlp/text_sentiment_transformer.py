@@ -1,5 +1,5 @@
+"""Extract sentiment from text using pretrained models from TextBlob"""
 import importlib
-# https://github.com/Mimino666/langdetect
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np

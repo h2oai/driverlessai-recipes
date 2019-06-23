@@ -1,3 +1,6 @@
+"""Parallel FB Prophet transformer is a time series transformer that predicts target using FBProhet models.
+In this implementation, Time Group Models are fitted in parallel"""
+
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 from h2oaicore.systemutils import small_job_pool, save_obj, load_obj, temporary_files_path, remove
 import datatable as dt
@@ -9,6 +12,12 @@ import importlib
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
+
+# For more information about FB prophet please visit :
+
+# This parallel implementation is faster than the serial implementation
+# available in the repository.
+# Standard implementation is therefore disabled.
 
 class suppress_stdout_stderr(object):
     def __init__(self):
@@ -26,6 +35,9 @@ class suppress_stdout_stderr(object):
             os.close(fd)
 
 
+# Parallel implementation requires methods being called from different processes
+# Global methods support this feature
+# We use global methods as a wrapper for member methods of the transformer
 def MyParallelProphetTransformer_fit_async(*args, **kwargs):
     return MyParallelProphetTransformer._fit_async(*args, **kwargs)
 
@@ -35,6 +47,7 @@ def MyParallelProphetTransformer_transform_async(*args, **kwargs):
 
 
 class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
+    """Implementation of the FB Prophet transformer using a pool of processes to fit models in parallel"""
     _is_reproducible = True
     _binary = False
     _multiclass = False
@@ -49,6 +62,12 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
     @staticmethod
     def _fit_async(X_path, grp_hash):
+        """
+        Fits a FB Prophet model for a particular time group
+        :param X_path: Path to the data used to fit the FB Prophet model
+        :param grp_hash: Time group identifier
+        :return: time group identifier and path to the pickled model
+        """
         np.random.seed(1234)
         random.seed(1234)
         X = load_obj(X_path)
@@ -57,6 +76,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         if X.shape[0] < 20:
             # print("prophet - small data work-around for group: %s" % grp_hash)
             return grp_hash, None
+        # Import FB Prophet package
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
         model = Prophet()
@@ -68,19 +88,33 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         return grp_hash, model_path
 
     def fit(self, X: dt.Frame, y: np.array = None):
+        """
+        Fits FB Prophet models (1 per time group) using historical target values contained in y
+        Model fitting is distributed over a pool of processes and uses file storage to share the data with workers
+        :param X: Datatable frame containing the features
+        :param y: numpy array containing the historical values of the target
+        :return: self
+        """
+        # Convert to pandas
         XX = X[:, self.tgc].to_pandas()
         XX = XX.replace([None, np.nan], 0)
         XX.rename(columns={self.time_column: "ds"}, inplace=True)
+        # Make sure labales are numeric
         if self.labels is not None:
             y = LabelEncoder().fit(self.labels).transform(y)
         XX['y'] = np.array(y)
+        # Set target prior
         self.nan_value = np.mean(y)  # TODO - store mean per group, not just global
+
+        # Group the input by TGC (Time group column) excluding the time column itself
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
         if len(tgc_wo_time) > 0:
             XX_grp = XX.groupby(tgc_wo_time)
         else:
             XX_grp = [([None], XX)]
         self.models = {}
+
+        # Prepare for multi processing
         num_tasks = len(XX_grp)
 
         def processor(out, res):
@@ -88,7 +122,13 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
         pool_to_use = small_job_pool
         pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
-        for key, X in XX_grp:
+
+        # Fit 1 FB Prophet model per time group columns
+        nb_groups = len(XX_grp)
+        for _i_g, (key, X) in enumerate(XX_grp):
+            # Just say where we are in the fitting process
+            if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+                print(100 * (_i_g + 1) // nb_groups, " of Groups Fitted")
             X_path = os.path.join(temporary_files_path, "fbprophet_X" + str(uuid.uuid4()))
             X = X.reset_index(drop=True)
             save_obj(X, X_path)
@@ -105,6 +145,13 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
     @staticmethod
     def _transform_async(model_path, X_path, nan_value):
+        """
+        Predicts target for a particular time group
+        :param model_path: path to the stored model
+        :param X_path: Path to the data used to fit the FB Prophet model
+        :param nan_value: Value of target prior, used when no fitted model has been found
+        :return: self
+        """
         model = load_obj(model_path)
         XX_path = os.path.join(temporary_files_path, "fbprophet_XXt" + str(uuid.uuid4()))
         X = load_obj(X_path)
@@ -127,6 +174,11 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         return XX_path
 
     def transform(self, X: dt.Frame):
+        """
+        Uses fitted models (1 per time group) to predict the target
+        :param X: Datatable Frame containing the features
+        :return: FB Prophet predictions
+        """
         XX = X[:, self.tgc].to_pandas()
         XX = XX.replace([None, np.nan], 0)
         XX.rename(columns={self.time_column: "ds"}, inplace=True)
@@ -145,7 +197,11 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
         XX_paths = []
         model_paths = []
-        for key, X in XX_grp:
+        nb_groups = len(XX_grp)
+        print("Nb Groups = ", nb_groups)
+        for _i_g, (key, X) in enumerate(XX_grp):
+            if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+                print(100 * (_i_g + 1) // nb_groups, " of Groups Transformed")
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
             X_path = os.path.join(temporary_files_path, "fbprophet_Xt" + str(uuid.uuid4()))
@@ -164,6 +220,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
                                    out=XX_paths)
             else:
                 XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # unseen groups
+                XX.index = X.index
                 save_obj(XX, X_path)
                 XX_paths.append(X_path)
         pool.finish()
@@ -173,4 +230,10 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         return XX
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
+        """
+        Fits the FB Prophet models (1 per time group) and outputs the corresponding predictions
+        :param X: Datatable Frame
+        :param y: Target to be used to fit FB Prophet models
+        :return: FB Prophet predictions
+        """
         return self.fit(X, y).transform(X)

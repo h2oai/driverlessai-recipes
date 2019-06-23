@@ -1,3 +1,4 @@
+"""Row-by-row similarity between two text columns based on common N-grams, Jaccard similarity and edit distance."""
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
