@@ -1,5 +1,7 @@
+"""Convert a path to an image (JPG/JPEG/PNG) to a vector of class probabilities created by a pretrained ImageNet deeplearning model (Keras, TensorFlow)."""
 import importlib
 from h2oaicore.transformer_utils import CustomTransformer
+from h2oaicore.models import TensorFlowModel
 import datatable as dt
 import numpy as np
 from h2oaicore.systemutils import small_job_pool, temporary_files_path, dummypool, print_debug, remove
@@ -9,7 +11,7 @@ import uuid
 import os
 
 
-class MyImgTransformer(CustomTransformer):
+class MyImgTransformer(CustomTransformer, TensorFlowModel):
     # Need Pillow before nlp imports keras, else when here too late.
     # I.e. wasn't enough to put keras imports inside fit/transform to delay after Pillow installed
     _modules_needed_by_name = ['Pillow==5.0.0']
@@ -81,7 +83,7 @@ class MyImgTransformer(CustomTransformer):
     def get_default_properties():
         return dict(col_type="categorical", min_cols=1, max_cols=1, relative_importance=1)
 
-    def preprocess_image(self, source_img_path):
+    def preprocess_image(self, source_img_path, check_only=False):
         try:
             final_img_path = os.path.join(temporary_files_path, self.uuid, os.path.basename(source_img_path))
         except:  # we are sometimes getting np.float32, why?
@@ -97,66 +99,86 @@ class MyImgTransformer(CustomTransformer):
                 delete = False  # True to avoid re-download or a race condition between multiple procs
             else:
                 final_img_path = source_img_path
-        import h2oaicore.keras as keras
-        importlib.reload(keras)
-        img = keras.preprocessing.image.load_img(final_img_path, target_size=(224, 224))
-        if delete:
-            remove(final_img_path)
-        x = keras.preprocessing.image.img_to_array(img)
-        x = np.expand_dims(x, axis=0)
-        x = keras.applications.resnet50.preprocess_input(x)
-        return x
+        if not check_only:
+            import h2oaicore.keras as keras
+            importlib.reload(keras)
+            img = keras.preprocessing.image.load_img(final_img_path, target_size=(224, 224))
+            if delete:
+                remove(final_img_path)
+            x = keras.preprocessing.image.img_to_array(img)
+            x = np.expand_dims(x, axis=0)
+            x = keras.applications.resnet50.preprocess_input(x)
+            return x
+        else:
+            return True
 
-    def fit_transform(self, X: dt.Frame, y: np.array = None):
-        return self.transform(X)
+    def fit_transform(self, X: dt.Frame, y: np.array = None, **kwargs):
+        return self.transform(X, **kwargs)
 
-    def transform(self, X: dt.Frame):
+    def transform(self, X: dt.Frame, **kwargs):
         if not os.path.exists(self.model_path):
             with open(self.model_path, 'wb') as f:
                 f.write(self.model_bytes)
 
-        import h2oaicore.keras as keras
-        from h2oaicore.models import TensorFlowModel
-        self.tf_config = TensorFlowModel.ConfigProto()
-        # self.tf_config.gpu_options.allow_growth = True
-        self.tf_config.gpu_options.per_process_gpu_memory_fraction = 0.3
-        keras.backend.set_session(session=TensorFlowModel.make_sess(self.tf_config))
-
-        # importlib.reload(keras)
-        self.model = keras.models.load_model(self.model_path)
         # remove(self.model_path) # can't remove, used by other procs or later
         values = X[:, self.col_name].to_numpy().ravel()
         self.batch_size = min(len(values), self.batch_size)
         values_ = np.array_split(values, int(len(values) / self.batch_size) + 1)
         print(values_)
+
+        # check if data is image related
         results = []
         for v in values_:
             images = []
             for x in v:
                 if True or x[-4:] in [".jpg", ".png", ".jpeg"]:
-                    image = self.preprocess_image(x)
+                    image = self.preprocess_image(x, check_only=True)
                     images.append(image)
                 else:
                     raise NotImplementedError
             # deal with missing images (None in images)
-            good_imagei = None
-            for imagei, image in enumerate(images):
-                if image is not None:
-                    good_imagei = imagei
-                    break
-            if len(images) > 0:
-                msg = "no good images out of %d images" % len(images)
-                if False:
-                    assert good_imagei is not None, msg
-                elif good_imagei is None:
-                    pass
-                    # print_debug(msg)
-            if good_imagei is not None:
+            images = [x for x in images if x is not None]
+            results.extend(images)
+
+        if len(results) > 0:
+            # don't use GPU memory unless actually found relevant data
+            import h2oaicore.keras as keras
+            # self.tf_config = self.set_tf_config(kwargs)
+            self.tf_config = self.ConfigProto()
+            # self.tf_config.gpu_options.allow_growth = True
+            self.tf_config.gpu_options.per_process_gpu_memory_fraction = 0.3
+            keras.backend.set_session(session=TensorFlowModel.make_sess(self.tf_config))
+            # importlib.reload(keras)
+            self.model = keras.models.load_model(self.model_path)
+
+            results = []
+            for v in values_:
+                images = []
+                for x in v:
+                    if True or x[-4:] in [".jpg", ".png", ".jpeg"]:
+                        image = self.preprocess_image(x)
+                        images.append(image)
+                    else:
+                        raise NotImplementedError
+                # deal with missing images (None in images)
+                good_imagei = None
                 for imagei, image in enumerate(images):
-                    if image is None:
-                        images[imagei] = images[good_imagei] * 0  # impute 0 for missing images
-                images = np.vstack(images)
-                results.append(self.model.predict(images))
+                    if image is not None:
+                        good_imagei = imagei
+                        break
+                if len(images) > 0:
+                    msg = "no good images out of %d images" % len(images)
+                    if False:
+                        assert good_imagei is not None, msg
+                    elif good_imagei is None:
+                        pass
+                        # print_debug(msg)
+                if good_imagei is not None:
+                    for imagei, image in enumerate(images):
+                        if image is None:
+                            images[imagei] = images[good_imagei] * 0  # impute 0 for missing images
+                    images = np.vstack(images)
+                    results.append(self.model.predict(images))
         if len(results) > 0:
             return dt.Frame(np.vstack(results))
         else:

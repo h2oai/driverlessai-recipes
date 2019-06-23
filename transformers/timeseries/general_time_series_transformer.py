@@ -1,3 +1,4 @@
+"""Demonstrates the API for custom time-series transformers."""
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 import datatable as dt
 import numpy as np
@@ -21,4 +22,3 @@ class GeneralTimeSeriesTransformer(CustomTimeSeriesTransformer):
 
     def transform(self, X: dt.Frame):
         return self.encoder.transform(X[:, self.time_column].to_pandas())
-

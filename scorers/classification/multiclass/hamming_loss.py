@@ -1,3 +1,4 @@
+"""Hamming Loss - Misclassification Rate (1 - Accuracy)"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
@@ -22,4 +23,3 @@ class MyHammingLoss(CustomScorer):
         actual = lb.transform(actual)
         predicted = np.argmax(predicted, axis=1)
         return hamming_loss(actual, predicted, labels, sample_weight)
-

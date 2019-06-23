@@ -1,7 +1,4 @@
-"""The intention of this custom model is to demonstrate how one can use the framework to use XGBoost with
-a custom objective function, i.e. a loss function that XGBoost would optimize for.
-The code is almost a clone of lightgbm_with_custom_loss.py
-only parent class changes.
+"""Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).
 """
 from h2oaicore.models import BaseCustomModel, XGBoostGBMModel
 import numpy as np
@@ -24,7 +21,7 @@ def custom_asymmetric_objective(y_true, y_pred):
 class MyXGBMAsymMSE(BaseCustomModel, XGBoostGBMModel):
     """Custom model class that re-uses DAI XGBoostGBMModel
     The class inherits :
-      - BaseCustomModel that really is just a tag. It's there to make sure DAI knowns it's a custom model and not
+      - BaseCustomModel that really is just a tag. It's there to make sure DAI knows it's a custom model and not
       its inner XGBoost Model
       - XGBoostGBMModel object so that the custom model inherits all the properties and methods, especially for params
       mutation
@@ -37,6 +34,7 @@ class MyXGBMAsymMSE(BaseCustomModel, XGBoostGBMModel):
     # Give the display name and description that will be shown in the UI
     _display_name = "MYXGBMAsymMSE"
     _description = "XGBoost with custom asymetric loss/objective"
+    _boosters = ["xgbasym"]
 
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
@@ -59,7 +57,6 @@ class MyXGBMAsymMSE(BaseCustomModel, XGBoostGBMModel):
                       train_shape=None, ncol_effective=None,
                       time_series=False, ensemble_level=None,
                       score_f_name: str = None, **kwargs):
-
         # If we don't override the parent mutate_params method, DAI would have the opportunity
         # to modify the objective and select the winner
         # For demonstration purposes we purposely make sure that the objective

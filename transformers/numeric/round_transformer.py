@@ -1,3 +1,4 @@
+"""Rounds numbers to 1, 2 or 3 decimals"""
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np

@@ -1,3 +1,4 @@
+"""False Discovery Rate: `FP / (FP + TP) for binary classification. Threshold of 0.1 for assigning labels.`"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer

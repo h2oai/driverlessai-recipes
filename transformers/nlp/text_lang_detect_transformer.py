@@ -1,3 +1,4 @@
+"""Detect the language for a text value using Google's 'langdetect' package"""
 import importlib
 # https://github.com/Mimino666/langdetect
 from h2oaicore.transformer_utils import CustomTransformer

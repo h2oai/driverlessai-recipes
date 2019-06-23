@@ -1,3 +1,4 @@
+"""Example how to debug a transformer outside of Driverless AI (optional)"""
 import datatable as dt
 import pandas as pd
 import numpy as np

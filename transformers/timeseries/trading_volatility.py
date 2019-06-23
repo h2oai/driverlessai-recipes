@@ -1,5 +1,4 @@
-# Created by Github user: TomOtt12345
-# Calculates Historical Volatility for numeric features
+"""Calculates Historical Volatility for numeric features (makes assumptions on the data)"""
 
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt

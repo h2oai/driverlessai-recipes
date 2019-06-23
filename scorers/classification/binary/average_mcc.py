@@ -1,7 +1,8 @@
+"""Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems). Example how to use Driverless AI's internal scorer."""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
-from sklearn.metrics import matthews_corrcoef
+from h2oaicore.metrics import MccScorer
 from sklearn.preprocessing import LabelEncoder
 
 
@@ -24,20 +25,23 @@ class MyAverageMCCScorer(CustomScorer):
         response and better generalization.
         """
         lb = LabelEncoder()
-        labels = lb.fit_transform(labels)
+        labels = list(lb.fit_transform(labels))
         actual = lb.transform(actual)
 
         # Compute thresholds
-        prior = np.mean(actual)
+        if sample_weight is None:
+            sample_weight = np.ones(actual.shape[0])
+        prior = np.sum(actual * sample_weight) / np.sum(sample_weight)
         thresholds = [rate * prior for rate in np.arange(0.8, 1.3, 0.1)]
 
         # Compute average MCC for the thresholds
         avg_score = 0
         for t in thresholds:
-            avg_score += matthews_corrcoef(
-                y_true=actual,
-                y_pred=(predicted > t).astype(np.uint8),
-                sample_weight=sample_weight
+            avg_score += MccScorer().score(
+                actual=actual,
+                predicted=(predicted > t).astype(np.uint8),
+                sample_weight=sample_weight,
+                labels=labels
             )
 
         return avg_score / len(thresholds)
