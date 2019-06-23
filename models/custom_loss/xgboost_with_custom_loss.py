@@ -21,7 +21,7 @@ def custom_asymmetric_objective(y_true, y_pred):
 class MyXGBMAsymMSE(BaseCustomModel, XGBoostGBMModel):
     """Custom model class that re-uses DAI XGBoostGBMModel
     The class inherits :
-      - BaseCustomModel that really is just a tag. It's there to make sure DAI knowns it's a custom model and not
+      - BaseCustomModel that really is just a tag. It's there to make sure DAI knows it's a custom model and not
       its inner XGBoost Model
       - XGBoostGBMModel object so that the custom model inherits all the properties and methods, especially for params
       mutation
@@ -34,6 +34,7 @@ class MyXGBMAsymMSE(BaseCustomModel, XGBoostGBMModel):
     # Give the display name and description that will be shown in the UI
     _display_name = "MYXGBMAsymMSE"
     _description = "XGBoost with custom asymetric loss/objective"
+    _boosters = ["xgbasym"]
 
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
