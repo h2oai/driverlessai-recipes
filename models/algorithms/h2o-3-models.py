@@ -1,4 +1,4 @@
-"""H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB)
+"""H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB/AutoML)
 """
 from h2oaicore.models import CustomModel
 import datatable as dt
