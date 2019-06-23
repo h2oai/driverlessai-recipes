@@ -13,7 +13,7 @@ from h2oaicore.systemutils import config, physical_cores_count
 # Data: https://www.kaggle.com/c/amazon-employee-access-challenge/data
 
 # # Run DAI with 5/2/1 settings, AUC scorer
-# Recommended: Exclude all models except for LIGHTGBMDEEP, CATBOOST in expert settings -> custom recipes -> exclude specific models.
+# Recommended: Include only LIGHTGBMDEEP and CATBOOST (in expert settings -> custom recipes -> include models).
 
 
 class MyLightGBMDeep(BaseCustomModel, LightGBMModel):
@@ -83,61 +83,6 @@ class CatBoostModel(CustomModel):
             return preds
 
 
-class TargetEncodingExpandingMean(CustomTransformer):
-    @staticmethod
-    def do_acceptance_test():
-        return False  # transformer can fail for small data
-
-    @staticmethod
-    def get_default_properties():
-        return dict(col_type="categorical", min_cols=1, max_cols=1, relative_importance=1)
-
-    def fit_transform(self, X: dt.Frame, y: np.array = None):
-        X = X.to_pandas()
-        self.learned_values = {}
-        self.dataset_mean = np.mean(y)
-        X["__target__"] = y
-        for c in X.columns:
-            stats = (X[[c, "__target__"]]
-                     .groupby(c)["__target__"]
-                     .agg(['mean', 'size']))  #
-            stats["__target__"] = stats["mean"]
-            stats = (stats
-                     .drop([x for x in stats.columns if x not in ["__target__", c]], axis=1)
-                     .reset_index())
-            self.learned_values[c] = stats
-
-        # Expanding mean transform
-        X = X[self.columns_names].copy().reset_index(drop=True)
-        X["__target__"] = y
-        X["index"] = X.index
-        X_transformed = pd.DataFrame()
-        for c in self.columns_names:
-            X_shuffled = X[[c, "__target__", "index"]].copy()
-            X_shuffled = X_shuffled.sample(n=len(X_shuffled), replace=False)
-            X_shuffled["cnt"] = 1
-            X_shuffled["cumsum"] = (X_shuffled
-                                    .groupby(c, sort=False)['__target__']
-                                    .apply(lambda x: x.shift().cumsum()))
-            X_shuffled["cumcnt"] = (X_shuffled
-                                    .groupby(c, sort=False)['cnt']
-                                    .apply(lambda x: x.shift().cumsum()))
-            X_shuffled["encoded"] = X_shuffled["cumsum"] / X_shuffled["cumcnt"]
-            X_shuffled["encoded"] = X_shuffled["encoded"].fillna(self.dataset_mean)
-            X_transformed[c] = X_shuffled.sort_values("index")["encoded"].values
-        return X_transformed
-
-    def transform(self, X: dt.Frame):
-        X = X.to_pandas()
-        transformed_X = X[self.columns_names].copy()
-        for c in transformed_X.columns:
-            transformed_X[c] = (transformed_X[[c]]
-                                .merge(self.learned_values[c], on=c, how='left')
-                                )["__target__"]
-        transformed_X = transformed_X.fillna(self.dataset_mean)
-        return transformed_X
-
-
 # Not necessary, but nice to demonstrate creation of string input for CatBoost
 class MyToStringTransformer(CustomTransformer):
     _numeric_output = False
@@ -157,21 +102,3 @@ class MyToStringTransformer(CustomTransformer):
     def transform(self, X: dt.Frame):
         return X[:, dt.stype.str32(dt.f[0])]
 
-# class MyLabelEncoderTransformer(CustomTransformer):
-#     _included_boosters = ['lightgbmdeep']
-#
-#     @property
-#     def display_name(self):
-#         return "LabelEnc"
-#
-#     @staticmethod
-#     def get_default_properties():
-#         return dict(col_type="numeric", min_cols=1, max_cols=1, relative_importance=1)
-#
-#     def fit_transform(self, X: dt.Frame, y: np.array = None):
-#         self.lb = LabelEncoder()
-#         self.lb.fit(X[:, self.input_feature_names[0]].to_numpy().ravel())
-#         return self.transform(X)
-#
-#     def transform(self, X: dt.Frame):
-#         return self.lb.transform(X[:, self.input_feature_names[0]].to_numpy().ravel())
