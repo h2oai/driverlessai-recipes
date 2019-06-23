@@ -21,7 +21,7 @@ def custom_asymmetric_objective(y_true, y_pred):
 class MyLGBMAsymMSE(BaseCustomModel, LightGBMModel):
     """Custom model class that re-uses DAI LightGBMModel
     The class inherits :
-      - BaseCustomModel that really is just a tag. It's there to make sure DAI knowns it's a custom model and not
+      - BaseCustomModel that really is just a tag. It's there to make sure DAI knows it's a custom model and not
       its inner LightGBM Model
       - LightGBMModel object so that the custom model inherits all the properties and methods, especially for params
       mutation
@@ -34,6 +34,7 @@ class MyLGBMAsymMSE(BaseCustomModel, LightGBMModel):
     # Give the display name and description that will be shown in the UI
     _display_name = "MyLGBMAsymMSE"
     _description = "LightGBM with custom asymetric loss/objective"
+    _boosters = ["lgbmasym"]
 
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
