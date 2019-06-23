@@ -26,4 +26,3 @@ class CoshLossScorer(CustomScorer):
         sample_weight = sample_weight[good_rows]
         loss = np.log1p(np.cosh(delta))
         return np.sum(sample_weight * loss) / np.sum(sample_weight)
-

@@ -11,4 +11,3 @@ class ExponentialSmoothingModel(BaseCustomModel, GLMModel):
     _display_name = "EWMA_GLM"
     _description = "GLM with EWMA Lags"
     _included_transformers = ["EwmaLagsTransformer"]
-
