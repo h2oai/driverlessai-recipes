@@ -17,8 +17,6 @@ class MyTopQuartileMedianAbsErrorScorer(CustomScorer):
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-        if sample_weight is not None:
-            raise NotImplementedError
         cutoff = np.quantile(predicted, 0.9)
         which = (predicted >= cutoff).ravel()
         return float(np.median(np.abs(actual[which] - predicted[which])))
