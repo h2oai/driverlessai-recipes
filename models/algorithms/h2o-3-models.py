@@ -13,11 +13,16 @@ import os
 
 
 class H2OBaseModel:
+    @staticmethod
+    def do_acceptance_test():
+        return False  # save time
+
     _regression = True
     _binary = True
     _multiclass = True
     _can_handle_non_numeric = True
-    _is_reproducible = True
+    _is_reproducible = False  # since using max_runtime_secs - disable that if need reproducible models
+
     _class = NotImplemented
 
     def __init__(self, **kwargs):
@@ -33,7 +38,7 @@ class H2OBaseModel:
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
                            **kwargs):
-        self.params = dict(max_runtime_secs=accuracy * max(1, time_tolerance) * 5)
+        self.params = dict(max_runtime_secs=accuracy * max(1, time_tolerance) * 5)  # Modify to your liking
 
     def get_iterations(self, model):
         return 0
@@ -65,10 +70,17 @@ class H2OBaseModel:
             valid_frame = valid_X.cbind(valid_y)
 
         try:
-            max_runtime_secs = self.params.pop('max_runtime_secs')
+            train_kwargs = dict()
+            if not isinstance(self, H2OAutoMLModel):
+                # AutoML needs max_runtime_secs in initializer, all others in train() method
+                max_runtime_secs = self.params.pop('max_runtime_secs')
+                train_kwargs = dict(max_runtime_secs = max_runtime_secs)
+            if valid_frame is not None:
+                train_kwargs['validation_frame'] = valid_frame
             model = self.make_instance(**self.params)
-            model.train(x=train_X.names, y=self.target, training_frame=train_frame, validation_frame=valid_frame,
-                        max_runtime_secs=max_runtime_secs)
+            model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
+            if isinstance(model, H2OAutoML):
+                model = model.leader
             self.id = model.model_id
             model_path = os.path.join(temporary_files_path, "h2o_model." + str(uuid.uuid4()))
             model_path = h2o.save_model(model=model, path=model_path)
@@ -234,10 +246,6 @@ from h2o.automl import H2OAutoML
 
 
 class H2OAutoMLModel(H2OBaseModel, CustomModel):
-    @staticmethod
-    def is_enabled():
-        return False
-
     _boosters = ['h2oautoml']
     _display_name = "H2O AutoML"
     _description = "H2O-3 AutoML"
