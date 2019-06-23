@@ -1,5 +1,5 @@
 """Calculates the distance in miles between two latitude/longitude points in space"""
-# Using the Geodesic caclulation in the Geopy Library
+# Using the Geodesic calculation in the Geopy Library
 # Use sample taxi_small.csv file in /data
 
 import datatable as dt
