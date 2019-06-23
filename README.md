@@ -20,7 +20,7 @@
     * [precision.py](./scorers/classification/precision.py) [Precision: `TP / (TP + FP)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels.]
     * [recall.py](./scorers/classification/recall.py) [Recall: `TP / (TP + FN)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels.]
     * [BINARY](./scorers/classification/binary)
-      * [average_mcc.py](./scorers/classification/binary/average_mcc.py) [Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems)]
+      * [average_mcc.py](./scorers/classification/binary/average_mcc.py) [Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems). Example how to use Driverless AI's internal scorer.]
       * [brier_loss.py](./scorers/classification/binary/brier_loss.py) [Brier Loss]
       * [cost.py](./scorers/classification/binary/cost.py) [Using hard-corded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `x * FP + y * FN`]
       * [false_discovery_rate.py](./scorers/classification/binary/false_discovery_rate.py) [False Discovery Rate: `FP / (FP + TP) for binary classification. Threshold of 0.1 for assigning labels.`]
