@@ -10,7 +10,7 @@ from sklearn.svm import NuSVC, NuSVR
 class NuSVCModel(CustomModel):
     _regression = False
     _binary = True
-    _multiclass = False #WIP
+    _multiclass = False  # WIP
 
     _boosters = ['nusvc']
     _display_name = "NuSVC"
@@ -50,7 +50,7 @@ class NuSVCModel(CustomModel):
         nu_index = np.random.randint(0, high=len(list_of_nus))
         kernel_index = np.random.randint(0, high=len(list_of_kernels))
         degree_index = np.random.randint(0, high=len(list_of_degrees))
-        
+
         nu = list_of_nus[nu_index]
         kernel = list_of_kernels[kernel_index]
         degree = list_of_degrees[degree_index]
@@ -156,7 +156,7 @@ class NuSVRModel(CustomModel):
         nu_index = np.random.randint(0, high=len(list_of_nus))
         kernel_index = np.random.randint(0, high=len(list_of_kernels))
         degree_index = np.random.randint(0, high=len(list_of_degrees))
-        
+
         nu = list_of_nus[nu_index]
         kernel = list_of_kernels[kernel_index]
         degree = list_of_degrees[degree_index]
