@@ -13,7 +13,7 @@ from h2oaicore.transformer_utils import CustomTransformer
 
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 
-class Autoencoder2Transformer(CustomTransformer, TensorFlowModel):
+class AutoencoderTransformer(CustomTransformer, TensorFlowModel):
 
     _tensorflow = True
     _parallel_task = True  # assumes will use n_jobs in params_base
