@@ -1,5 +1,7 @@
 # Recipes for H2O Driverless AI
 
+## [FAQ](./FAQ.md)
+## Sample Recipes: 67
 * [MODELS](./models)
   * [ALGORITHMS](./models/algorithms)
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.]
@@ -7,6 +9,7 @@
     * [h2o-3-models.py](./models/algorithms/h2o-3-models.py) [H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB/AutoML)]
     * [knearestneighbour.py](./models/algorithms/knearestneighbour.py) [K-Nearest Neighbor implementation by sklearn. For small data (< 200k rows).]
     * [linear_svm.py](./models/algorithms/linear_svm.py) [Linear Support Vector Machine (SVM) implementation by sklearn. For small data.]
+    * [nusvm.py](./models/algorithms/nusvm.py) [Nu-SVM implementation by sklearn. For small data.]
   * [CUSTOM_LOSS](./models/custom_loss)
     * [lightgbm_with_custom_loss.py](./models/custom_loss/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).]
     * [xgboost_with_custom_loss.py](./models/custom_loss/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).]
@@ -41,6 +44,7 @@
   * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [Functions to ease testing a new custom transformer from the python client]
   * [AUGMENTATION](./transformers/augmentation)
     * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [Returns a flag for whether a date falls on a holiday for each of Germany's Bundeslaender]
+    * [ipaddress_features.py](./transformers/augmentation/ipaddress_features.py) [Parses IP addresses and networks and extracts its properties.]
     * [is_ramadan.py](./transformers/augmentation/is_ramadan.py) [Returns a flag for whether a date falls on Ramadan in Saudi Arabia]
     * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py) [Flag for whether a date falls on a public holiday in Singapore.]
   * [DATETIME](./transformers/datetime)
@@ -87,4 +91,3 @@
     * [serial_prophet_forecast.py](./transformers/timeseries/serial_prophet_forecast.py) [Transformer that uses FB Prophet for time series prediction.Please see the parallel implementation for more information]
     * [time_encoder_transformer.py](./transformers/timeseries/time_encoder_transformer.py) [please add description]
     * [trading_volatility.py](./transformers/timeseries/trading_volatility.py) [Calculates Historical Volatility for numeric features (makes assumptions on the data)]
-## Total count: 65
