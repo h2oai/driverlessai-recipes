@@ -1,13 +1,11 @@
 # Recipes for H2O Driverless AI
 
 ## Reference Guide
-* [FAQ](./FAQ.md)
-* [Custom Transformer Recipe SDK/API Reference](base_templates/custom_transformer.py)
-* [Custom Model Recipe SDK/API Reference](base_templates/custom_model.py)
-* [Custom Scorer Recipe SDK/API Reference](base_templates/custom_scorer.py)
+* [FAQ and Templates](./FAQ.md)
 
-## Sample Recipes: 71
+## Sample Recipes: 74
 * [MODELS](./models)
+  * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
   * [ALGORITHMS](./models/algorithms)
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.]
     * [extra_trees.py](./models/algorithms/extra_trees.py) [Extremely Randomized Trees (ExtraTrees) model from sklearn]
@@ -25,6 +23,7 @@
   * [amazon.py](./recipes/amazon.py) [Recipe for Kaggle Competition: Amazon.com - Employee Access Challenge]
 * [SCORERS](./scorers)
   * [huber_loss.py](./scorers/huber_loss.py) [Huber Loss for Regression or Binary Classification. Robust loss, combination of quadratic loss and linear loss.]
+  * [scorer_template.py](./scorers/scorer_template.py) [Template base class for a custom scorer recipe.]
   * [CLASSIFICATION](./scorers/classification)
     * [false_negative_count.py](./scorers/classification/false_negative_count.py) [Optimizes for specific Confusion Matrix Values: TP, TN, FP, or FN]
     * [false_positive_count.py](./scorers/classification/false_positive_count.py) [Optimizes for specific Confusion Matrix Values: TP, TN, FP, or FN]
@@ -51,6 +50,7 @@
 * [TRANSFORMERS](./transformers)
   * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [Example how to debug a transformer outside of Driverless AI (optional)]
   * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [Functions to ease testing a new custom transformer from the python client]
+  * [transformer_template.py](./transformers/transformer_template.py) [Template base class for a custom transformer recipe.]
   * [AUGMENTATION](./transformers/augmentation)
     * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [Returns a flag for whether a date falls on a holiday for each of Germany's Bundeslaender]
     * [ipaddress_features.py](./transformers/augmentation/ipaddress_features.py) [Parses IP addresses and networks and extracts its properties.]
