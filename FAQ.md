@@ -9,4 +9,6 @@
 ## BYOR SCORERS
   * Introduction
   * [Custom Scorer Recipe SDK/API Reference](scorers/scorer_template.py)
+## Technical Architecture Diagram
+![BYOR Architecture Diagram](reference/DriverlessAI_BYOR.png)
 
