@@ -33,7 +33,7 @@ class MySerialProphetTransformer(CustomTimeSeriesTransformer):
     # some package dependencies are best sequential to overcome known issues
     _modules_needed_by_name = ['pystan==2.18', 'fbprophet==0.4.post2']
     # _modules_needed_by_name = ['fbprophet']
-    _included_boosters = None  # ["gblinear"] for strong trends - can extrapolate
+    _included_model_classes = None  # ["gblinear"] for strong trends - can extrapolate
 
     @staticmethod
     def is_enabled():

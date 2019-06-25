@@ -15,7 +15,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
     _binary = False
     _multiclass = False
     _modules_needed_by_name = ['pmdarima']
-    _included_boosters = None
+    _included_model_classes = None
 
     @staticmethod
     def get_default_properties():
