@@ -10,7 +10,7 @@ from sklearn.svm import NuSVC, NuSVR
 class NuSVMModel(CustomModel):
     _regression = True
     _binary = True
-    _multiclass = False #WIP
+    _multiclass = False  # WIP
 
     _boosters = ['nusvm']
     _display_name = "NuSVM"
@@ -50,7 +50,7 @@ class NuSVMModel(CustomModel):
         nu_index = np.random.randint(0, high=len(list_of_nus))
         kernel_index = np.random.randint(0, high=len(list_of_kernels))
         degree_index = np.random.randint(0, high=len(list_of_degrees))
-        
+
         nu = list_of_nus[nu_index]
         kernel = list_of_kernels[kernel_index]
         degree = list_of_degrees[degree_index]
@@ -69,7 +69,7 @@ class NuSVMModel(CustomModel):
         if self.num_classes >= 2:
             feature_model = NuSVC(kernel='linear')
             model = NuSVC(nu=self.params['nu'], kernel=self.params['kernel'],
-                      degree=self.params['degree'], probability=self.params['probability'])
+                          degree=self.params['degree'], probability=self.params['probability'])
 
             lb = LabelEncoder()
             lb.fit(y)
@@ -77,7 +77,7 @@ class NuSVMModel(CustomModel):
         else:
             feature_model = NuSVR(kernel='linear')
             model = NuSVR(nu=self.params['nu'], kernel=self.params['kernel'],
-                      degree=self.params['degree'])
+                          degree=self.params['degree'])
 
         self.means = dict()
 

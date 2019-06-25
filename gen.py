@@ -11,18 +11,18 @@ def get_module_docstring(filepath):
     return docstring
 
 
-def print_offset(depth, str_content):
+def print_offset(depth, str_content, ret):
     for i, line in enumerate(str_content.split("\n")):
         if i == 0:
-            print(sep * depth + "* " + line)
+            ret.append(sep * depth + "* " + line)
         else:
-            print(sep * depth + "  " + line)
+            ret.append(sep * depth + "  " + line)
 
 
 import os
 
-print("# Recipes for H2O Driverless AI\n")
 count = 0
+ret = []
 for dirpath, dirs, files in os.walk("."):
     dirs.sort()
     if all(x not in dirpath for x in exclude if len(x) > 1):
@@ -30,13 +30,18 @@ for dirpath, dirs, files in os.walk("."):
         pdir = os.path.basename(dirpath)
         if pdir not in exclude:
             depth = len(path) - 2
-            print_offset(depth, "[" + pdir.upper() + "](" + dirpath + ")")
+            print_offset(depth, "[" + pdir.upper() + "](" + dirpath + ")", ret)
             for f in sorted(files):
                 if f not in exclude:
                     if f[-3:] == ".py":
                         docstring = get_module_docstring(os.path.join(dirpath, f)) or \
                                     "please add description"
                         what = "[" + f + "](" + dirpath + "/" + f + ")"
-                        print_offset(depth + 1, "%s [%s]" % (what, docstring))
+                        print_offset(depth + 1, "%s [%s]" % (what, docstring), ret)
                         count += 1
-print("## Total count: %d" % count)
+
+print("# Recipes for H2O Driverless AI\n")
+print("## [FAQ](./FAQ.md)")
+print("## Sample Recipes: %d" % count)
+for l in ret:
+  print(l)

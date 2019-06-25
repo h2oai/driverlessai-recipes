@@ -11,6 +11,10 @@ class NormalizedMACDTransformer(CustomTimeSeriesTransformer):
     """
 
     @staticmethod
+    def do_acceptance_test():
+        return False
+
+    @staticmethod
     def get_default_properties():
         """This recipe is for time series
         It expects at least one data column along with the time group columns
