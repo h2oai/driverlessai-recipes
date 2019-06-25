@@ -21,6 +21,7 @@
     * [historic_mean.py](./models/timeseries/historic_mean.py) [Historic Mean for Time-Series problems. Predicts the mean of the target for each timegroup for regression problems.]
 * [RECIPES](./recipes)
   * [amazon.py](./recipes/amazon.py) [Recipe for Kaggle Competition: Amazon.com - Employee Access Challenge]
+* [REFERENCE](./reference)
 * [SCORERS](./scorers)
   * [huber_loss.py](./scorers/huber_loss.py) [Huber Loss for Regression or Binary Classification. Robust loss, combination of quadratic loss and linear loss.]
   * [scorer_template.py](./scorers/scorer_template.py) [Template base class for a custom scorer recipe.]
