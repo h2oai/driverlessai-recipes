@@ -1,4 +1,4 @@
-exclude = ['.', '.idea', 'pycache', '.git', 'data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py']
+exclude = ['.', 'base_templates', '.idea', 'pycache', '.git', 'data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py']
 sep = '  '
 
 
@@ -41,7 +41,12 @@ for dirpath, dirs, files in os.walk("."):
                         count += 1
 
 print("# Recipes for H2O Driverless AI\n")
-print("## [FAQ](./FAQ.md)")
+print("## Basics")
+print("* [FAQ](./FAQ.md)")
+print("* [Custom Transformer Recipe SDK/API Reference](base_templates/custom_transformer.py)")
+print("* [Custom Model Recipe SDK/API Reference](base_templates/custom_model.py)")
+print("* [Custom Scorer Recipe SDK/API Reference](base_templates/custom_scorer.py)")
+print("")
 print("## Sample Recipes: %d" % count)
 for l in ret:
   print(l)

@@ -1,11 +1,12 @@
 # Recipes for H2O Driverless AI
 
-## [FAQ](./FAQ.md)
-## Sample Recipes: 74
-* [BASE_TEMPLATES](./base_templates)
-  * [custom_model.py](./base_templates/custom_model.py) [Template base class for a custom model recipe.]
-  * [custom_scorer.py](./base_templates/custom_scorer.py) [Template base class for a custom scorer recipe.]
-  * [custom_transformer.py](./base_templates/custom_transformer.py) [Template base class for a custom transformer recipe.]
+## Basics
+* [FAQ](./FAQ.md)
+* [Custom Transformer Recipe SDK/API Reference](base_templates/custom_transformer.py)
+* [Custom Model Recipe SDK/API Reference](base_templates/custom_model.py)
+* [Custom Scorer Recipe SDK/API Reference](base_templates/custom_scorer.py)
+
+## Sample Recipes: 71
 * [MODELS](./models)
   * [ALGORITHMS](./models/algorithms)
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.]
