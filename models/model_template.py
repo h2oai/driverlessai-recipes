@@ -45,41 +45,23 @@ class CustomModel(BaseCustomModel):
 
     @staticmethod
     def is_enabled():
-        """Toggle to enable/disable recipe. If disabled, recipe will be completely ignored."""
+        """Return whether recipe is enabled. If disabled, recipe will be completely ignored."""
         return True
 
     @staticmethod
     def do_acceptance_test():
         """
-        Whether to enable acceptance tests during upload of recipe and during start of Driverless AI.
+        Return whether to do acceptance tests during upload of recipe and during start of Driverless AI.
 
         Acceptance tests perform a number of sanity checks on small data, and attempt to provide helpful instructions
         for how to fix any potential issues. Disable if your recipe requires specific data or won't work on random data.
         """
         return True
 
-    @property
-    def has_pred_contribs(self):
-        """
-        Whether the model can create Shapley values when `pred_contribs=True` is passed to the `predict()` method.
-        This is optional and only needed for MLI. It would create `p+1` columns with per-feature importances and one
-        additional bias term. The row-wise sum of values would need to add up to the predictions in margin space (i.e,
-        before applying link functions or target transformations).
-        """
-        return False
-
-    @property
-    def has_output_margin(self):
-        """
-        Whether the model can create predictions in margin space when `output_margin=True` is passed to
-        the `predict()` method. This is optional and only needed for consistency checks of Shapley values.
-        """
-        return False
-
     @staticmethod
     def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0):
         """
-        Whether the model can be used given the settings and parameters that are passed in.
+        Return whether the model can be used given the settings and parameters that are passed in.
 
         Args:
             accuracy (int): Accuracy setting for this experiment (1 to 10)
@@ -105,7 +87,7 @@ class CustomModel(BaseCustomModel):
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
                            **kwargs):
-        """Method to create a dict containing model parameters to be used during `fit()` and `predict()`.
+        """Set the state of a dictionary containing model parameters to be used during `fit()` and `predict()`.
 
         Optional. Must set self.params to just the parameters that the __init__() method of the model can accept.
 
@@ -128,7 +110,7 @@ class CustomModel(BaseCustomModel):
     def mutate_params(self,
                       accuracy, time_tolerance, interpretability,
                       **kwargs):
-        """Method to mutate the self.params dict containing model parameters to be used during `fit()` and `predict()`.
+        """Mutate `self.params` dictionary of model parameters to be used during `fit()` and `predict()`.
 
         Called to modify model parameters `self.params` in a self-consistent way, fully controlled by the user.
         If no parameter tuning desired, leave at default.
@@ -200,18 +182,44 @@ class CustomModel(BaseCustomModel):
         """
         raise CustomMOJONotImplementedError
 
+    @property
+    def has_pred_contribs(self):
+        """
+        Whether the model can create Shapley values when `pred_contribs=True` is passed to the `predict()` method.
+        This is optional and only needed for MLI. It would create `p+1` columns with per-feature importances and one
+        additional bias term. The row-wise sum of values would need to add up to the predictions in margin space (i.e,
+        before applying link functions or target transformations).
+        """
+        return False
+
+    @property
+    def has_output_margin(self):
+        """
+        Whether the model can create predictions in margin space when `output_margin=True` is passed to
+        the `predict()` method. This is optional and only needed for consistency checks of Shapley values.
+        """
+        return False
+
 
 ts_raw_data_transformers = ['OriginalTransformer', 'CatOriginalTransformer',
                             'DateOriginalTransformer', 'DateTimeOriginalTransformer']
+"""List of transformers that don't alter the original input relevant to custom time series models."""
 
 
 class CustomTimeSeriesModel(CustomModel):
-    _included_transformers = ts_raw_data_transformers
+    """Model class adjusted to simplify customization for time-series problems.
+
+    The model only accepts original (un-modified) numeric, categorical and date/datetime columns, in addition to the
+    target column. All feature engineering in prior states of the pipeline are disabled. This puts full control into
+    the hands of the implementer of this class.
+    """
+
+    _included_transformers = ts_raw_data_transformers  # this enforces the constraint on input features
 
     def __init__(self, context=None, unfitted_pipeline_path=None, transformed_features=None,
                  original_user_cols=None, date_format_strings=dict(), **kwargs):
         if self._included_transformers != ts_raw_data_transformers:
-            raise ValueError("Must not override _included_transformers for CustomTimeSeriesModel.")
-        MainModel.__init__(self, context=context, unfitted_pipeline_path=unfitted_pipeline_path,
-                           transformed_features=transformed_features, original_user_cols=original_user_cols,
-                           date_format_strings=date_format_strings, **kwargs)
+            raise ValueError("Please do not override _included_transformers for CustomTimeSeriesModel.")
+        super().__init__(self, context=context, unfitted_pipeline_path=unfitted_pipeline_path,
+                         transformed_features=transformed_features, original_user_cols=original_user_cols,
+                         date_format_strings=date_format_strings, **kwargs)

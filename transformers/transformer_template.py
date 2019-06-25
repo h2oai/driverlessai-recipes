@@ -49,13 +49,13 @@ class CustomTransformer(DataTableTransformer):
 
     @staticmethod
     def is_enabled():
-        """Toggle to enable/disable recipe. If disabled, recipe will be completely ignored."""
+        """Return whether recipe is enabled. If disabled, recipe will be completely ignored."""
         return True
 
     @staticmethod
     def do_acceptance_test():
         """
-        Whether to enable acceptance tests during upload of recipe and during start of Driverless AI.
+        Return whether to do acceptance tests during upload of recipe and during start of Driverless AI.
 
         Acceptance tests perform a number of sanity checks on small data, and attempt to provide helpful instructions
         for how to fix any potential issues. Disable if your recipe requires specific data or won't work on random data.
@@ -65,7 +65,7 @@ class CustomTransformer(DataTableTransformer):
     @staticmethod
     def get_default_properties():
         """
-        Static method to specify the transformer's applicability and relative importance during feature evolution.
+        Return a dictionary with the transformer's applicability and relative importance during feature evolution.
 
         Args: None
 
@@ -100,9 +100,10 @@ class CustomTransformer(DataTableTransformer):
     @staticmethod
     def get_parameter_choices():
         """
-        Static method to specify additional parameters for the initializer, and their allowed values.
+        Return a dictionary with accepted parameters for the initializer, and their allowed values.
 
-        Driverless AI will automatically sample (uniformly) from the values for each key.
+        Driverless AI will automatically sample (uniformly) from the values for each key. You will need to
+        add repeated values to enforce non-uniformity of returned values, if desired.
 
         Args: None
 
@@ -121,7 +122,7 @@ class CustomTransformer(DataTableTransformer):
 
     def fit(self, X: dt.Frame, y: np.array = None):
         """
-        Optional method to fit a transformer, provided for documentation purposes only - never called by Driverless AI.
+        Fit the transformer. This method is provided for documentation purposes only - never called by Driverless AI.
 
         Call fit_transform(X, y) instead with the ability to transform the input data X more than on a row-by-row basis.
         """
@@ -130,7 +131,8 @@ class CustomTransformer(DataTableTransformer):
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         """
-        Required method to fit a transformer on training data `X` and to return a transformed frame with new features.
+        Fit the transformer on training data `X` (a subset of the original training frame) and
+        return a transformed frame (same number of rows, any number of columns >=1) with new features.
 
         Is always called before `transform()` is called.
         The output can be different based on whether the `fit_transform()` method is called on the entire frame
@@ -187,7 +189,7 @@ class CustomTransformer(DataTableTransformer):
 
     def transform(self, X: dt.Frame):
         """
-        Required method to transform the validation or test set `X` on a row-by-row basis.
+        Transform the validation or test dataset `X` on a row-by-row basis.
 
         Is only ever called after `fit_transform()` was called.
         The output must be the same whether the `transform()` method is called on the entire frame or on a subset of rows.
