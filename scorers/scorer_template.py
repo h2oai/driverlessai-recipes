@@ -22,11 +22,18 @@ class CustomScorer(BaseScorer):
     _modules_needed_by_name = []  # List[str]
 
     @staticmethod
-    def do_acceptance_test():
+    def is_enabled():
+        """Toggle to enable/disable recipe. If disabled, recipe will be completely ignored."""
         return True
 
     @staticmethod
-    def is_enabled():
+    def do_acceptance_test():
+        """
+        Whether to enable acceptance tests during upload of recipe and during start of Driverless AI.
+
+        Acceptance tests perform a number of sanity checks on small data, and attempt to provide helpful instructions
+        for how to fix any potential issues. Disable if your recipe requires specific data or won't work on random data.
+        """
         return True
 
     def score(
