@@ -1,20 +1,12 @@
 # FAQs for Recipes for H2O Driverless AI
-
 ## BYOR TRANSFORMERS
-
   * Introduction
-
-  * [Custom Transformer Recipe SDK/API Reference](base_classes/custom_transformer.py)
-
+  * [Custom Transformer Recipe SDK/API Reference](base_templates/custom_transformer.py)
+  * [Using datatable](https://datatable.readthedocs.io/en/latest/using-datatable.html)
 ## BYOR MODELS
-
   * Introduction
-
-  * [Custom Model Recipe SDK/API Reference](base_classes/custom_model.py)
-
+  * [Custom Model Recipe SDK/API Reference](base_templates/custom_model.py)
 ## BYOR SCORERS
-
   * Introduction
-
-  * [Custom Scorer Recipe SDK/API Reference](base_classes/custom_scorer.py)
+  * [Custom Scorer Recipe SDK/API Reference](base_templates/custom_scorer.py)
 

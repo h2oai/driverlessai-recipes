@@ -1,3 +1,4 @@
+"""Template base class for a custom scorer recipe."""
 
 import numpy as np
 import typing
