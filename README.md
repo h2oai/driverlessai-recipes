@@ -27,17 +27,17 @@
   * [huber_loss.py](./scorers/huber_loss.py) [Huber Loss for Regression or Binary Classification. Robust loss, combination of quadratic loss and linear loss.]
   * [scorer_template.py](./scorers/scorer_template.py) [Template base class for a custom scorer recipe.]
   * [CLASSIFICATION](./scorers/classification)
-    * [false_negative_count.py](./scorers/classification/false_negative_count.py) [Optimizes for specific Confusion Matrix Values: TP, TN, FP, or FN]
-    * [false_positive_count.py](./scorers/classification/false_positive_count.py) [Optimizes for specific Confusion Matrix Values: TP, TN, FP, or FN]
     * [precision.py](./scorers/classification/precision.py) [Precision: `TP / (TP + FP)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels.]
     * [recall.py](./scorers/classification/recall.py) [Recall: `TP / (TP + FN)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels.]
-    * [true_negative_count.py](./scorers/classification/true_negative_count.py) [Optimizes for specific Confusion Matrix Values: TP, TN, FP, or FN]
-    * [true_positive_count.py](./scorers/classification/true_positive_count.py) [Optimizes for specific Confusion Matrix Values: TP, TN, FP, or FN]
     * [BINARY](./scorers/classification/binary)
       * [average_mcc.py](./scorers/classification/binary/average_mcc.py) [Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems). Example how to use Driverless AI's internal scorer.]
       * [brier_loss.py](./scorers/classification/binary/brier_loss.py) [Brier Loss]
       * [cost.py](./scorers/classification/binary/cost.py) [Using hard-corded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `x * FP + y * FN`]
       * [false_discovery_rate.py](./scorers/classification/binary/false_discovery_rate.py) [False Discovery Rate: `FP / (FP + TP) for binary classification. Threshold of 0.1 for assigning labels.`]
+      * [false_negative_count.py](./scorers/classification/binary/false_negative_count.py) [Optimizes for specific Confusion Matrix Values: FN]
+      * [false_positive_count.py](./scorers/classification/binary/false_positive_count.py) [Optimizes for specific Confusion Matrix Values: FP]
+      * [true_negative_count.py](./scorers/classification/binary/true_negative_count.py) [Optimizes for specific Confusion Matrix Values: TN]
+      * [true_positive_count.py](./scorers/classification/binary/true_positive_count.py) [Optimizes for specific Confusion Matrix Values: TP]
     * [MULTICLASS](./scorers/classification/multiclass)
       * [hamming_loss.py](./scorers/classification/multiclass/hamming_loss.py) [Hamming Loss - Misclassification Rate (1 - Accuracy)]
       * [quadratic_weighted_kappa.py](./scorers/classification/multiclass/quadratic_weighted_kappa.py) [Qudratic Weighted Kappa]
