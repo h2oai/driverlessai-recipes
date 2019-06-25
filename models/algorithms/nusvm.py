@@ -72,7 +72,7 @@ class NuSVMModel(CustomModel):
                           degree=self.params['degree'], probability=self.params['probability'])
 
             lb = LabelEncoder()
-            lb.fit(y)
+            lb.fit(self.labels)
             y = lb.transform(y)
         else:
             feature_model = NuSVR(kernel='linear')
