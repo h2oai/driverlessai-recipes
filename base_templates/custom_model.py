@@ -1,3 +1,4 @@
+"""Template base class for a custom model recipe."""
 class CustomModel(BaseCustomModel):
     _boosters = ['custom']  # set this to something that is unique for your model
     _included_transformers = None

@@ -1,3 +1,4 @@
+"""Template base class for a custom transformer recipe."""
 
 import datatable as dt
 import numpy as np
