@@ -43,6 +43,7 @@ for dirpath, dirs, files in os.walk("."):
 print("# Recipes for H2O Driverless AI\n")
 print("## Reference Guide")
 print("* [FAQ and Templates](./FAQ.md)")
+print("* [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)")
 print("")
 print("## Sample Recipes: %d" % count)
 for l in ret:

@@ -2,6 +2,7 @@
 
 ## Reference Guide
 * [FAQ and Templates](./FAQ.md)
+* [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
 
 ## Sample Recipes: 74
 * [MODELS](./models)

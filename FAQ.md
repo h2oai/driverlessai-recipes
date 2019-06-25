@@ -10,5 +10,6 @@
   * Introduction
   * [Custom Scorer Recipe SDK/API Reference](scorers/scorer_template.py)
 ## Technical Architecture Diagram
+[Direct Link](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
 ![BYOR Architecture Diagram](reference/DriverlessAI_BYOR.png)
 
