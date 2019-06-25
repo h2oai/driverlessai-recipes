@@ -14,7 +14,7 @@ class CustomTransformer(DataTableTransformer):
     """
 
     """By default, we want a transformer to work with all types of supervised problems.
-    Please disable the ones it cannot support if needed."""
+    Please disable the problem types it cannot support."""
     _regression = True   # y has shape (N,) and is of numeric type, no missing values
     _binary = True       # y has shape (N,) and can be numeric or string, cardinality 2, no missing values
     _multiclass = True   # y has shape (N,) and can be numeric or string, cardinality 3+, no missing values
@@ -48,6 +48,11 @@ class CustomTransformer(DataTableTransformer):
     _mojo = False
 
     @staticmethod
+    def is_enabled():
+        """Toggle to enable/disable recipe. If disabled, recipe will be completely ignored."""
+        return True
+
+    @staticmethod
     def do_acceptance_test():
         """
         Whether to enable acceptance tests during upload of recipe and during start of Driverless AI.
@@ -55,11 +60,6 @@ class CustomTransformer(DataTableTransformer):
         Acceptance tests perform a number of sanity checks on small data, and attempt to provide helpful instructions
         for how to fix any potential issues. Disable if your recipe requires specific data or won't work on random data.
         """
-        return True
-
-    @staticmethod
-    def is_enabled():
-        """Toggle to enable/disable recipe. If disabled, recipe will be completely ignored."""
         return True
 
     @staticmethod
