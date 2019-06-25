@@ -39,11 +39,11 @@ class CustomScorer(BaseScorer):
 
         Args:
             actual (:obj:`np.array`): actual values from target column
-                (1-dimensional, 1 numeric or string value per row)
+                (1 column, 1 numeric or string value per row)
             predicted (:obj:`np.array`): predicted numeric values
-                (1-dimensional for regression and binary classification, p-dimensional for p-class problem)
+                (1 column for regression and binary classification, p columns for p-class problem)
             sample_weight (:obj:`np.array`): Optional, observation weights for each sample
-                (1-dimensional, 1 numeric value per row)
+                (1 column, 1 numeric value per row)
             labels (:obj:`List[any]`): Optional, class labels (or `None` for regression)
 
         Returns:
