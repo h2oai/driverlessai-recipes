@@ -33,7 +33,7 @@ class CustomTransformer(DataTableTransformer):
     _excluded_boosters = None   # List[str]
 
     """Specify the python package dependencies (will be installed via pip install mypackage==1.3.37)"""
-    _modules_needed_by_name = []  # List[str]
+    _modules_needed_by_name = []  # List[str], e.g., ["mypackage==1.3.37"]
 
     """Optional name to show for this transformer during experiment and in results"""
     _display_name = NotImplemented  # str
@@ -74,13 +74,13 @@ class CustomTransformer(DataTableTransformer):
 
             Must contain 4 key-value pairs:
 
-            col_type (str): the type of the original column(s) that this transformer accepts (unmodified, as in input data):
+            col_type (str): the type of the original column(s) that this transformer accepts:
                 "all"         - all column types
                 "numeric"     - numeric int/float column
                 "categorical" - string/int/float column considered a categorical for feature engineering
                 "numcat"      - allow both numeric or categorical
-                "datetime"    - string or int column with the original raw datetime stamp such as '%Y/%m/%d %H:%M:%S' or '%Y%m%d%H%M'
-                "date"        - string or int column with the original raw date stamp such as '%Y/%m/%d' or '%Y%m%d'
+                "datetime"    - string or int column with raw datetime such as '%Y/%m/%d %H:%M:%S' or '%Y%m%d%H%M'
+                "date"        - string or int column with raw date such as '%Y/%m/%d' or '%Y%m%d'
                 "text"        - string column containing text (and hence not treated as categorical)
                 "time_column" - the time column specified at the start of the experiment (unmodified)
 
@@ -130,11 +130,11 @@ class CustomTransformer(DataTableTransformer):
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         """
-        Required method to fit a transformer on training data `X` and to return a frame of new engineered columns/features.
+        Required method to fit a transformer on training data `X` and to return a transformed frame with new features.
 
         Is always called before `transform()` is called.
-        The output can be different when the `fit_transform()` method is called on the entire frame or on a subset of rows.
-        The output must be in the same order as the input data.
+        The output can be different based on whether the `fit_transform()` method is called on the entire frame
+        or on a subset of rows. The output must be in the same order as the input data.
 
         Args:
            X (:obj:`dt.Frame`): `Python datatable github<https://github.com/h2oai/datatable>`
@@ -142,7 +142,7 @@ class CustomTransformer(DataTableTransformer):
                Column types are as specified by col_type in `get_default_properties()`.
                Every column can contain missing values.
 
-               `X` can be converted to pandas with `X.to_pandas()` (integers with missing values will be converted to float)
+               `X` can be converted to pandas with `X.to_pandas()` (integers with missing values will become floats)
                `X` can be converted to numpy with `X.to_numpy()` (with masked arrays for integers with missing values)
                                    or `X.to_pandas().values` (without masked arrays, converts to float if needed)
 
