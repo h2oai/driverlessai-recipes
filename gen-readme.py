@@ -1,4 +1,5 @@
-exclude = ['.', 'base_templates', '.idea', 'pycache', '.git', 'data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py']
+exclude = ['.', 'transformer_template.py', 'model_template.py', 'scorer_template.py', 
+        '.idea', 'pycache', '.git', 'data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py']
 sep = '  '
 
 

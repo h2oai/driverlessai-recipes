@@ -7,6 +7,7 @@
 * [Custom Scorer Recipe SDK/API Reference](base_templates/custom_scorer.py)
 
 ## Sample Recipes: 71
+* [BASE_TEMPLATES](./base_templates)
 * [MODELS](./models)
   * [ALGORITHMS](./models/algorithms)
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.]

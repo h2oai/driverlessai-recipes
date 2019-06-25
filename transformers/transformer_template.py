@@ -77,7 +77,7 @@ class CustomTransformer(DataTableTransformer):
             col_type (str): the type of the original column(s) that this transformer accepts (unmodified, as in input data):
                 "all"         - all column types
                 "numeric"     - numeric int/float column
-                "categorical" - string/int/float column considered a categorical for feature engineering (internal logic to decide)
+                "categorical" - string/int/float column considered a categorical for feature engineering
                 "numcat"      - allow both numeric or categorical
                 "datetime"    - string or int column with the original raw datetime stamp such as '%Y/%m/%d %H:%M:%S' or '%Y%m%d%H%M'
                 "date"        - string or int column with the original raw date stamp such as '%Y/%m/%d' or '%Y%m%d'
