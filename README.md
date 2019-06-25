@@ -1,7 +1,7 @@
 # Recipes for H2O Driverless AI
 
 ## [FAQ](./FAQ.md)
-## Sample Recipes: 67
+## Sample Recipes: 71
 * [MODELS](./models)
   * [ALGORITHMS](./models/algorithms)
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.]
@@ -21,8 +21,12 @@
 * [SCORERS](./scorers)
   * [huber_loss.py](./scorers/huber_loss.py) [Huber Loss for Regression or Binary Classification. Robust loss, combination of quadratic loss and linear loss.]
   * [CLASSIFICATION](./scorers/classification)
+    * [false_negative_count.py](./scorers/classification/false_negative_count.py) [Optimizes for specific Confusion Matrix Values: TP, TN, FP, or FN]
+    * [false_positive_count.py](./scorers/classification/false_positive_count.py) [Optimizes for specific Confusion Matrix Values: TP, TN, FP, or FN]
     * [precision.py](./scorers/classification/precision.py) [Precision: `TP / (TP + FP)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels.]
     * [recall.py](./scorers/classification/recall.py) [Recall: `TP / (TP + FN)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels.]
+    * [true_negative_count.py](./scorers/classification/true_negative_count.py) [Optimizes for specific Confusion Matrix Values: TP, TN, FP, or FN]
+    * [true_positive_count.py](./scorers/classification/true_positive_count.py) [Optimizes for specific Confusion Matrix Values: TP, TN, FP, or FN]
     * [BINARY](./scorers/classification/binary)
       * [average_mcc.py](./scorers/classification/binary/average_mcc.py) [Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems). Example how to use Driverless AI's internal scorer.]
       * [brier_loss.py](./scorers/classification/binary/brier_loss.py) [Brier Loss]
