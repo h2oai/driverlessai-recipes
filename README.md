@@ -1,6 +1,6 @@
 # Recipes for H2O Driverless AI
 
-## Basics
+## Reference Guide
 * [FAQ](./FAQ.md)
 * [Custom Transformer Recipe SDK/API Reference](base_templates/custom_transformer.py)
 * [Custom Model Recipe SDK/API Reference](base_templates/custom_model.py)
