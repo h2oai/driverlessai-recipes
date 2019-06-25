@@ -41,7 +41,7 @@ for dirpath, dirs, files in os.walk("."):
                         count += 1
 
 print("# Recipes for H2O Driverless AI\n")
-print("## Basics")
+print("## Reference Guide")
 print("* [FAQ](./FAQ.md)")
 print("* [Custom Transformer Recipe SDK/API Reference](base_templates/custom_transformer.py)")
 print("* [Custom Model Recipe SDK/API Reference](base_templates/custom_model.py)")
