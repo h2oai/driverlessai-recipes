@@ -8,7 +8,7 @@ from h2oaicore.models import CustomTimeSeriesModel
 
 class HistoricMeanModel(CustomTimeSeriesModel):
     _can_handle_non_numeric = True
-    _boosters = ['historic_mean']
+
     _regression = True
     _display_name = "HistoricMean"
     _description = "Historic Mean"

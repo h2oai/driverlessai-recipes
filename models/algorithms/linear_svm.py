@@ -58,7 +58,6 @@ class LinearSVMModel(CustomModel):
     _binary = True
     _multiclass = False  # WIP
 
-    _boosters = ['linearsvm']
     _display_name = "LinearSVM"
     _description = "Linear Support Vector Machine with the Liblinear method + Calibration for probabilities"
 

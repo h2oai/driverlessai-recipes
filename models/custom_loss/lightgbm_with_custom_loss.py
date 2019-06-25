@@ -34,7 +34,6 @@ class MyLGBMAsymMSE(BaseCustomModel, LightGBMModel):
     # Give the display name and description that will be shown in the UI
     _display_name = "MyLGBMAsymMSE"
     _description = "LightGBM with custom asymetric loss/objective"
-    _boosters = ["lgbmasym"]
 
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,

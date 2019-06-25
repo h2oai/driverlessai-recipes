@@ -12,7 +12,6 @@ class NuSVMModel(CustomModel):
     _binary = True
     _multiclass = False  # WIP
 
-    _boosters = ['nusvm']
     _display_name = "NuSVM"
     _description = "Nu-SVM model based on sklearn. Not advised for large data."
 

@@ -34,7 +34,6 @@ class MyXGBMAsymMSE(BaseCustomModel, XGBoostGBMModel):
     # Give the display name and description that will be shown in the UI
     _display_name = "MYXGBMAsymMSE"
     _description = "XGBoost with custom asymetric loss/objective"
-    _boosters = ["xgbasym"]
 
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,

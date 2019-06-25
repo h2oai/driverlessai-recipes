@@ -25,7 +25,6 @@ class CatBoostModel(CustomModel):
     def do_acceptance_test():
         return True
 
-    _boosters = ['catboost']
     _modules_needed_by_name = ['catboost']
 
     def set_default_params(self,

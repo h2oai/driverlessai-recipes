@@ -86,7 +86,7 @@ class CatBoostModel(CustomModel):
 # Not necessary, but nice to demonstrate creation of string input for CatBoost
 class MyToStringTransformer(CustomTransformer):
     _numeric_output = False
-    _included_boosters = ['catboost']
+    _included_model_classes = ['CatBoostModel']
 
     @property
     def display_name(self):

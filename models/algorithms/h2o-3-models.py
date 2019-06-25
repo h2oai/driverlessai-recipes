@@ -143,7 +143,7 @@ from h2o.estimators.naive_bayes import H2ONaiveBayesEstimator
 
 class H2ONBModel(H2OBaseModel, CustomModel):
     _regression = False
-    _boosters = ['h2onb']
+
     _display_name = "H2O NB"
     _description = "H2O-3 Naive Bayes"
     _class = H2ONaiveBayesEstimator
@@ -153,7 +153,6 @@ from h2o.estimators.gbm import H2OGradientBoostingEstimator
 
 
 class H2OGBMModel(H2OBaseModel, CustomModel):
-    _boosters = ['h2ogbm']
     _display_name = "H2O GBM"
     _description = "H2O-3 Gradient Boosting Machine"
     _class = H2OGradientBoostingEstimator
@@ -179,7 +178,6 @@ from h2o.estimators.random_forest import H2ORandomForestEstimator
 
 
 class H2ORFModel(H2OBaseModel, CustomModel):
-    _boosters = ['h2orf']
     _display_name = "H2O RF"
     _description = "H2O-3 Random Forest"
     _class = H2ORandomForestEstimator
@@ -204,7 +202,7 @@ from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 
 class H2ODLModel(H2OBaseModel, CustomModel):
     _is_reproducible = False
-    _boosters = ['h2odl']
+
     _display_name = "H2O DL"
     _description = "H2O-3 DeepLearning"
     _class = H2ODeepLearningEstimator
@@ -228,7 +226,6 @@ from h2o.estimators.glm import H2OGeneralizedLinearEstimator
 
 
 class H2OGLMModel(H2OBaseModel, CustomModel):
-    _boosters = ['h2oglm']
     _display_name = "H2O GLM"
     _description = "H2O-3 Generalized Linear Model"
     _class = H2OGeneralizedLinearEstimator
@@ -246,7 +243,6 @@ from h2o.automl import H2OAutoML
 
 
 class H2OAutoMLModel(H2OBaseModel, CustomModel):
-    _boosters = ['h2oautoml']
     _display_name = "H2O AutoML"
     _description = "H2O-3 AutoML"
     _class = H2OAutoML
