@@ -12,6 +12,7 @@
     * Suppose you have a string column that has values like `"A:B:10:5", "A:C:4:10", ...`. It might make sense to split these values by ":" and create four output columns, potentially all numeric, such as `[0,1,10,5], [0,2,4,10], ...` to encode the information more clearly for the algorithm to learn better from.
     * PyTorch deep learning model for [text similarity analysis](https://github.com/h2oai/driverlessai-recipes/blob/master/transformers/nlp/text_embedding_similarity_transformers.py), computes a similary score for any given two text input columns.
     * ARIMA model for [time-series forecasting](https://github.com/h2oai/driverlessai-recipes/blob/master/transformers/timeseries/auto_arima_forecast.py).
+    * Data augmentation, such as replacing a zip code with demographic information, or replacing a date column with a [National holiday flag](https://github.com/h2oai/driverlessai-recipes/blob/master/transformers/augmentation/singapore_public_holidays.py).
   * Model:
     * All [H2O-3 Algorithms including H2O AutoML](https://github.com/h2oai/driverlessai-recipes/blob/master/models/algorithms/h2o-3-models.py)
     * Yandex [CatBoost](https://github.com/h2oai/driverlessai-recipes/blob/master/models/algorithms/catboost.py) gradient boosting
@@ -32,7 +33,7 @@
   * Examine the [references](https://github.com/h2oai/driverlessai-recipes#reference-guide) below for the API specification and architecture diagrams.
   * Look at the [examples in this repository](https://github.com/h2oai/driverlessai-recipes/blob/master/README.md#sample-recipes).
   * Clone this repository and make modifications to existing recipes.
-  * Start an experiment and upload the recipe in the expert settings of an experiment
+  * Start an experiment and upload the recipe in the expert settings of an experiment.
   #### How do I know whether my recipe works?
   Driverless AI will tell you whether it makes the cut:
   * First, it is subjected to acceptance tests. If it passes, great. If not, Driverless AI provides you with feedback on how to improve it.
