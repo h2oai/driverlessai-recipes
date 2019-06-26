@@ -56,6 +56,7 @@ H2O Driverless AI is Automatic Machine Learning for the Enterprise. Driverless A
 * [Templates](https://github.com/h2oai/driverlessai-recipes/blob/master/FAQ.md#references)
 * [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
 """)
-print("## Sample Recipes: %d" % count)
+print("## Sample Recipes")
+print("### Count: %d" % count)
 for l in ret:
   print(l)
