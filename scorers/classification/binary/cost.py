@@ -1,6 +1,6 @@
 # Author: Michelle Tanco - michelle.tanco@h2o.ai
 # Last Updated: May 23rd, 2019
-"""Using hard-corded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `x * FP + y * FN`"""
+"""Using hard-coded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `x * FP + y * FN`"""
 
 import typing
 import numpy as np
