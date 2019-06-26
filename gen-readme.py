@@ -40,11 +40,21 @@ for dirpath, dirs, files in os.walk("."):
                         print_offset(depth + 1, "%s [%s]" % (what, docstring), ret)
                         count += 1
 
-print("# Recipes for H2O Driverless AI\n")
-print("## Reference Guide")
-print("* [FAQ and Templates](./FAQ.md)")
-print("* [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)")
-print("")
+print("""# Recipes for H2O Driverless AI
+
+## About Driverless AI
+H2O Driverless AI is Automatic Machine Learning for the Enterprise. Driverless AI automates feature engineering, model building, visualization and interpretability.
+- Learn more about Driverless AI from the [H2O.ai website](https://www.h2o.ai/)
+- Take the [test drive](https://www.h2o.ai/try-driverless-ai/)
+- Go to the [Driverless AI community Slack channel](https://www.h2o.ai/community/driverless-ai-community/#chat) and ask your BYOR related questions in #general
+
+## About BYOR
+**BYOR** stands for **Bring Your Own Recipe** and is a key feature of Driverless AI. It allows domain scientists to solve their problems faster and with more precision.
+
+## Reference Guide
+* [FAQ and Templates](./FAQ.md)
+* [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
+""")
 print("## Sample Recipes: %d" % count)
 for l in ret:
   print(l)

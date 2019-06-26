@@ -1,5 +1,14 @@
 # Recipes for H2O Driverless AI
 
+## About Driverless AI
+H2O Driverless AI is Automatic Machine Learning for the Enterprise. Driverless AI automates feature engineering, model building, visualization and interpretability.
+- Learn more about Driverless AI from the [H2O.ai website](https://www.h2o.ai/)
+- Take the [test drive](https://www.h2o.ai/try-driverless-ai/)
+- Go to the [Driverless AI community Slack channel](https://www.h2o.ai/community/driverless-ai-community/#chat) and ask your BYOR related questions in #general
+
+## About BYOR
+**BYOR** stands for **Bring Your Own Recipe** and is a key feature of Driverless AI. It allows domain scientists to solve their problems faster and with more precision.
+
 ## Reference Guide
 * [FAQ and Templates](./FAQ.md)
 * [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
