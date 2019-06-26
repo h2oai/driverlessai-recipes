@@ -17,7 +17,6 @@ from h2oaicore.systemutils import config, physical_cores_count
 
 
 class MyLightGBMDeep(BaseCustomModel, LightGBMModel):
-    _boosters = ['lightgbmdeep']
     _binary = True
     _display_name = "MYLGBMDEEP"
     _description = "LightGBM with more depth"
@@ -45,7 +44,6 @@ class CatBoostModel(CustomModel):
     _binary = True
     _display_name = "CatBoost"
     _description = "Yandex CatBoost GBM"
-    _boosters = ['catboost']
     _modules_needed_by_name = ['catboost']
     _included_transformers = ['MyToStringTransformer', 'CVTargetEncodeTransformer']
 
