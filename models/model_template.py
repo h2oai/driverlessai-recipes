@@ -8,7 +8,6 @@ _global_modules_needed_by_name = []  # Optional global package requirements, for
 
 
 class CustomModel(BaseCustomModel):
-    _boosters = ['custom']  # set this to something that is unique for your model - TODO: remove
 
     """Ideally, we want a model to work with all types of supervised problems.
     Please enable the problem types it can support."""
@@ -155,14 +154,9 @@ class CustomModel(BaseCustomModel):
         self.labels: labels for multiclass
         self.params_base: dict of parameters for model
         '''
-        kwargs['n_gpus'] = 0  # no GPU support for now
-        if context is not None:
-            self.tmp_dir = context.working_dir
-        kwargs['booster'] = self._boosters[0]
-        MainModel.__init__(self, context=context, unfitted_pipeline_path=unfitted_pipeline_path,
-                           transformed_features=transformed_features, original_user_cols=original_user_cols,
-                           date_format_strings=date_format_strings, **kwargs)
-        self.params_base['booster'] = self._boosters[0]
+        super().__init__(context=context, unfitted_pipeline_path=unfitted_pipeline_path,
+                         transformed_features=transformed_features, original_user_cols=original_user_cols,
+                         date_format_strings=date_format_strings, **kwargs)
 
     def fit(self, X: dt.Frame, y: np.array,sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         raise NotImplemented("No fit for %s" % self.__class__.__name__)
@@ -222,6 +216,6 @@ class CustomTimeSeriesModel(CustomModel):
                  original_user_cols=None, date_format_strings=dict(), **kwargs):
         if self._included_transformers != ts_raw_data_transformers:
             raise ValueError("Please do not override _included_transformers for CustomTimeSeriesModel.")
-        super().__init__(self, context=context, unfitted_pipeline_path=unfitted_pipeline_path,
+        super().__init__(context=context, unfitted_pipeline_path=unfitted_pipeline_path,
                          transformed_features=transformed_features, original_user_cols=original_user_cols,
                          date_format_strings=date_format_strings, **kwargs)

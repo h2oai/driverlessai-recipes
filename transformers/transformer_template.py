@@ -28,9 +28,9 @@ class CustomTransformer(DataTableTransformer):
     _is_reproducible = True
 
     """Optional list of included/excluded models, specified by their booster string 
-    (e.g., _included_boosters = ['my_arima'], _excluded_boosters = ['tensorflow'])"""
-    _included_boosters = None   # List[str]
-    _excluded_boosters = None   # List[str]
+    (e.g., _included_model_classes = ['CatBoostModel'], _excluded_model_classes = ['tensorflow'])"""
+    _included_model_classes = None   # List[str]
+    _excluded_model_classes = None   # List[str]
 
     """Specify the python package dependencies (will be installed via pip install mypackage==1.3.37)"""
     _modules_needed_by_name = []  # List[str], e.g., ["mypackage==1.3.37"]
