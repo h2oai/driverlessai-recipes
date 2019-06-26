@@ -7,12 +7,12 @@ from sklearn.metrics import confusion_matrix
 
 
 class CMFalsePositive(CustomScorer):
+    _threshold = 0.5   # Example only, should be adjusted based on domain knowledge and other experiments
     _description = "Reduce false positive count"
     _binary = True
     _maximize = False
     _perfect_score = 0
     _display_name = "FP"
-    _threshold = 0.5
 
     def score(self,
               actual: np.array,

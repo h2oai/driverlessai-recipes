@@ -7,12 +7,12 @@ from sklearn.metrics import confusion_matrix
 
 
 class CMTruePositive(CustomScorer):
+    _threshold = 0.5   # Example only, should be adjusted based on domain knowledge and other experiments
     _description = "Increase true positive count"
     _binary = True
     _maximize = True
     _perfect_score = 1e20
     _display_name = "TP"
-    _threshold = 0.5
 
     def score(self,
               actual: np.array,
