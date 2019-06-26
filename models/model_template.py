@@ -133,27 +133,30 @@ class CustomModel(BaseCustomModel):
         pass
 
     def __init__(self, context=None,
-                 unfitted_pipeline_path=None,  # pipeline that creates features inside of class instance
-                 # the complete set of features supposed to be created by the pipeline, in case it's different due to
-                 # folds, data etc. - needed for consistency with expectations for pred_contribs (Shapley) etc.
+                 unfitted_pipeline_path=None,
                  transformed_features=None,
                  original_user_cols=None,
-                 date_format_strings=dict(),
+                 date_format_strings=None,
                  **kwargs):
-        '''
+        """
+        :param context: Helper class to provide information about the experiment.
+        :param unfitted_pipeline_path: Path to pickled pipeline that creates the feature transformations
+        :param transformed_features: Column names of the data out of the feature engineering pipeline into the model
+        :param original_user_cols: Column names of original data that went into the feature engineering pipeline
+        :param date_format_strings: Date/Datetime format strings for columns of type 'time'
+        :param kwargs: Additional internal arguments
 
-        :param context:
-        :param unfitted_pipeline_path:
-        :param transformed_features:
-        :param original_user_cols:
-        :param date_format_strings:
-        :param kwargs:
+        Notes:
+            If you intend to override `__init__`, then make sure to call `super().__init__` as in this example.
+            Pass all arguments through as is done here, and initialize any attributes you may need.
 
-        self is ensured to have:
-        self.num_classes: Number of classes
-        self.labels: labels for multiclass
-        self.params_base: dict of parameters for model
-        '''
+            As a side-effect of calling `super().__init__`, `self` is ensured to have:
+                self.num_classes: Number of classes
+                self.labels: Target class labels for classification problems
+                self.params_base: Dictionary of internal parameters, can be ignored
+        """
+        if context is not None:
+            self.tmp_dir = context.working_dir  # place to put temporary files, please clean them up afterwards
         super().__init__(context=context, unfitted_pipeline_path=unfitted_pipeline_path,
                          transformed_features=transformed_features, original_user_cols=original_user_cols,
                          date_format_strings=date_format_strings, **kwargs)
