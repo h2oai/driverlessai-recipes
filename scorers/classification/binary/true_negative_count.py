@@ -1,4 +1,4 @@
-"""Optimizes for specific Confusion Matrix Values: TN"""
+"""Optimizes for specific Confusion Matrix Values: `TN` - only recommended if threshold is adjusted"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
