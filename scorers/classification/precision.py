@@ -1,4 +1,4 @@
-"""Precision: `TP / (TP + FP)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels."""
+"""Precision: `TP / (TP + FP)`. Binary uses threshold of 0.5 (please adjust), multiclass uses argmax to assign labels."""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
@@ -13,7 +13,7 @@ class precision(CustomScorer):
     _maximize = True
     _perfect_score = 1
     _display_name = "Precision"
-    _threshold = 0.5
+    _threshold = 0.5   # Example only, should be adjusted based on domain knowledge and other experiments
 
     def score(self,
               actual: np.array,

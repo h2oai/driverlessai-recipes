@@ -27,8 +27,8 @@
   * [huber_loss.py](./scorers/huber_loss.py) [Huber Loss for Regression or Binary Classification. Robust loss, combination of quadratic loss and linear loss.]
   * [scorer_template.py](./scorers/scorer_template.py) [Template base class for a custom scorer recipe.]
   * [CLASSIFICATION](./scorers/classification)
-    * [precision.py](./scorers/classification/precision.py) [Precision: `TP / (TP + FP)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels.]
-    * [recall.py](./scorers/classification/recall.py) [Recall: `TP / (TP + FN)`. Binary uses threshold of 0.5, multiclass uses argmax to assign labels.]
+    * [precision.py](./scorers/classification/precision.py) [Precision: `TP / (TP + FP)`. Binary uses threshold of 0.5 (please adjust), multiclass uses argmax to assign labels.]
+    * [recall.py](./scorers/classification/recall.py) [Recall: `TP / (TP + FN)`. Binary uses threshold of 0.5 (please adjust), multiclass uses argmax to assign labels.]
     * [BINARY](./scorers/classification/binary)
       * [average_mcc.py](./scorers/classification/binary/average_mcc.py) [Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems). Example how to use Driverless AI's internal scorer.]
       * [brier_loss.py](./scorers/classification/binary/brier_loss.py) [Brier Loss]
