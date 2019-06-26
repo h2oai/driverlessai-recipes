@@ -10,7 +10,8 @@ H2O Driverless AI is Automatic Machine Learning for the Enterprise. Driverless A
 **BYOR** stands for **Bring Your Own Recipe** and is a key feature of Driverless AI. It allows domain scientists to solve their problems faster and with more precision.
 
 ## Reference Guide
-* [FAQ and Templates](./FAQ.md)
+* [FAQ](https://github.com/h2oai/driverlessai-recipes/blob/master/FAQ.md#faq)
+* [Templates](https://github.com/h2oai/driverlessai-recipes/blob/master/FAQ.md#references)
 * [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
 
 ## Sample Recipes: 74
