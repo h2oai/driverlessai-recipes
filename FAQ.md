@@ -16,7 +16,7 @@
   A text editor. All you need is to create a `.py` text file containing source code.
   #### How do I start?
   * Examine the references below for the API specification and architecture diagrams.
-  * Look at the [examples in this repository](./README.md).
+  * Look at the [examples in this repository](https://github.com/h2oai/driverlessai-recipes/blob/master/README.md#sample-recipes).
   * Clone this repository and make modifications to existing recipes.
   * Start an experiment and upload the recipe in the expert settings of an experiment
   #### How do I know whether my recipe works?
