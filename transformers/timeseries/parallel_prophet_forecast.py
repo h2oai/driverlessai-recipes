@@ -1,4 +1,4 @@
-"""Parallel FB Prophet transformer is a time series transformer that predicts target using FBProhet models.
+"""Parallel FB Prophet transformer is a time series transformer that predicts target using FBProphet models.
 In this implementation, Time Group Models are fitted in parallel"""
 
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
