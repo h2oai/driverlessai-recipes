@@ -48,9 +48,11 @@ class ExtraTreesModel(CustomModel):
         self.min = dict()
         for col in X.names:
             XX = X[:, col]
-            self.min[col] = XX.min1() - 1
+            self.min[col] = XX.min1()
             if np.isnan(self.min[col]):
                 self.min[col] = -1e10
+            else:
+                self.min[col] -= 1
             XX.replace(None, self.min[col])
             X[:, col] = XX
             assert X[dt.isna(dt.f[col]), col].nrows == 0
