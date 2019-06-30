@@ -43,7 +43,7 @@ H2O Driverless AI is Automatic Machine Learning for the Enterprise. Driverless A
     * [BINARY](./scorers/classification/binary)
       * [average_mcc.py](./scorers/classification/binary/average_mcc.py) [Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems). Example how to use Driverless AI's internal scorer.]
       * [brier_loss.py](./scorers/classification/binary/brier_loss.py) [Brier Loss]
-      * [cost.py](./scorers/classification/binary/cost.py) [Using hard-corded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `x * FP + y * FN`]
+      * [cost.py](./scorers/classification/binary/cost.py) [Using hard-coded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `x * FP + y * FN`]
       * [false_discovery_rate.py](./scorers/classification/binary/false_discovery_rate.py) [False Discovery Rate: `FP / (FP + TP)` for binary classification - only recommended if threshold is adjusted`]
       * [false_negative_count.py](./scorers/classification/binary/false_negative_count.py) [Optimizes for specific Confusion Matrix Values: `FN` - only recommended if threshold is adjusted]
       * [false_positive_count.py](./scorers/classification/binary/false_positive_count.py) [Optimizes for specific Confusion Matrix Values: `FP` - only recommended if threshold is adjusted]

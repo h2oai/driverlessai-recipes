@@ -8,12 +8,11 @@ _global_modules_needed_by_name = []  # Optional global package requirements, for
 
 
 class CustomModel(BaseCustomModel):
-
     """Ideally, we want a model to work with all types of supervised problems.
     Please enable the problem types it can support."""
-    _regression = False   # y has shape (N,) and is of numeric type, no missing values
-    _binary = False       # y has shape (N,) and can be numeric or string, cardinality 2, no missing values
-    _multiclass = False   # y has shape (N,) and can be numeric or string, cardinality 3+, no missing values
+    _regression = False  # y has shape (N,) and is of numeric type, no missing values
+    _binary = False  # y has shape (N,) and can be numeric or string, cardinality 2, no missing values
+    _multiclass = False  # y has shape (N,) and can be numeric or string, cardinality 3+, no missing values
 
     """Specify whether the model can handle non-numeric input data or not. If not, some transformers might be skipped
     during feature creation for this model."""
@@ -25,8 +24,8 @@ class CustomModel(BaseCustomModel):
 
     """Optional list of included/excluded transformers that are allowed to feed data into this model, 
     specified by their class name (e.g., _included_transformers = ["NumToCatWoETransformer"])"""
-    _included_transformers = None   # List[str]
-    _excluded_transformers = None   # List[str]
+    _included_transformers = None  # List[str]
+    _excluded_transformers = None  # List[str]
 
     """Specify the python package dependencies (will be installed via pip install mypackage==1.3.37)"""
     _modules_needed_by_name = []  # List[str], e.g., ["mypackage==1.3.37"]
@@ -36,7 +35,7 @@ class CustomModel(BaseCustomModel):
 
     """Expert settings for optimal hardware usage"""
     _parallel_task = True  # if enabled, params_base['n_jobs'] will be >= 1 (adaptive to system), otherwise 1
-    _can_use_gpu = False   # if enabled, will use special job scheduler for GPUs
+    _can_use_gpu = False  # if enabled, will use special job scheduler for GPUs
     _can_use_multi_gpu = False  # if enabled, can get access to multiple GPUs for single transformer (experimental)
     _description = NotImplemented
 
@@ -161,7 +160,7 @@ class CustomModel(BaseCustomModel):
                          transformed_features=transformed_features, original_user_cols=original_user_cols,
                          date_format_strings=date_format_strings, **kwargs)
 
-    def fit(self, X: dt.Frame, y: np.array,sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+    def fit(self, X: dt.Frame, y: np.array, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         raise NotImplemented("No fit for %s" % self.__class__.__name__)
 
     def set_feature_importances(self, feature_importances):
@@ -222,3 +221,60 @@ class CustomTimeSeriesModel(CustomModel):
         super().__init__(context=context, unfitted_pipeline_path=unfitted_pipeline_path,
                          transformed_features=transformed_features, original_user_cols=original_user_cols,
                          date_format_strings=date_format_strings, **kwargs)
+
+
+class CustomTensorFlowModel(CustomModel, TensorFlowModel):
+    """
+        TensorFlow-based Custom Model
+    """
+    _tensorflow = True
+    _parallel_task = True
+    _can_use_gpu = True
+    _can_use_multi_gpu = True  # conservative, force user to override
+
+    def setup_keras_session(self):
+        """
+            Set tensorflow session.
+            If didn't do this, all GPU(s) memory would be used
+            Can override this method if want more control, like commented commands show
+        """
+        self.tf_config = self.set_tf_config({})
+        import h2oaicore.keras as keras
+        keras.backend.set_session(session=TensorFlowModel.make_sess(self.tf_config))
+
+    def setup_keras_simple_session(self):
+        """
+            Simple tensorflow session.
+            Can use to only control some things, overriding DAI defaults
+        """
+        #
+        self.tf_config = self.ConfigProto()
+        self.tf_config.gpu_options.allow_growth = True
+        self.tf_config.gpu_options.per_process_gpu_memory_fraction = 0.3
+        import h2oaicore.keras as keras
+        keras.backend.set_session(session=TensorFlowModel.make_sess(self.tf_config))
+
+    def pre_fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        """
+           Ensures later import tensorflow uses correct CPU/GPU version
+        """
+        from h2oaicore.tensorflow_dynamic import got_cpu_tf, got_gpu_tf
+        self.setup_keras_session()
+
+    @staticmethod
+    def import_tensorflow():
+        """
+            Used if globally importing tensorflow outside function scope.
+            Ensures correct CPU or GPU version of tensorflow used automatically,
+            when any next call to import tensorflow [as tf] is called.
+        """
+        from h2oaicore.tensorflow_dynamic import got_cpu_tf, got_gpu_tf
+
+
+class CustomTimeSeriesTensorFlowModel(CustomTimeSeriesModel, CustomTensorFlowModel):
+    """
+        TensorFlow-based Time-Series Custom Model
+    """
+    pass
+
+
