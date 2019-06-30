@@ -224,6 +224,22 @@ class CustomTransformer(DataTableTransformer):
 
 
 class CustomTimeSeriesTransformer(CustomTransformer):
+    """
+    Specialized custom transformer for Time Series problems.
+
+    Order of calls:
+
+    Training data:
+        fit_transform()  - batch, update state of transformer and return transformed features useful for forecast
+
+    Validation data:
+        transform()      - row by row, return transformed features useful for forecast
+
+    Test data:
+        update_history() - batch, update state iff data contains partially missing target values (some non-NA, some NA)
+        transform()      - row by row, return transformed features useful for forecast
+    """
+
     @staticmethod
     def get_default_properties():
         return dict(col_type="all", min_cols="all", max_cols="all", relative_importance=1)
@@ -246,3 +262,30 @@ class CustomTimeSeriesTransformer(CustomTransformer):
         self._datetime_formats = kwargs['datetime_formats']  # dictionary of date/datetime column name -> date format
         if self.tsp is not None:
             self.time_column = self.tsp._time_column  # name of time column (if present)
+
+    def update_history(self, X: dt.Frame, y: np.array = None):
+        """
+        Update the model fit with additional observed endogeneous/exogeneous values during batch scoring of test set.
+
+        Intended to do similar as fit_transform() but only updates the transformer state, not replace it.
+        It is used to learn from the past information contained in the test set at scoring time, especially when the
+        test set contains new, previously unseen information (such as new time series groups and/or new past outcomes).
+
+        This update of the transformer state is ephemeral, and only created during the model.predict() call (for which
+        this transformer is part of the pipeline).
+
+        The test set must contain at least some non-missing target values for this method to be called.
+        If the test set contains no target values, or only missing target values, this method is not called.
+        If the test set contains only non-missing target values, then this method is not called either.
+
+        Only rows belonging to a non-missing target value are passed into this method.
+
+        Test data order of calls during model.predict(), for this transformer:
+            tr.update_history()  - update state, if data contains partially missing target values (some non-NA, some NA)
+            tr.transform()       - transform dataset into new representation useful for forecast
+
+        :param X: Test set containing same features as data passed into fit_transform / transform
+        :param y: Numpy array containing new observations to learn from (no missing values in y)
+        :return: self
+        """
+        pass
