@@ -288,4 +288,4 @@ class CustomTimeSeriesTransformer(CustomTransformer):
         :param y: Numpy array containing new observations to learn from (no missing values in y)
         :return: self
         """
-        pass
+        return self
