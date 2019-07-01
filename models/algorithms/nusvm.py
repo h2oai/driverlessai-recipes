@@ -3,7 +3,6 @@ import datatable as dt
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from h2oaicore.models import CustomModel
-from sklearn.preprocessing import StandardScaler
 from sklearn.svm import NuSVC, NuSVR
 
 
@@ -36,7 +35,7 @@ class NuSVMModel(CustomModel):
                       **kwargs):
 
         n_jobs = -1
-        list_of_nus = [0.45, 0.5, 0.55]
+        list_of_nus = [0.4, 0.5, 0.6]
         list_of_kernels = ['linear', 'rbf']
         list_of_degrees = [3, 4]
 
@@ -112,10 +111,8 @@ class NuSVMModel(CustomModel):
                     feature_model = NuSVR(kernel='linear', nu=self.params['nu'])
                     model = NuSVR(nu=self.params['nu'], kernel=self.params['kernel'],
                           degree=self.params['degree'])
-                pass
 
         feature_model.fit(X, y)
-        model.fit(X, y)
         importances = np.array(abs(feature_model.coef_)).ravel()
 
         self.set_model_properties(model=model,
