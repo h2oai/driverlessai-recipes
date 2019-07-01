@@ -3,7 +3,6 @@ import datatable as dt
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from h2oaicore.models import CustomModel
-from sklearn.preprocessing import StandardScaler
 from sklearn.svm import NuSVC, NuSVR
 
 
@@ -35,16 +34,16 @@ class NuSVMModel(CustomModel):
                       **kwargs):
 
         n_jobs = -1
-        list_of_nus = [0.45, 0.5, 0.55]
+        list_of_nus = [0.4, 0.5, 0.6]
         list_of_kernels = ['linear', 'rbf']
         list_of_degrees = [3, 4]
 
         if accuracy > 8:
-            list_of_neibs = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+            list_of_nus = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
             list_of_kernels = ['linear', 'rbf', 'poly', 'sigmoid']
             list_of_degrees = [3, 4, 5, 6]
         elif accuracy >= 5:
-            list_of_neibs = [0.2, 0.4, 0.5, 0.6, 0.8]
+            list_of_nus = [0.2, 0.4, 0.5, 0.6, 0.8]
 
         nu_index = np.random.randint(0, high=len(list_of_nus))
         kernel_index = np.random.randint(0, high=len(list_of_kernels))
@@ -66,7 +65,7 @@ class NuSVMModel(CustomModel):
         orig_cols = list(X.names)
 
         if self.num_classes >= 2:
-            feature_model = NuSVC(kernel='linear')
+            feature_model = NuSVC(kernel='linear', nu=self.params['nu'])
             model = NuSVC(nu=self.params['nu'], kernel=self.params['kernel'],
                           degree=self.params['degree'], probability=self.params['probability'])
 
@@ -74,7 +73,7 @@ class NuSVMModel(CustomModel):
             lb.fit(self.labels)
             y = lb.transform(y)
         else:
-            feature_model = NuSVR(kernel='linear')
+            feature_model = NuSVR(kernel='linear', nu=self.params['nu'])
             model = NuSVR(nu=self.params['nu'], kernel=self.params['kernel'],
                           degree=self.params['degree'])
 
@@ -90,8 +89,29 @@ class NuSVMModel(CustomModel):
             assert X[dt.isna(dt.f[col]), col].nrows == 0
 
         X = X.to_numpy()
+
+        # nu is infeasible sometimes
+        # doing quaternary search on both sides of selected nu
+        valid_nu = None
+        while valid_nu is None:
+            try:
+                model.fit(X, y)
+                valid_nu = self.params['nu']
+            except:
+                if self.params['nu'] > 0.5:
+                    self.params['nu'] = 1.0 - self.params['nu']
+                else:
+                    self.params['nu'] = (4.0 - 3.0 * self.params['nu']) / 4.0
+                if self.num_classes >= 2:
+                    feature_model = NuSVC(kernel='linear', nu=self.params['nu'])
+                    model = NuSVC(nu=self.params['nu'], kernel=self.params['kernel'],
+                          degree=self.params['degree'], probability=self.params['probability'])
+                else:
+                    feature_model = NuSVR(kernel='linear', nu=self.params['nu'])
+                    model = NuSVR(nu=self.params['nu'], kernel=self.params['kernel'],
+                          degree=self.params['degree'])
+
         feature_model.fit(X, y)
-        model.fit(X, y)
         importances = np.array(abs(feature_model.coef_)).ravel()
 
         self.set_model_properties(model=model,
