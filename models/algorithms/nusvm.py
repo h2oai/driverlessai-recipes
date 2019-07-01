@@ -93,7 +93,7 @@ class NuSVMModel(CustomModel):
         X = X.to_numpy()
 
         # nu is infeasible sometimes
-        # doing trinary search on both sides of selected nu
+        # doing quaternary search on both sides of selected nu
         valid_nu = None
         while valid_nu is None:
             try:
