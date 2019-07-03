@@ -160,7 +160,37 @@ class CustomModel(BaseCustomModel):
                          transformed_features=transformed_features, original_user_cols=original_user_cols,
                          date_format_strings=date_format_strings, **kwargs)
 
-    def fit(self, X: dt.Frame, y: np.array, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+    def fit(self, X: dt.Frame, y: np.array, sample_weight: np.array = None,
+            eval_set=None, sample_weight_eval_set=None, **kwargs):
+        """Fit the model on training data and use optional validation data to tune parameters to avoid overfitting.
+
+        Args:
+            X (dt.Frame): training data, concatenated output of all active transformers' `fit_transform()` method
+                Shape: (N, p), rows are observations, columns are features (attributes)
+            y (np.array): training target values, numeric for regression, numeric or categorical for classification
+                Shape: (N, ), 1 target value per observation
+            sample_weight (np.array): (optional) training observation weight values, numeric
+                Shape: (N, ), 1 observation weight value per observation
+            eval_set (list(tuple(dt.Frame, np.array))): (optional) validation data and target values
+                Shape: dt.Frame: (M, p), np.array: (M, )), same schema/format as training data, just different rows
+            sample_weight_eval_set (np.array): (optional) validation observation weight values, numeric
+                Shape: (M, ), 1 observation weight value per observation
+            kwargs (dict): Additional internal arguments (see examples)
+
+        Returns: None
+
+
+        Note:
+            Once the model is fitted, you can pass the state to Driverless AI via `set_model_properties()` for later
+            retrieval during `predict()`. See examples.
+
+            def set_model_properties(self, model=None, features=None, importances=None, iterations=None):
+                :param model: model object that contains all large fitted objects related to model
+                :param features: list of feature names fitted on
+                :param importances: list of associated numerical importance of features
+                :param iterations: number of iterations, used to predict on or re-use for fitting on full training data
+
+        """
         raise NotImplemented("No fit for %s" % self.__class__.__name__)
 
     def set_feature_importances(self, feature_importances):
@@ -172,6 +202,24 @@ class CustomModel(BaseCustomModel):
         self.feature_importances = df_imp
 
     def predict(self, X, **kwargs):
+        """Make predictions on a test set.
+
+        Use the fitted state stored in `self` to make per-row predictions. Predictions must be independent of order of
+        test set rows, and should not depend on the presence of any other rows.
+
+        Args:
+            X (dt.Frame): test data, concatenated output of all active transformers' `transform()` method
+                Shape: (K, p)
+            kwargs (dict): Additional internal arguments (see examples)
+
+        Returns: dt.Frame, np.ndarray or pd.DataFrame, containing predictions (target values or class probabilities)
+            Shape: (K, c) where c = 1 for regression or binary classification, and c>=3 for multi-class problems.
+
+        Note:
+            Retrieve the fitted state via `get_model_properties()`, which returns the arguments that were passed after
+            the call to `set_model_properties()` during `fit()`. See examples.
+        """
+
         raise NotImplemented("No predict for %s" % self.__class__.__name__)
 
     def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame):  # -> MojoFrame:
