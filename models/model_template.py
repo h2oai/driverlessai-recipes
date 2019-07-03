@@ -38,6 +38,7 @@ class CustomModel(BaseCustomModel):
     _can_use_gpu = False  # if enabled, will use special job scheduler for GPUs
     _can_use_multi_gpu = False  # if enabled, can get access to multiple GPUs for single transformer (experimental)
     _description = NotImplemented
+    _check_stall = True  # whether to check for stall, should disable if separate server running task
 
     """Whether this model supports MOJO creation.
     If set to True, requires implementation of write_to_mojo() method."""
