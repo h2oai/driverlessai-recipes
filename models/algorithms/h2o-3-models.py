@@ -13,10 +13,6 @@ import os
 
 
 class H2OBaseModel:
-    @staticmethod
-    def do_acceptance_test():
-        return False  # save time
-
     _regression = True
     _binary = True
     _multiclass = True
@@ -256,6 +252,10 @@ from h2o.automl import H2OAutoML
 
 
 class H2OAutoMLModel(H2OBaseModel, CustomModel):
+    @staticmethod
+    def do_acceptance_test():
+        return False  # save time
+
     _display_name = "H2O AutoML"
     _description = "H2O-3 AutoML"
     _class = H2OAutoML
