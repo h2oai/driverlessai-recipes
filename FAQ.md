@@ -3,7 +3,7 @@
   #### What are recipes?
   Python code snippets that can be uploaded into Driverless AI at runtime, like plugins. No need to restart Driverless AI.
   #### What exactly are recipes?
-  Python code snippets for custom transformers, models and scorers.
+  Custom Python code snippets for transformers, models and scorers. During training of a supervised machine learning modeling pipeline (we call that experiment), Driverless AI can then use these code snippets as building blocks, in combination with all built-in code pieces (or instead of). By providing your own custom recipes, you can gain control over the optimization choices that Driverless AI makes.
   #### Why do I need to bring my own recipes? Isn't Driverless AI smart enough of the box?
   The only way to find out is to try. Most likely you'll be able to improve performance with custom recipes. Domain knowledge and intuition are essential to getting the best possible performance.
   #### What are some example recipes?
@@ -85,4 +85,6 @@
   * [Direct Link](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
   * [Source File](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.drawio)
   ![BYOR Architecture Diagram](reference/DriverlessAI_BYOR.png)
+### Webinar
+Webinar: [Extending the H2O Driverless AI Platform with Your Recipes](https://www.brighttalk.com/webcast/16463/360533/extending-the-h2o-driverless-ai-platform-with-your-recipes).
 
