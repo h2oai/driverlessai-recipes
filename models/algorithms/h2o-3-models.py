@@ -18,6 +18,7 @@ class H2OBaseModel:
     _multiclass = True
     _can_handle_non_numeric = True
     _is_reproducible = False  # since using max_runtime_secs - disable that if need reproducible models
+    _check_stall = False  # avoid stall check. h2o runs as server, and is not a child for which we check CPU/GPU usage
 
     _class = NotImplemented
 
