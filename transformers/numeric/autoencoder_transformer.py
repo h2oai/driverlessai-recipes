@@ -19,20 +19,25 @@ class AutoencoderTransformer(CustomTransformer, TensorFlowModel):
     _parallel_task = True  # assumes will use n_jobs in params_base
     _can_use_gpu = True
     _can_use_multi_gpu = True
-    _is_reproducible=False
+    _is_reproducible = False
+    _can_handle_non_numeric = False
+    _regression = True
+    _binary = True
+    _multiclass = True
+
 
     def __init__(self, tmp_dir=temporary_files_path, **kwargs):
         super().__init__(**kwargs)
         from sklearn.preprocessing import MinMaxScaler
         self.sc = MinMaxScaler((0, 1))
 
-    @staticmethod
-    def is_enabled():
-        return False
+    #@staticmethod
+    #def is_enabled():
+    #    return True
 
     @staticmethod
     def do_acceptance_test():
-        return True
+        return False
 
     @staticmethod
     def get_default_properties():
@@ -73,14 +78,14 @@ class AutoencoderTransformer(CustomTransformer, TensorFlowModel):
         autoencoder.fit(
                 train_features, 
                 train_features,
-                epochs=10,
+                epochs=1,
                 #steps_per_epoch=1000,
                 batch_size=64,
                 shuffle=True,
                 )
 
-        self.model = autoencoder
-        self.model_weights = autoencoder.get_weights()
+        self.model = h1_encoder
+        self.model_weights = h1_encoder.get_weights()
 
         return self.transform(dt.Frame(X))
 
@@ -89,5 +94,5 @@ class AutoencoderTransformer(CustomTransformer, TensorFlowModel):
         X = X.to_numpy()
         features = self.sc.transform(X)
         self.model.set_weights(self.model_weights)
-        return self.model.predict(features)
+        return dt.Frame(self.model.predict(features))
 
