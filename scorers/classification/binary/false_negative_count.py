@@ -7,7 +7,7 @@ from sklearn.metrics import confusion_matrix
 
 
 class CMFalseNegative(CustomScorer):
-    _threshold = 0.5   # Example only, should be adjusted based on domain knowledge and other experiments
+    _threshold = 0.5  # Example only, should be adjusted based on domain knowledge and other experiments
     _description = "Reduce false negative count"
     _binary = True
     _maximize = False
@@ -26,5 +26,3 @@ class CMFalseNegative(CustomScorer):
         cm = confusion_matrix(actual, predicted, sample_weight=sample_weight, labels=labels)
         tn, fp, fn, tp = cm.ravel()
         return fn
-
-

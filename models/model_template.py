@@ -207,15 +207,19 @@ ts_raw_data_transformers = ['OriginalTransformer', 'CatOriginalTransformer',
 class CustomTimeSeriesModel(CustomModel):
     """Model class adjusted to simplify customization for time-series problems.
 
-    The model only accepts original (un-modified) numeric, categorical and date/datetime columns, in addition to the
-    target column. All feature engineering in prior states of the pipeline are disabled. This puts full control into
-    the hands of the implementer of this class.
+    The model only accepts original (un-modified) numeric, categorical and date/datetime columns in X, in addition to
+    the target column (y). All feature engineering in prior states of the pipeline are disabled. This puts full control
+    into the hands of the implementer of this class. All time group columns are passed into the model with original
+    column names (available in self.params_base["tgc"])
     """
 
+    _can_handle_non_numeric = True  # date format strings and time grouping columns
     _included_transformers = ts_raw_data_transformers  # this enforces the constraint on input features
 
     def __init__(self, context=None, unfitted_pipeline_path=None, transformed_features=None,
                  original_user_cols=None, date_format_strings=dict(), **kwargs):
+        if not self._can_handle_non_numeric:
+            raise ValueError("Please do not override _can_handle_non_numeric for CustomTimeSeriesModel.")
         if self._included_transformers != ts_raw_data_transformers:
             raise ValueError("Please do not override _included_transformers for CustomTimeSeriesModel.")
         super().__init__(context=context, unfitted_pipeline_path=unfitted_pipeline_path,
@@ -276,5 +280,3 @@ class CustomTimeSeriesTensorFlowModel(CustomTimeSeriesModel, CustomTensorFlowMod
         TensorFlow-based Time-Series Custom Model
     """
     pass
-
-

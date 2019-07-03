@@ -7,7 +7,7 @@ from sklearn.metrics import confusion_matrix
 
 
 class MyFalseDiscoveryRateScorer(CustomScorer):
-    _threshold = 0.1   # Example only, should be adjusted based on domain knowledge and other experiments
+    _threshold = 0.1  # Example only, should be adjusted based on domain knowledge and other experiments
     _description = "My False Discovery Rate for Binary Classification [threshold=%f]." % _threshold
     _binary = True
     _maximize = False
