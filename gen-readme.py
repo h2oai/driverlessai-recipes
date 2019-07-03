@@ -59,4 +59,4 @@ H2O Driverless AI is Automatic Machine Learning for the Enterprise. Driverless A
 print("## Sample Recipes")
 print("### Count: %d" % count)
 for l in ret:
-  print(l)
+    print(l)

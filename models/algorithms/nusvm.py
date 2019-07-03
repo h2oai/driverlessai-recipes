@@ -105,11 +105,11 @@ class NuSVMModel(CustomModel):
                 if self.num_classes >= 2:
                     feature_model = NuSVC(kernel='linear', nu=self.params['nu'])
                     model = NuSVC(nu=self.params['nu'], kernel=self.params['kernel'],
-                          degree=self.params['degree'], probability=self.params['probability'])
+                                  degree=self.params['degree'], probability=self.params['probability'])
                 else:
                     feature_model = NuSVR(kernel='linear', nu=self.params['nu'])
                     model = NuSVR(nu=self.params['nu'], kernel=self.params['kernel'],
-                          degree=self.params['degree'])
+                                  degree=self.params['degree'])
 
         feature_model.fit(X, y)
         importances = np.array(abs(feature_model.coef_)).ravel()

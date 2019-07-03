@@ -15,7 +15,7 @@ H2O Driverless AI is Automatic Machine Learning for the Enterprise. Driverless A
 * [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
 
 ## Sample Recipes
-### Count: 74
+### Count: 75
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
   * [ALGORITHMS](./models/algorithms)
@@ -23,6 +23,7 @@ H2O Driverless AI is Automatic Machine Learning for the Enterprise. Driverless A
     * [extra_trees.py](./models/algorithms/extra_trees.py) [Extremely Randomized Trees (ExtraTrees) model from sklearn]
     * [h2o-3-models.py](./models/algorithms/h2o-3-models.py) [H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB/AutoML)]
     * [knearestneighbour.py](./models/algorithms/knearestneighbour.py) [K-Nearest Neighbor implementation by sklearn. For small data (< 200k rows).]
+    * [libfm_fastfm.py](./models/algorithms/libfm_fastfm.py) [LibFM implementation of fastFM ]
     * [linear_svm.py](./models/algorithms/linear_svm.py) [Linear Support Vector Machine (SVM) implementation by sklearn. For small data.]
     * [nusvm.py](./models/algorithms/nusvm.py) [Nu-SVM implementation by sklearn. For small data.]
   * [CUSTOM_LOSS](./models/custom_loss)

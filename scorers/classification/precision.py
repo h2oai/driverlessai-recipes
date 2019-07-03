@@ -13,7 +13,7 @@ class precision(CustomScorer):
     _maximize = True
     _perfect_score = 1
     _display_name = "Precision"
-    _threshold = 0.5   # Example only, should be adjusted based on domain knowledge and other experiments
+    _threshold = 0.5  # Example only, should be adjusted based on domain knowledge and other experiments
 
     def score(self,
               actual: np.array,
