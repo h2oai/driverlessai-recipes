@@ -10,6 +10,7 @@ class NuSVMModel(CustomModel):
     _regression = True
     _binary = True
     _multiclass = False  # WIP
+    _parallel_task = False
 
     _display_name = "NuSVM"
     _description = "Nu-SVM model based on sklearn. Not advised for large data."
