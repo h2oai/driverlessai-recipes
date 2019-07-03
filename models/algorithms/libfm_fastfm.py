@@ -23,6 +23,13 @@ class FastFMModel(CustomModel):
 
     _modules_needed_by_name = ['fastFM']
 
+    @staticmethod
+    def is_enabled():
+        # fails sometimes with
+        # ffm_als_mcmc.c:172: sparse_fit: Assertion `(sizeof (*w_0) == sizeof (float) ? __finitef (*w_0) :
+        # sizeof (*w_0) == sizeof (double) ? __finite (*w_0) : __finitel (*w_0)) && "w_0 not finite"' failed.
+        return False
+
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
                            **kwargs):

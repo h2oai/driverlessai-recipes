@@ -17,6 +17,11 @@ class EmbeddingSimilarityTransformer(CustomTransformer):
         self.embedding_name = embedding_name
 
     @staticmethod
+    def is_enabled():
+        """Uses all GPU memory - can lead to OOM failures in combination with other GPU-based transformers"""
+        return False
+
+    @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=2, max_cols=2, relative_importance=1)
 
