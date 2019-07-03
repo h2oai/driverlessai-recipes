@@ -29,6 +29,7 @@ class H2OBaseModel:
         super().__init__(**kwargs)
         self.id = None
         self.target = "__target__"
+        self.weight = "__weight__"
         self.col_types = None
         self.my_log_dir = os.path.abspath(os.path.join(config.data_directory,
                                                        config.contrib_relative_directory, "h2o_log"))
@@ -54,20 +55,32 @@ class H2OBaseModel:
         orig_cols = list(X.names)
         train_X = h2o.H2OFrame(X.to_pandas())
         self.col_types = train_X.types
+        train_frame = train_X
+        if sample_weight is not None:
+            train_w = h2o.H2OFrame(sample_weight,
+                                   column_names=[self.weight],
+                                   column_types=['numeric'])
+            train_frame = train_frame.cbind(train_w)
         train_y = h2o.H2OFrame(y,
                                column_names=[self.target],
                                column_types=['categorical' if self.num_classes >= 2 else 'numeric'])
-        train_frame = train_X.cbind(train_y)
+        train_frame = train_frame.cbind(train_y)
         valid_frame = None
         valid_X = None
         valid_y = None
         model = None
         if eval_set is not None:
             valid_X = h2o.H2OFrame(eval_set[0][0].to_pandas(), column_types=self.col_types)
+            valid_frame = valid_X
+            if sample_weight_eval_set is not None:
+                valid_w = h2o.H2OFrame(sample_weight_eval_set,
+                                       column_names=[self.weight],
+                                       column_types=['numeric'])
+                valid_frame = valid_frame.cbind(valid_w)
             valid_y = h2o.H2OFrame(eval_set[0][1],
                                    column_names=[self.target],
                                    column_types=['categorical' if self.num_classes >= 2 else 'numeric'])
-            valid_frame = valid_X.cbind(valid_y)
+            valid_frame = valid_frame.cbind(valid_y)
 
         try:
             train_kwargs = dict()
