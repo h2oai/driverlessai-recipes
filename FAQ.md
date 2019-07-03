@@ -58,8 +58,10 @@
   No. Same code base. No performance penalty. No calling overhead. Same inputs and outputs.
   #### Why are some models implemented as transformers?
   Separating of work. With the transformer API, we can replace *only* the particular input column(s) with out-of-fold estimates of the target column. All other columns (features) can be processed by other transformers. The combined union of all features is then passed to the model(s) which can yield higher accuracy than a model that only sees the particular input column(s). For more information about the flow of data, see the technical [references](https://github.com/h2oai/driverlessai-recipes#reference-guide) section.
+  #### Isn't it a security risk to run arbitrary Python code? How can I control what recipes are active?
+  Recipes are meant to be built by people you trust and each recipe should be code-reviewed before going to production. If you don't want custom code to be executed by Driverless AI, set `enable_custom_recipes=false` in the config.toml, or add the environment variable `DRIVERLESS_AI_ENABLE_CUSTOM_RECIPES=0` at startup of Driverless AI. This will disable all custom transformers, models and scorers. If you want to keep all previously uploaded recipes enabled and disable the upload of any new recipes, set `enable_custom_recipes_upload=false` or `DRIVERLESS_AI_ENABLE_CUSTOM_RECIPES_UPLOAD=0` at startup of Driverless AI.
   #### Who can see my recipe?
-  Only you. The recipe remains on the instance that runs Driverless AI. Experiment logs may contain relevant information about your recipes, so double-check before you share them.
+  Everyone with access to Driverless AI on the particular instance into which the recipe was uploaded. The recipe remains on the instance that runs Driverless AI. Experiment logs may contain relevant information about your recipes, so double-check before you share them.
   #### How do I share my recipe with the world?
   We encourage you to share your recipe in this repository. If your recipe works, please make a pull request and improve the experience for everyone!
     
