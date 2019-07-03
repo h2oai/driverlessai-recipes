@@ -15,6 +15,7 @@ import pandas as pd
 import random
 import os
 import uuid
+from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 
 
 class suppress_stdout_stderr(object):
@@ -115,12 +116,22 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         pool_to_use = small_job_pool
         pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
 
+        # Get the logger if it exists
+        logger = None
+        if self.context and self.context.experiment_id:
+            logger = make_experiment_logger(
+                experiment_id=self.context.experiment_id,
+                tmp_dir=self.context.tmp_dir,
+                experiment_tmp_dir=self.context.experiment_tmp_dir
+            )
+
         # Build 1 ARIMA model per time group columns
         nb_groups = len(XX_grp)
         for _i_g, (key, X) in enumerate(XX_grp):
             # Just say where we are in the fitting process
             if (_i_g + 1) % max(1, nb_groups // 20) == 0:
-                print("Auto ARIMA - ", 100 * (_i_g + 1) // nb_groups, " %% of Groups Fitted")
+                loggerinfo(logger, "Auto ARIMA : %d%% of groups fitted" % (100 * (_i_g + 1) // nb_groups))
+
             X_path = os.path.join(temporary_files_path, "autoarima_X" + str(uuid.uuid4()))
             X = X.reset_index(drop=True)
             save_obj(X, X_path)
@@ -196,6 +207,15 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         def processor(out, res):
             out.append(res)
 
+        # Get the logger if it exists
+        logger = None
+        if self.context and self.context.experiment_id:
+            logger = make_experiment_logger(
+                experiment_id=self.context.experiment_id,
+                tmp_dir=self.context.tmp_dir,
+                experiment_tmp_dir=self.context.experiment_tmp_dir
+            )
+
         pool_to_use = small_job_pool
         pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
         XX_paths = []
@@ -204,7 +224,8 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         for _i_g, (key, X) in enumerate(XX_grp):
             # Just print where we are in the process of fitting models
             if (_i_g + 1) % max(1, nb_groups // 20) == 0:
-                print("Auto ARIMA - ", 100 * (_i_g + 1) // nb_groups, " %% of Groups Transformed")
+                loggerinfo(logger, "Auto ARIMA : %d%% of groups transformed" % (100 * (_i_g + 1) // nb_groups))
+
             # Create time group key to store and retrieve fitted models
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
