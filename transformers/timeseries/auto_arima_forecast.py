@@ -4,11 +4,11 @@
 # please visit https://www.alkaline-ml.com/pmdarima/index.html
 
 import importlib
-
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 import datatable as dt
 import numpy as np
 import pandas as pd
+from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 
 
 class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
@@ -46,8 +46,22 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         else:
             XX_grp = [([None], XX)]
 
+        # Get the logger if it exists
+        logger = None
+        if self.context and self.context.experiment_id:
+            logger = make_experiment_logger(
+                experiment_id=self.context.experiment_id,
+                tmp_dir=self.context.tmp_dir,
+                experiment_tmp_dir=self.context.experiment_tmp_dir
+            )
+
         # Build 1 ARIMA model per time group columns
-        for key, X in XX_grp:
+        nb_groups = len(XX_grp)
+        for _i_g, (key, X) in enumerate(XX_grp):
+            # Just say where we are in the fitting process
+            if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+                loggerinfo(logger, "Auto ARIMA : %d%% of groups fitted" % (100 * (_i_g + 1) // nb_groups))
+
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
             # print("auto arima - fitting on data of shape: %s for group: %s" % (str(X.shape), grp_hash))
@@ -74,8 +88,23 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
             XX_grp = XX.groupby(tgc_wo_time)
         else:
             XX_grp = [([None], XX)]
+
+        # Get the logger if it exists
+        logger = None
+        if self.context and self.context.experiment_id:
+            logger = make_experiment_logger(
+                experiment_id=self.context.experiment_id,
+                tmp_dir=self.context.tmp_dir,
+                experiment_tmp_dir=self.context.experiment_tmp_dir
+            )
+
+        nb_groups = len(XX_grp)
         preds = []
-        for key, X in XX_grp:
+        for _i_g, (key, X) in enumerate(XX_grp):
+            # Just say where we are in the fitting process
+            if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+                loggerinfo(logger, "Auto ARIMA : %d%% of groups transformed" % (100 * (_i_g + 1) // nb_groups))
+
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
             # print("auto arima - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))

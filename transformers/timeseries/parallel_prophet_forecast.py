@@ -1,6 +1,6 @@
 """Parallel FB Prophet transformer is a time series transformer that predicts target using FBProphet models.
 In this implementation, Time Group Models are fitted in parallel"""
-
+import importlib
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 from h2oaicore.systemutils import small_job_pool, save_obj, load_obj, temporary_files_path, remove
 import datatable as dt
@@ -11,6 +11,7 @@ import random
 import importlib
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
+from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 
 
 # For more information about FB prophet please visit :
@@ -80,6 +81,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
         model = Prophet()
+
         with suppress_stdout_stderr():
             model.fit(X[['ds', 'y']])
         model_path = os.path.join(temporary_files_path, "fbprophet_model" + str(uuid.uuid4()))
@@ -123,12 +125,22 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         pool_to_use = small_job_pool
         pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
 
+        # Get the logger if it exists
+        logger = None
+        if self.context and self.context.experiment_id:
+            logger = make_experiment_logger(
+                experiment_id=self.context.experiment_id,
+                tmp_dir=self.context.tmp_dir,
+                experiment_tmp_dir=self.context.experiment_tmp_dir
+            )
+
         # Fit 1 FB Prophet model per time group columns
         nb_groups = len(XX_grp)
         for _i_g, (key, X) in enumerate(XX_grp):
-            # Just say where we are in the fitting process
+            # Just log where we are in the fitting process
             if (_i_g + 1) % max(1, nb_groups // 20) == 0:
-                print(100 * (_i_g + 1) // nb_groups, " of Groups Fitted")
+                loggerinfo(logger, "FB Prophet : %d%% of groups fitted" % (100 * (_i_g + 1) // nb_groups))
+
             X_path = os.path.join(temporary_files_path, "fbprophet_X" + str(uuid.uuid4()))
             X = X.reset_index(drop=True)
             save_obj(X, X_path)
@@ -193,6 +205,15 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         def processor(out, res):
             out.append(res)
 
+        # Get the logger if it exists
+        logger = None
+        if self.context and self.context.experiment_id:
+            logger = make_experiment_logger(
+                experiment_id=self.context.experiment_id,
+                tmp_dir=self.context.tmp_dir,
+                experiment_tmp_dir=self.context.experiment_tmp_dir
+            )
+
         pool_to_use = small_job_pool
         pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
         XX_paths = []
@@ -200,8 +221,10 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         nb_groups = len(XX_grp)
         print("Nb Groups = ", nb_groups)
         for _i_g, (key, X) in enumerate(XX_grp):
+            # Log where we are in the transformation of the dataset
             if (_i_g + 1) % max(1, nb_groups // 20) == 0:
-                print(100 * (_i_g + 1) // nb_groups, " of Groups Transformed")
+                loggerinfo(logger, "FB Prophet : %d%% of groups transformed" % (100 * (_i_g + 1) // nb_groups))
+
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
             X_path = os.path.join(temporary_files_path, "fbprophet_Xt" + str(uuid.uuid4()))
