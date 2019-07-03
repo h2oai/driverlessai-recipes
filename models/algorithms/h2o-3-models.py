@@ -73,7 +73,7 @@ class H2OBaseModel:
             valid_X = h2o.H2OFrame(eval_set[0][0].to_pandas(), column_types=self.col_types)
             valid_frame = valid_X
             if sample_weight_eval_set is not None:
-                valid_w = h2o.H2OFrame(sample_weight_eval_set,
+                valid_w = h2o.H2OFrame(sample_weight_eval_set[0],
                                        column_names=[self.weight],
                                        column_types=['numeric'])
                 valid_frame = valid_frame.cbind(valid_w)
