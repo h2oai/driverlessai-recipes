@@ -42,6 +42,7 @@ class CustomTransformer(DataTableTransformer):
     _parallel_task = True  # if enabled, params_base['n_jobs'] will be >= 1 (adaptive to system), otherwise 1
     _can_use_gpu = False   # if enabled, will use special job scheduler for GPUs
     _can_use_multi_gpu = False  # if enabled, can get access to multiple GPUs for single transformer (experimental)
+    _check_stall = True  # whether to check for stall, should disable if separate server running task
 
     """Whether this transformer supports MOJO creation.
     If set to True, requires implementation of write_to_mojo() method."""
