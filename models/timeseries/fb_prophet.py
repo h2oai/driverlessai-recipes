@@ -97,7 +97,7 @@ class FBProphetModel(CustomTimeSeriesModel):
 
         # Default version is do no mutation
         # Otherwise, change self.params for this model
-        holiday_choice = [None, "US", "UK", "DE", "FR"]
+        holiday_choice = [None, "US", "UK", "DE", "FRA"]
         if accuracy >= 8:
             weekly_choice = [False, 'auto', 5, 7, 10, 15]
             yearly_choice = [False, 'auto', 5, 10, 15, 20, 30]
