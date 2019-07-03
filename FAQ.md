@@ -86,5 +86,5 @@
   * [Source File](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.drawio)
   ![BYOR Architecture Diagram](reference/DriverlessAI_BYOR.png)
 ### Webinar
-Webinar: [Extending the H2O Driverless AI Platform with Your Recipes](https://www.brighttalk.com/webcast/16463/360533/extending-the-h2o-driverless-ai-platform-with-your-recipes).
-
+Webinar: [Extending the H2O Driverless AI Platform with Your Recipes](https://www.brighttalk.com/webcast/16463/360533/extending-the-h2o-driverless-ai-platform-with-your-recipes)
+Website: [H2O Driverless AI Recipes](https://www.h2o.ai/products-h2o-driverless-ai-recipes/)
