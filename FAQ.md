@@ -1,11 +1,8 @@
 # H2O Driverless AI Bring Your Own Recipes
 ## FAQ
-  #### What are recipes?
-  Python code snippets that can be uploaded into Driverless AI at runtime, like plugins. No need to restart Driverless AI.
-  #### What exactly are recipes?
-  Python code snippets for custom transformers, models and scorers. During training of a supervised machine learning modeling pipeline (we call that experiment), Driverless AI can then use these code snippets as building blocks, in combination with all built-in code pieces (or instead of). By providing your own custom recipes, you can gain control over the optimization choices that Driverless AI makes.
   #### Why do I need to bring my own recipes? Isn't Driverless AI smart enough of the box?
   The only way to find out is to try. Most likely you'll be able to improve performance with custom recipes. Domain knowledge and intuition are essential to getting the best possible performance.
+
   #### What are some example recipes?
   * Look at the [examples in this repository](https://github.com/h2oai/driverlessai-recipes/blob/master/README.md#sample-recipes). Some illustrative samples:
   * Transformer:
@@ -58,10 +55,14 @@
   No. Same code base. No performance penalty. No calling overhead. Same inputs and outputs.
   #### Why are some models implemented as transformers?
   Separating of work. With the transformer API, we can replace *only* the particular input column(s) with out-of-fold estimates of the target column. All other columns (features) can be processed by other transformers. The combined union of all features is then passed to the model(s) which can yield higher accuracy than a model that only sees the particular input column(s). For more information about the flow of data, see the technical [references](https://github.com/h2oai/driverlessai-recipes#reference-guide) section.
-  #### Isn't it a security risk to run arbitrary Python code? How can I control what recipes are active?
+  #### How can I control which custom recipes are active, and how can I disable all custom recipes?
   Recipes are meant to be built by people you trust and each recipe should be code-reviewed before going to production. If you don't want custom code to be executed by Driverless AI, set `enable_custom_recipes=false` in the config.toml, or add the environment variable `DRIVERLESS_AI_ENABLE_CUSTOM_RECIPES=0` at startup of Driverless AI. This will disable all custom transformers, models and scorers. If you want to keep all previously uploaded recipes enabled and disable the upload of any new recipes, set `enable_custom_recipes_upload=false` or `DRIVERLESS_AI_ENABLE_CUSTOM_RECIPES_UPLOAD=0` at startup of Driverless AI.
+  #### What if I keep changing the same recipe over and over?
+  If you upload a new version of a recipe, it will become the new default version for that recipe. Previously run experiments using older versions of that recipe will continue to work, and use the older version. New experiments will use the new version.
   #### Who can see my recipe?
-  Everyone with access to Driverless AI on the particular instance into which the recipe was uploaded. The recipe remains on the instance that runs Driverless AI. Experiment logs may contain relevant information about your recipes, so double-check before you share them.
+  Everyone with access to the Driverless AI instance can run all recipes, even if they were uploaded by someone else. Recipes remains on the instance that runs Driverless AI. Experiment logs may contain relevant information about your recipes (such as their source code), so double-check before you share them.
+  #### How do I delete all recipes on my instance?
+  If you really need to delete all recipes, you can delete the `contrib` folder inside the `data_directory` (usually called `tmp`) and restart Driverless AI. Caution: Previously created experiments using custom recipes will not be able to make predictions any longer, so this is not recommended unless you also delete all related experiments as well.
   #### How do I share my recipe with the world?
   We encourage you to share your recipe in this repository. If your recipe works, please make a pull request and improve the experience for everyone!
     
