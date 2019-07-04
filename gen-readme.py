@@ -51,6 +51,38 @@ H2O Driverless AI is Automatic Machine Learning for the Enterprise. Driverless A
 ## About BYOR
 **BYOR** stands for **Bring Your Own Recipe** and is a key feature of Driverless AI. It allows domain scientists to solve their problems faster and with more precision.
 
+## What are Custom Recipes?
+Custom recipes are Python code snippets that can be uploaded into Driverless AI at runtime, like plugins. No need to restart Driverless AI. Custom recipes can be provided for transformers, models and scorers. During training of a supervised machine learning modeling pipeline (aka experiment), Driverless AI can then use these code snippets as building blocks, in combination with all built-in code pieces (or instead of). By providing your own custom recipes, you can gain control over the optimization choices that Driverless AI makes to best solve your machine learning problems.
+
+## Best Practices for Recipes
+
+### Security
+* Recipes are meant to be built by people you trust and each recipe should be code-reviewed before going to production.
+* Assume that a user with access to Driverless AI has access to the data inside that instance.
+  * Apart from securing access to the instance via private networks, various methods of [authentication](http://docs.h2o.ai/driverless-ai/latest-stable/docs/userguide/authentication.html) are possible. Local authentication provides the most control over which users have access to Driverless AI.
+  * Unless the `config.toml` setting `enable_dataset_downloading=false` is set, an authenticated user can download all imported datasets as .csv via direct APIs.
+* When recipes are enabled (`enable_custom_recipes=true`, the default), be aware that:
+  * The code for the recipes runs as the same native Linux user that runs the Driverless AI application.
+    * Recipes have explicit access to all data passing through the transformer/model/scorer API
+    * Recipes have implicit access to system resources such as disk, memory, CPUs, GPUs, network, etc.
+  * A H2O-3 Java process is started in the background, for use by all recipes using H2O-3. Anyone with access to the Driverless AI instance can browse the file system, see models and data through the H2O-3 interface.
+
+* Best ways to control access to Driverless AI and custom recipes:
+  * Control access to the Driverless AI instance
+  * Use local authentication to specify exactly which users are allowed to access Driverless AI
+  * Run Driverless AI in a Docker container, as a certain user, with only certain ports exposed, and only certain mount points mapped
+  * To disable all recipes: Set `enable_custom_recipes=false` in the config.toml, or add the environment variable `DRIVERLESS_AI_ENABLE_CUSTOM_RECIPES=0` at startup of Driverless AI. This will disable all custom transformers, models and scorers.
+  * To disable new recipes: To keep all previously uploaded recipes enabled and disable the upload of any new recipes, set `enable_custom_recipes_upload=false` or `DRIVERLESS_AI_ENABLE_CUSTOM_RECIPES_UPLOAD=0` at startup of Driverless AI.
+
+### Safety
+* Driverless AI automatically performs basic acceptance tests for all custom recipes unless disabled
+* More information in the FAQ
+
+### Performance
+* Use fast and efficient data manipulation tools like `data.table`, `sklearn`, `numpy` or `pandas` instead of Python lists, for-loops etc.
+* Use disk sparingly, delete temporary files as soon as possible
+* Use memory sparingly, delete objects when no longer needed
+
 ## Reference Guide
 * [FAQ](https://github.com/h2oai/driverlessai-recipes/blob/master/FAQ.md#faq)
 * [Templates](https://github.com/h2oai/driverlessai-recipes/blob/master/FAQ.md#references)
