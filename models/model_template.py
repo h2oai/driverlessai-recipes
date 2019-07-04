@@ -173,8 +173,10 @@ class CustomModel(BaseCustomModel):
             sample_weight (np.array): (optional) training observation weight values, numeric
                 Shape: (N, ), 1 observation weight value per observation
             eval_set (list(tuple(dt.Frame, np.array))): (optional) validation data and target values
+                list must have length of 1, containing 1 tuple of X and y for validation data
                 Shape: dt.Frame: (M, p), np.array: (M, )), same schema/format as training data, just different rows
-            sample_weight_eval_set (np.array): (optional) validation observation weight values, numeric
+            sample_weight_eval_set (list(np.array)): (optional) validation observation weight values, numeric
+                list must have length of 1, containing 1 np.array for weights
                 Shape: (M, ), 1 observation weight value per observation
             kwargs (dict): Additional internal arguments (see examples)
 

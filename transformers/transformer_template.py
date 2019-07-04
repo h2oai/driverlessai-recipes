@@ -77,6 +77,7 @@ class CustomTransformer(DataTableTransformer):
 
             col_type (str): the type of the original column(s) that this transformer accepts:
                 "all"         - all column types
+                "any"         - any column types
                 "numeric"     - numeric int/float column
                 "categorical" - string/int/float column considered a categorical for feature engineering
                 "numcat"      - allow both numeric or categorical
@@ -85,9 +86,9 @@ class CustomTransformer(DataTableTransformer):
                 "text"        - string column containing text (and hence not treated as categorical)
                 "time_column" - the time column specified at the start of the experiment (unmodified)
 
-            min_cols (int or str): minimum number of columns accepted as input, of the above col_type, or "all"
+            min_cols (int or str): minimum number of columns accepted as input, of the above col_type, "all", or "any"
 
-            max_cols (int or str): maximum number of columns accepted as input, of the above col_type, or "all"
+            max_cols (int or str): maximum number of columns accepted as input, of the above col_type, "all", or "any"
 
             relative_importance (int or float): relative importance, 1 is default.
                                  values larger than 1 will lead to over-representation,
