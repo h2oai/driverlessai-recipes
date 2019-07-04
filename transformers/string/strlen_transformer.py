@@ -7,7 +7,7 @@ import numpy as np
 class MyStrLenEncoderTransformer(CustomTransformer):
     @staticmethod
     def get_default_properties():
-        return dict(col_type="categorical", min_cols=1, max_cols=1, relative_importance=1)
+        return dict(col_type="any", min_cols=1, max_cols=1, relative_importance=1)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         return self.transform(X)
