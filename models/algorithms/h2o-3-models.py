@@ -2,7 +2,6 @@
 """
 from h2oaicore.models import CustomModel
 import datatable as dt
-import _pickle as pickle
 import uuid
 from h2oaicore.systemutils import config, temporary_files_path
 import numpy as np
@@ -21,6 +20,10 @@ class H2OBaseModel:
     _check_stall = False  # avoid stall check. h2o runs as server, and is not a child for which we check CPU/GPU usage
 
     _class = NotImplemented
+
+    @staticmethod
+    def do_acceptance_test():
+        return False  # save time
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -48,6 +51,13 @@ class H2OBaseModel:
         X = dt.Frame(X)
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = None
+
+        if isinstance(self, H2ONBModel):
+            # NB can only handle weights of 0 / 1
+            if sample_weight is not None:
+                sample_weight = (sample_weight != 0).astype(int)
+            if sample_weight_eval_set is not None:
+                sample_weight_eval_set = [(sample_weight_eval_set[0] != 0).astype(int)]
 
         orig_cols = list(X.names)
         train_X = h2o.H2OFrame(X.to_pandas())
