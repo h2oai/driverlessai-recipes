@@ -49,7 +49,7 @@ class ExtraTreesModel(CustomModel):
         for col in X.names:
             XX = X[:, col]
             self.min[col] = XX.min1()
-            if np.isnan(self.min[col]):
+            if self.min[col] is None or np.isnan(self.min[col]):
                 self.min[col] = -1e10
             else:
                 self.min[col] -= 1
