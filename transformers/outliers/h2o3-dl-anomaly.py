@@ -1,4 +1,5 @@
 """Anomaly score for each row based on reconstruction error of a H2O-3 deep learning autoencoder"""
+from boto import config
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
@@ -20,7 +21,7 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
         return dict(col_type="numcat", min_cols=2, max_cols=10, relative_importance=1)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
-        h2o.init()
+        h2o.init(port=config.h2o_recipes_port)
         model = H2OAutoEncoderEstimator(activation='tanh', epochs=1, hidden=[50, 50], reproducible=True, seed=1234)
         frame = h2o.H2OFrame(X.to_pandas())
         model_path = None
@@ -36,7 +37,7 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
             h2o.remove(self.id)
 
     def transform(self, X: dt.Frame):
-        h2o.init()
+        h2o.init(port=config.h2o_recipes_port)
         model_path = os.path.join(temporary_files_path, self.id)
         with open(model_path, "wb") as f:
             f.write(self.raw_model_bytes)
