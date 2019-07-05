@@ -1,12 +1,11 @@
 """Anomaly score for each row based on reconstruction error of a H2O-3 deep learning autoencoder"""
-from boto import config
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
 import os
 import h2o
 import uuid
-from h2oaicore.systemutils import temporary_files_path
+from h2oaicore.systemutils import temporary_files_path, config
 from h2o.estimators.deeplearning import H2OAutoEncoderEstimator
 
 
