@@ -1,3 +1,5 @@
+"""H2O-3 Distributed Scalable Machine Learning Models: Poisson GLM - must turn off shift detection
+"""
 from h2oaicore.models import CustomModel
 import datatable as dt
 import uuid
@@ -156,6 +158,6 @@ class H2OGLMPoissonModel(H2OBaseModel, CustomModel):
                       accuracy, time_tolerance, interpretability,
                       **kwargs):
 
-        self.params['family'] = 'poisson'
-        self.params['link'] = np.random.choice(['log', 'identity'])
+        self.params['family'] = "poisson"
+        self.params['link'] = np.random.choice(["log", "identity"])
 
