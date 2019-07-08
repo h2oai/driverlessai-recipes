@@ -63,7 +63,10 @@ class NormalizedMACDTransformer(CustomTimeSeriesTransformer):
         if len(col) > 0:
             # Groupby by the TGC and apply normalized MACD to the data
             # Pandas.apply ios not time effective so should move this to data table
-            res = X.groupby(group_cols)[col].apply(self.normalized_macd)
+            try:
+                res = X.groupby(group_cols)[col].apply(self.normalized_macd)
+            except KeyError:
+                return np.zeros(X.nrows)
 
             res.index = X.index
             return res
