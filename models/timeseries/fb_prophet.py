@@ -195,7 +195,9 @@ class FBProphetModel(CustomTimeSeriesModel):
             with suppress_stdout_stderr():
                 if self.params["growth"] == "logistic":
                     X["cap"] = self.cap
-                model.fit(X[['ds', 'y', 'cap']])
+                    model.fit(X[['ds', 'y', 'cap']])
+                else:
+                    model.fit(X[['ds', 'y']])
 
             models[grp_hash] = model
             priors[grp_hash] = X['y'].mean()
@@ -211,7 +213,7 @@ class FBProphetModel(CustomTimeSeriesModel):
         if self.tgc is None or not all([x in X.names for x in self.tgc]):
             return np.ones(X.shape[0]) * self.nan_value
 
-        model, features, importances, iterations = self.get_model_properties()
+        model, _, _, _ = self.get_model_properties()
 
         models = model["models"]
         priors = model["priors"]
