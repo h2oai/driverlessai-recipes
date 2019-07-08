@@ -47,13 +47,14 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 * [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
 
 ## Sample Recipes
-### Count: 76
+### Count: 77
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
   * [ALGORITHMS](./models/algorithms)
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.]
     * [extra_trees.py](./models/algorithms/extra_trees.py) [Extremely Randomized Trees (ExtraTrees) model from sklearn]
     * [h2o-3-models.py](./models/algorithms/h2o-3-models.py) [H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB/AutoML)]
+    * [h2o-glm-poisson.py](./models/algorithms/h2o-glm-poisson.py) [H2O-3 Distributed Scalable Machine Learning Models: Poisson GLM]
     * [knearestneighbour.py](./models/algorithms/knearestneighbour.py) [K-Nearest Neighbor implementation by sklearn. For small data (< 200k rows).]
     * [libfm_fastfm.py](./models/algorithms/libfm_fastfm.py) [LibFM implementation of fastFM ]
     * [linear_svm.py](./models/algorithms/linear_svm.py) [Linear Support Vector Machine (SVM) implementation by sklearn. For small data.]

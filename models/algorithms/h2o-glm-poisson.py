@@ -1,4 +1,4 @@
-"""H2O-3 Distributed Scalable Machine Learning Models: Poisson GLM - must turn off shift detection
+"""H2O-3 Distributed Scalable Machine Learning Models: Poisson GLM
 """
 from h2oaicore.models import CustomModel
 import datatable as dt
