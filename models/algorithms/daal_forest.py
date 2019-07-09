@@ -1,5 +1,38 @@
 """Decision Forest Model based on Intel DAAL"""
 
+#
+# The TAR SH download is recommended for running this recipe, since you can install and run it as your own
+# regular userid and easily install the required supplemental DAAL files.
+#
+# The following three downloads are required to run this recipe.
+#
+# As of this writing, DAAL is only distributed as conda packages, so we need to download and unpack
+# these conda packages and move the important files into the proper place in the DAI python distribution.
+# In the future, Intel says they will be able to distribute these packages as regular python wheel files,
+# as well, simplifying this process.
+#
+# The python module needs to be placed in the site-packages directory
+# (dai-n.n.n-linux-x86_64/python/lib/python3.6/site-packages/daal4py) and the .so files need to be put
+# in LD_LIBRARY_PATH (the dai-n.n.n-linux-x86_64/lib directory works).
+#
+# You can test if this is working by hand as follows:
+# $ ./dai-env.sh python
+# >>> import daal4py
+#
+# In the successful case, the import will succeed with no output.
+#
+# -----
+#
+# $ wget https://anaconda.org/intel/daal4py/2019.4/download/linux-64/daal4py-2019.4-py36h7b7c402_6.tar.bz2
+# $ wget https://anaconda.org/intel/impi_rt/2019.4/download/linux-64/impi_rt-2019.4-intel_243.tar.bz2
+# $ wget https://anaconda.org/intel/daal/2019.4/download/linux-64/daal-2019.4-intel_243.tar.bz2
+#
+# -rw-rw-r-- 1 tomk tomk  10933960 Mar  6 13:36 daal4py-2019.3-py36h7b7c402_6.tar.bz2
+# -rw-rw-r-- 1 tomk tomk  61624320 May 20 11:01 impi_rt-2019.4-intel_243.tar
+# -rw-rw-r-- 1 tomk tomk 388853760 May 20 14:46 daal-2019.4-intel_243.tar
+#
+
+
 import datatable as dt
 from h2oaicore.models import CustomModel
 import daal4py as d4p
@@ -53,5 +86,10 @@ class DaalForestModel(CustomModel):
         fptype = model_tuple[2]
         predict_algo = d4p.decision_forest_classification_prediction(nClasses=nClasses, fptype=fptype)
         X = X.to_numpy()
+
+        # This is not optimal at the moment because it returns the 0/1 label and not a probability.
+        # So the ROC curve in DAI looks very jagged.  A future version of DAAL Decision Forest will
+        # support predicting probabilities as well as the label.
         result = predict_algo.compute(X, train_result.model).prediction.ravel()
+
         return result
