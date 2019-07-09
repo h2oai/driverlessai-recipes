@@ -28,6 +28,10 @@ class MyImgTransformer(CustomTransformer, TensorFlowModel):
     def do_acceptance_test():
         return False
 
+    @staticmethod
+    def enabled_setting():
+        return 'on'
+
     def __init__(self, batch_size=32, **kwargs):
         super().__init__(**kwargs)
         self.batch_size = batch_size
