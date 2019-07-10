@@ -52,7 +52,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
   * [ALGORITHMS](./models/algorithms)
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.]
-    * [daal_trees.py](./models/algorithms/daal_trees.py) [Decision Forest Model based on Intel DAAL]
+    * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL]
     * [extra_trees.py](./models/algorithms/extra_trees.py) [Extremely Randomized Trees (ExtraTrees) model from sklearn]
     * [h2o-3-models.py](./models/algorithms/h2o-3-models.py) [H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB/AutoML)]
     * [h2o-glm-poisson.py](./models/algorithms/h2o-glm-poisson.py) [H2O-3 Distributed Scalable Machine Learning Models: Poisson GLM]

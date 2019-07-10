@@ -1,4 +1,4 @@
-"""Decision Forest Model based on Intel DAAL"""
+"""Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL"""
 
 import datatable as dt
 from h2oaicore.models import CustomModel
