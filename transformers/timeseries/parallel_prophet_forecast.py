@@ -312,7 +312,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
                 save_obj(X, X_path)
                 model_paths.append(model_path)
 
-                args = (model_path, X_path, self.nan_value, tmp_folder)
+                args = (model_path, X_path, self.priors[grp_hash], tmp_folder)
                 kwargs = {}
                 pool.submit_tryget(None, MyParallelProphetTransformer_transform_async, args=args, kwargs=kwargs,
                                    out=XX_paths)
