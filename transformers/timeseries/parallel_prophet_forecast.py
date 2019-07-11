@@ -2,11 +2,14 @@
 In this implementation, Time Group Models are fitted in parallel"""
 import importlib
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
-from h2oaicore.systemutils import small_job_pool, save_obj, load_obj, temporary_files_path, remove
+from h2oaicore.systemutils import (
+    small_job_pool, save_obj, load_obj, temporary_files_path, remove, get_max_workers, max_threads, max_threads_dai
+)
 import datatable as dt
 import numpy as np
 import os
 import uuid
+import shutil
 import random
 import importlib
 import pandas as pd
@@ -62,7 +65,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         return dict(col_type="time_column", min_cols=1, max_cols=1, relative_importance=1)
 
     @staticmethod
-    def _fit_async(X_path, grp_hash):
+    def _fit_async(X_path, grp_hash, tmp_folder):
         """
         Fits a FB Prophet model for a particular time group
         :param X_path: Path to the data used to fit the FB Prophet model
@@ -84,7 +87,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
         with suppress_stdout_stderr():
             model.fit(X[['ds', 'y']])
-        model_path = os.path.join(temporary_files_path, "fbprophet_model" + str(uuid.uuid4()))
+        model_path = os.path.join(tmp_folder, "fbprophet_model" + str(uuid.uuid4()))
         save_obj(model, model_path)
         remove(X_path)  # remove to indicate success
         return grp_hash, model_path
@@ -97,6 +100,39 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         :param y: numpy array containing the historical values of the target
         :return: self
         """
+
+        # Get the logger if it exists
+        logger = None
+        tmp_folder = str(uuid.uuid4()) + "_prophet_folder/"
+        if self.context and self.context.experiment_id:
+            logger = make_experiment_logger(
+                experiment_id=self.context.experiment_id,
+                tmp_dir=self.context.tmp_dir,
+                experiment_tmp_dir=self.context.experiment_tmp_dir
+            )
+
+            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_prophet_folder/"
+
+        # Create a temp folder to store files used during multi processing experiment
+        # This temp folder will be removed at the end of the process
+        loggerinfo(logger, "Prophet temp folder {}".format(tmp_folder))
+        try:
+            os.mkdir(tmp_folder)
+        except PermissionError:
+            # This not occur so log a warning
+            loggerwarning(logger, "Prophet was denied temp folder creation rights")
+            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_prophet_folder/"
+            os.mkdir(tmp_folder)
+        except  FileExistsError:
+            # We should never be here since temp dir name is expected to be unique
+            loggerwarning(logger, "Prophet temp folder already exists")
+            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_prophet_folder/"
+            os.mkdir(tmp_folder)
+        except:
+            # Revert to temporary file path
+            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_prophet_folder/"
+            os.mkdir(tmp_folder)
+
         # Convert to pandas
         XX = X[:, self.tgc].to_pandas()
         XX = XX.replace([None, np.nan], 0)
@@ -106,7 +142,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             y = LabelEncoder().fit(self.labels).transform(y)
         XX['y'] = np.array(y)
         # Set target prior
-        self.nan_value = np.mean(y)  # TODO - store mean per group, not just global
+        self.nan_value = np.mean(y)
 
         # Group the input by TGC (Time group column) excluding the time column itself
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
@@ -115,6 +151,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         else:
             XX_grp = [([None], XX)]
         self.models = {}
+        self.priors = {}
 
         # Prepare for multi processing
         num_tasks = len(XX_grp)
@@ -123,16 +160,20 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             out[res[0]] = res[1]
 
         pool_to_use = small_job_pool
-        pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
+        if hasattr(self, "params_base"):
+            max_workers = self.params_base['n_jobs']
+        else:
+            loggerinfo(logger, "Custom Recipe does not have a params_base attribute")
+            # Beware not to use the disable_gpus keyword here. looks like cython does not like it
+            # max_workers = get_max_workers(True)
+            # Just set default to 2
+            max_workers = 2
 
-        # Get the logger if it exists
-        logger = None
-        if self.context and self.context.experiment_id:
-            logger = make_experiment_logger(
-                experiment_id=self.context.experiment_id,
-                tmp_dir=self.context.tmp_dir,
-                experiment_tmp_dir=self.context.experiment_tmp_dir
-            )
+        loggerinfo(logger, "Prophet will use {} workers for parallel processing".format(max_workers))
+        pool = pool_to_use(
+            logger=None, processor=processor,
+            num_tasks=num_tasks, max_workers=max_workers
+        )
 
         # Fit 1 FB Prophet model per time group columns
         nb_groups = len(XX_grp)
@@ -141,22 +182,32 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             if (_i_g + 1) % max(1, nb_groups // 20) == 0:
                 loggerinfo(logger, "FB Prophet : %d%% of groups fitted" % (100 * (_i_g + 1) // nb_groups))
 
-            X_path = os.path.join(temporary_files_path, "fbprophet_X" + str(uuid.uuid4()))
+            X_path = os.path.join(tmp_folder, "fbprophet_X" + str(uuid.uuid4()))
             X = X.reset_index(drop=True)
             save_obj(X, X_path)
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
-            args = (X_path, grp_hash,)
+
+            self.priors[grp_hash] = X['y'].mean()
+
+            args = (X_path, grp_hash, tmp_folder)
             kwargs = {}
             pool.submit_tryget(None, MyParallelProphetTransformer_fit_async, args=args, kwargs=kwargs, out=self.models)
         pool.finish()
         for k, v in self.models.items():
             self.models[k] = load_obj(v) if v is not None else None
             remove(v)
+
+        try:
+            shutil.rmtree(tmp_folder)
+            loggerinfo(logger, "Prophet cleaned up temporary file folder.")
+        except:
+            loggerwarning(logger, "Prophet could not delete the temporary file folder.")
+
         return self
 
     @staticmethod
-    def _transform_async(model_path, X_path, nan_value):
+    def _transform_async(model_path, X_path, nan_value, tmp_folder):
         """
         Predicts target for a particular time group
         :param model_path: path to the stored model
@@ -165,7 +216,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         :return: self
         """
         model = load_obj(model_path)
-        XX_path = os.path.join(temporary_files_path, "fbprophet_XXt" + str(uuid.uuid4()))
+        XX_path = os.path.join(tmp_folder, "fbprophet_XXt" + str(uuid.uuid4()))
         X = load_obj(X_path)
         # Facebook Prophet returns the predictions ordered by time
         # So we should keep track of the time order for each group so that
@@ -191,6 +242,39 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         :param X: Datatable Frame containing the features
         :return: FB Prophet predictions
         """
+        # Get the logger if it exists
+        logger = None
+        tmp_folder = str(uuid.uuid4()) + "_prophet_folder/"
+        if self.context and self.context.experiment_id:
+            logger = make_experiment_logger(
+                experiment_id=self.context.experiment_id,
+                tmp_dir=self.context.tmp_dir,
+                experiment_tmp_dir=self.context.experiment_tmp_dir
+            )
+
+            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_prophet_folder/"
+
+        # Create a temp folder to store files used during multi processing experiment
+        # This temp folder will be removed at the end of the process
+        loggerinfo(logger, "Prophet temp folder {}".format(tmp_folder))
+        try:
+            os.mkdir(tmp_folder)
+        except PermissionError:
+            # This not occur so log a warning
+            loggerwarning(logger, "Prophet was denied temp folder creation rights")
+            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_prophet_folder/"
+            os.mkdir(tmp_folder)
+        except  FileExistsError:
+            # We should never be here since temp dir name is expected to be unique
+            loggerwarning(logger, "Prophet temp folder already exists")
+            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_prophet_folder/"
+            os.mkdir(tmp_folder)
+        except:
+            # Revert to temporary file path
+            loggerwarning(logger, "Prophet defaulted to create folder inside tmp directory.")
+            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_prophet_folder/"
+            os.mkdir(tmp_folder)
+
         XX = X[:, self.tgc].to_pandas()
         XX = XX.replace([None, np.nan], 0)
         XX.rename(columns={self.time_column: "ds"}, inplace=True)
@@ -205,15 +289,6 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         def processor(out, res):
             out.append(res)
 
-        # Get the logger if it exists
-        logger = None
-        if self.context and self.context.experiment_id:
-            logger = make_experiment_logger(
-                experiment_id=self.context.experiment_id,
-                tmp_dir=self.context.tmp_dir,
-                experiment_tmp_dir=self.context.experiment_tmp_dir
-            )
-
         pool_to_use = small_job_pool
         pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
         XX_paths = []
@@ -227,17 +302,17 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
-            X_path = os.path.join(temporary_files_path, "fbprophet_Xt" + str(uuid.uuid4()))
+            X_path = os.path.join(tmp_folder, "fbprophet_Xt" + str(uuid.uuid4()))
             # Commented for performance, uncomment for debug
             # print("prophet - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
             if grp_hash in self.models:
                 model = self.models[grp_hash]
-                model_path = os.path.join(temporary_files_path, "fbprophet_modelt" + str(uuid.uuid4()))
+                model_path = os.path.join(tmp_folder, "fbprophet_modelt" + str(uuid.uuid4()))
                 save_obj(model, model_path)
                 save_obj(X, X_path)
                 model_paths.append(model_path)
 
-                args = (model_path, X_path, self.nan_value)
+                args = (model_path, X_path, self.nan_value, tmp_folder)
                 kwargs = {}
                 pool.submit_tryget(None, MyParallelProphetTransformer_transform_async, args=args, kwargs=kwargs,
                                    out=XX_paths)
@@ -250,6 +325,13 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         XX = pd.concat((load_obj(XX_path) for XX_path in XX_paths), axis=0).sort_index()
         for p in XX_paths + model_paths:
             remove(p)
+
+        try:
+            shutil.rmtree(tmp_folder)
+            loggerinfo(logger, "Prophet cleaned up temporary file folder.")
+        except:
+            loggerwarning(logger, "Prophet could not delete the temporary file folder.")
+
         return XX
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
