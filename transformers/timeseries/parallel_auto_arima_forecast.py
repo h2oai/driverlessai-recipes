@@ -7,14 +7,17 @@ In this implementation, Time Group Models are fitted in parallel"""
 # Please note that depending on your server setup, the parallel implementation may not be faster
 
 import importlib
-from h2oaicore.systemutils import small_job_pool, save_obj, load_obj, temporary_files_path, remove
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
+from h2oaicore.systemutils import (
+    small_job_pool, save_obj, load_obj, temporary_files_path, remove, get_max_workers, max_threads, max_threads_dai
+)
 import datatable as dt
 import numpy as np
 import pandas as pd
 import random
 import os
 import uuid
+import shutil
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 
 
@@ -57,7 +60,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         return dict(col_type="time_column", min_cols=1, max_cols=1, relative_importance=1)
 
     @staticmethod
-    def _fit_async(X_path, grp_hash, time_column):
+    def _fit_async(X_path, grp_hash, time_column, tmp_folder):
         """
         Fits an ARIMA model for a particular time group
         :param X_path: Path to the data used to fit the ARIMA model
@@ -76,7 +79,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
                 model = pm.auto_arima(X['y'].values[order], error_action='ignore')
             except:
                 model = None
-        model_path = os.path.join(temporary_files_path, "autoarima_model" + str(uuid.uuid4()))
+        model_path = os.path.join(tmp_folder, "autoarima_model" + str(uuid.uuid4()))
         save_obj(model, model_path)
         remove(X_path)  # remove to indicate success
         return grp_hash, model_path
@@ -89,6 +92,38 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         :param y: numpy array containing the historical values of the target
         :return: self
         """
+        # Get the logger if it exists
+        logger = None
+        tmp_folder = str(uuid.uuid4()) + "_arima_folder/"
+        if self.context and self.context.experiment_id:
+            logger = make_experiment_logger(
+                experiment_id=self.context.experiment_id,
+                tmp_dir=self.context.tmp_dir,
+                experiment_tmp_dir=self.context.experiment_tmp_dir
+            )
+
+            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_arima_folder/"
+
+        # Create a temp folder to store files used during multi processing experiment
+        # This temp folder will be removed at the end of the process
+        loggerinfo(logger, "Arima temp folder {}".format(tmp_folder))
+        try:
+            os.mkdir(tmp_folder)
+        except PermissionError:
+            # This not occur so log a warning
+            loggerwarning(logger, "Arima was denied temp folder creation rights")
+            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_arima_folder/"
+            os.mkdir(tmp_folder)
+        except  FileExistsError:
+            # We should never be here since temp dir name is expected to be unique
+            loggerwarning(logger, "Arima temp folder already exists")
+            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_arima_folder/"
+            os.mkdir(tmp_folder)
+        except:
+            # Revert to temporary file path
+            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_arima_folder/"
+            os.mkdir(tmp_folder)
+
         # Import the ARIMA python module
         pm = importlib.import_module('pmdarima')
         # Init models
@@ -114,16 +149,20 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
             out[res[0]] = res[1]
 
         pool_to_use = small_job_pool
-        pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
+        if hasattr(self, "params_base"):
+            max_workers = self.params_base['n_jobs']
+        else:
+            loggerinfo(logger, "Custom Recipe does not have a params_base attribute")
+            # Beware not to use the disable_gpus keyword here. looks like cython does not like it
+            # max_workers = get_max_workers(True)
+            # Just set default to 2
+            max_workers = 2
 
-        # Get the logger if it exists
-        logger = None
-        if self.context and self.context.experiment_id:
-            logger = make_experiment_logger(
-                experiment_id=self.context.experiment_id,
-                tmp_dir=self.context.tmp_dir,
-                experiment_tmp_dir=self.context.experiment_tmp_dir
-            )
+        loggerinfo(logger, "Arima will use {} workers for parallel processing".format(max_workers))
+        pool = pool_to_use(
+            logger=None, processor=processor,
+            num_tasks=num_tasks, max_workers=max_workers
+        )
 
         # Build 1 ARIMA model per time group columns
         nb_groups = len(XX_grp)
@@ -132,12 +171,12 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
             if (_i_g + 1) % max(1, nb_groups // 20) == 0:
                 loggerinfo(logger, "Auto ARIMA : %d%% of groups fitted" % (100 * (_i_g + 1) // nb_groups))
 
-            X_path = os.path.join(temporary_files_path, "autoarima_X" + str(uuid.uuid4()))
+            X_path = os.path.join(tmp_folder, "autoarima_X" + str(uuid.uuid4()))
             X = X.reset_index(drop=True)
             save_obj(X, X_path)
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
-            args = (X_path, grp_hash, self.time_column,)
+            args = (X_path, grp_hash, self.time_column, tmp_folder)
             kwargs = {}
             pool.submit_tryget(None, MyParallelAutoArimaTransformer_fit_async, args=args, kwargs=kwargs,
                                out=self.models)
@@ -146,10 +185,17 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         for k, v in self.models.items():
             self.models[k] = load_obj(v) if v is not None else None
             remove(v)
+
+        try:
+            shutil.rmtree(tmp_folder)
+            loggerinfo(logger, "Arima cleaned up temporary file folder.")
+        except:
+            loggerwarning(logger, "Arima could not delete the temporary file folder.")
+
         return self
 
     @staticmethod
-    def _transform_async(model_path, X_path, nan_value, has_is_train_attr, time_column):
+    def _transform_async(model_path, X_path, nan_value, has_is_train_attr, time_column, tmp_folder):
         """
         Predicts target for a particular time group
         :param model_path: path to the stored model
@@ -160,7 +206,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         :return: self
         """
         model = load_obj(model_path)
-        XX_path = os.path.join(temporary_files_path, "autoarima_XXt" + str(uuid.uuid4()))
+        XX_path = os.path.join(tmp_folder, "autoarima_XXt" + str(uuid.uuid4()))
         X = load_obj(X_path)
         # Arima returns the predictions ordered by time
         # So we should keep track of the time order for each group so that
@@ -193,6 +239,39 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         :param X: Datatable Frame containing the features
         :return: ARIMA predictions
         """
+        # Get the logger if it exists
+        logger = None
+        tmp_folder = str(uuid.uuid4()) + "_arima_folder/"
+        if self.context and self.context.experiment_id:
+            logger = make_experiment_logger(
+                experiment_id=self.context.experiment_id,
+                tmp_dir=self.context.tmp_dir,
+                experiment_tmp_dir=self.context.experiment_tmp_dir
+            )
+
+            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_arima_folder/"
+
+        # Create a temp folder to store files used during multi processing experiment
+        # This temp folder will be removed at the end of the process
+        loggerinfo(logger, "Arima temp folder {}".format(tmp_folder))
+        try:
+            os.mkdir(tmp_folder)
+        except PermissionError:
+            # This not occur so log a warning
+            loggerwarning(logger, "Arima was denied temp folder creation rights")
+            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_arima_folder/"
+            os.mkdir(tmp_folder)
+        except  FileExistsError:
+            # We should never be here since temp dir name is expected to be unique
+            loggerwarning(logger, "Arima temp folder already exists")
+            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_arima_folder/"
+            os.mkdir(tmp_folder)
+        except:
+            # Revert to temporary file path
+            loggerwarning(logger, "Arima defaulted to create folder inside tmp directory.")
+            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_arima_folder/"
+            os.mkdir(tmp_folder)
+
         X = X.to_pandas()
         XX = X[self.tgc].copy()
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
@@ -206,15 +285,6 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
 
         def processor(out, res):
             out.append(res)
-
-        # Get the logger if it exists
-        logger = None
-        if self.context and self.context.experiment_id:
-            logger = make_experiment_logger(
-                experiment_id=self.context.experiment_id,
-                tmp_dir=self.context.tmp_dir,
-                experiment_tmp_dir=self.context.experiment_tmp_dir
-            )
 
         pool_to_use = small_job_pool
         pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
@@ -230,18 +300,18 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
             # Create file path to store data and pass it to the fitting pool
-            X_path = os.path.join(temporary_files_path, "autoarima_Xt" + str(uuid.uuid4()))
+            X_path = os.path.join(tmp_folder, "autoarima_Xt" + str(uuid.uuid4()))
 
             # Commented for performance, uncomment for debug
             # print("ARIMA - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
             if grp_hash in self.models:
                 model = self.models[grp_hash]
-                model_path = os.path.join(temporary_files_path, "autoarima_modelt" + str(uuid.uuid4()))
+                model_path = os.path.join(tmp_folder, "autoarima_modelt" + str(uuid.uuid4()))
                 save_obj(model, model_path)
                 save_obj(X, X_path)
                 model_paths.append(model_path)
 
-                args = (model_path, X_path, self.nan_value, hasattr(self, 'is_train'), self.time_column,)
+                args = (model_path, X_path, self.nan_value, hasattr(self, 'is_train'), self.time_column, tmp_folder)
                 kwargs = {}
                 pool.submit_tryget(None, MyParallelAutoArimaTransformer_transform_async, args=args, kwargs=kwargs,
                                    out=XX_paths)
@@ -256,6 +326,13 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         XX = pd.concat((load_obj(XX_path) for XX_path in XX_paths), axis=0).sort_index()
         for p in XX_paths + model_paths:
             remove(p)
+
+        try:
+            shutil.rmtree(tmp_folder)
+            loggerinfo(logger, "Arima cleaned up temporary file folder.")
+        except:
+            loggerwarning(logger, "Arima could not delete the temporary file folder.")
+
         return XX
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
