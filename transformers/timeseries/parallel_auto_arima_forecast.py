@@ -9,7 +9,7 @@ In this implementation, Time Group Models are fitted in parallel"""
 import importlib
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 from h2oaicore.systemutils import (
-    small_job_pool, save_obj, load_obj, temporary_files_path, remove, get_max_workers, max_threads, max_threads_dai
+    small_job_pool, save_obj, load_obj, temporary_files_path, remove, config, max_threads
 )
 import datatable as dt
 import numpy as np
@@ -84,7 +84,56 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         remove(X_path)  # remove to indicate success
         return grp_hash, model_path
 
-    def fit(self, X: dt.Frame, y: np.array = None):
+    def _get_n_jobs(self, logger, **kwargs):
+        try:
+            if config.fixed_num_folds == 0:
+                n_jobs = max(1, int(int(max_threads() / min(config.num_folds, kwargs['max_workers']))))
+            else:
+                n_jobs = max(1, int(int(max_threads() / min(config.fixed_num_folds, config.num_folds, kwargs['max_workers']))))
+        except KeyError:
+            loggerinfo(logger, "Arima No Max Worker in kwargs. Set n_jobs to 1")
+            n_jobs = 1
+
+        return n_jobs
+
+    def _clean_tmp_folder(self, logger, tmp_folder):
+        try:
+            shutil.rmtree(tmp_folder)
+            loggerinfo(logger, "Arima cleaned up temporary file folder.")
+        except:
+            loggerwarning(logger, "Arima could not delete the temporary file folder.")
+
+    def _create_tmp_folder(self, logger):
+        # Create a temp folder to store files used during multi processing experiment
+        # This temp folder will be removed at the end of the process
+        # Set the default value without context available (required to pass acceptance test
+        tmp_folder = str(uuid.uuid4()) + "_arima_folder/"
+        # Make a real tmp folder when experiment is available
+        if self.context and self.context.experiment_id:
+            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_arima_folder/"
+
+        # Now let's try to create that folder
+        try:
+            os.mkdir(tmp_folder)
+        except PermissionError:
+            # This not occur so log a warning
+            loggerwarning(logger, "Arima was denied temp folder creation rights")
+            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_arima_folder/"
+            os.mkdir(tmp_folder)
+        except FileExistsError:
+            # We should never be here since temp dir name is expected to be unique
+            loggerwarning(logger, "Arima temp folder already exists")
+            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_arima_folder/"
+            os.mkdir(tmp_folder)
+        except:
+            # Revert to temporary file path
+            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_arima_folder/"
+            os.mkdir(tmp_folder)
+
+        loggerinfo(logger, "Arima temp folder {}".format(tmp_folder))
+        return tmp_folder
+
+    def fit(self, X: dt.Frame, y: np.array = None, **kwargs):
         """
         Fits ARIMA models (1 per time group) using historical target values contained in y
         Model fitting is distributed over a pool of processes and uses file storage to share the data with workers
@@ -102,27 +151,9 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
                 experiment_tmp_dir=self.context.experiment_tmp_dir
             )
 
-            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_arima_folder/"
+        tmp_folder = self._create_tmp_folder(logger)
 
-        # Create a temp folder to store files used during multi processing experiment
-        # This temp folder will be removed at the end of the process
-        loggerinfo(logger, "Arima temp folder {}".format(tmp_folder))
-        try:
-            os.mkdir(tmp_folder)
-        except PermissionError:
-            # This not occur so log a warning
-            loggerwarning(logger, "Arima was denied temp folder creation rights")
-            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_arima_folder/"
-            os.mkdir(tmp_folder)
-        except  FileExistsError:
-            # We should never be here since temp dir name is expected to be unique
-            loggerwarning(logger, "Arima temp folder already exists")
-            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_arima_folder/"
-            os.mkdir(tmp_folder)
-        except:
-            # Revert to temporary file path
-            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_arima_folder/"
-            os.mkdir(tmp_folder)
+        n_jobs = self._get_n_jobs(logger, **kwargs)
 
         # Import the ARIMA python module
         pm = importlib.import_module('pmdarima')
@@ -149,19 +180,10 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
             out[res[0]] = res[1]
 
         pool_to_use = small_job_pool
-        if hasattr(self, "params_base"):
-            max_workers = self.params_base['n_jobs']
-        else:
-            loggerinfo(logger, "Custom Recipe does not have a params_base attribute")
-            # Beware not to use the disable_gpus keyword here. looks like cython does not like it
-            # max_workers = get_max_workers(True)
-            # Just set default to 2
-            max_workers = 2
-
-        loggerinfo(logger, "Arima will use {} workers for parallel processing".format(max_workers))
+        loggerinfo(logger, "Arima will use {} workers for parallel processing".format(n_jobs))
         pool = pool_to_use(
             logger=None, processor=processor,
-            num_tasks=num_tasks, max_workers=max_workers
+            num_tasks=num_tasks, max_workers=n_jobs
         )
 
         # Build 1 ARIMA model per time group columns
@@ -186,11 +208,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
             self.models[k] = load_obj(v) if v is not None else None
             remove(v)
 
-        try:
-            shutil.rmtree(tmp_folder)
-            loggerinfo(logger, "Arima cleaned up temporary file folder.")
-        except:
-            loggerwarning(logger, "Arima could not delete the temporary file folder.")
+        self._clean_tmp_folder(logger, tmp_folder)
 
         return self
 
@@ -231,7 +249,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         remove(X_path)  # indicates success, no longer need
         return XX_path
 
-    def transform(self, X: dt.Frame):
+    def transform(self, X: dt.Frame, **kwargs):
         """
         Uses fitted models (1 per time group) to predict the target
         If self.is_train exists, it means we are doing in-sample predictions
@@ -241,7 +259,6 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         """
         # Get the logger if it exists
         logger = None
-        tmp_folder = str(uuid.uuid4()) + "_arima_folder/"
         if self.context and self.context.experiment_id:
             logger = make_experiment_logger(
                 experiment_id=self.context.experiment_id,
@@ -249,28 +266,9 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
                 experiment_tmp_dir=self.context.experiment_tmp_dir
             )
 
-            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_arima_folder/"
+        tmp_folder = self._create_tmp_folder(logger)
 
-        # Create a temp folder to store files used during multi processing experiment
-        # This temp folder will be removed at the end of the process
-        loggerinfo(logger, "Arima temp folder {}".format(tmp_folder))
-        try:
-            os.mkdir(tmp_folder)
-        except PermissionError:
-            # This not occur so log a warning
-            loggerwarning(logger, "Arima was denied temp folder creation rights")
-            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_arima_folder/"
-            os.mkdir(tmp_folder)
-        except  FileExistsError:
-            # We should never be here since temp dir name is expected to be unique
-            loggerwarning(logger, "Arima temp folder already exists")
-            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_arima_folder/"
-            os.mkdir(tmp_folder)
-        except:
-            # Revert to temporary file path
-            loggerwarning(logger, "Arima defaulted to create folder inside tmp directory.")
-            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_arima_folder/"
-            os.mkdir(tmp_folder)
+        n_jobs = self._get_n_jobs(logger, **kwargs)
 
         X = X.to_pandas()
         XX = X[self.tgc].copy()
@@ -287,7 +285,9 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
             out.append(res)
 
         pool_to_use = small_job_pool
-        pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks)
+        loggerinfo(logger, "Arima will use {} workers for transform".format(n_jobs))
+        pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks, max_workers=n_jobs)
+
         XX_paths = []
         model_paths = []
         nb_groups = len(XX_grp)
@@ -327,15 +327,11 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         for p in XX_paths + model_paths:
             remove(p)
 
-        try:
-            shutil.rmtree(tmp_folder)
-            loggerinfo(logger, "Arima cleaned up temporary file folder.")
-        except:
-            loggerwarning(logger, "Arima could not delete the temporary file folder.")
+        self._clean_tmp_folder(logger, tmp_folder)
 
         return XX
 
-    def fit_transform(self, X: dt.Frame, y: np.array = None):
+    def fit_transform(self, X: dt.Frame, y: np.array = None, **kwargs):
         """
         Fits the ARIMA models (1 per time group) and outputs the corresponding predictions
         :param X: Datatable Frame
@@ -343,7 +339,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         :return: in-sample ARIMA predictions
         """
         self.is_train = True
-        ret = self.fit(X, y).transform(X)
+        ret = self.fit(X, y, **kwargs).transform(X, **kwargs)
         del self.is_train
         return ret
 
