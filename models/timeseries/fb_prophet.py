@@ -38,7 +38,7 @@ class FBProphetModel(CustomTimeSeriesModel):
 
     @staticmethod
     def do_acceptance_test():
-        return True
+        return False
 
     _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.4.post2']
 
@@ -126,8 +126,8 @@ class FBProphetModel(CustomTimeSeriesModel):
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
 
         # Get TGC and time column
-        self.tgc = self.params_base.get('tgc')
-        self.time_column = self.params_base.get('time_column')
+        self.tgc = self.params_base.get('tgc', None)
+        self.time_column = self.params_base.get('time_column', None)
         self.nan_value = np.mean(y)
         self.cap = np.max(y) * 1.5  # TODO Don't like this we should compute a cap from average yearly growth
         self.prior = np.mean(y)
