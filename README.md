@@ -47,7 +47,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 * [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
 
 ## Sample Recipes
-### Count: 78
+### Count: 80
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
   * [ALGORITHMS](./models/algorithms)
@@ -83,6 +83,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
       * [false_discovery_rate.py](./scorers/classification/binary/false_discovery_rate.py) [False Discovery Rate: `FP / (FP + TP)` for binary classification - only recommended if threshold is adjusted`]
       * [false_negative_count.py](./scorers/classification/binary/false_negative_count.py) [Optimizes for specific Confusion Matrix Values: `FN` - only recommended if threshold is adjusted]
       * [false_positive_count.py](./scorers/classification/binary/false_positive_count.py) [Optimizes for specific Confusion Matrix Values: `FP` - only recommended if threshold is adjusted]
+      * [profit.py](./scorers/classification/binary/profit.py) [Uses domain information about user behavior to calculate the profit or loss of a model.]
       * [true_negative_count.py](./scorers/classification/binary/true_negative_count.py) [Optimizes for specific Confusion Matrix Values: `TN` - only recommended if threshold is adjusted]
       * [true_positive_count.py](./scorers/classification/binary/true_positive_count.py) [Optimizes for specific Confusion Matrix Values: `TP` - only recommended if threshold is adjusted]
     * [MULTICLASS](./scorers/classification/multiclass)
@@ -105,6 +106,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [ipaddress_features.py](./transformers/augmentation/ipaddress_features.py) [Parses IP addresses and networks and extracts its properties.]
     * [is_ramadan.py](./transformers/augmentation/is_ramadan.py) [Returns a flag for whether a date falls on Ramadan in Saudi Arabia]
     * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py) [Flag for whether a date falls on a public holiday in Singapore.]
+    * [uszipcode_features_light.py](./transformers/augmentation/uszipcode_features_light.py) [Lightweight transformer to parse and augment US zipcodes with info from zipcode database.]
   * [DATETIME](./transformers/datetime)
     * [datetime_diff_transformer.py](./transformers/datetime/datetime_diff_transformer.py) [Difference in time between two datetime columns]
     * [datetime_encoder_transformer.py](./transformers/datetime/datetime_encoder_transformer.py) [Converts datetime column into an integer (milliseconds since 1970)]

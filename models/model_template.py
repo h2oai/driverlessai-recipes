@@ -44,6 +44,30 @@ class CustomModel(BaseCustomModel):
     If set to True, requires implementation of write_to_mojo() method."""
     _mojo = False
 
+    """ Whether externally-provided iterations can control the fit
+        If _predict_by_iteration=True, use of set_model_properties(iterations=<iterations>) should have <iterations> match value
+        that would be used later for predictions that could be passed into predict as kwarg _predict_iteration_name,
+        if so predict can use specific model state to avoid overfitting across folds/splits/repeats.
+        If _predict_by_iteration=False, _fit_iteration_name will be kwarg passed to fit to re-fit as required to 
+        avoid overfitting when there are multiple folds/splits/repeats.
+        If _fit_by_iteration=False, then no overfit avoidance will be attempted by DAI.
+    """
+    _fit_by_iteration = True
+
+    """ Name of param passed to constructor or fit as kwargs to control iterations
+        The DAI universal name for this is mapped to model.params_base['n_estimators']
+    """
+    _fit_iteration_name = 'n_estimators'
+
+    """ Whether externally-provided iterations can control the predict for fitted model.
+        If so, then predictions can be made on well-defined fold/split/repeat-averaged count,
+        without re-fitting, and we pass kwargs of name _predict_iteration_name to model predict.
+        """
+    _predict_by_iteration = False
+
+    """ Name of kwarg passed to predict to control iterations (ignored if _predict_by_iteration=False)"""
+    _predict_iteration_name = None
+
     @staticmethod
     def is_enabled():
         """Return whether recipe is enabled. If disabled, recipe will be completely ignored."""
