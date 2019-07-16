@@ -13,17 +13,18 @@ class BoxCoxTransformer(CustomTransformer):
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         XX = X.to_pandas().iloc[:, 0].values
         is_na = np.isnan(XX)
+        self._offset = -np.nanmin(XX) if np.nanmin(XX) < 0 else 0
+        self._offset += 1e-3
+        self._lmbda = None
         if not any(~is_na):
             return X
-        self._offset = -XX.min() if XX.min() < 0 else 0
-        self._offset += 1e-3
-        self._lmbda = boxcox(self._offset + XX[~is_na], lmbda=None)[1]  # compute lambda
+        self._lmbda = boxcox(self._offset + XX[~is_na], lmbda=self._lmbda)[1]  # compute lambda
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
         XX = X.to_pandas().iloc[:, 0].values
         is_na = np.isnan(XX) | np.array(XX <= -self._offset)
-        if not any(~is_na):
+        if not any(~is_na) or self._lmbda is None:
             return X
         ret = boxcox(self._offset + XX[~is_na], lmbda=self._lmbda)  # apply transform with pre-computed lambda
         XX[~is_na] = ret
