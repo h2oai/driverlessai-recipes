@@ -132,9 +132,6 @@ class FBProphetModel(CustomTimeSeriesModel):
         self.cap = np.max(y) * 1.5  # TODO Don't like this we should compute a cap from average yearly growth
         self.prior = np.mean(y)
 
-        if self.tgc is None or not all([x in X.names for x in self.tgc]):
-            return
-
         if self.time_column is None:
             self.time_column = self.tgc[0]
 
