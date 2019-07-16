@@ -147,7 +147,7 @@ class LinearSVMModel(CustomModel):
         for col in X.names:
             XX = X[:, col]
             self.means[col] = XX.mean1()
-            if np.isnan(self.means[col]):
+            if self.means[col] is None:
                 self.means[col] = 0
             XX.replace(None, self.means[col])
             X[:, col] = XX
