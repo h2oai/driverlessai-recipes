@@ -16,6 +16,7 @@ class MyTwoSigmaWinsorizer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         X = dt.Frame(X)
-        X[self.mean - 2 * self.sd > dt.f[0], float] = self.mean - 2 * self.sd
-        X[self.mean + 2 * self.sd < dt.f[0], float] = self.mean + 2 * self.sd
+        if self.sd is not None and self.mean is not None:
+            X[self.mean - 2 * self.sd > dt.f[0], float] = self.mean - 2 * self.sd
+            X[self.mean + 2 * self.sd < dt.f[0], float] = self.mean + 2 * self.sd
         return X
