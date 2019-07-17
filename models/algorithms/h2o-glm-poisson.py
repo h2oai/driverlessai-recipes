@@ -157,7 +157,5 @@ class H2OGLMPoissonModel(H2OBaseModel, CustomModel):
     def mutate_params(self,
                       accuracy, time_tolerance, interpretability,
                       **kwargs):
-
         self.params['family'] = "poisson"
         self.params['link'] = np.random.choice(["log", "identity"])
-

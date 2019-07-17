@@ -97,7 +97,8 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             if config.fixed_num_folds == 0:
                 n_jobs = max(1, int(int(max_threads() / min(config.num_folds, kwargs['max_workers']))))
             else:
-                n_jobs = max(1, int(int(max_threads() / min(config.fixed_num_folds, config.num_folds, kwargs['max_workers']))))
+                n_jobs = max(1, int(
+                    int(max_threads() / min(config.fixed_num_folds, config.num_folds, kwargs['max_workers']))))
         except KeyError:
             loggerinfo(logger, "Prophet No Max Worker in kwargs. Set n_jobs to 1")
             n_jobs = 1
