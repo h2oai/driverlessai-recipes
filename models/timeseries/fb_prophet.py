@@ -280,5 +280,3 @@ class FBProphetModel(CustomTimeSeriesModel):
         XX = pd.concat(tuple(preds), axis=0).sort_index()
 
         return XX['yhat'].values
-
-

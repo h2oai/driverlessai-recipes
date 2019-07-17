@@ -36,7 +36,6 @@ class cost_binary(CustomScorer):
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-
         # label actuals as 1 or 0
         lb = LabelEncoder()
         labels = lb.fit_transform(labels)
