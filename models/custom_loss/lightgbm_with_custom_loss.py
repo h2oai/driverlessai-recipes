@@ -66,7 +66,7 @@ class MyLGBMAsymMSE(BaseCustomModel, LightGBMModel):
         # is the one we want
         # So first call the parent method to mutate parameters
         super().mutate_params(
-            self, get_best=get_best, time_tolerance=time_tolerance, accuracy=accuracy,
+            get_best=get_best, time_tolerance=time_tolerance, accuracy=accuracy,
             interpretability=interpretability,
             imbalance_ratio=imbalance_ratio, train_shape=train_shape, ncol_effective=ncol_effective,
             time_series=time_series, ensemble_level=ensemble_level,
