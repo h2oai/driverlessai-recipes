@@ -74,6 +74,17 @@ class CustomModel(BaseCustomModel):
         return True
 
     @staticmethod
+    def enabled_setting():
+        """Return whether recipe operates in "auto", "on", or "off" mode.
+           If "auto", then recipe may not always appear as overridden by automatic "smart" choices.
+           E.g. if too many classes, DAI will switch to using its TensorFlow model.
+           If "on", then will always appear if applicable to class count, etc.
+           If "off", then not used.
+           "on" is default choice, so any custom model is not automatically removed by smart choices.
+        """
+        return "on"
+
+    @staticmethod
     def do_acceptance_test():
         """
         Return whether to do acceptance tests during upload of recipe and during start of Driverless AI.
@@ -110,7 +121,7 @@ class CustomModel(BaseCustomModel):
         return True
 
     def set_default_params(self,
-                           accuracy=None, time_tolerance=None, interpretability=None,
+                           accuracy=10, time_tolerance=10, interpretability=1,
                            **kwargs):
         """Set the state of a dictionary containing model parameters to be used during `fit()` and `predict()`.
 
