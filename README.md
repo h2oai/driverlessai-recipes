@@ -48,7 +48,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 
 ## Sample Recipes
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
-### Count: 80
+### Count: 81
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
   * [ALGORITHMS](./models/algorithms)
@@ -84,6 +84,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
       * [false_discovery_rate.py](./scorers/classification/binary/false_discovery_rate.py) [False Discovery Rate: `FP / (FP + TP)` for binary classification - only recommended if threshold is adjusted`]
       * [false_negative_count.py](./scorers/classification/binary/false_negative_count.py) [Optimizes for specific Confusion Matrix Values: `FN` - only recommended if threshold is adjusted]
       * [false_positive_count.py](./scorers/classification/binary/false_positive_count.py) [Optimizes for specific Confusion Matrix Values: `FP` - only recommended if threshold is adjusted]
+      * [marketing_campaign.py](./scorers/classification/binary/marketing_campaign.py) [Computes the mean profit per outbound marketing letter, given a fraction of the population addressed, and fixed cost and reward]
       * [profit.py](./scorers/classification/binary/profit.py) [Uses domain information about user behavior to calculate the profit or loss of a model.]
       * [true_negative_count.py](./scorers/classification/binary/true_negative_count.py) [Optimizes for specific Confusion Matrix Values: `TN` - only recommended if threshold is adjusted]
       * [true_positive_count.py](./scorers/classification/binary/true_positive_count.py) [Optimizes for specific Confusion Matrix Values: `TP` - only recommended if threshold is adjusted]
