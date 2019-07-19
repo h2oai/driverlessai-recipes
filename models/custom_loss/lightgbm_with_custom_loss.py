@@ -65,10 +65,10 @@ class MyLGBMAsymMSE(BaseCustomModel, LightGBMModel):
         # For demonstration purposes we purposely make sure that the objective
         # is the one we want
         # So first call the parent method to mutate parameters
-        params = LightGBMModel.mutate_params(
+        self.params = LightGBMModel.mutate_params(
             self, get_best=get_best, time_tolerance=time_tolerance, accuracy=accuracy,
             imbalance_ratio=imbalance_ratio, train_shape=train_shape, ncol_effective=ncol_effective,
             time_series=time_series, ensemble_level=ensemble_level,
             score_f_name=score_f_name, **kwargs)
         # Now set the objective
-        params["objective"] = custom_asymmetric_objective
+        self.params["objective"] = custom_asymmetric_objective
