@@ -33,22 +33,22 @@ class MarketingCampaign(CustomScorer):
 
         # probability of predicted response likelihood above which we'll send a letter
         cutoff = np.quantile(predicted, self._quantile)
-        print("cutoff: %f" % cutoff)
+        #print("cutoff: %f" % cutoff)
 
         # whom we'll send letter to
-        which = (predicted >= cutoff).ravel()
-        num_letters = len(which)
-        print("number of letters: %d" % num_letters)
+        selected = (predicted >= cutoff).ravel()
+        num_letters = len(np.where(selected))
+        #print("number of letters: %d" % num_letters)
 
         # compute cost and reward
         cost = num_letters * self._cost   # each letter costs _cost
-        reward = len(actual[which] == 1) * self._reward   # each true positive leads to _reward
-        print("cost: %f" % cost)
-        print("reward: %f" % reward)
+        reward = len(np.where(actual[selected] == 1)) * self._reward   # each true positive leads to _reward
+        #print("cost: %f" % cost)
+        #print("reward: %f" % reward)
 
         # compute total net income
         net_income = reward - cost
-        print("net_income: %f" % net_income)
+        #print("net_income: %f" % net_income)
 
         # return mean profit per letter sent
         return net_income / num_letters
