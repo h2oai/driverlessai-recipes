@@ -43,7 +43,6 @@ class CatBoostModel(CustomModel):
                        }
 
     def mutate_params(self,
-                      accuracy=None, time_tolerance=None, interpretability=None,
                       **kwargs):
         # Default version is do no mutation
         # Otherwise, change self.params for this model

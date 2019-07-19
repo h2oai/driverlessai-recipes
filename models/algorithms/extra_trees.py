@@ -22,7 +22,7 @@ class ExtraTreesModel(CustomModel):
                            criterion="gini" if self.num_classes >= 2 else "mse",
                            n_jobs=self.params_base.get('n_jobs', max(1, physical_cores_count)))
 
-    def mutate_params(self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs):
+    def mutate_params(self, accuracy=10, **kwargs):
         if accuracy > 8:
             estimators_list = [100, 200, 300, 500, 1000, 2000]
         elif accuracy >= 5:
