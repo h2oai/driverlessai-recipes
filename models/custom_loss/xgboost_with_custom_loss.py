@@ -61,7 +61,7 @@ class MyXGBMAsymMSE(BaseCustomModel, XGBoostGBMModel):
         # For demonstration purposes we purposely make sure that the objective
         # is the one we want
         # So first call the parent method to mutate parameters
-        self.params = XGBoostGBMModel.mutate_params(
+        super().mutate_params(
             self, get_best=get_best, time_tolerance=time_tolerance, accuracy=accuracy,
             interpretability=interpretability,
             imbalance_ratio=imbalance_ratio,
