@@ -1,5 +1,3 @@
-# Author: Michelle Tanco - michelle.tanco@h2o.ai
-# Last Updated: May 23rd, 2019
 """Using hard-coded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `x * FP + y * FN`"""
 
 import typing
@@ -9,12 +7,13 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import confusion_matrix
 
 
-class cost_binary(CustomScorer):
+class CostBinary(CustomScorer):
     _description = "Calculates cost in binary classification: `$1*FP + $2*FN`"
     _binary = True
     _maximize = False
     _perfect_score = 0
     _display_name = "Cost"
+    _threshold = 0.5  # Example only, should be adjusted based on domain knowledge and other experiments
 
     # The cost of false positives and negatives will vary by data set, we use the rules from the below as an example
     # https://www.kaggle.com/uciml/aps-failure-at-scania-trucks-data-set
@@ -32,9 +31,9 @@ class cost_binary(CustomScorer):
         actual = lb.transform(actual)
 
         # label predictions as 1 or 0
-        predicted = predicted >= 0.5
+        predicted = predicted >= self._threshold
 
-        # use sklean to get fp and fn
+        # use sklearn to get fp and fn
         cm = confusion_matrix(actual, predicted, sample_weight=sample_weight, labels=labels)
         tn, fp, fn, tp = cm.ravel()
 
