@@ -54,6 +54,16 @@ class CustomTransformer(DataTableTransformer):
         return True
 
     @staticmethod
+    def enabled_setting():
+        """Return whether recipe operates in "auto", "on", or "off" mode.
+           If "auto", then recipe may not always appear as overridden by automatic "smart" choices.
+           If "on", then will always appear if applicable to class count, etc.
+           If "off", then not used.
+           "on" is default choice, so any custom model is not automatically removed by smart choices.
+        """
+        return "on"
+
+    @staticmethod
     def do_acceptance_test():
         """
         Return whether to do acceptance tests during upload of recipe and during start of Driverless AI.
