@@ -37,12 +37,12 @@ class MarketingCampaign(CustomScorer):
 
         # whom we'll send letter to
         selected = (predicted >= cutoff).ravel()
-        num_letters = len(np.where(selected))
+        num_letters = np.count_nonzero(selected)
         #print("number of letters: %d" % num_letters)
 
         # compute cost and reward
         cost = num_letters * self._cost   # each letter costs _cost
-        reward = len(np.where(actual[selected] == 1)) * self._reward   # each true positive leads to _reward
+        reward = np.count_nonzero(actual[selected] == 1) * self._reward   # each true positive leads to _reward
         #print("cost: %f" % cost)
         #print("reward: %f" % reward)
 
