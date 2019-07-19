@@ -31,6 +31,7 @@ class MyLGBMAsymMSE(BaseCustomModel, LightGBMModel):
     # The loss is not for classification
     _binary = False
     _multiclass = False  # WIP
+    _mojo = False
     # Give the display name and description that will be shown in the UI
     _display_name = "MyLGBMAsymMSE"
     _description = "LightGBM with custom asymetric loss/objective"
