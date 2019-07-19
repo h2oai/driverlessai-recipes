@@ -55,10 +55,10 @@ class MyLGBMAsymMSE(BaseCustomModel, LightGBMModel):
         self.params["objective"] = custom_asymmetric_objective
 
     def mutate_params(
-            self, get_best=False, time_tolerance=None, accuracy=None,
-            imbalance_ratio=None,
-            train_shape=None, ncol_effective=None,
-            time_series=False, ensemble_level=None,
+            self, get_best=False, time_tolerance=10, accuracy=10, interpretability=1,
+            imbalance_ratio=1.0,
+            train_shape=(1, 1), ncol_effective=1,
+            time_series=False, ensemble_level=0,
             score_f_name: str = None, **kwargs):
         # If we don't override the parent mutate_params method, DAI would have the opportunity
         # to modify the objective and select the winner
@@ -67,6 +67,7 @@ class MyLGBMAsymMSE(BaseCustomModel, LightGBMModel):
         # So first call the parent method to mutate parameters
         self.params = LightGBMModel.mutate_params(
             self, get_best=get_best, time_tolerance=time_tolerance, accuracy=accuracy,
+            interpretability=interpretability,
             imbalance_ratio=imbalance_ratio, train_shape=train_shape, ncol_effective=ncol_effective,
             time_series=time_series, ensemble_level=ensemble_level,
             score_f_name=score_f_name, **kwargs)
