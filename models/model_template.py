@@ -133,7 +133,7 @@ class CustomModel(BaseCustomModel):
         self.params = {}
 
     def mutate_params(self,
-                      accuracy, time_tolerance, interpretability,
+                      accuracy=None, time_tolerance=None, interpretability=None,
                       **kwargs):
         """Mutate `self.params` dictionary of model parameters to be used during `fit()` and `predict()`.
 

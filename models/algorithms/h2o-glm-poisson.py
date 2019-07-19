@@ -155,7 +155,7 @@ class H2OGLMPoissonModel(H2OBaseModel, CustomModel):
     _class = H2OGeneralizedLinearEstimator
 
     def mutate_params(self,
-                      accuracy, time_tolerance, interpretability,
+                      accuracy=None, time_tolerance=None, interpretability=None,
                       **kwargs):
         self.params['family'] = "poisson"
         self.params['link'] = np.random.choice(["log", "identity"])
