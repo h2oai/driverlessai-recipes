@@ -10,8 +10,8 @@ from sklearn.metrics import confusion_matrix
 class MarketingCampaign(CustomScorer):
     _description = "Calculates mean profit per letter sent for a marketing campaign"
     _binary = True
-    _maximize = False
-    _perfect_score = 0
+    _maximize = True
+    _perfect_score = 1e20
     _display_name = "Campaign"
     _supports_sample_weight = False
 
