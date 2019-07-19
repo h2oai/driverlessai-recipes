@@ -183,7 +183,6 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
         return model.params['ntrees']['actual'] + 1
 
     def mutate_params(self,
-                      accuracy=None, time_tolerance=None, interpretability=None,
                       **kwargs):
         max_iterations = min(kwargs['n_estimators'],
                              config.max_nestimators) if 'n_estimators' in kwargs else config.max_nestimators
@@ -208,7 +207,6 @@ class H2ORFModel(H2OBaseModel, CustomModel):
         return model.params['ntrees']['actual'] + 1
 
     def mutate_params(self,
-                      accuracy=None, time_tolerance=None, interpretability=None,
                       **kwargs):
         max_iterations = min(kwargs['n_estimators'],
                              config.max_nestimators) if 'n_estimators' in kwargs else config.max_nestimators
@@ -230,7 +228,7 @@ class H2ODLModel(H2OBaseModel, CustomModel):
     _class = H2ODeepLearningEstimator
 
     def mutate_params(self,
-                      accuracy=None, time_tolerance=None, interpretability=None,
+                      accuracy=10, time_tolerance=10,
                       **kwargs):
         self.params['activation'] = np.random.choice(["rectifier", "rectifier",  # upweight
                                                       "rectifier_with_dropout",

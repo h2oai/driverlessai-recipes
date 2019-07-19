@@ -49,7 +49,7 @@ class FastFMModel(CustomModel):
                        }
 
     def mutate_params(self,
-                      accuracy=None, time_tolerance=None, interpretability=None,
+                      accuracy=10,
                       **kwargs):
 
         if accuracy > 8:

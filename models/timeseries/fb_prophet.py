@@ -86,7 +86,7 @@ class FBProphetModel(CustomTimeSeriesModel):
         )
 
     def mutate_params(self,
-                      accuracy=None, time_tolerance=None, interpretability=None,
+                      accuracy=10,
                       **kwargs):
 
         logger = None

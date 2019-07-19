@@ -91,7 +91,6 @@ class LinearSVMModel(CustomModel):
                        }
 
     def mutate_params(self,
-                      accuracy=None, time_tolerance=None, interpretability=None,
                       **kwargs):
 
         dual = True
