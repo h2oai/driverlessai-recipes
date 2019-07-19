@@ -61,7 +61,7 @@ class MyXGBMAsymMSE(BaseCustomModel, XGBoostGBMModel):
         # For demonstration purposes we purposely make sure that the objective
         # is the one we want
         # So first call the parent method to mutate parameters
-        params = XGBoostGBMModel.mutate_params(
+        self.params = XGBoostGBMModel.mutate_params(
             self, get_best=get_best, time_tolerance=time_tolerance, accuracy=accuracy,
             interpretability=interpretability,
             imbalance_ratio=imbalance_ratio,
@@ -70,4 +70,4 @@ class MyXGBMAsymMSE(BaseCustomModel, XGBoostGBMModel):
             score_f_name=score_f_name, **kwargs
         )
         # Now set the objective that DAI could have mutated
-        params["objective"] = custom_asymmetric_objective
+        self.params["objective"] = custom_asymmetric_objective
