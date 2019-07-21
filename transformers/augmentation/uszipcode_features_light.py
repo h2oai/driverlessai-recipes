@@ -4,8 +4,6 @@ import datatable as dt
 import numpy as np
 from abc import ABC, abstractmethod
 
-# saved for more elobarate zipcode transformer:
-# from uszipcode import SearchEngine
 _global_modules_needed_by_name = ['zipcodes==1.0.5']
 import zipcodes
 
@@ -17,56 +15,68 @@ class ZipcodeLightBaseTransformer(ABC):
         return dict(col_type="categorical", min_cols=1, max_cols=1, relative_importance=1)
 
     @abstractmethod
-    def get_zipcode_property(self, value):
+    def get_property_name(self):
         raise NotImplementedError
-
+    
+    def get_zipcode_property(self, zipcode_obj):
+        if zipcode_obj is None:
+            return None
+        else:
+            return zipcode_obj[self.get_property_name()]
+            
     def parse_zipcode(self, value):
-        result = zipcodes.matching(value)
-
-        return result[0]
+        try:
+            result = zipcodes.matching(value)
+            if (len(result) > 1):
+                return result[0]
+            else:
+                return None
+        except ValueError:
+            return None
+        except TypeError:
+            raise TypeError
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         return self.transform(X)
-
+      
     def transform(self, X: dt.Frame):
-
         try:
-            X = X.astype('str')
-            return X[:, {"x": (dt.isna(dt.f[0])) & None | self.get_zipcode_property(self.parse_zipcode(dt.f[0]))}]
+            X.names = ['zip_key']
+            X = X[:, str('zip_key')]
+            zip_list = dt.unique(X[~dt.isna(dt.f.zip_key), 0]).to_list()[0]
+            zip_features = [self.get_zipcode_property(self.parse_zipcode(x)) for x in zip_list]
+            X_g = dt.Frame({"zip_key": zip_list, self.get_property_name(): zip_features})
+            X_g.key = 'zip_key'
+            X_result = X[:, :, dt.join(X_g)]
+            return X_result[:, 1:]
         except:
             return np.zeros(X.shape[0])
 
 
 class ZipcodeTypeTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
-    def get_zipcode_property(self, value):
-        return value['zip_code_type']
-
-
+    def get_property_name(self, value):
+        return 'zip_code_type'
+    
 class ZipcodeCityTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
-    def get_zipcode_property(self, value):
-        return value['city']
-
-
+    def get_property_name(self, value):
+        return 'city'
+    
 class ZipcodeStateTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
-    def get_zipcode_property(self, value):
-        return value['state']
-
-
+    def get_property_name(self, value):
+        return 'state'
+    
 class ZipcodeLatitudeTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
-    def get_zipcode_property(self, value):
-        return value['lat']
-
-
+    def get_property_name(self, value):
+        return 'lat'
+    
 class ZipcodeLongitudeTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
-    def get_zipcode_property(self, value):
-        return value['long']
-
-
+    def get_property_name(self, value):
+        return 'long'
+    
 class ZipcodeIsActiveTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
-    def get_zipcode_property(self, value):
-        return value['active']
-
-
+    def get_property_name(self, value):
+        return 'active'
+    
 class Zipcode5Transformer(ZipcodeLightBaseTransformer, CustomTransformer):
-    def get_zipcode_property(self, value):
-        return value['zip_code']
+    def get_property_name(self, value):
+        return 'zip_code'
