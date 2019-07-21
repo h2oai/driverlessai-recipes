@@ -41,6 +41,7 @@ class ZipcodeLightBaseTransformer(ABC):
       
     def transform(self, X: dt.Frame):
         try:
+            X = dt.Frame(X)
             X.names = ['zip_key']
             X = X[:, str('zip_key')]
             zip_list = dt.unique(X[~dt.isna(dt.f.zip_key), 0]).to_list()[0]
