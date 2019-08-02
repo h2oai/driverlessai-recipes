@@ -1,4 +1,4 @@
-#CatBoost-style target encoding. See https://youtu.be/d6UMEmeXB6o?t=818 for short explanation
+"""CatBoost-style target encoding. See https://youtu.be/d6UMEmeXB6o?t=818 for short explanation"""
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
