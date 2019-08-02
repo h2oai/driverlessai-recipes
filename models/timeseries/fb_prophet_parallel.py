@@ -168,7 +168,7 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         return grp_hash, model_path
 
     def _get_n_jobs(self, logger, **kwargs):
-        return 4 # self.params_base['n_jobs']
+        return self.params_base['n_jobs']
 
     def _clean_tmp_folder(self, logger, tmp_folder):
         try:
