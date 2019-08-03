@@ -19,20 +19,20 @@ pd.set_option('display.width', 1000)
 # TODO: to redo this is a nicer way
 
 # Connect to Driverless AI
-h2oai = Client('http://18.206.38.108:12345', 'h2oai', 'i-0e5001d094cdc2c90')
+h2oai = Client('', '', '')
 
 # Data Information
-data_file_name = "testdata.csv"
-data_file_location = "/Users/mtanco/Downloads/" + data_file_name
-y = "y"
+data_file_name = ""
+data_file_location = "" + data_file_name
+y = ""
 
 # Transformers Information
-transformer_name = "MyLogTransformer"
-transformer_file_name = "log_transformer.py"
-transformer_file_location = "/Users/mtanco/Documents/GitProjects/driverlessai-recipes/transformers/numeric/" + transformer_file_name
+transformer_name = ""
+transformer_file_name = ""
+transformer_file_location = "" + transformer_file_name
 
 # Location to Download Files
-download_file_location = "/Users/mtanco/Downloads/"
+download_file_location = ""
 
 
 # Print the default & custom transformers on the system, return list of all transformers
