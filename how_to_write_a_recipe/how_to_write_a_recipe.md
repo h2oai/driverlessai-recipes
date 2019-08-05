@@ -1,12 +1,11 @@
 ---
-title: How to write a Feature Recipe for DriverlessAI?
+title: How to write a Transformer Recipe for DriverlessAI?
 author: "Ashrith Barthur"
-output: rmarkdown::github_document
 ---
 
-## What is a feature recipe? 
-A feature recipe is a collection of programmatic steps, the same steps that a data scientist would write as code to build a feature, or a set of features.  The recipe makes it possible to engineering the feature in training and in production.
-The feature recipe, and recipes in general, provides a data scientist the power to enhance the strengths of DriverlessAI with custom recipes. These custom recipes would bring in nuanced knowledge about certain domains - i.e. financial crimes, cybersecurity, anomaly detection. etc. It also provides the ability to extend DriverlessAI to solve custom solutions for time-series. 
+## What is a transformer recipe? 
+A transformer (or feature) recipe is a collection of programmatic steps, the same steps that a data scientist would write as code to build a column transformation.  The recipe makes it possible to engineer the transformer in training and in production.
+The transformer recipe, and recipes in general, provides a data scientist the power to enhance the strengths of DriverlessAI with custom recipes. These custom recipes would bring in nuanced knowledge about certain domains - i.e. financial crimes, cybersecurity, anomaly detection. etc. It also provides the ability to extend DriverlessAI to solve custom solutions for time-series. 
 
 ## How to write a simple DAI recipe? 
 The structure of a recipe that works with DriverlessAI is quite straight forward.
@@ -19,7 +18,7 @@ class ExampleLogTransformer(CustomerTransformer):
 ```
 The `ExampleLogTransformer` is the class name of the transformer that is being newly created. And in the parenthesis the `CustomTransformer` is being extended. 
 
-2. In the next step, one needs to populate the type of problem the custom tarnsformer is solving:
+2. In the next step, one needs to populate the type of problem the custom transformer is solving:
    a. Are you solving a regression problem? 
    b. Are you solving a classification problem that is binary?
    c. Are you solving a classification problem that is multiclass? 
@@ -37,7 +36,7 @@ In the above example we are building a `log10` transformer, and this transformer
 
 3. In the next step, we tackle four more settings of a transformer. They are as follows:
    a. Output Type - What is the output type of this transformer?
-   b. Reproducibility - Is this a reproducable feature. 
+   b. Reproducibility - Is this a reproducible transformer? Meaning is this transformer deterministic, and deterministic if you can set the seed?
    c. Model inclusion/exclusion  - Can this transformer be run on any kind of a model? - Tensorflow? CatBoost? etc
    4. Custom package requirements - Does this transformer require any custom packages. 
       
@@ -92,7 +91,8 @@ Please note that if `col_type` is set to `col_type=all` then all the columns in 
 
 The `min_cols` and `max_cols` either take numbers/integers or take string parameters as `all` and `any`. The `all` and `any` should coincide with the same `col_type`, respectively. 
 
-The `relative_importance` takes a integer value, which will over, or under representation. Default value is `1`, value greater than `1` is over representation and under `1` is under representation. 
+The `relative_importance` takes a positive value. If this value is more than `1` then the transformer is likely to be used more often than other transformers in the specific experiment. If it less than `1` then it is less likely to be used than other transformers in the specific experiment. If it is set to `1` then it is equally likely to be used as other transformers in the specific experiment, provided other transformers are also set to relative importance `1`.
+i , which will over, or under representation. Default value is `1`, value greater than `1` is over representation and under `1` is under representation. 
 
 ```{python eval=FALSE}
 class ExampleLogTransformer(CustomerTransformer):
@@ -117,7 +117,7 @@ class ExampleLogTransformer(CustomerTransformer):
 In the above example, as we are dealing with a numeric column (recall, that we are calculating the log10 of a given column) we set the `col_type` to `numeric`. We set the `min_cols` and `max_cols` to `1` as we need only one column, and the `relative_importance` to `1`.
 
 6. The custom transformer function has two fundamental functions that are required to make a transformer. They are:
-   a. `fit_transform` This function is use to fit the transformation on the training dataset, and returns the output column. 
+   a. `fit_transform` This function is used to fit the transformation on the training dataset, and returns the output column. 
    b. `transform` This function is used to transform the testing or production dataset, and is always applied after the `fit_transform`
 
 
