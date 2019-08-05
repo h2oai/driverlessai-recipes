@@ -4,9 +4,6 @@ from h2oaicore.systemutils import config
 import datatable as dt
 import numpy as np
 
-from aif360.datasets import BinaryLabelDataset
-from aif360.algorithms.preprocessing.lfr import LFR
-
 
 class LfrDebiasingTransformer(CustomTransformer):
     _regression = False
@@ -29,7 +26,10 @@ class LfrDebiasingTransformer(CustomTransformer):
         )
 
     def fit(self, X: dt.Frame, y: np.array = None):
-        # TODO Do I have here access to config?
+        from aif360.datasets import BinaryLabelDataset
+        from aif360.algorithms.preprocessing.lfr import LFR
+
+        self._validate_input()
         privileged_groups = config.privileged_groups
         unprivileged_groups = config.unprivileged_groups
         favorable_label = config.favorable_label
@@ -59,5 +59,18 @@ class LfrDebiasingTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
+        from aif360.datasets import BinaryLabelDataset
         transformed_X: BinaryLabelDataset = self.lfr.transform(X.to_pandas())
         return transformed_X.features
+
+    def _validate_input(self):
+        if "privileged_groups" not in config:
+            raise ValueError("Privileged groups missing from config!")
+        if "unprivileged_groups" not in config:
+            raise ValueError("Unprivileged groups missing from config!")
+        if "favorable_label" not in config:
+            raise ValueError("Favorable label missing from config!")
+        if "unfavorable_label" not in config:
+            raise ValueError("Unfavorable label missing from config!")
+        if "protected_attribute_names" not in config:
+            raise ValueError("Protected attribute names missing from config!")
