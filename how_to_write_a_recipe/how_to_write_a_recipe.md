@@ -1,5 +1,5 @@
-#### How to write a Transformer Recipe for DriverlessAI?
-## *Ashrith Barthur*
+# How to write a Transformer Recipe for DriverlessAI?
+#### *Ashrith Barthur*
 
 ## What is a transformer recipe? 
 A transformer (or feature) recipe is a collection of programmatic steps, the same steps that a data scientist would write as code to build a column transformation.  The recipe makes it possible to engineer the transformer in training and in production.
