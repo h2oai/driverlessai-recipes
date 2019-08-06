@@ -1,5 +1,5 @@
-#### How to write a Transformer Recipe for DriverlessAI?
-## *Ashrith Barthur*
+# How to write a Transformer Recipe for DriverlessAI?
+#### *Ashrith Barthur*
 
 ## What is a transformer recipe? 
 A transformer (or feature) recipe is a collection of programmatic steps, the same steps that a data scientist would write as code to build a column transformation.  The recipe makes it possible to engineer the transformer in training and in production.
@@ -35,7 +35,7 @@ In the above example we are building a `log10` transformer, and this transformer
 3. In the next step, we tackle four more settings of a transformer. They are as follows:
    a. Output Type - What is the output type of this transformer?
    b. Reproducibility - Is this a reproducible transformer? Meaning is this transformer deterministic, and deterministic if you can set the seed?
-   c. Model inclusion/exclusion  - Can this transformer be run on any kind of a model? - Tensorflow? CatBoost? etc
+   c. Model inclusion/exclusion  - Here we describe the type of modeling that uniquely fits, or does not fit the transformer, respectively. 
    4. Custom package requirements - Does this transformer require any custom packages. 
       
 
@@ -46,11 +46,10 @@ class ExampleLogTransformer(CustomerTransformer):
 	_multiclass = True
 	_numeric_output = True
 	_is_reproducible = True
-	_included_model_classes = ['CatBoostModel']
 	_excluded_model_classes = ['tensorflow']
-	_modules_needed_by_name = ["numpy==1.17.0"]
+	_modules_needed_by_name = ["custom_package==1.0.0"]
 ```
-In the above example we have set the `_numeric_output` to be `True` as our output is numeric. We have set the `_is_reproducible` to be `True` advicing DriverlessAI that in case the user asks for a reproducible model then this model is actually capable of producing a reproducible result. As an example, we have included `CatBoostModel` for this transformer, and excluded `tensorflow`. Merely, as an example we have also included `numpy` version `1.17.0` as a package required for this transformation. Please do note that numpy is a standard library available to all transformer and need not be called exclusively as in this example. 
+In the above example we have set the `_numeric_output` to be `True` as our output is numeric. We have set the `_is_reproducible` to be `True` advicing DriverlessAI that in case the user asks for a reproducible model then this model is actually capable of producing a reproducible result. As an example, we have excluded `tensorflow` using `_excluded_model_classes`. Now, in case, you would want the transformer to only run on a specific kind of model, example - `catboost`, then you can use `_included_model_classes=['CatBoostModel']` instead of `_excluded_model_classes`. Merely, as an example we have also included `custom_package` version `1.0.0` as a package required for this transformation. 
 
 4. In the following section we will discussion about DriverlessAI's ability to check the custom recipe. When the following function is enabled DriverlessAI has the ability to check the workings of the transformer using a synthetic dataset. If this is disabled then DriverlessAI will ingest the recipe but ignore the check. 
 
@@ -61,9 +60,8 @@ class ExampleLogTransformer(CustomerTransformer):
 	_multiclass = True
 	_numeric_output = True
 	_is_reproducible = True
-	_included_model_classes = ['CatBoostModel']
 	_excluded_model_classes = ['tensorflow']
-	_modules_needed_by_name = ["numpy==1.17.0"]
+	_modules_needed_by_name = ["custom_package==1.0.0"]
 
 	@staticmethod
 	def do_acceptance_test():
@@ -99,9 +97,8 @@ class ExampleLogTransformer(CustomerTransformer):
 	_multiclass = True
 	_numeric_output = True
 	_is_reproducible = True
-	_included_model_classes = ['CatBoostModel']
 	_excluded_model_classes = ['tensorflow']
-	_modules_needed_by_name = ["numpy==1.17.0"]
+	_modules_needed_by_name = ["custom_package==1.0.0"]
 
 	@staticmethod
 	def do_acceptance_test():
@@ -126,9 +123,8 @@ class ExampleLogTransformer(CustomerTransformer):
 	_multiclass = True
 	_numeric_output = True
 	_is_reproducible = True
-	_included_model_classes = ['CatBoostModel']
 	_excluded_model_classes = ['tensorflow']
-	_modules_needed_by_name = ["numpy==1.17.0"]
+	_modules_needed_by_name = ["custom_package==1.0.0"]
 
 	@staticmethod
 	def do_acceptance_test():
@@ -148,7 +144,7 @@ class ExampleLogTransformer(CustomerTransformer):
 		X_p_log = np.log10(X_pandas)
 		return X_p_log
 ```
-In the above example, we compose the `fit_transform` and `transform` for training and testing data, respectively. In the `fit_transform` the response variable `y` is available. Here our dataframe is named `X`. Now `X` will be transformed to pandas frame by using the `to_pandas()` function. Further, a `log10` of the column will be applied and returned. 
+In the above example, we compose the `fit_transform` and `transform` for training and testing data, respectively. In the `fit_transform` the response variable `y` is available. Here our dataframe is named `X`. Now `X` will be transformed to pandas frame by using the `to_pandas()` function. Further, a `log10` of the column will be applied and returned. The `to_pandas()` function is described here for ease of understanding. A real-world implementation of log transformer is available at the following link [HyperLink to LogTransformer](https://github.com/h2oai/driverlessai-recipes/blob/master/transformers/numeric/log_transformer.py)
 
 7. This code is to be stored as a python code file - `example_transform.py`
 8. To ingest this code, one needs to first need to add dataset to be modeled upon into DriverlessAI. 
