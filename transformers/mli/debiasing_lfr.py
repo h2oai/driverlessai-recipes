@@ -1,5 +1,4 @@
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.systemutils import config
 
 import datatable as dt
 import numpy as np
@@ -8,8 +7,6 @@ import numpy as np
 class LfrDebiasingTransformer(CustomTransformer):
     _regression = False
     _multiclass = False
-
-    _numeric_output = False
 
     _modules_needed_by_name = ['aif360']
 
@@ -22,55 +19,82 @@ class LfrDebiasingTransformer(CustomTransformer):
             min_cols="all",
             max_cols="all",
             relative_importance=1,
-            num_default_instances=1,
         )
 
+    @staticmethod
+    def do_acceptance_test():
+        return False
+
     def fit(self, X: dt.Frame, y: np.array = None):
+        from h2oaicore.systemutils import config
         from aif360.datasets import BinaryLabelDataset
         from aif360.algorithms.preprocessing.lfr import LFR
 
-        self._validate_input()
-        privileged_groups = config.privileged_groups
-        unprivileged_groups = config.unprivileged_groups
-        favorable_label = config.favorable_label
-        unfaborable_label = config.unfavorable_label
-        protected_attribute_names = config.protected_attribute_names
+        if y is not None:
+            if 'recipe_dict' in config:
+                config = config['recipe_dict']
 
-        label_names = np.unique(y)
+            # LFR supports only numerical columns
+            # But categoricals which are numeric are ok so setting col_type="all"
+            if any(unsupported in str(X.ltypes) for unsupported in ['str', 'obj']):
+                return
 
-        self.lfr = LFR(
-            unprivileged_groups=unprivileged_groups,
-            privileged_groups=privileged_groups,
-            verbose=0,
-        )
+            X_pd = X.to_pandas()
+            X = dt.Frame(X_pd.fillna(X_pd.mean()))
 
-        self.lfr.fit(
-            BinaryLabelDataset(
-                favorable_label=favorable_label,
-                unfavorable_label=unfaborable_label,
-                df=X.to_pandas(),
-                label_names=label_names,
-                protected_attribute_names=protected_attribute_names,
+            frame = dt.cbind(X, dt.Frame(y))
+            self.label_names = [frame.names[-1]]
+
+            self.privileged_groups = config['privileged_groups']
+            self.unprivileged_groups = config['unprivileged_groups']
+            self.favorable_label = float(config['favorable_label'])
+            self.unfavorable_label = float(config['unfavorable_label'])
+            self.protected_attribute_names = config['protected_attribute_names']
+
+            self.lfr = LFR(
+                unprivileged_groups=self.unprivileged_groups,
+                privileged_groups=self.privileged_groups,
+                verbose=0,
             )
-        )
+
+            self.lfr.fit(
+                BinaryLabelDataset(
+                    df=frame.to_pandas(),
+                    favorable_label=self.favorable_label,
+                    unfavorable_label=self.unfavorable_label,
+                    label_names=self.label_names,
+                    protected_attribute_names=self.protected_attribute_names,
+                )
+            )
+            self.fitted = True
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         self.fit(X, y)
-        return self.transform(X)
+        return self.transform(X, y)
 
-    def transform(self, X: dt.Frame):
+    def transform(self, X: dt.Frame, y: np.array = None):
         from aif360.datasets import BinaryLabelDataset
-        transformed_X: BinaryLabelDataset = self.lfr.transform(X.to_pandas())
-        return transformed_X.features
+        # Transformation should only occur during training when y is present
+        if self.fitted and (self.label_names in X.names or y is not None):
+            if self.label_names not in X.names:
+                X = dt.cbind(X, dt.Frame(y))
 
-    def _validate_input(self):
-        if "privileged_groups" not in config:
-            raise ValueError("Privileged groups missing from config!")
-        if "unprivileged_groups" not in config:
-            raise ValueError("Unprivileged groups missing from config!")
-        if "favorable_label" not in config:
-            raise ValueError("Favorable label missing from config!")
-        if "unfavorable_label" not in config:
-            raise ValueError("Unfavorable label missing from config!")
-        if "protected_attribute_names" not in config:
-            raise ValueError("Protected attribute names missing from config!")
+            X_pd = X.to_pandas()
+            X = dt.Frame(X_pd.fillna(X_pd.mean()))
+            transformed_X: BinaryLabelDataset = self.lfr.transform(
+                BinaryLabelDataset(
+                    df=X.to_pandas(),
+                    favorable_label=self.favorable_label,
+                    unfavorable_label=self.unfavorable_label,
+                    label_names=self.label_names,
+                    protected_attribute_names=self.protected_attribute_names,
+                )
+            )
+
+            return dt.Frame(
+                transformed_X.features,
+                names=[name+"_lfr" for name in transformed_X.feature_names],
+            )
+        # For predictions no transformation is required
+        else:
+            return X
