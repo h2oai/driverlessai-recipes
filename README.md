@@ -48,7 +48,8 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 
 ## Sample Recipes
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
-### Count: 84
+### Count: 88
+* [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
   * [ALGORITHMS](./models/algorithms)
@@ -102,7 +103,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [top_decile.py](./scorers/regression/top_decile.py) [Median Absolute Error for predictions in the top decile]
 * [TRANSFORMERS](./transformers)
   * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [Example how to debug a transformer outside of Driverless AI (optional)]
-  * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [Functions to ease testing a new custom transformer from the python client]
+  * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [Testing a BYOR Transformer the PyClient - works on 1.7.0 & 1.7.1-17]
   * [transformer_template.py](./transformers/transformer_template.py) [Template base class for a custom transformer recipe.]
   * [AUGMENTATION](./transformers/augmentation)
     * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [Returns a flag for whether a date falls on a holiday for each of Germany's Bundeslaender]
@@ -135,8 +136,12 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [boxcox_transformer.py](./transformers/numeric/boxcox_transformer.py) [Box-Cox Transform]
     * [exp_diff_transformer.py](./transformers/numeric/exp_diff_transformer.py) [Exponentiated difference of two numbers]
     * [log_transformer.py](./transformers/numeric/log_transformer.py) [Converts numbers to their Logarithm]
+    * [product.py](./transformers/numeric/product.py) [Products together 3 or more numeric features]
     * [random_transformer.py](./transformers/numeric/random_transformer.py) [Creates random numbers]
     * [round_transformer.py](./transformers/numeric/round_transformer.py) [Rounds numbers to 1, 2 or 3 decimals]
+    * [square_root_transformer.py](./transformers/numeric/square_root_transformer.py) [Converts numbers to the square root, preserving the sign of the original numbers]
+    * [sum.py](./transformers/numeric/sum.py) [Adds together 3 or more numeric features]
+    * [yeojohnson_transformer.py](./transformers/numeric/yeojohnson_transformer.py) [Yeo-Johnson Power Transformer]
   * [OUTLIERS](./transformers/outliers)
     * [h2o3-dl-anomaly.py](./transformers/outliers/h2o3-dl-anomaly.py) [Anomaly score for each row based on reconstruction error of a H2O-3 deep learning autoencoder]
     * [quantile_winsorizer.py](./transformers/outliers/quantile_winsorizer.py) [Winsorizes (truncates) univariate outliers outside of a given quantile threshold]
