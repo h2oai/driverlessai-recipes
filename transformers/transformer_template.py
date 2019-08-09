@@ -266,14 +266,9 @@ class CustomTimeSeriesTransformer(CustomTransformer):
         self.tgc = kwargs['tgc']  # name(s) of time group columns (also includes time column)
         self.pred_gap = kwargs['pred_gap']  # gap between train and test in periods
         self.pred_periods = kwargs['pred_periods']  # requested forecast horizon in periods
-        self.lag_sizes = kwargs['lag_sizes']  # suggested lag sizes
-        self.lag_feature = kwargs['lag_feature']  # name of feature/column to lag (can be same as target)
         self.target = kwargs['target']  # name of target column
-        self.tsp = kwargs['tsp']  # lots of TS related info like period/frequency and lag autocorrelation sort order
-        self.time_column = None
+        self.time_column = kwargs['time_column'][0] if isinstance(kwargs['time_column'], list) else kwargs['time_column']
         self._datetime_formats = kwargs['datetime_formats']  # dictionary of date/datetime column name -> date format
-        if self.tsp is not None:
-            self.time_column = self.tsp._time_column  # name of time column (if present)
 
     def update_history(self, X: dt.Frame, y: np.array = None):
         """
