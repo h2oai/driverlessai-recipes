@@ -8,6 +8,7 @@ import shutil
 
 # TODO: re-write the already uploaded data check to account for numpy warning of type mismatch
 import warnings
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # Print and Debug Nicely
@@ -43,8 +44,8 @@ def get_transformers(print_details=True):
     types = list(map(lambda x: x.is_custom, all_transformers))
 
     all_trans = pd.DataFrame({
-         'name': names,
-         'is_custom': types
+        'name': names,
+        'is_custom': types
     })
 
     if print_details:
@@ -59,7 +60,6 @@ def get_transformers(print_details=True):
 # Load the custom transformer, exit gracefully if it fails
 # TODO: return error message or logs or if it fails
 def load_transformer(print_details=True):
-
     my_transformer = h2oai.upload_custom_recipe_sync(transformer_file_location)
 
     # returns true or false - exit if fails - check DAI UI for error message (make new experiment & upload)
@@ -77,7 +77,6 @@ def load_transformer(print_details=True):
 # Load data if it's not already on the system, return the data set key
 # TODO: re-write the already uploaded check to account for numpy warning of type mismatch
 def load_data(print_details=True):
-
     all_data_sets = h2oai.list_datasets(0, 100, include_inactive=True).datasets
     all_data_sets = pd.DataFrame({
         'key': list(map(lambda x: x.key, all_data_sets))
@@ -107,7 +106,6 @@ def load_data(print_details=True):
 # TODO: download logs if it fails
 # TODO: speed up by turning off shift detection, python scoring pipeline etc. etc.
 def run_test_experiment(dai_dataset_key, print_details=True):
-
     if print_details:
         print("RUN TEST EXPERIMENT:")
         print("\tStarting Experiment")
@@ -156,7 +154,6 @@ def print_model_features(dai_experiment_key, delete_downloads=True):
 # Print the results of the BYOR transformer on your dataset
 # TODO: have only tested using the same dataset in train and validaiont on non-validated needed transformers
 def print_transformed_data(dai_experiment_key, dai_dataset_key, delete_downloads=True):
-
     # We train and validate on the same data to get back all of th rows in the right order in transform_train
     transform = h2oai.fit_transform_batch_sync(model_key=dai_experiment_key
                                                , training_dataset_key=dai_dataset_key

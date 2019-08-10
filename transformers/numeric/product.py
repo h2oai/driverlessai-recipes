@@ -22,7 +22,6 @@ class ProductTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-
         df = X.to_pandas()
         df['_value_to_return'] = df.product(axis=1, skipna=True)
 
