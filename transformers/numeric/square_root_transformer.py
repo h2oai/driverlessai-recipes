@@ -13,4 +13,4 @@ class SquareRootTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        return X[:, [(dt.f[i]/dt.abs(dt.f[i]))*dt.exp(0.5*dt.log(dt.abs(dt.f[i]))) for i in range(X.ncols)]]
+        return X[:, [(dt.f[i] / dt.abs(dt.f[i])) * dt.exp(0.5 * dt.log(dt.abs(dt.f[i]))) for i in range(X.ncols)]]

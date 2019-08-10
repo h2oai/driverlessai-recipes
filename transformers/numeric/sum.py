@@ -22,7 +22,6 @@ class SumTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-
         df = X.to_pandas()
         df['_value_to_return'] = df.sum(axis=1, skipna=True)
 
