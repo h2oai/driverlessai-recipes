@@ -2,6 +2,7 @@
 """
 from h2oaicore.models import BaseCustomModel, LightGBMModel
 import numpy as np
+from h2oaicore.systemutils import config
 
 
 # The custom objective function will be pickled along with the underlying LightGBM model for persistance purposes
@@ -73,3 +74,5 @@ class MyLGBMAsymMSE(BaseCustomModel, LightGBMModel):
             score_f_name=score_f_name, **kwargs)
         # Now set the objective
         params["objective"] = custom_asymmetric_objective
+
+        self.params = params
