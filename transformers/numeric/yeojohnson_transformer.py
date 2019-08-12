@@ -5,7 +5,7 @@ import numpy as np
 from scipy.stats import yeojohnson
 
 
-class YeoJohnsonCoxTransformer(CustomTransformer):
+class YeoJohnsonTransformer(CustomTransformer):
     @staticmethod
     def get_default_properties():
         return dict(col_type="numeric", min_cols=1, max_cols=1, relative_importance=1)
