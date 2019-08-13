@@ -17,7 +17,7 @@ class VaderSentimentTransformer(CustomTransformer):
     
     @staticmethod
     def do_acceptance_test():
-        return False
+        return True
 
     @staticmethod
     def get_default_properties():
