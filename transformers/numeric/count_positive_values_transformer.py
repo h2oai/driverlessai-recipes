@@ -21,4 +21,3 @@ class CountPositivePerRowTransformer(CustomTransformer):
 class CountPositiveNumericsPerRowTransformer(CountPositivePerRowTransformer):
     def transform(self, X: dt.Frame):
         return super().transform(X[:, [int, float]])
-
