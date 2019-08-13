@@ -48,7 +48,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 
 ## Sample Recipes
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
-### Count: 91
+### Count: 94
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
@@ -62,6 +62,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [libfm_fastfm.py](./models/algorithms/libfm_fastfm.py) [LibFM implementation of fastFM ]
     * [linear_svm.py](./models/algorithms/linear_svm.py) [Linear Support Vector Machine (SVM) implementation by sklearn. For small data.]
     * [nusvm.py](./models/algorithms/nusvm.py) [Nu-SVM implementation by sklearn. For small data.]
+    * [random_forest.py](./models/algorithms/random_forest.py) [Random Forest (RandomForest) model from sklearn]
   * [CUSTOM_LOSS](./models/custom_loss)
     * [lightgbm_with_custom_loss.py](./models/custom_loss/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).]
     * [xgboost_with_custom_loss.py](./models/custom_loss/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).]
@@ -99,6 +100,8 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [largest_error.py](./scorers/regression/largest_error.py) [Largest error for regression problems. Highly sensitive to outliers.]
     * [log_mae.py](./scorers/regression/log_mae.py) [Log Mean Absolute Error for regression]
     * [mean_absolute_scaled_error.py](./scorers/regression/mean_absolute_scaled_error.py) [Mean Absolute Scaled Error for time-series regression]
+    * [mean_squared_error.py](./scorers/regression/mean_squared_error.py) [Mean Squared Error for regression]
+    * [mean_squared_log_error.py](./scorers/regression/mean_squared_log_error.py) [Mean Squared Log Error for regression]
     * [median_absolute_error.py](./scorers/regression/median_absolute_error.py) [Median Absolute Error for regression]
     * [pearson_correlation.py](./scorers/regression/pearson_correlation.py) [Pearson Correlation Coefficient for regression]
     * [top_decile.py](./scorers/regression/top_decile.py) [Median Absolute Error for predictions in the top decile]
