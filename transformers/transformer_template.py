@@ -270,7 +270,7 @@ class CustomTimeSeriesTransformer(CustomTransformer):
         self.time_column = kwargs['time_column'][0] if isinstance(kwargs['time_column'], list) else kwargs['time_column']
         self._datetime_formats = kwargs['datetime_formats']  # dictionary of date/datetime column name -> date format
 
-    def update_history(self, X: dt.Frame, y: np.array = None):
+    def update_history(self, X: dt.Frame, y: np.array = None, **fit_params):
         """
         Update the model fit with additional observed endogeneous/exogeneous values during batch scoring of test set.
 
