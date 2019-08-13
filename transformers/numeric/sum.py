@@ -5,6 +5,14 @@ import numpy as np
 
 
 class SumTransformer(CustomTransformer):
+    
+    _regression = True
+    _binary = True
+    _multiclass = True
+    _numeric_output = True
+    _is_reproducible = True
+    _included_model_classes = None  # List[str]
+    _excluded_model_classes = None  # List[str]
 
     @staticmethod
     def is_enabled():
@@ -22,7 +30,4 @@ class SumTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        df = X.to_pandas()
-        df['_value_to_return'] = df.sum(axis=1, skipna=True)
-
-        return df['_value_to_return']
+        return X[:, dt.sum([dt.f[x] for x in range(X.ncols)])]
