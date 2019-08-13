@@ -9,6 +9,7 @@ from uszipcode import SearchEngine
 
 
 class USZipcodeDatabaseTransformer(CustomTransformer):
+    _allow_transform_to_modify_output_feature_names = True
 
     @staticmethod
     def get_default_properties():
