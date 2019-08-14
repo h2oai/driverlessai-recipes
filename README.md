@@ -66,6 +66,8 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [CUSTOM_LOSS](./models/custom_loss)
     * [lightgbm_with_custom_loss.py](./models/custom_loss/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).]
     * [xgboost_with_custom_loss.py](./models/custom_loss/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).]
+  * [NLP](./models/nlp)
+    * [text_tfidf_model.py](./models/nlp/text_tfidf_model.py) [Text classification / regression model using TFIDF]
   * [TIMESERIES](./models/timeseries)
     * [exponential_smoothing.py](./models/timeseries/exponential_smoothing.py) [Linear Model on top of Exponential Weighted Moving Average Lags for Time-Series. Provide appropriate lags and past outcomes during batch scoring for best results.]
     * [fb_prophet.py](./models/timeseries/fb_prophet.py) [Prophet by Facebook for TimeSeries with an example of parameter mutation.]
@@ -100,7 +102,6 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [largest_error.py](./scorers/regression/largest_error.py) [Largest error for regression problems. Highly sensitive to outliers.]
     * [log_mae.py](./scorers/regression/log_mae.py) [Log Mean Absolute Error for regression]
     * [mean_absolute_scaled_error.py](./scorers/regression/mean_absolute_scaled_error.py) [Mean Absolute Scaled Error for time-series regression]
-    * [mean_squared_error.py](./scorers/regression/mean_squared_error.py) [Mean Squared Error for regression]
     * [mean_squared_log_error.py](./scorers/regression/mean_squared_log_error.py) [Mean Squared Log Error for regression]
     * [median_absolute_error.py](./scorers/regression/median_absolute_error.py) [Median Absolute Error for regression]
     * [pearson_correlation.py](./scorers/regression/pearson_correlation.py) [Pearson Correlation Coefficient for regression]
