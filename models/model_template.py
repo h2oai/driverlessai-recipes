@@ -113,7 +113,7 @@ class CustomModel(BaseCustomModel):
             valid_shape (tuple): Shape of validation data
 
             n_gpus (int): Number of GPUs available on the system (e.g., to disable GPU-only models if no GPUs available)
-
+ll
             **kwargs (dict): Optional dictionary containing system-level information for advanced usage
 
         Returns: bool
@@ -285,7 +285,8 @@ class CustomModel(BaseCustomModel):
         return False
 
 
-ts_raw_data_transformers = ['OriginalTransformer', 'CatOriginalTransformer',
+ts_raw_data_transformers = ['RawTransformer',
+                            'OriginalTransformer', 'CatOriginalTransformer',
                             'DateOriginalTransformer', 'DateTimeOriginalTransformer']
 """List of transformers that don't alter the original input relevant to custom time series models."""
 
@@ -298,7 +299,7 @@ class CustomTimeSeriesModel(CustomModel):
     into the hands of the implementer of this class. All time group columns are passed into the model with original
     column names (available in self.params_base["tgc"])
     """
-
+    _is_custom_time_series = True
     _can_handle_non_numeric = True  # date format strings and time grouping columns
     _included_transformers = ts_raw_data_transformers  # this enforces the constraint on input features
 

@@ -17,13 +17,13 @@ class ZipcodeLightBaseTransformer(ABC):
     @abstractmethod
     def get_property_name(self):
         raise NotImplementedError
-    
+
     def get_zipcode_property(self, zipcode_obj):
         if zipcode_obj is None:
             return None
         else:
             return zipcode_obj[self.get_property_name()]
-            
+
     def parse_zipcode(self, value):
         try:
             result = zipcodes.matching(value)
@@ -38,7 +38,7 @@ class ZipcodeLightBaseTransformer(ABC):
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         return self.transform(X)
-      
+
     def transform(self, X: dt.Frame):
         try:
             X = dt.Frame(X)
@@ -57,27 +57,33 @@ class ZipcodeLightBaseTransformer(ABC):
 class ZipcodeTypeTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
     def get_property_name(self, value):
         return 'zip_code_type'
-    
+
+
 class ZipcodeCityTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
     def get_property_name(self, value):
         return 'city'
-    
+
+
 class ZipcodeStateTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
     def get_property_name(self, value):
         return 'state'
-    
+
+
 class ZipcodeLatitudeTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
     def get_property_name(self, value):
         return 'lat'
-    
+
+
 class ZipcodeLongitudeTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
     def get_property_name(self, value):
         return 'long'
-    
+
+
 class ZipcodeIsActiveTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
     def get_property_name(self, value):
         return 'active'
-    
+
+
 class Zipcode5Transformer(ZipcodeLightBaseTransformer, CustomTransformer):
     def get_property_name(self, value):
         return 'zip_code'

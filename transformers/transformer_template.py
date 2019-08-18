@@ -15,9 +15,9 @@ class CustomTransformer(DataTableTransformer):
 
     """By default, we want a transformer to work with all types of supervised problems.
     Please disable the problem types it cannot support."""
-    _regression = True   # y has shape (N,) and is of numeric type, no missing values
-    _binary = True       # y has shape (N,) and can be numeric or string, cardinality 2, no missing values
-    _multiclass = True   # y has shape (N,) and can be numeric or string, cardinality 3+, no missing values
+    _regression = True  # y has shape (N,) and is of numeric type, no missing values
+    _binary = True  # y has shape (N,) and can be numeric or string, cardinality 2, no missing values
+    _multiclass = True  # y has shape (N,) and can be numeric or string, cardinality 3+, no missing values
 
     """Specify whether the transformer creates numeric output data or not. If not, some models might not be able 
     to consume the transformer's features."""
@@ -29,8 +29,8 @@ class CustomTransformer(DataTableTransformer):
 
     """Optional list of included/excluded models, specified by their booster string 
     (e.g., _included_model_classes = ['CatBoostModel'], _excluded_model_classes = ['tensorflow'])"""
-    _included_model_classes = None   # List[str]
-    _excluded_model_classes = None   # List[str]
+    _included_model_classes = None  # List[str]
+    _excluded_model_classes = None  # List[str]
 
     """Specify the python package dependencies (will be installed via pip install mypackage==1.3.37)"""
     _modules_needed_by_name = []  # List[str], e.g., ["mypackage==1.3.37"]
@@ -40,7 +40,7 @@ class CustomTransformer(DataTableTransformer):
 
     """Expert settings for optimal hardware usage"""
     _parallel_task = True  # if enabled, params_base['n_jobs'] will be >= 1 (adaptive to system), otherwise 1
-    _can_use_gpu = False   # if enabled, will use special job scheduler for GPUs
+    _can_use_gpu = False  # if enabled, will use special job scheduler for GPUs
     _can_use_multi_gpu = False  # if enabled, can get access to multiple GPUs for single transformer (experimental)
     _check_stall = True  # whether to check for stall, should disable if separate server running task
 
@@ -266,16 +266,11 @@ class CustomTimeSeriesTransformer(CustomTransformer):
         self.tgc = kwargs['tgc']  # name(s) of time group columns (also includes time column)
         self.pred_gap = kwargs['pred_gap']  # gap between train and test in periods
         self.pred_periods = kwargs['pred_periods']  # requested forecast horizon in periods
-        self.lag_sizes = kwargs['lag_sizes']  # suggested lag sizes
-        self.lag_feature = kwargs['lag_feature']  # name of feature/column to lag (can be same as target)
         self.target = kwargs['target']  # name of target column
-        self.tsp = kwargs['tsp']  # lots of TS related info like period/frequency and lag autocorrelation sort order
-        self.time_column = None
+        self.time_column = kwargs['time_column'][0] if isinstance(kwargs['time_column'], list) else kwargs['time_column']
         self._datetime_formats = kwargs['datetime_formats']  # dictionary of date/datetime column name -> date format
-        if self.tsp is not None:
-            self.time_column = self.tsp._time_column  # name of time column (if present)
 
-    def update_history(self, X: dt.Frame, y: np.array = None):
+    def update_history(self, X: dt.Frame, y: np.array = None, **fit_params):
         """
         Update the model fit with additional observed endogeneous/exogeneous values during batch scoring of test set.
 
@@ -301,3 +296,5 @@ class CustomTimeSeriesTransformer(CustomTransformer):
         :return: self
         """
         return self
+
+
