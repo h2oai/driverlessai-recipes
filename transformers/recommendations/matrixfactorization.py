@@ -19,8 +19,8 @@ class MatrixFactorizationGPUTransformer(CustomTransformer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.user_col = "User" ## edit this to the user column name
-        self.item_col = "Package" ## edit this to the item column name
+        self.user_col = "user" ## edit this to the user column name
+        self.item_col = "item" ## edit this to the item column name
 
     @staticmethod
     def do_acceptance_test():
