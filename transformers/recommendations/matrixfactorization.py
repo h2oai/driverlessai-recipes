@@ -1,4 +1,4 @@
-"""Collaborative filtering features using H2O4GPU's (for GPU) and sklearn's (for CPU) Matrix Factorization for recommendations"""
+"""Collaborative filtering features using various techniques of Matrix Factorization for recommendations"""
 import datatable as dt
 import numpy as np
 import pandas as pd
@@ -12,10 +12,10 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder
 
 
-class MatrixFactorizationGPUTransformer(CustomTransformer):
+class RecH2OMFTransformer(CustomTransformer):
     _multiclass = False
     _can_use_gpu = True
-    _transformer_mode = "gpu"
+    _mf_type = "h2o4gpu"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -31,12 +31,12 @@ class MatrixFactorizationGPUTransformer(CustomTransformer):
         return dict(col_type="all", min_cols="all", max_cols="all", relative_importance=1, num_default_instances=1)
 
     def set_params(self):
-        if self.__class__._transformer_mode == "gpu":
+        if self.__class__._mf_type == "h2o4gpu":
             self.params = {"n_components": 50,
                            "lambda": 0.01,
                            "batches": 1,
                            "max_iter": 50}
-        elif self.__class__._transformer_mode == "cpu":
+        elif self.__class__._mf_type == "nmf":
             self.params = {"n_components": 50,
                            "alpha": 0.01,
                            "max_iter": 50}
@@ -81,11 +81,11 @@ class MatrixFactorizationGPUTransformer(CustomTransformer):
             
             X_val_user_item_matrix = scipy.sparse.coo_matrix((np.ones(len(X_val2), dtype="float32"), (user_indices[len(X_train):], item_indices[len(X_train):])), shape=X_train_shape)
             
-            if self.__class__._transformer_mode == "gpu":
+            if self.__class__._mf_type == "h2o4gpu":
                 factorization = h2o4gpu.solvers.FactorizationH2O(self.params["n_components"], self.params["lambda"], max_iter=self.params["max_iter"])
                 factorization.fit(X_train_user_item_matrix, X_BATCHES=self.params["batches"], THETA_BATCHES=self.params["batches"])
                 preds[val_index[(X_val[self.user_col].isin(np.unique(X_train[self.user_col]))) & (X_val[self.item_col].isin(np.unique(X_train[self.item_col])))]] = factorization.predict(X_val_user_item_matrix).data
-            elif self.__class__._transformer_mode == "cpu":
+            elif self.__class__._mf_type == "nmf":
                 factorization = NMF(n_components=self.params["n_components"], alpha=self.params["alpha"], max_iter=self.params["max_iter"])
                 user_matrix = factorization.fit_transform(X_train_user_item_matrix)
                 item_matrix = factorization.components_.T
@@ -99,10 +99,10 @@ class MatrixFactorizationGPUTransformer(CustomTransformer):
         X_train_user_item_matrix = scipy.sparse.coo_matrix((y_train, (user_indices[:len(X_train)], item_indices[:len(X_train)])), shape=(len(users), len(items)))
         self.X_train_shape = X_train_user_item_matrix.shape
 
-        if self.__class__._transformer_mode == "gpu":
+        if self.__class__._mf_type == "h2o4gpu":
             self.factorization = h2o4gpu.solvers.FactorizationH2O(self.params["n_components"], self.params["lambda"], max_iter=self.params["max_iter"])
             self.factorization.fit(X_train_user_item_matrix, X_BATCHES=self.params["batches"], THETA_BATCHES=self.params["batches"])
-        elif self.__class__._transformer_mode == "cpu":
+        elif self.__class__._mf_type == "nmf":
             factorization = NMF(n_components=self.params["n_components"], alpha=self.params["alpha"], max_iter=self.params["max_iter"])
             self.user_matrix = factorization.fit_transform(X_train_user_item_matrix)
             self.item_matrix = factorization.components_.T
@@ -122,15 +122,15 @@ class MatrixFactorizationGPUTransformer(CustomTransformer):
 
         X_test_user_item_matrix = scipy.sparse.coo_matrix((np.ones(len(X_test), dtype="float32"), (X_test[self.user_col], X_test[self.item_col])), shape=self.X_train_shape)
 
-        if self.__class__._transformer_mode == "gpu":
+        if self.__class__._mf_type == "h2o4gpu":
             preds[(X_pd[self.user_col].isin(self.user_le.classes_)) & (X_pd[self.item_col].isin(self.item_le.classes_))] = self.factorization.predict(X_test_user_item_matrix).data
-        elif self.__class__._transformer_mode == "cpu":
+        elif self.__class__._mf_type == "nmf":
             test_users = np.take(self.user_matrix, X_test_user_item_matrix.row, axis=0)
             test_items = np.take(self.item_matrix, X_test_user_item_matrix.col, axis=0)
             preds[(X_pd[self.user_col].isin(self.user_le.classes_)) & (X_pd[self.item_col].isin(self.item_le.classes_))] = np.sum(test_users * test_items, axis=1)
 
         return preds
 
-class MatrixFactorizationCPUTransformer(MatrixFactorizationGPUTransformer):
+class RecNMFTransformer(RecH2OMFTransformer):
     _can_use_gpu = False
-    _transformer_mode = "cpu"
+    _mf_type = "nmf"
