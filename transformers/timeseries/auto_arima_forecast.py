@@ -149,7 +149,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         :return:
         """
         X = X.to_pandas()
-        XX = X[self.tgc].copy
+        XX = X[self.tgc].copy()
         XX['y'] = np.array(y)
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
         if len(tgc_wo_time) > 0:
