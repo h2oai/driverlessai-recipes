@@ -2,12 +2,11 @@
 import datatable as dt
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import  StandardScaler, LabelEncoder, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.compose import ColumnTransformer, make_column_transformer
 from sklearn.pipeline import make_pipeline
 from sklearn.impute import SimpleImputer
-
 
 from h2oaicore.models import CustomModel
 from h2oaicore.systemutils import config, physical_cores_count
@@ -87,14 +86,14 @@ class LogisticRegressionModel(CustomModel):
         X = X.to_pandas()
         X_names = list(X.columns)
 
-        #cat_features = [x for x in X_names if CatOriginalTransformer.is_me_transformed(x)]
-        #noncat_features = [x for x in X_names if x not in cat_features]
+        # cat_features = [x for x in X_names if CatOriginalTransformer.is_me_transformed(x)]
+        # noncat_features = [x for x in X_names if x not in cat_features]
         numerical_features = X.dtypes == 'float'
         categorical_features = ~numerical_features
         preprocess = make_column_transformer(
             (make_pipeline(SimpleImputer(), StandardScaler()), numerical_features),
             (OneHotEncoder(handle_unknown='ignore', sparse=True), categorical_features)
-         )
+        )
         model = make_pipeline(
             preprocess,
             LogisticRegression(**self.params))
@@ -105,7 +104,7 @@ class LogisticRegressionModel(CustomModel):
             param_grid = {
                 'columntransformer__pipeline__simpleimputer__strategy': ['mean', 'median'],
                 'logisticregression__C': [0.1, 0.5, 1.0],
-                }
+            }
             grid_clf = GridSearchCV(model, param_grid, cv=10, iid=False)
             grid_clf.fit(X, y)
             self.best_params = grid_clf.best_params_
@@ -122,9 +121,13 @@ class LogisticRegressionModel(CustomModel):
         num_X = X.loc[:, numerical_features]
 
         if any(categorical_features.values):
-            ohe_features = pd.Series(model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names(input_features=cat_X.columns))
+            ohe_features = pd.Series(
+                model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names(
+                    input_features=cat_X.columns))
+
             def f(x):
                 return '_'.join(x.split('_')[:-1])
+
             # aggregate OHE feature importances, then check
             ohe_features_short = ohe_features.apply(lambda x: f(x))
             full_features_list = list(num_X.columns) + list(ohe_features_short)
