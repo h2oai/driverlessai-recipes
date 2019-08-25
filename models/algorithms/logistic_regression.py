@@ -2,6 +2,7 @@
 import datatable as dt
 import numpy as np
 import pandas as pd
+import copy
 from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.compose import ColumnTransformer, make_column_transformer
@@ -21,6 +22,8 @@ class LogisticRegressionModel(CustomModel):
     _can_handle_non_numeric = True
     _display_name = "LR"
     _description = "Logistic Regression"
+    #_impute_type = 'oob'
+    _impute_type = 'sklearn'
 
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
@@ -63,6 +66,8 @@ class LogisticRegressionModel(CustomModel):
         if self.params["penalty"] == 'none':
             self.params.pop('C', None)
             self.params.pop('l1_ratio', None)
+        strategy_list = ['mean', 'median', 'most_frequent', 'constant']
+        self.params['strategy'] = str(np.random.choice(strategy_list)) if not get_default else 'mean'
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         orig_cols = list(X.names)
@@ -71,32 +76,39 @@ class LogisticRegressionModel(CustomModel):
             lb.fit(self.labels)
             y = lb.transform(y)
 
-        # Replace missing values with a value smaller than all observed values
-        self.min = dict()
-        for col in X.names:
-            XX = X[:, col]
-            self.min[col] = XX.min1()
-            if self.min[col] is None or np.isnan(self.min[col]):
-                self.min[col] = -1e10
-            else:
-                self.min[col] -= 1
-            XX.replace(None, self.min[col])
-            X[:, col] = XX
-            assert X[dt.isna(dt.f[col]), col].nrows == 0
+        if self._impute_type == 'oob':
+            # Replace missing values with a value smaller than all observed values
+            self.min = dict()
+            for col in X.names:
+                XX = X[:, col]
+                self.min[col] = XX.min1()
+                if self.min[col] is None or np.isnan(self.min[col]):
+                    self.min[col] = -1e10
+                else:
+                    self.min[col] -= 1
+                XX.replace(None, self.min[col])
+                X[:, col] = XX
+                assert X[dt.isna(dt.f[col]), col].nrows == 0
+
         X = X.to_pandas()
         X_names = list(X.columns)
+
+        lr_params = copy.deepcopy(self.params)
+        strategy = lr_params.pop('strategy', None)
+        impute_params = {}
+        impute_params['strategy'] = strategy
 
         # cat_features = [x for x in X_names if CatOriginalTransformer.is_me_transformed(x)]
         # noncat_features = [x for x in X_names if x not in cat_features]
         numerical_features = X.dtypes == 'float'
         categorical_features = ~numerical_features
         preprocess = make_column_transformer(
-            (make_pipeline(SimpleImputer(), StandardScaler()), numerical_features),
+            (make_pipeline(SimpleImputer(**impute_params), StandardScaler()), numerical_features),
             (OneHotEncoder(handle_unknown='ignore', sparse=True), categorical_features)
         )
         model = make_pipeline(
             preprocess,
-            LogisticRegression(**self.params))
+            LogisticRegression(**lr_params))
 
         grid_search = False
         if grid_search:
@@ -143,10 +155,11 @@ class LogisticRegressionModel(CustomModel):
 
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
-        for col in X.names:
-            XX = X[:, col]
-            XX.replace(None, self.min[col])
-            X[:, col] = XX
+        if self._impute_type == 'oob':
+            for col in X.names:
+                XX = X[:, col]
+                XX.replace(None, self.min[col])
+                X[:, col] = XX
         model, _, _, _ = self.get_model_properties()
         X = X.to_pandas()
         if self.num_classes == 1:
