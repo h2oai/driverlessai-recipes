@@ -1,6 +1,6 @@
 """Lightweight transformer to parse and augment US zipcodes with info from zipcode database."""
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.systemutils import make_experiment_logger, loggerwarning
+from h2oaicore.systemutils import make_experiment_logger, loggerinfo
 import datatable as dt
 import numpy as np
 
@@ -8,8 +8,10 @@ _global_modules_needed_by_name = ['pycodestyle==2.5.0', 'uszipcode==0.2.2']
 from uszipcode import SearchEngine
 
 
-class USZipcodeDatabaseTransformer(CustomTransformer):
+class USZipcodeDBTransformer(CustomTransformer):
     _allow_transform_to_modify_output_feature_names = True
+    
+    _numeric_output = True
 
     @staticmethod
     def do_acceptance_test():
@@ -36,18 +38,31 @@ class USZipcodeDatabaseTransformer(CustomTransformer):
             vals = [d['y'] for d in values]
             result = {**result, **dict(zip(keys, vals))}
         return result
-
+    
+    @staticmethod
+    def replaceBannedCharacters(str):
+        return str.replace('<', ' less ').replace('[', '(').replace(']', ')')
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.transformer_name = self.__class__.__name__
+        if self.transformer_name.endswith("Transformer"):
+            self.transformer_name = self.transformer_name[:-len("Transformer")]
+    
     search = SearchEngine(simple_zipcode=False)
 
     def get_zipcode_features(self, value):
         if value is None or not value:
             return self.get_zipcode_null_features()
+        elif len(value) < 3:
+            raise ValueError("Value '{}' too short for zip code.".format(value))
         else:
             lookup_value = value[:5]  # US zipcode only
 
         zip_data = self.search.by_zipcode(lookup_value)
         if (zip_data.zipcode_type == None):
-            return self.get_zipcode_null_features()
+            # return self.get_zipcode_null_features()
+            raise ValueError("Value '{}' not a zipcode.".format(value))
         else:
             zip_dict = zip_data.to_dict()
             result = {#'zip_key': value,
@@ -57,11 +72,16 @@ class USZipcodeDatabaseTransformer(CustomTransformer):
                       #'common_city_list': zip_dict['common_city_list'][0],
                       #'county': zip_dict['county'],
                       #'state': zip_dict['state'],
+                      
                       'lat': zip_dict['lat'],
                       'lng': zip_dict['lng'],
+                      
                       #'timezone': zip_dict['timezone'],
+                      
                       'radius_in_miles': zip_dict['radius_in_miles'],
+                      
                       # 'area_code_list': ['469', '972'],
+                      
                       'population': zip_dict['population'],
                       'population_density': zip_dict['population_density'],
                       'land_area_in_sqmi': zip_dict['land_area_in_sqmi'],
@@ -74,6 +94,7 @@ class USZipcodeDatabaseTransformer(CustomTransformer):
                       'bounds_east': zip_dict['bounds_east'],
                       'bounds_north': zip_dict['bounds_north'],
                       'bounds_south': zip_dict['bounds_south'],
+                      
                       #'zipcode': zip_dict['zipcode']
                       }
 
@@ -129,18 +150,27 @@ class USZipcodeDatabaseTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        X = dt.Frame(X)
-        original_zip_column_name = X.names[0]
-        X.names = ['zip_key']
-        X = X[:, str('zip_key')]
-        zip_list = dt.unique(X[~dt.isna(dt.f.zip_key), 0]).to_list()[0] + ['79936']
-        zip_features = [self.get_zipcode_features(x) for x in zip_list]
-        X_g = dt.Frame({"zip_key": zip_list})
-        X_g.cbind(dt.Frame(zip_features))
-        X_g.key = 'zip_key'
-        X_result = X[:, :, dt.join(X_g)]
-        self._output_feature_names = ["{}.{}".format(
-            original_zip_column_name, f) for f in list(X_result[:, 1:].names)]
-        self._feature_desc = ["Property '{}' of US zipcode found in '{}'".format(
-            f, original_zip_column_name) for f in list(X_result[:, 1:].names)]
-        return X_result[:, 1:]
+        logger = None
+        if self.context and self.context.experiment_id:
+            logger = make_experiment_logger(experiment_id=self.context.experiment_id, 
+                                            tmp_dir=self.context.tmp_dir,
+                                            experiment_tmp_dir=self.context.experiment_tmp_dir)        
+        try:
+            X = dt.Frame(X)
+            original_zip_column_name = X.names[0]
+            X.names = ['zip_key']
+            X = X[:, str('zip_key')]
+            zip_list = dt.unique(X[~dt.isna(dt.f.zip_key), 0]).to_list()[0] + ['79936']
+            zip_features = [self.get_zipcode_features(x) for x in zip_list]
+            X_g = dt.Frame({"zip_key": zip_list})
+            X_g.cbind(dt.Frame(zip_features))
+            X_g.key = 'zip_key'
+            X_result = X[:, :, dt.join(X_g)]
+            self._output_feature_names = ["{}:{}.{}".format(self.transformer_name, 
+                original_zip_column_name, self.replaceBannedCharacters(f)) for f in list(X_result[:, 1:].names)]
+            self._feature_desc = ["Property '{}' of zipcode column ['{}'] from US zipcode database (recipe '{}')".format(
+                f, original_zip_column_name, self.transformer_name) for f in list(X_result[:, 1:].names)]
+            return X_result[:, 1:]
+        except ValueError as ve:
+            loggerinfo(logger, "Column '{}' is not a zipcode: {}".format(original_zip_column_name, str(ve)))
+            return np.zeros(X.shape[0])
