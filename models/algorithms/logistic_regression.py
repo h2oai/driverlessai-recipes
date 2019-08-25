@@ -50,6 +50,8 @@ class LogisticRegressionModel(CustomModel):
 
         if self.params["solver"] == 'lbfgs':
             penalty_list = ['l2', 'none']
+        elif self.params["solver"] == 'newton-cg':
+            penalty_list = ['l2', 'none']
         else:
             penalty_list = ['l1', 'l2', 'elasticnet', 'none']
         self.params["penalty"] = str(np.random.choice(penalty_list)) if not get_default else 'l2'
