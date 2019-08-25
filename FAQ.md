@@ -63,6 +63,8 @@
   Everyone with access to the Driverless AI instance can run all recipes, even if they were uploaded by someone else. Recipes remains on the instance that runs Driverless AI. Experiment logs may contain relevant information about your recipes (such as their source code), so double-check before you share them.
   #### How do I delete all recipes on my instance?
   If you really need to delete all recipes, you can delete the `contrib` folder inside the `data_directory` (usually called `tmp`) and restart Driverless AI. Caution: Previously created experiments using custom recipes will not be able to make predictions any longer, so this is not recommended unless you also delete all related experiments as well.
+  #### Are MOJOs supported for experiments that use custom recipes?
+  In most cases, MOJOs will not be available for custom recipes. Unless the recipe is simple, creating the MOJO is only possible with additional MOJO runtime support. Contact support@h2o.ai for more information about creating MOJOs for custom recipes. (Note: The Python Scoring Pipeline features full support for custom recipes.)
   #### How do I share my recipe with the world?
   We encourage you to share your recipe in this repository. If your recipe works, please make a pull request and improve the experience for everyone!
     
