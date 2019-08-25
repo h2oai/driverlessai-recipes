@@ -26,27 +26,34 @@ class LogisticRegressionModel(CustomModel):
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
         # Fill up parameters we care about
-        self.params = dict(random_state=kwargs.get("random_state", 1234),
-                           solver='lbfgs',
-                           penalty='l2',
-                           C=0.1,
-                           n_jobs=self.params_base.get('n_jobs', max(1, physical_cores_count)))
+        self.params = {}
+        self.mutate_params(get_default=True)
 
     def mutate_params(self, accuracy=10, **kwargs):
+        get_default = 'get_default' in kwargs and kwargs['get_default']
+
+        self.params['random_state'] = kwargs.get("random_state", 1234)
+        self.params['n_jobs'] = self.params_base.get('n_jobs', max(1, physical_cores_count))
+
         # Modify certain parameters for tuning
         C_list = [0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 10.0]
-        self.params["C"] = float(np.random.choice(C_list))
+        self.params["C"] = float(np.random.choice(C_list)) if not get_default else 0.1
+
         tol_list = [1e-4, 1e-3, 1e-5]
-        self.params["tol"] = float(np.random.choice(tol_list))
+        self.params["tol"] = float(np.random.choice(tol_list)) if not get_default else 1e-4
+
         solver_list = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
-        self.params["solver"] = str(np.random.choice(solver_list))
+        self.params["solver"] = str(np.random.choice(solver_list)) if not get_default else 'lbfgs'
+
         max_iter_list = [100, 200, 1000]
-        self.params["max_iter"] = float(np.random.choice(max_iter_list))
+        self.params["max_iter"] = int(np.random.choice(max_iter_list)) if not get_default else 100
+
         if self.params["solver"] == 'lbfgs':
             penalty_list = ['l2', 'none']
         else:
             penalty_list = ['l1', 'l2', 'elasticnet', 'none']
-        self.params["penalty"] = str(np.random.choice(penalty_list))
+        self.params["penalty"] = str(np.random.choice(penalty_list)) if not get_default else 'l2'
+
         if self.params["penalty"] == 'elasticnet':
             l1_ratio_list = [0, 0.5, 1.0]
             self.params["l1_ratio"] = float(np.random.choice(l1_ratio_list))
@@ -84,7 +91,7 @@ class LogisticRegressionModel(CustomModel):
         categorical_features = ~numerical_features
         preprocess = make_column_transformer(
             (make_pipeline(SimpleImputer(), StandardScaler()), numerical_features),
-            (OneHotEncoder(sparse=True), categorical_features)
+            (OneHotEncoder(handle_unknown='ignore', sparse=True), categorical_features)
          )
         model = make_pipeline(
             preprocess,
@@ -118,10 +125,11 @@ class LogisticRegressionModel(CustomModel):
                 return '_'.join(x.split('_')[:-1])
             # aggregate OHE feature importances, then check
             ohe_features_short = ohe_features.apply(lambda x: f(x))
-            importances = pd.Series(np.abs(importances), index=ohe_features_short).groupby(level=0).mean()
+            full_features_list = list(num_X.columns) + list(ohe_features_short)
+            importances = pd.Series(np.abs(importances), index=full_features_list).groupby(level=0).mean()
             assert len(importances) == len(X_names)
-            # But for dummy testing
-            #importances = np.array([1.0] * len(X_names))
+            # Below for dummy testing
+            # importances = np.array([1.0] * len(X_names))
 
         self.set_model_properties(model=model,
                                   features=orig_cols,
