@@ -47,9 +47,7 @@ class LogisticRegressionModel(CustomModel):
         max_iter_list = [100, 200, 1000]
         self.params["max_iter"] = int(np.random.choice(max_iter_list)) if not get_default else 100
 
-        if self.params["solver"] == 'lbfgs':
-            penalty_list = ['l2', 'none']
-        elif self.params["solver"] == 'newton-cg':
+        if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
             penalty_list = ['l2', 'none']
         else:
             penalty_list = ['l1', 'l2', 'elasticnet', 'none']
