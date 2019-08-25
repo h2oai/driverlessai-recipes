@@ -18,8 +18,8 @@ from h2oaicore.transformers import CatOriginalTransformer
 class LogisticRegressionModel(CustomModel):
     _regression = False
     _binary = True
+    _multiclass = True
     _mutate_all = True
-    _multiclass = False
     _grid_search = False  # WIP
     _parallel_task = True if _grid_search else False
     _can_handle_non_numeric = True
@@ -47,9 +47,10 @@ class LogisticRegressionModel(CustomModel):
         tol_list = [1e-4, 1e-3, 1e-5]
         self.params["tol"] = float(np.random.choice(tol_list)) if not get_default else 1e-4
 
-        #solver_list = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
+        # solver_list = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
         # newton-cg too slow
-        solver_list = ['lbfgs', 'liblinear', 'sag', 'saga']
+        # sag too slow
+        solver_list = ['lbfgs', 'liblinear', 'saga']
         self.params["solver"] = str(np.random.choice(solver_list)) if not get_default else 'lbfgs'
 
         max_iter_list = [100, 200, 1000]
@@ -73,12 +74,14 @@ class LogisticRegressionModel(CustomModel):
         if self.params["penalty"] == 'none':
             self.params.pop('C', None)
             self.params.pop('l1_ratio', None)
+        if self.num_classes > 2:
+            self.params['multi_class'] = 'auto'
         strategy_list = ['mean', 'median', 'most_frequent', 'constant']
         self.params['strategy'] = str(np.random.choice(strategy_list)) if not get_default else 'mean'
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         orig_cols = list(X.names)
-        if self.num_classes == 2:
+        if self.num_classes >= 2:
             lb = LabelEncoder()
             lb.fit(self.labels)
             y = lb.transform(y)
