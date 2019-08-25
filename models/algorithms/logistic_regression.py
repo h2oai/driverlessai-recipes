@@ -22,6 +22,8 @@ class LogisticRegressionModel(CustomModel):
     _mutate_all = True
     _grid_search = False  # WIP
     _parallel_task = True if _grid_search else False
+    _fit_by_iteration = True
+    _fit_iteration_name = 'max_iter'
     _can_handle_non_numeric = True
     _display_name = "LR"
     _description = "Logistic Regression"
