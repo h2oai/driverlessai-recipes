@@ -47,7 +47,9 @@ class LogisticRegressionModel(CustomModel):
         tol_list = [1e-4, 1e-3, 1e-5]
         self.params["tol"] = float(np.random.choice(tol_list)) if not get_default else 1e-4
 
-        solver_list = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
+        #solver_list = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
+        # newton-cg too slow
+        solver_list = ['lbfgs', 'liblinear', 'sag', 'saga']
         self.params["solver"] = str(np.random.choice(solver_list)) if not get_default else 'lbfgs'
 
         max_iter_list = [100, 200, 1000]
