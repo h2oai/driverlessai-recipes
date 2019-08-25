@@ -18,7 +18,10 @@ from h2oaicore.transformers import CatOriginalTransformer
 class LogisticRegressionModel(CustomModel):
     _regression = False
     _binary = True
+    _mutate_all = True
     _multiclass = False
+    _grid_search = False  # WIP
+    _parallel_task = True if _grid_search else False
     _can_handle_non_numeric = True
     _display_name = "LR"
     _description = "Logistic Regression"
@@ -52,10 +55,12 @@ class LogisticRegressionModel(CustomModel):
 
         if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
             penalty_list = ['l2', 'none']
+        elif self.params["solver"] in ['saga']:
+            penalty_list = ['l1', 'l2', 'none']
         elif self.params["solver"] in ['liblinear']:
-            penalty_list = ['l1', 'l2', 'elasticnet']
+            penalty_list = ['l1']
         else:
-            penalty_list = ['l1', 'l2', 'elasticnet', 'none']
+            raise RuntimeError("No such solver: %s" % self.params['solver'])
         self.params["penalty"] = str(np.random.choice(penalty_list)) if not get_default else 'l2'
 
         if self.params["penalty"] == 'elasticnet':
@@ -110,8 +115,7 @@ class LogisticRegressionModel(CustomModel):
             preprocess,
             LogisticRegression(**lr_params))
 
-        grid_search = False
-        if grid_search:
+        if self._grid_search:
             from sklearn.model_selection import GridSearchCV
             param_grid = {
                 'columntransformer__pipeline__simpleimputer__strategy': ['mean', 'median'],
