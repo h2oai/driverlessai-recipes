@@ -50,6 +50,11 @@ class LogisticRegressionModel(CustomModel):
         if self.params["penalty"] == 'elasticnet':
             l1_ratio_list = [0, 0.5, 1.0]
             self.params["l1_ratio"] = float(np.random.choice(l1_ratio_list))
+        else:
+            self.params.pop('l1_ratio', None)
+        if self.params["penalty"] == 'none':
+            self.params.pop('C', None)
+            self.params.pop('l1_ratio', None)
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         orig_cols = list(X.names)
@@ -78,8 +83,8 @@ class LogisticRegressionModel(CustomModel):
         numerical_features = X.dtypes == 'float'
         categorical_features = ~numerical_features
         preprocess = make_column_transformer(
-            (numerical_features, make_pipeline(SimpleImputer(), StandardScaler())),
-            (categorical_features, OneHotEncoder(sparse=True))
+            (make_pipeline(SimpleImputer(), StandardScaler()), numerical_features),
+            (OneHotEncoder(sparse=True), categorical_features)
          )
         model = make_pipeline(
             preprocess,
@@ -98,14 +103,26 @@ class LogisticRegressionModel(CustomModel):
         else:
             model.fit(X, y)
         lr_model = model.named_steps['logisticregression']
+
         # average importances over classes
         importances = np.average(np.array(lr_model.coef_), axis=0)
         # average iterations over classes (can't take max_iter per class)
         iterations = np.average(lr_model.n_iter_, axis=0)
 
-        # aggregate OHE feature importances, then check
-        assert len(importances) == len(X_names)
-        # model.named_steps['columntransformer'].transformers[1][1].get_feature_names(input_features=X_names)
+        cat_X = X.loc[:, categorical_features]
+        num_X = X.loc[:, numerical_features]
+
+        if any(categorical_features.values):
+            ohe_features = pd.Series(model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names(input_features=cat_X.columns))
+            def f(x):
+                return '_'.join(x.split('_')[:-1])
+            # aggregate OHE feature importances, then check
+            ohe_features_short = ohe_features.apply(lambda x: f(x))
+            importances = pd.Series(np.abs(importances), index=ohe_features_short).groupby(level=0).mean()
+            assert len(importances) == len(X_names)
+            # But for dummy testing
+            #importances = np.array([1.0] * len(X_names))
+
         self.set_model_properties(model=model,
                                   features=orig_cols,
                                   importances=importances.tolist(),
