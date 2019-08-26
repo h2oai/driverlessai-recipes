@@ -104,21 +104,21 @@ class H2OBaseModel:
             if sample_weight is not None:
                 train_kwargs['weights_column'] = self.weight
             model = self.make_instance(**params)
+            
+            # Don't ever use the offset column as a feature
+            offset_col = None  # if no column is called offset we will pass "None" and not use this feature
+            cols_to_train = []  # list of all non-offset columns
+
+            for col in list(train_X.names):
+                if not col.lower() == "offset":
+                    cols_to_train.append(col)
+                else:
+                    offset_col = col
+
+            orig_cols = cols_to_train  # not training on offset
 
             # Models that can use an offset column
             if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
-
-                offset_col = None  # if no column is called offset we will pass "None" and not use this feature
-                cols_to_train = []  # list of all non-offset columns
-
-                for col in list(train_X.names):
-                    if not col.lower() == "offset":
-                        cols_to_train.append(col)
-                    else:
-                        offset_col = col
-
-                orig_cols = cols_to_train  # not training on offset
-
                 model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col, **train_kwargs)
             else:
                 model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
