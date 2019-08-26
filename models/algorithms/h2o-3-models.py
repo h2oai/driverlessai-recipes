@@ -112,10 +112,12 @@ class H2OBaseModel:
                 cols_to_train = []  # list of all non-offset columns
 
                 for col in list(train_X.names):
-                    if not col.lower == "offset":
+                    if not col.lower() == "offset":
                         cols_to_train.append(col)
                     else:
                         offset_col = col
+
+                orig_cols = cols_to_train  # not training on offset
 
                 model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col, **train_kwargs)
             else:
