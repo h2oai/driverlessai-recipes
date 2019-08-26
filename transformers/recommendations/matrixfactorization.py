@@ -1,4 +1,23 @@
 """Collaborative filtering features using various techniques of Matrix Factorization for recommendations"""
+
+"""
+Please edit the user column name and item name in the transformer initializationto match the
+column names as per the dataset or use the default 'user' and 'item' respectively in your dataset
+
+Sample Datasets
+Netflix - https://www.kaggle.com/netflix-inc/netflix-prize-data
+user_col = user
+item_col = movie
+
+MovieLens - https://grouplens.org/datasets/movielens/
+user_col = userId
+item_col = movieId
+
+RPackages - https://www.kaggle.com/c/R/data
+user_col = User
+item_col = Package
+"""
+
 import datatable as dt
 import numpy as np
 import pandas as pd
