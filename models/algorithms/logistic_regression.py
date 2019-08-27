@@ -1,4 +1,8 @@
-"""Sklearn Logistic Regression."""
+"""
+Sklearn Logistic Regression.
+Useful when weak or no interactions between features,
+or large inherent number of levels in categorical features
+"""
 import datatable as dt
 import numpy as np
 import random
@@ -23,12 +27,14 @@ class LogisticRegressionModel(CustomModel):
     _grid_search_iterations = True
     # _impute_type = 'oob'
     _impute_type = 'sklearn'
-    _mutate_by_one = False
+
+    _mutate_all = True  # tell DAI we fully controls mutation
+    _mutate_by_one = True  # recipe only changes one key at a time
+    _overfit_limit_iteration_step = 10
 
     _regression = False
     _binary = True
     _multiclass = True
-    _mutate_all = True
     _parallel_task = True if _grid_search or _grid_search_iterations else False
     _fit_by_iteration = True
     _fit_iteration_name = 'max_iter'
@@ -60,6 +66,16 @@ class LogisticRegressionModel(CustomModel):
     def mutate_params(self, accuracy=10, **kwargs):
         get_default = 'get_default' in kwargs and kwargs['get_default'] or self._always_defaults
         params_orig = copy.deepcopy(self.params)
+
+        # control some behavior by how often the model was mutated.
+        # Good models that improve get repeatedly mutated, bad models tend to be one-off mutations of good models
+        if get_default:
+            self.params['mutation_count'] = 0
+        else:
+            if 'mutate_count' in self.params:
+                self.params['mutation_count'] += 1
+            else:
+                self.params['mutation_count'] = 0
 
         self.params['random_state'] = kwargs.get("random_state", 1234)
         self.params['n_jobs'] = self.params_base.get('n_jobs', max(1, physical_cores_count))
@@ -105,30 +121,45 @@ class LogisticRegressionModel(CustomModel):
             self.params.pop('l1_ratio', None)
         if self.num_classes > 2:
             self.params['multi_class'] = 'auto'
+
         strategy_list = ['mean', 'median', 'most_frequent', 'constant']
         self.params['strategy'] = str(np.random.choice(strategy_list)) if not get_default else 'mean'
 
-        min_samples_leaf_list = [1, 10, 50, 100]
-        self.params['min_samples_leaf'] = float(np.random.choice(min_samples_leaf_list))
-        smoothing_list = [1.0, 0.5, 10.0, 50.0]
-        self.params['smoothing'] = float(np.random.choice(smoothing_list))
+        if self._use_target_encoding:
+            min_samples_leaf_list = [1, 10, 50, 100]
+            self.params['min_samples_leaf'] = float(np.random.choice(min_samples_leaf_list))
+            smoothing_list = [1.0, 0.5, 10.0, 50.0]
+            self.params['smoothing'] = float(np.random.choice(smoothing_list))
 
-        sigma_list = [None, 1.0, 0.5, 10.0, 50.0]
-        self.params['sigma'] = random.choice(sigma_list)
+        if self._use_catboost_encoding:
+            sigma_list = [None, 1.0, 0.5, 10.0, 50.0]
+            self.params['sigma'] = random.choice(sigma_list)
 
-        randomized_list = [True, False]
-        self.params['randomized'] = random.choice(randomized_list)
-        sigma_woe_list = [0.05, 0.025, 0.1, 0.2]
-        self.params['sigma_woe'] = random.choice(sigma_woe_list)
-        regularization_list = [1.0, 0.5, 2.0, 10.0]
-        self.params['regularization'] = random.choice(regularization_list)
+        if self._use_woe_encoding:
+            randomized_list = [True, False]
+            self.params['randomized'] = random.choice(randomized_list)
+            sigma_woe_list = [0.05, 0.025, 0.1, 0.2]
+            self.params['sigma_woe'] = random.choice(sigma_woe_list)
+            regularization_list = [1.0, 0.5, 2.0, 10.0]
+            self.params['regularization'] = random.choice(regularization_list)
 
-        if self._mutate_by_one:
+        if self._mutate_by_one and not get_default and params_orig:
             pick_key = str(np.random.choice(list(self.params.keys()), size=1)[0])
             value = self.params[pick_key]
             self.params = copy.deepcopy(params_orig)
             self.params[pick_key] = value
             # WIP, need to validate parameters in clean way
+            if pick_key == 'penalty':
+                # has restrictions need to switch other keys if mismatched
+                if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
+                    penalty_list = ['l2', 'none']
+                elif self.params["solver"] in ['saga']:
+                    penalty_list = ['l1', 'l2', 'none']
+                elif self.params["solver"] in ['liblinear']:
+                    penalty_list = ['l1']
+                if not self.params['penalty'] in penalty_list:
+                    self.params['penalty'] = penalty_list[0]  # just choose first
+
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         orig_cols = list(X.names)
@@ -156,23 +187,6 @@ class LogisticRegressionModel(CustomModel):
 
         lr_params = copy.deepcopy(self.params)
 
-        impute_params = {}
-        impute_params['strategy'] = lr_params.pop('strategy', None)
-
-        ord_params = dict(handle_missing='value', handle_unknown='value')
-
-        te_params = dict(handle_missing='value', handle_unknown='value')
-        te_params['min_samples_leaf'] = lr_params.pop('min_samples_leaf')
-        te_params['smoothing'] = lr_params.pop('smoothing')
-
-        cb_params = dict(handle_missing='value', handle_unknown='value')
-        cb_params['sigma'] = lr_params.pop('sigma')
-
-        woe_params = dict(handle_missing='value', handle_unknown='value')
-        woe_params['randomized'] = lr_params.pop('randomized')
-        woe_params['sigma'] = lr_params.pop('sigma_woe')
-        woe_params['regularization'] = lr_params.pop('regularization')
-
         # cat_features = [x for x in X_names if CatOriginalTransformer.is_me_transformed(x)]
         # noncat_features = [x for x in X_names if x not in cat_features]
         numerical_features = X.dtypes == 'float'
@@ -183,12 +197,15 @@ class LogisticRegressionModel(CustomModel):
         full_features_list = []
         transformers = []
         if self._use_numerics and any(numerical_features.values):
+            impute_params = {}
+            impute_params['strategy'] = lr_params.pop('strategy', None)
             full_features_list.extend(list(num_X.columns))
             transformers.append(
                 (make_pipeline(SimpleImputer(**impute_params), StandardScaler()), numerical_features)
             )
         # http://contrib.scikit-learn.org/categorical-encoding/
         if self._use_ordinal_encoding and any(categorical_features.values):
+            ord_params = dict(handle_missing='value', handle_unknown='value')
             full_features_list.extend(list(cat_X.columns))
             # Note: OrdinalEncoder doesn't handle unseen features, while CategoricalEncoder used too
             import category_encoders as ce
@@ -196,18 +213,27 @@ class LogisticRegressionModel(CustomModel):
                 (ce.OrdinalEncoder(**ord_params), categorical_features)
             )
         if self._use_catboost_encoding and any(categorical_features.values):
+            cb_params = dict(handle_missing='value', handle_unknown='value')
+            cb_params['sigma'] = lr_params.pop('sigma')
             full_features_list.extend(list(cat_X.columns))
             import category_encoders as ce
             transformers.append(
                 (ce.CatBoostEncoder(**cb_params), categorical_features)
             )
         if self._use_woe_encoding and any(categorical_features.values):
+            woe_params = dict(handle_missing='value', handle_unknown='value')
+            woe_params['randomized'] = lr_params.pop('randomized')
+            woe_params['sigma'] = lr_params.pop('sigma_woe')
+            woe_params['regularization'] = lr_params.pop('regularization')
             full_features_list.extend(list(cat_X.columns))
             import category_encoders as ce
             transformers.append(
                 (ce.WOEEncoder(**woe_params), categorical_features)
             )
         if self._use_target_encoding and any(categorical_features.values):
+            te_params = dict(handle_missing='value', handle_unknown='value')
+            te_params['min_samples_leaf'] = lr_params.pop('min_samples_leaf')
+            te_params['smoothing'] = lr_params.pop('smoothing')
             full_features_list.extend(list(cat_X.columns))
             import category_encoders as ce
             transformers.append(
@@ -240,10 +266,26 @@ class LogisticRegressionModel(CustomModel):
         assert len(transformers) > 0, "should have some features"
 
         preprocess = make_column_transformer(*transformers)
+
+        # estimator
+        lr_defaults = dict(penalty='l2', dual=False, tol=1e-4, C=1.0,
+                 fit_intercept=True, intercept_scaling=1, class_weight=None,
+                 random_state=None, solver='warn', max_iter=100,
+                 multi_class='warn', verbose=0, warm_start=False, n_jobs=None,
+                 l1_ratio=None)
+        allowed_lr_kwargs_keys = lr_defaults.keys()
+        lr_params_copy = copy.deepcopy(lr_params)
+        for k, v in lr_params_copy.items():
+            if k not in allowed_lr_kwargs_keys:
+                lr_params.pop(k, None)
+        del lr_params_copy
+
+        # pipeline
         model = make_pipeline(
             preprocess,
             LogisticRegression(**lr_params))
 
+        # fit
         if self._grid_search_iterations and self.num_classes == 2 and 'AUC' in self.params_base['score_f_name'].upper():
             # WIP FIXME for multiclass and other scorers
             from sklearn.model_selection import GridSearchCV
@@ -251,8 +293,7 @@ class LogisticRegressionModel(CustomModel):
             if self._extra_effort or False:
                 max_iter_range = range(0, 2000, 10)
             else:
-                max_iter_range = np.arange(int(self.params['max_iter'] / 2), int(self.params['max_iter'] * 2),
-                                           int(self.params['max_iter'] / 2))
+                max_iter_range = self.get_max_iter_range(self.params['max_iter'], self.params['mutation_count'])
             print("max_iter_range: %s" % str(max_iter_range))
             param_grid = {
                 'logisticregression__max_iter': max_iter_range,
@@ -286,6 +327,7 @@ class LogisticRegressionModel(CustomModel):
         # average iterations over classes (can't take max_iter per class)
         iterations = np.average(lr_model.n_iter_, axis=0)
 
+        # reduce OHE features to original names
         ohe_features_short = []
         if self._use_ohe_encoding and any(categorical_features.values):
             if self._use_ohe_encoding:
@@ -300,21 +342,39 @@ class LogisticRegressionModel(CustomModel):
                 ohe_features_short = ohe_features.apply(lambda x: f(x))
                 full_features_list.extend(list(ohe_features_short))
 
-        # aggregate
         msg = "num=%d cat=%d : ohe=%d : imp=%d full=%d" % (
             len(num_X.columns), len(cat_X.columns), len(ohe_features_short), len(importances), len(full_features_list))
         print(msg)
         assert len(importances) == len(full_features_list), msg
+
+        # aggregate
         importances = pd.Series(np.abs(importances), index=full_features_list).groupby(level=0).mean()
         assert len(importances) == len(X_names)
-        # Below for dummy testing
-        # importances = np.array([1.0] * len(X_names))
         print("LRiterations: %d" % iterations)
 
         self.set_model_properties(model=model,
                                   features=orig_cols,
                                   importances=importances.tolist(),
                                   iterations=iterations)
+
+    def get_max_iter_range(self, max_iter, mutation_count):
+        # bisect toward optimal iteration count
+        step_count = 3
+        max_iter_step = 2 + mutation_count
+        start_range = max_iter * (1.0 - 1.0/max_iter_step)
+        end_range = max_iter * (1.0 + 2.0/max_iter_step)
+        if end_range - start_range < self._overfit_limit_iteration_step:
+            # if below some threshold of iterations, don't keep refining to avoid overfit
+            return [max_iter]
+        start = np.log(start_range)
+        end = np.log(end_range)
+        step = 1.0 * (end - start) / step_count
+        print(start, end, step)
+        max_iter_range = np.arange(start, end, step)
+        max_iter_range = [int(np.exp(x)) for x in max_iter_range]
+        max_iter_range.append(max_iter)
+        max_iter_range = sorted(max_iter_range)
+        return max_iter_range
 
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
