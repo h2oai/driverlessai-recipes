@@ -32,7 +32,7 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 class LogisticRegressionModel(CustomModel):
     _grid_search = False  # WIP
     _grid_search_iterations = True
-    _cv_search = True  # can be used in conjuction with _grid_search_iterations = True or False
+    _cv_search = True  # can be used in conjunction with _grid_search_iterations = True or False
     # _impute_type = 'oob'
     _impute_type = 'sklearn'
 
@@ -68,9 +68,6 @@ class LogisticRegressionModel(CustomModel):
     if _use_target_encoding_other:
         _modules_needed_by_name.extend(['target_encoding'])
 
-    C_list = [0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 10.0]
-    l1_ratio_list = [0, 0.25, 0.5, 0.75, 1.0]
-
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
         # Fill up parameters we care about
@@ -97,7 +94,7 @@ class LogisticRegressionModel(CustomModel):
         self.params['n_jobs'] = self.params_base.get('n_jobs', max(1, physical_cores_count))
 
         # Modify certain parameters for tuning
-        C_list = self.C_list
+        C_list = [0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 10.0]
         self.params["C"] = float(np.random.choice(C_list)) if not get_default else 0.1
 
         tol_list = [1e-4, 1e-3, 1e-5]
@@ -125,13 +122,14 @@ class LogisticRegressionModel(CustomModel):
         self.params["penalty"] = str(np.random.choice(penalty_list)) if not get_default else 'l2'
 
         if self.params["penalty"] == 'elasticnet':
-            l1_ratio_list = self.l1_ratio_list
+            l1_ratio_list = [0, 0.25, 0.5, 0.75, 1.0]
             self.params["l1_ratio"] = float(np.random.choice(l1_ratio_list))
         else:
             self.params.pop('l1_ratio', None)
         if self.params["penalty"] == 'none':
             self.params.pop('C', None)
-            self.params.pop('l1_ratio', None)
+        else:
+            self.params['C'] = float(np.random.choice(C_list)) if not get_default else 0.1
         if self.num_classes > 2:
             self.params['multi_class'] = 'auto'
 
@@ -304,9 +302,11 @@ class LogisticRegressionModel(CustomModel):
             estimator_name = 'logisticregression'
         else:
             lr_params_cv = copy.deepcopy(lr_params)
-            lr_params_cv['Cs'] = self.C_list
+            lr_params_cv['Cs'] = self.get_param_range(self.params['C'], self.params['mutation_count'], func_type='log')
+            print("CV: Cs: %s" % str(lr_params_cv['Cs']))
             if 'l1_ratios' in lr_params:
-                lr_params_cv['l1_ratios'] = self.l1_ratio_list
+                lr_params_cv['l1_ratios'] = self.get_param_range(self.params['l1_ratio'], self.params['mutation_count'], func_type='linear')
+                print("CV: l1_ratios: %s" % str(lr_params_cv['l1_ratios']))
             lr_params_cv.pop('n_jobs', None)
             lr_params_cv.pop('C', None)
             lr_params_cv.pop('l1_ratio', None)
@@ -324,7 +324,8 @@ class LogisticRegressionModel(CustomModel):
             # WIP FIXME for multiclass and other scorers
             from sklearn.model_selection import GridSearchCV
 
-            max_iter_range = self.get_max_iter_range(self.params['max_iter'], self.params['mutation_count'])
+            max_iter_range = self.get_param_range(self.params['max_iter'], self.params['mutation_count'],
+                                                  range_limit=self._overfit_limit_iteration_step, func_type='log')
             print("max_iter_range: %s" % str(max_iter_range))
             param_grid = {
                 '%s__max_iter' % estimator_name: max_iter_range,
@@ -393,24 +394,38 @@ class LogisticRegressionModel(CustomModel):
                                   importances=importances.tolist(),
                                   iterations=iterations)
 
-    def get_max_iter_range(self, max_iter, mutation_count):
-        # bisect toward optimal iteration count
+    def get_param_range(self, param, mutation_count, range_limit=None, func_type='linear'):
+        if func_type == 'log':
+            f = np.log
+            inv_f = np.exp
+            bottom = 1.0
+            top = 2.0
+        else:
+            f = np.abs
+            inv_f = np.abs
+            top = bottom = 1.0
+        # bisect toward optimal param
         step_count = 3
-        max_iter_step = 2 + mutation_count
-        start_range = max_iter * (1.0 - 1.0 / max_iter_step)
-        end_range = max_iter * (1.0 + 2.0 / max_iter_step)
-        if end_range - start_range < self._overfit_limit_iteration_step:
-            # if below some threshold of iterations, don't keep refining to avoid overfit
-            return [max_iter]
-        start = np.log(start_range)
-        end = np.log(end_range)
+        params_step = 2 + mutation_count
+        start_range = param * (1.0 - bottom / params_step)
+        end_range = param * (1.0 + top / params_step)
+        if range_limit is not None:
+            if end_range - start_range < range_limit:
+                # if below some threshold, don't keep refining to avoid overfit
+                return [param]
+        start = f(start_range)
+        end = f(end_range)
         step = 1.0 * (end - start) / step_count
         print(start, end, step)
-        max_iter_range = np.arange(start, end, step)
-        max_iter_range = [int(np.exp(x)) for x in max_iter_range]
-        max_iter_range.append(max_iter)
-        max_iter_range = sorted(max_iter_range)
-        return max_iter_range
+        param_range = np.arange(start, end, step)
+        if type(param) == int:
+            param_range = [int(inv_f(x)) for x in param_range if int(inv_f(x)) > 0]
+        else:
+            param_range = [inv_f(x) for x in param_range if inv_f(x) > 0]
+        if param not in param_range:
+            param_range.append(param)
+        param_range = sorted(param_range)
+        return param_range
 
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
