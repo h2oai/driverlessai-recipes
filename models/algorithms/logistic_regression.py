@@ -99,11 +99,14 @@ class LogisticRegressionModel(CustomModel):
         self.params['n_jobs'] = self.params_base.get('n_jobs', max(1, physical_cores_count))
 
         # Modify certain parameters for tuning
-        C_list = [0.05, 0.075, 0.1, 0.15, 0.2]
+        C_list = [0.05, 0.075, 0.1, 0.15, 0.2, 1.0, 5.0]
         self.params["C"] = float(np.random.choice(C_list)) if not get_default else 0.1
 
         tol_list = [1e-4, 1e-3, 1e-5]
-        self.params["tol"] = float(np.random.choice(tol_list)) if not get_default else 1e-6
+        default_tol = 1e-6 if accuracy >=6 else 1e-4
+        if default_tol not in tol_list:
+            tol_list.append(default_tol)
+        self.params["tol"] = float(np.random.choice(tol_list)) if not get_default else default_tol
 
         # solver_list = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
         # newton-cg too slow
@@ -114,7 +117,6 @@ class LogisticRegressionModel(CustomModel):
 
         max_iter_list = [50, 100, 150, 200, 250, 300]
         self.params["max_iter"] = int(np.random.choice(max_iter_list)) if not get_default else 200
-        # self.params["max_iter"] = 5 # HACK
 
         if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
             penalty_list = ['l2', 'none']
@@ -160,9 +162,9 @@ class LogisticRegressionModel(CustomModel):
             self.params['regularization'] = random.choice(regularization_list)
 
         # control search in recipe
-        self.params['grid_search_iterations'] = accuracy >= 5
+        self.params['grid_search_iterations'] = accuracy >= 7
         # cv search for hyper paramteers, can be used in conjunction with _grid_search_by_iterations = True or False
-        self.params['cv_search'] = accuracy >= 5
+        self.params['cv_search'] = accuracy >= 8
 
         if self._mutate_by_one and not get_default and params_orig:
             pick_key = str(np.random.choice(list(self.params.keys()), size=1)[0])
