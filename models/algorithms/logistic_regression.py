@@ -2,6 +2,13 @@
 Sklearn Logistic Regression.
 Useful when weak or no interactions between features,
 or large inherent number of levels in categorical features
+
+Other useful DAI options if want to only use feature made internally by this model:
+config.prob_prune_genes = False
+config.prob_prune_by_features = False
+_included_transformers = ['CatOriginalTransformer']
+
+
 """
 import datatable as dt
 import numpy as np
@@ -72,7 +79,7 @@ class LogisticRegressionModel(CustomModel):
         if get_default:
             self.params['mutation_count'] = 0
         else:
-            if 'mutate_count' in self.params:
+            if 'mutation_count' in self.params:
                 self.params['mutation_count'] += 1
             else:
                 self.params['mutation_count'] = 0
