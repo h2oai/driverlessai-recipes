@@ -16,7 +16,7 @@ import random
 import pandas as pd
 import copy
 from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 from sklearn.compose import ColumnTransformer, make_column_transformer
 from sklearn.pipeline import make_pipeline
 from sklearn.impute import SimpleImputer
@@ -32,12 +32,14 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 class LogisticRegressionModel(CustomModel):
     _grid_search = False  # WIP
     _grid_search_iterations = True
+    _cv_search = True  # can be used in conjuction with _grid_search_iterations = True or False
     # _impute_type = 'oob'
     _impute_type = 'sklearn'
 
     _mutate_all = True  # tell DAI we fully controls mutation
-    _mutate_by_one = True  # recipe only changes one key at a time
+    _mutate_by_one = False  # recipe only changes one key at a time, can limit exploration if set as True
     _overfit_limit_iteration_step = 10
+    _randomized_random_state = True
 
     _regression = False
     _binary = True
@@ -49,8 +51,10 @@ class LogisticRegressionModel(CustomModel):
     _display_name = "LR"
     _description = "Logistic Regression"
 
+    _used_return_params = True
+    _average_return_params = True
+
     _always_defaults = False
-    _extra_effort = False
 
     _use_numerics = True
     _use_ohe_encoding = True
@@ -63,6 +67,9 @@ class LogisticRegressionModel(CustomModel):
     _modules_needed_by_name = ['category_encoders']
     if _use_target_encoding_other:
         _modules_needed_by_name.extend(['target_encoding'])
+
+    C_list = [0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 10.0]
+    l1_ratio_list = [0, 0.25, 0.5, 0.75, 1.0]
 
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
@@ -85,16 +92,16 @@ class LogisticRegressionModel(CustomModel):
                 self.params['mutation_count'] = 0
 
         self.params['random_state'] = kwargs.get("random_state", 1234)
+        if self._randomized_random_state:
+            self.params['random_state'] = random.randint(0, 32000)
         self.params['n_jobs'] = self.params_base.get('n_jobs', max(1, physical_cores_count))
 
         # Modify certain parameters for tuning
-        C_list = [0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 10.0]
+        C_list = self.C_list
         self.params["C"] = float(np.random.choice(C_list)) if not get_default else 0.1
 
         tol_list = [1e-4, 1e-3, 1e-5]
         self.params["tol"] = float(np.random.choice(tol_list)) if not get_default else 1e-4
-        if self._extra_effort:
-            self.params["tol"] = 1e-6
 
         # solver_list = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
         # newton-cg too slow
@@ -105,8 +112,7 @@ class LogisticRegressionModel(CustomModel):
 
         max_iter_list = [100, 200, 1000]
         self.params["max_iter"] = int(np.random.choice(max_iter_list)) if not get_default else 100
-        if self._extra_effort:
-            self.params["max_iter"] = 1000
+        # self.params["max_iter"] = 5 # HACK
 
         if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
             penalty_list = ['l2', 'none']
@@ -119,7 +125,7 @@ class LogisticRegressionModel(CustomModel):
         self.params["penalty"] = str(np.random.choice(penalty_list)) if not get_default else 'l2'
 
         if self.params["penalty"] == 'elasticnet':
-            l1_ratio_list = [0, 0.5, 1.0]
+            l1_ratio_list = self.l1_ratio_list
             self.params["l1_ratio"] = float(np.random.choice(l1_ratio_list))
         else:
             self.params.pop('l1_ratio', None)
@@ -166,7 +172,6 @@ class LogisticRegressionModel(CustomModel):
                     penalty_list = ['l1']
                 if not self.params['penalty'] in penalty_list:
                     self.params['penalty'] = penalty_list[0]  # just choose first
-
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         orig_cols = list(X.names)
@@ -260,7 +265,7 @@ class LogisticRegressionModel(CustomModel):
             ALPHA = 75
             MAX_UNIQUE = max(len_uniques)
             FEATURES_COUNT = cat_X.shape[1]
-            cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+            cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=self.params['random_state'])
             from target_encoding import TargetEncoder
             transformers.append(
                 (TargetEncoder(alpha=ALPHA, max_unique=MAX_UNIQUE, used_features=FEATURES_COUNT, split=[cv]),
@@ -276,10 +281,10 @@ class LogisticRegressionModel(CustomModel):
 
         # estimator
         lr_defaults = dict(penalty='l2', dual=False, tol=1e-4, C=1.0,
-                 fit_intercept=True, intercept_scaling=1, class_weight=None,
-                 random_state=None, solver='warn', max_iter=100,
-                 multi_class='warn', verbose=0, warm_start=False, n_jobs=None,
-                 l1_ratio=None)
+                           fit_intercept=True, intercept_scaling=1, class_weight=None,
+                           random_state=None, solver='warn', max_iter=100,
+                           multi_class='warn', verbose=0, warm_start=False, n_jobs=None,
+                           l1_ratio=None)
         allowed_lr_kwargs_keys = lr_defaults.keys()
         lr_params_copy = copy.deepcopy(lr_params)
         for k, v in lr_params_copy.items():
@@ -287,38 +292,56 @@ class LogisticRegressionModel(CustomModel):
                 lr_params.pop(k, None)
         del lr_params_copy
 
+        can_score = self.num_classes == 2 and 'AUC' in self.params_base['score_f_name'].upper()
+        if can_score:
+            scorer = make_scorer(roc_auc_score, greater_is_better=True, needs_proba=True)
+        else:
+            scorer = None
+
         # pipeline
+        if not self._cv_search:
+            estimator = LogisticRegression(**lr_params)
+            estimator_name = 'logisticregression'
+        else:
+            lr_params_cv = copy.deepcopy(lr_params)
+            lr_params_cv['Cs'] = self.C_list
+            if 'l1_ratios' in lr_params:
+                lr_params_cv['l1_ratios'] = self.l1_ratio_list
+            lr_params_cv.pop('n_jobs', None)
+            lr_params_cv.pop('C', None)
+            lr_params_cv.pop('l1_ratio', None)
+            if lr_params_cv['penalty'] == 'none':
+                lr_params_cv['penalty'] = 'l2'
+            estimator = LogisticRegressionCV(n_jobs=self.params['n_jobs'],
+                                             cv=3, refit=True, scoring=scorer, **lr_params_cv)
+            estimator_name = 'logisticregressioncv'
         model = make_pipeline(
             preprocess,
-            LogisticRegression(**lr_params))
+            estimator)
 
         # fit
-        if self._grid_search_iterations and self.num_classes == 2 and 'AUC' in self.params_base['score_f_name'].upper():
+        if self._grid_search_iterations and can_score:
             # WIP FIXME for multiclass and other scorers
             from sklearn.model_selection import GridSearchCV
 
-            if self._extra_effort or False:
-                max_iter_range = range(0, 2000, 10)
-            else:
-                max_iter_range = self.get_max_iter_range(self.params['max_iter'], self.params['mutation_count'])
+            max_iter_range = self.get_max_iter_range(self.params['max_iter'], self.params['mutation_count'])
             print("max_iter_range: %s" % str(max_iter_range))
             param_grid = {
-                'logisticregression__max_iter': max_iter_range,
+                '%s__max_iter' % estimator_name: max_iter_range,
             }
-            scorer = make_scorer(roc_auc_score, greater_is_better=True, needs_proba=True)
             grid_clf = GridSearchCV(model, param_grid, n_jobs=self.params['n_jobs'],
                                     cv=3, iid=True, refit=True, scoring=scorer)
             grid_clf.fit(X, y)
             model = grid_clf.best_estimator_
             print("best_index=%d best_score: %g best_params: %s" % (
-            grid_clf.best_index_, grid_clf.best_score_, str(grid_clf.best_params_)))
+                grid_clf.best_index_, grid_clf.best_score_, str(grid_clf.best_params_)))
         elif self._grid_search:
             # WIP
             from sklearn.model_selection import GridSearchCV
 
             param_grid = {
                 'columntransformer__pipeline__simpleimputer__strategy': ['mean', 'median'],
-                'logisticregression__C': [0.1, 0.5, 1.0],
+                '%s__C' % estimator_name: [0.1, 0.5, 1.0],
             }
             grid_clf = GridSearchCV(model, param_grid, cv=10, iid=False)
             grid_clf.fit(X, y)
@@ -327,12 +350,12 @@ class LogisticRegressionModel(CustomModel):
         else:
             model.fit(X, y)
 
-        lr_model = model.named_steps['logisticregression']
+        lr_model = model.named_steps[estimator_name]
 
         # average importances over classes
         importances = np.average(np.array(lr_model.coef_), axis=0)
         # average iterations over classes (can't take max_iter per class)
-        iterations = np.average(lr_model.n_iter_, axis=0)
+        iterations = np.average(lr_model.n_iter_)
 
         # reduce OHE features to original names
         ohe_features_short = []
@@ -359,6 +382,12 @@ class LogisticRegressionModel(CustomModel):
         assert len(importances) == len(X_names)
         print("LRiterations: %d" % iterations)
 
+        # save hyper parameter searched results for next search
+        self.params['max_iter'] = iterations
+        self.params['C'] = np.average(lr_model.C_, axis=0)
+        if 'l1_ratios' in lr_params:
+            self.params['l1_ratio'] = np.average(lr_model.l1_ratio_, axis=0)
+
         self.set_model_properties(model=model,
                                   features=orig_cols,
                                   importances=importances.tolist(),
@@ -368,8 +397,8 @@ class LogisticRegressionModel(CustomModel):
         # bisect toward optimal iteration count
         step_count = 3
         max_iter_step = 2 + mutation_count
-        start_range = max_iter * (1.0 - 1.0/max_iter_step)
-        end_range = max_iter * (1.0 + 2.0/max_iter_step)
+        start_range = max_iter * (1.0 - 1.0 / max_iter_step)
+        end_range = max_iter * (1.0 + 2.0 / max_iter_step)
         if end_range - start_range < self._overfit_limit_iteration_step:
             # if below some threshold of iterations, don't keep refining to avoid overfit
             return [max_iter]
