@@ -121,7 +121,7 @@ class LogisticRegressionModel(CustomModel):
         self.params["C"] = float(np.random.choice(C_list)) if not get_default else 0.1
 
         tol_list = [1e-4, 1e-3, 1e-5]
-        default_tol = 1e-6 if accuracy >=6 else 1e-4
+        default_tol = 1e-6 if accuracy >= 6 else 1e-4
         if default_tol not in tol_list:
             tol_list.append(default_tol)
         self.params["tol"] = float(np.random.choice(tol_list)) if not get_default else default_tol
@@ -343,7 +343,8 @@ class LogisticRegressionModel(CustomModel):
                 lr_params_cv['Cs'] = self.get_param_range(self.params['C'], self.params['fit_count'], func_type='log')
                 print("LR: CV: Cs: %s" % str(lr_params_cv['Cs']))
             if 'l1_ratios' in lr_params:
-                lr_params_cv['l1_ratios'] = self.get_param_range(self.params['l1_ratio'], self.params['fit_count'], func_type='linear')
+                lr_params_cv['l1_ratios'] = self.get_param_range(self.params['l1_ratio'], self.params['fit_count'],
+                                                                 func_type='linear')
                 print("LR: CV: l1_ratios: %s" % str(lr_params_cv['l1_ratios']))
             lr_params_cv.pop('n_jobs', None)
             lr_params_cv.pop('C', None)
