@@ -22,7 +22,8 @@ class TextURLSummaryTransformer(CustomTransformer):
         from bs4 import BeautifulSoup
         from gensim.summarization.summarizer import summarize
         import requests
-
+        import pandas as pd
+        
         XX = X.to_pandas().iloc[:, 0].values
         urls = XX
         summaries = []
