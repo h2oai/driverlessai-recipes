@@ -68,6 +68,8 @@ class LogisticRegressionModel(CustomModel):
 
     # not required to be this strict, but good starting point to only use this recipe's features
     _included_transformers = ['CatOriginalTransformer', 'OriginalTransformer', 'CatTransformer']
+    _can_handle_non_numeric = True  # tell DAI we can handle non-numeric (i.e. strings)
+    _can_handle_categorical = True  # tell DAI we can handle numerically encoded categoricals for use as categoricals
     _num_as_cat = False  # treating numeric as categorical best handled per column, but can force all numerics as cats
 
     _mutate_all = True  # tell DAI we fully controls mutation
@@ -87,7 +89,6 @@ class LogisticRegressionModel(CustomModel):
     _parallel_task = True  # set to False may lead to faster performance if not doing grid search or cv search
     _fit_by_iteration = True
     _fit_iteration_name = 'max_iter'
-    _can_handle_non_numeric = True
     _display_name = "LR"
     _description = "Logistic Regression"
 
