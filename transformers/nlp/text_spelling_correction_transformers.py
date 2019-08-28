@@ -1,4 +1,4 @@
-"""Example how to debug a transformer outside of Driverless AI (optional)"""
+"""text spelling correction recipe"""
 import datatable as dt
 import numpy as np
 import pandas as pd
