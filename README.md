@@ -49,7 +49,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 ## Sample Recipes
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
-### Count: 96
+### Count: 98
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
@@ -62,6 +62,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [knearestneighbour.py](./models/algorithms/knearestneighbour.py) [K-Nearest Neighbor implementation by sklearn. For small data (< 200k rows).]
     * [libfm_fastfm.py](./models/algorithms/libfm_fastfm.py) [LibFM implementation of fastFM ]
     * [linear_svm.py](./models/algorithms/linear_svm.py) [Linear Support Vector Machine (SVM) implementation by sklearn. For small data.]
+    * [logistic_regression.py](./models/algorithms/logistic_regression.py) [Logistic Regression based upon sklearn.]
     * [nusvm.py](./models/algorithms/nusvm.py) [Nu-SVM implementation by sklearn. For small data.]
     * [random_forest.py](./models/algorithms/random_forest.py) [Random Forest (RandomForest) model from sklearn]
   * [CUSTOM_LOSS](./models/custom_loss)
@@ -156,6 +157,8 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [h2o3-dl-anomaly.py](./transformers/outliers/h2o3-dl-anomaly.py) [Anomaly score for each row based on reconstruction error of a H2O-3 deep learning autoencoder]
     * [quantile_winsorizer.py](./transformers/outliers/quantile_winsorizer.py) [Winsorizes (truncates) univariate outliers outside of a given quantile threshold]
     * [twosigma_winsorizer.py](./transformers/outliers/twosigma_winsorizer.py) [Winsorizes (truncates) univariate outliers outside of two standard deviations from the mean.]
+  * [RECOMMENDATIONS](./transformers/recommendations)
+    * [matrixfactorization.py](./transformers/recommendations/matrixfactorization.py) [Collaborative filtering features using various techniques of Matrix Factorization for recommendations]
   * [STRING](./transformers/string)
     * [strlen_transformer.py](./transformers/string/strlen_transformer.py) [Returns the string length of categorical values]
     * [to_string_transformer.py](./transformers/string/to_string_transformer.py) [Converts numbers to strings]
