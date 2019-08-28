@@ -8,7 +8,7 @@ import uuid
 from h2oaicore.systemutils import config, temporary_files_path
 import numpy as np
 
-_global_modules_needed_by_name = ['h2o==3.26.0.1']  
+_global_modules_needed_by_name = ['h2o==3.24.0.5']
 import h2o
 import os
 
@@ -62,7 +62,6 @@ class H2OBaseModel:
             if sample_weight_eval_set is not None:
                 sample_weight_eval_set = [(sample_weight_eval_set[0] != 0).astype(int)]
 
-        orig_cols = list(X.names)
         train_X = h2o.H2OFrame(X.to_pandas())
         self.col_types = train_X.types
         train_y = h2o.H2OFrame(y,
