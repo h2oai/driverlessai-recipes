@@ -44,9 +44,26 @@ class LogisticRegressionModel(CustomModel):
 
     4) Implement LinearRegression/ElasticNet (https://scikit-learn.org/stable/modules/classes.html#module-sklearn.linear_model)
 
+    5) Implement other categorical missing encodings (same strategies as numerics)
+
+    6) Implement other scorers (i.e. checking score_f_name -> sklearn metric or using DAI metrics)
+
     """
-    # _impute_type = 'oob'
-    _impute_type = 'sklearn'
+    # numerical imputation for all columns (could be done per column chosen by mutations)
+    _impute_num_type = 'sklearn'  # best for linear models
+    # _impute_num_type = 'oob'  # risky for linear models, but can be used for testing
+
+    _impute_int_type = 'oob'
+
+    _impute_bool_type = 'oob'
+    _oob_bool = False
+
+    # categorical imputation for all columns (could be done per column chosen by mutations)
+    _impute_cat_type = 'oob'
+    _oob_cat = "__OOB_CAT__"
+
+    # unique identifier for OHE feature names
+    _ohe_postfix = "_*#!^()^{}"
 
     # not required to be this strict, but good starting point to only use this recipe's features
     _included_transformers = ['CatOriginalTransformer', 'OriginalTransformer']
@@ -208,19 +225,9 @@ class LogisticRegressionModel(CustomModel):
             lb.fit(self.labels)
             y = lb.transform(y)
 
-        if self._impute_type == 'oob':
-            # Replace missing values with a value smaller than all observed values
-            self.min = dict()
-            for col in X.names:
-                XX = X[:, col]
-                self.min[col] = XX.min1()
-                if self.min[col] is None or np.isnan(self.min[col]):
-                    self.min[col] = -1e10
-                else:
-                    self.min[col] -= 1
-                XX.replace(None, self.min[col])
-                X[:, col] = XX
-                assert X[dt.isna(dt.f[col]), col].nrows == 0
+        self.oob_imputer = OOBImpute(self._impute_num_type, self._impute_int_type, self._impute_bool_type,
+                                     self._impute_cat_type, self._oob_bool, self._oob_cat)
+        X = self.oob_imputer.fit_transform(X)
 
         X = X.to_pandas()
         X_names = list(X.columns)
@@ -230,18 +237,21 @@ class LogisticRegressionModel(CustomModel):
         lr_params.pop('cv_search', None)
         grid_search = False  # WIP
 
+        # FEATURE GROUPS
+        # WIP: treat cat indicated features as cats
         # cat_features = [x for x in X_names if CatOriginalTransformer.is_me_transformed(x)]
         # noncat_features = [x for x in X_names if x not in cat_features]
-        numerical_features = X.dtypes == 'float'
+        numerical_features = (X.dtypes == 'float') | (X.dtypes == 'float32') | (X.dtypes == 'float64')
         categorical_features = ~numerical_features
         cat_X = X.loc[:, categorical_features]
         num_X = X.loc[:, numerical_features]
 
+        # TRANSFORMERS
         full_features_list = []
         transformers = []
         if self._use_numerics and any(numerical_features.values):
             impute_params = {}
-            impute_params['strategy'] = lr_params.pop('strategy', None)
+            impute_params['strategy'] = lr_params.pop('strategy', 'mean')
             full_features_list.extend(list(num_X.columns))
             transformers.append(
                 (make_pipeline(SimpleImputer(**impute_params), StandardScaler()), numerical_features)
@@ -310,7 +320,7 @@ class LogisticRegressionModel(CustomModel):
 
         preprocess = make_column_transformer(*transformers)
 
-        # estimator
+        # ESTIMATOR
         lr_defaults = dict(penalty='l2', dual=False, tol=1e-4, C=1.0,
                            fit_intercept=True, intercept_scaling=1, class_weight=None,
                            random_state=None, solver='warn', max_iter=100,
@@ -324,7 +334,7 @@ class LogisticRegressionModel(CustomModel):
         del lr_params_copy
 
         can_score = self.num_classes == 2 and 'AUC' in self.params_base['score_f_name'].upper()
-        print("LR: can_score: %s" % str(can_score))
+        # print("LR: can_score: %s" % str(can_score))
         if can_score:
             scorer = make_scorer(roc_auc_score, greater_is_better=True, needs_proba=True)
         else:
@@ -341,11 +351,11 @@ class LogisticRegressionModel(CustomModel):
             lr_params_cv = copy.deepcopy(lr_params)
             if 'C' in lr_params:
                 lr_params_cv['Cs'] = self.get_param_range(self.params['C'], self.params['fit_count'], func_type='log')
-                print("LR: CV: Cs: %s" % str(lr_params_cv['Cs']))
+                # print("LR: CV: Cs: %s" % str(lr_params_cv['Cs']))
             if 'l1_ratios' in lr_params:
                 lr_params_cv['l1_ratios'] = self.get_param_range(self.params['l1_ratio'], self.params['fit_count'],
                                                                  func_type='linear')
-                print("LR: CV: l1_ratios: %s" % str(lr_params_cv['l1_ratios']))
+                # print("LR: CV: l1_ratios: %s" % str(lr_params_cv['l1_ratios']))
             lr_params_cv.pop('n_jobs', None)
             lr_params_cv.pop('C', None)
             lr_params_cv.pop('l1_ratio', None)
@@ -355,19 +365,19 @@ class LogisticRegressionModel(CustomModel):
                                              cv=3, refit=True, scoring=scorer, **lr_params_cv)
             estimator_name = 'logisticregressioncv'
 
-        # pipeline
+        # PIPELINE
         model = make_pipeline(
             preprocess,
             estimator)
 
-        # fit
+        # FIT
         if self.params['grid_search_iterations'] and can_score:
             # WIP FIXME for multiclass and other scorers
             from sklearn.model_selection import GridSearchCV
 
             max_iter_range = self.get_param_range(self.params['max_iter'], self.params['fit_count'],
                                                   range_limit=self._overfit_limit_iteration_step, func_type='log')
-            print("LR: max_iter_range: %s" % str(max_iter_range))
+            # print("LR: max_iter_range: %s" % str(max_iter_range))
             param_grid = {
                 '%s__max_iter' % estimator_name: max_iter_range,
             }
@@ -375,8 +385,8 @@ class LogisticRegressionModel(CustomModel):
                                     cv=3, iid=True, refit=True, scoring=scorer)
             grid_clf.fit(X, y)
             model = grid_clf.best_estimator_
-            print("LR: best_index=%d best_score: %g best_params: %s" % (
-                grid_clf.best_index_, grid_clf.best_score_, str(grid_clf.best_params_)))
+            # print("LR: best_index=%d best_score: %g best_params: %s" % (
+            #    grid_clf.best_index_, grid_clf.best_score_, str(grid_clf.best_params_)))
         elif grid_search:
             # WIP
             from sklearn.model_selection import GridSearchCV
@@ -399,18 +409,19 @@ class LogisticRegressionModel(CustomModel):
         importances = np.average(np.array(lr_model.coef_), axis=0)
         # average iterations over classes (can't take max_iter per class)
         iterations = np.average(lr_model.n_iter_)
-        print("LR: iterations: %d" % iterations)
+        # print("LR: iterations: %d" % iterations)
 
         # reduce OHE features to original names
         ohe_features_short = []
         if self._use_ohe_encoding and any(categorical_features.values):
             if self._use_ohe_encoding:
+                input_features = [x + self._ohe_postfix for x in cat_X.columns]
                 ohe_features = pd.Series(
                     model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names(
-                        input_features=cat_X.columns))
+                        input_features=input_features))
 
                 def f(x):
-                    return '_'.join(x.split('_')[:-1])
+                    return '_'.join(x.split(self._ohe_postfix + '_')[:-1])
 
                 # identify OHE features
                 ohe_features_short = ohe_features.apply(lambda x: f(x))
@@ -418,12 +429,12 @@ class LogisticRegressionModel(CustomModel):
 
         msg = "LR: num=%d cat=%d : ohe=%d : imp=%d full=%d" % (
             len(num_X.columns), len(cat_X.columns), len(ohe_features_short), len(importances), len(full_features_list))
-        print(msg)
+        # print(msg)
         assert len(importances) == len(full_features_list), msg
 
         # aggregate importances
         importances = pd.Series(np.abs(importances), index=full_features_list).groupby(level=0).mean()
-        assert len(importances) == len(X_names)
+        assert len(importances) == len(X_names), "%d %d %s" % (len(importances), len(X_names), msg)
 
         # save hyper parameter searched results for next search
         self.params['max_iter'] = iterations
@@ -475,11 +486,7 @@ class LogisticRegressionModel(CustomModel):
 
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
-        if self._impute_type == 'oob':
-            for col in X.names:
-                XX = X[:, col]
-                XX.replace(None, self.min[col])
-                X[:, col] = XX
+        X = self.oob_imputer.transform(X)
         model, _, _, _ = self.get_model_properties()
         X = X.to_pandas()
         if self.num_classes == 1:
@@ -487,3 +494,85 @@ class LogisticRegressionModel(CustomModel):
         else:
             preds = model.predict_proba(X)
         return preds
+
+
+class OOBImpute(object):
+    def __init__(self, impute_num_type, impute_int_type, impute_bool_type, impute_cat_type, oob_bool, oob_cat):
+        self._impute_num_type = impute_num_type
+        self._impute_int_type = impute_int_type
+        self._impute_bool_type = impute_bool_type
+        self._impute_cat_type = impute_cat_type
+        self._oob_bool = oob_bool
+        self._oob_cat = oob_cat
+
+    def fit(self, X: dt.Frame):
+        # just ignore output
+        self.fit_transform(X)
+
+    def fit_transform(self, X: dt.Frame):
+        # IMPUTE
+        # print("types number of columns: %d : %d %d %d %d" % (len(X.names), len(X[:, [float]].names), len(X[:, [int]].names), len(X[:, [bool]].names), len(X[:, [str]].names)))
+        for col in X[:, [float]].names:
+            XX = X[:, col]
+            XX.replace(None, np.nan)
+            X[:, col] = XX
+        if self._impute_num_type == 'oob':
+            # Replace missing values with a value smaller than all observed values
+            self.min = dict()
+            for col in X[:, [float]].names:
+                XX = X[:, col]
+                self.min[col] = XX.min1()
+                if self.min[col] is None or np.isnan(self.min[col]):
+                    self.min[col] = -1e10
+                else:
+                    self.min[col] -= 1
+                XX.replace(None, self.min[col])
+                X[:, col] = XX
+                assert X[dt.isna(dt.f[col]), col].nrows == 0
+        if self._impute_int_type == 'oob':
+            # Replace missing values with a value smaller than all observed values
+            self.min_int = dict()
+            for col in X[:, [int]].names:
+                XX = X[:, col]
+                self.min[col] = XX.min1()
+                if self.min_int[col] is None or np.isnan(self.min_int[col]):
+                    self.min_int[col] = 0
+                XX.replace(None, self.min[col])
+                X[:, col] = XX
+                assert X[dt.isna(dt.f[col]), col].nrows == 0
+        if self._impute_bool_type == 'oob':
+            for col in X[:, [bool]].names:
+                XX = X[:, col]
+                XX.replace(None, self._oob_bool)
+                X[:, col] = XX
+                assert X[dt.isna(dt.f[col]), col].nrows == 0
+        if self._impute_cat_type == 'oob':
+            for col in X[:, [str]].names:
+                XX = X[:, col]
+                XX.replace(None, self._oob_cat)
+                X[:, col] = XX
+                assert X[dt.isna(dt.f[col]), col].nrows == 0
+        return X
+
+    def transform(self, X: dt.Frame):
+        if self._impute_num_type == 'oob':
+            for col in X[:, [float]].names:
+                XX = X[:, col]
+                XX.replace(None, self.min[col])
+                X[:, col] = XX
+        if self._impute_int_type == 'oob':
+            for col in X[:, [int]].names:
+                XX = X[:, col]
+                XX.replace(None, self.min_int[col])
+                X[:, col] = XX
+        if self._impute_bool_type == 'oob':
+            for col in X[:, [bool]].names:
+                XX = X[:, col]
+                XX.replace(None, self._oob_bool)
+                X[:, col] = XX
+        if self._impute_cat_type == 'oob':
+            for col in X[:, [str]].names:
+                XX = X[:, col]
+                XX.replace(None, self._oob_cat)
+                X[:, col] = XX
+        return X
