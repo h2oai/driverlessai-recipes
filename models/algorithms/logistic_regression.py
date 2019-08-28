@@ -1,25 +1,5 @@
 """
-Sklearn Logistic Regression.
-Useful when weak or no interactions between features,
-or large inherent number of levels in categorical features
-
-Other useful DAI options if want to only use feature made internally by this model:
-config.prob_prune_genes = False
-config.prob_prune_by_features = False
-# Useful if want training to ultimately see all data with validated max_iter
-config.fixed_ensemble_level=0
-
-Recipe to do:
-
-1) Add separate LogisticRegressionEarlyStopping class to use warm start to take iterations a portion at a time,
-and score with known/given metric, and early stop to avoid overfitting on validation.
-
-2) Improve bisection stepping for search
-
-3) Consider from deployml.sklearn import LogisticRegressionBase
-
-4) Implement LinearRegression/ElasticNet (https://scikit-learn.org/stable/modules/classes.html#module-sklearn.linear_model)
-
+Logistic Regression based upon sklearn.
 """
 import datatable as dt
 import numpy as np
@@ -41,6 +21,30 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 
 
 class LogisticRegressionModel(CustomModel):
+    """
+    Logistic Regression
+
+    Useful when weak or no interactions between features,
+    or large inherent number of levels in categorical features
+
+    Other useful DAI options if want to only use feature made internally by this model:
+    config.prob_prune_genes = False
+    config.prob_prune_by_features = False
+    # Useful if want training to ultimately see all data with validated max_iter
+    config.fixed_ensemble_level=0
+
+    Recipe to do:
+
+    1) Add separate LogisticRegressionEarlyStopping class to use warm start to take iterations a portion at a time,
+    and score with known/given metric, and early stop to avoid overfitting on validation.
+
+    2) Improve bisection stepping for search
+
+    3) Consider from deployml.sklearn import LogisticRegressionBase
+
+    4) Implement LinearRegression/ElasticNet (https://scikit-learn.org/stable/modules/classes.html#module-sklearn.linear_model)
+
+    """
     # _impute_type = 'oob'
     _impute_type = 'sklearn'
 
