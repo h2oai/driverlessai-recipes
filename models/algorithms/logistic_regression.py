@@ -6,8 +6,17 @@ or large inherent number of levels in categorical features
 Other useful DAI options if want to only use feature made internally by this model:
 config.prob_prune_genes = False
 config.prob_prune_by_features = False
-_included_transformers = ['CatOriginalTransformer']
 
+To do:
+
+1) Add separate LogisticRegressionEarlyStopping class to use warm start to take iterations a portion at a time,
+and score with known/given metric, and early stop to avoid overfitting on validation.
+
+2) Improve bisection stepping for search
+
+3) Consider from deployml.sklearn import LogisticRegressionBase
+
+4) Implement LinearRegression/ElasticNet (https://scikit-learn.org/stable/modules/classes.html#module-sklearn.linear_model)
 
 """
 import datatable as dt
@@ -33,10 +42,13 @@ class LogisticRegressionModel(CustomModel):
     # _impute_type = 'oob'
     _impute_type = 'sklearn'
 
+    # not required to be this strict, but good starting point to only use this recipe's features
+    _included_transformers = ['CatOriginalTransformer', 'OriginalTransformer']
+
     _mutate_all = True  # tell DAI we fully controls mutation
     _mutate_by_one = False  # tell our recipe only changes one key at a time, can limit exploration if set as True
     _always_defaults = False
-    _randomized_random_state = True
+    _randomized_random_state = False
     _overfit_limit_iteration_step = 10
 
     # tell DAI want to keep track of self.params changes during fit, and to average numeric values across folds (if any)
@@ -60,7 +72,7 @@ class LogisticRegressionModel(CustomModel):
     _use_target_encoding = False
     _use_target_encoding_other = False
     _use_ordinal_encoding = False
-    _use_catboost_encoding = False  # Note: Requires data be randomly shuffled w.r.t. target
+    _use_catboost_encoding = False  # Note: Requires data be randomly shuffled so target is not in special order
     _use_woe_encoding = False
 
     # tell DAI what pip modules we will use
