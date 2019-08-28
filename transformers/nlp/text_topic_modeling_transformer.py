@@ -6,7 +6,6 @@ from h2oaicore.transformer_utils import CustomTransformer
 
 class TextLDATopicTransformer(CustomTransformer):
     """Transformer to extract topics from text column using LDA"""
-    _numeric_output = False
     _is_reproducible = False
     _modules_needed_by_name = ["gensim==3.8.0"]
 

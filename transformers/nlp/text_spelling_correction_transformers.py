@@ -1,4 +1,4 @@
-"""text spelling correction recipe"""
+"""Correct the spelling of text column"""
 import datatable as dt
 import numpy as np
 import pandas as pd

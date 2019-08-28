@@ -1,4 +1,4 @@
-"""Transformer for creating text summary from URL"""
+"""Extract text from URL and summarizes it"""
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
