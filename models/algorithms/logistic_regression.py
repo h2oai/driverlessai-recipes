@@ -562,10 +562,10 @@ class OOBImpute(object):
             self.min_int = dict()
             for col in X[:, [int]].names:
                 XX = X[:, col]
-                self.min[col] = XX.min1()
+                self.min_int[col] = XX.min1()
                 if self.min_int[col] is None or np.isnan(self.min_int[col]):
                     self.min_int[col] = 0
-                XX.replace(None, self.min[col])
+                XX.replace(None, self.min_int[col])
                 X[:, col] = XX
                 assert X[dt.isna(dt.f[col]), col].nrows == 0
         if self._impute_bool_type == 'oob':
