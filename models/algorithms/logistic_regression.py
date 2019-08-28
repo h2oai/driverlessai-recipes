@@ -6,8 +6,10 @@ or large inherent number of levels in categorical features
 Other useful DAI options if want to only use feature made internally by this model:
 config.prob_prune_genes = False
 config.prob_prune_by_features = False
+# Useful if want training to ultimately see all data with validated max_iter
+config.fixed_ensemble_level=0
 
-To do:
+Recipe to do:
 
 1) Add separate LogisticRegressionEarlyStopping class to use warm start to take iterations a portion at a time,
 and score with known/given metric, and early stop to avoid overfitting on validation.
