@@ -49,7 +49,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 ## Sample Recipes
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
-### Count: 98
+### Count: 99
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
@@ -140,6 +140,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [text_readability_transformers.py](./transformers/nlp/text_readability_transformers.py) [    Custom Recipe to extract Readability features from the text data    ## About Readability Features     ## References    - https://github.com/shivam5992/textstat    - http://www.readabilityformulas.com/free-readability-formula-tests.php]
     * [text_sentiment_transformer.py](./transformers/nlp/text_sentiment_transformer.py) [Extract sentiment from text using pretrained models from TextBlob]
     * [text_similarity_transformers.py](./transformers/nlp/text_similarity_transformers.py) [Row-by-row similarity between two text columns based on common N-grams, Jaccard similarity, Dice similarity and edit distance.]
+    * [text_topic_modeling_transformer.py](./transformers/nlp/text_topic_modeling_transformer.py) [Extract topics from text column using LDA]
     * [vader_text_sentiment_transformer.py](./transformers/nlp/vader_text_sentiment_transformer.py) [Extract sentiment from text using lexicon and rule-based sentiment analysis tool called VADER]
   * [NUMERIC](./transformers/numeric)
     * [boxcox_transformer.py](./transformers/numeric/boxcox_transformer.py) [Box-Cox Transform]
