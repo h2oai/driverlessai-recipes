@@ -50,6 +50,10 @@ class LogisticRegressionModel(CustomModel):
     6) Implement other scorers (i.e. checking score_f_name -> sklearn metric or using DAI metrics)
 
     """
+    _kaggle = False  # some kaggle specific optimizations for https://www.kaggle.com/c/cat-in-the-dat
+    # gives 0.8043 DAI validation for some seeds/runs,
+    # which leads to 0.80802 public score after only 2 minutes of running on accuracy=2, interpretability=1
+
     # numerical imputation for all columns (could be done per column chosen by mutations)
     _impute_num_type = 'sklearn'  # best for linear models
     # _impute_num_type = 'oob'  # risky for linear models, but can be used for testing
@@ -68,9 +72,12 @@ class LogisticRegressionModel(CustomModel):
 
     # not required to be this strict, but good starting point to only use this recipe's features
     _included_transformers = ['CatOriginalTransformer', 'OriginalTransformer', 'CatTransformer']
+    if _kaggle and 'CatTransformer' in _included_transformers:
+        # Just handle all cats directly
+        _included_transformers.remove('CatTransformer')
     _can_handle_non_numeric = True  # tell DAI we can handle non-numeric (i.e. strings)
     _can_handle_categorical = True  # tell DAI we can handle numerically encoded categoricals for use as categoricals
-    _num_as_cat = False  # treating numeric as categorical best handled per column, but can force all numerics as cats
+    _num_as_cat = False or _kaggle  # treating numeric as categorical best handled per column, but can force all numerics as cats
 
     _mutate_all = True  # tell DAI we fully controls mutation
     _mutate_by_one = False  # tell our recipe only changes one key at a time, can limit exploration if set as True
@@ -141,7 +148,14 @@ class LogisticRegressionModel(CustomModel):
         self.params["C"] = float(np.random.choice(C_list)) if not get_default else 0.1
 
         tol_list = [1e-4, 1e-3, 1e-5]
-        default_tol = 1e-5 if accuracy >= 7 else 1e-4
+        if accuracy < 5:
+            default_tol = 1e-4
+        elif accuracy < 6:
+            default_tol = 1e-5
+        elif accuracy <= 7:
+            default_tol = 1e-6
+        else:
+            default_tol = 1e-7
         if default_tol not in tol_list:
             tol_list.append(default_tol)
         self.params["tol"] = float(np.random.choice(tol_list)) if not get_default else default_tol
