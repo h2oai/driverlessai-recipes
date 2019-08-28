@@ -17,6 +17,7 @@ from h2oaicore.models import CustomModel
 from h2oaicore.systemutils import config, physical_cores_count
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.transformers import CatOriginalTransformer
+from h2oaicore.transformers_more import CatTransformer
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
 
@@ -66,7 +67,8 @@ class LogisticRegressionModel(CustomModel):
     _ohe_postfix = "_*#!^()^{}"
 
     # not required to be this strict, but good starting point to only use this recipe's features
-    _included_transformers = ['CatOriginalTransformer', 'OriginalTransformer']
+    _included_transformers = ['CatOriginalTransformer', 'OriginalTransformer', 'CatTransformer']
+    _num_as_cat = False  # treating numeric as categorical best handled per column, but can force all numerics as cats
 
     _mutate_all = True  # tell DAI we fully controls mutation
     _mutate_by_one = False  # tell our recipe only changes one key at a time, can limit exploration if set as True
@@ -198,7 +200,7 @@ class LogisticRegressionModel(CustomModel):
 
         # control search in recipe
         self.params['grid_search_iterations'] = accuracy >= 7
-        # cv search for hyper paramteers, can be used in conjunction with _grid_search_by_iterations = True or False
+        # cv search for hyper parameters, can be used in conjunction with _grid_search_by_iterations = True or False
         self.params['cv_search'] = accuracy >= 8
 
         if self._mutate_by_one and not get_default and params_orig:
@@ -225,28 +227,53 @@ class LogisticRegressionModel(CustomModel):
             lb.fit(self.labels)
             y = lb.transform(y)
 
+        # save pre-datatable-imputed X
+        X_dt = X
+
+        # Apply OOB imputation
         self.oob_imputer = OOBImpute(self._impute_num_type, self._impute_int_type, self._impute_bool_type,
                                      self._impute_cat_type, self._oob_bool, self._oob_cat)
         X = self.oob_imputer.fit_transform(X)
 
+        # convert to pandas for sklearn
         X = X.to_pandas()
+        # print("LR: pandas dtypes: %s" % (str(list(X.dtypes))))
         X_names = list(X.columns)
 
+        # FEATURE GROUPS
+
+        # Choose which features are numeric or categorical
+        cat_features = [x for x in X_names if CatOriginalTransformer.is_me_transformed(x)]
+        catlabel_features = [x for x in X_names if CatTransformer.is_me_transformed(x)]
+        # can add explicit column name list to below force_cats
+        force_cats = cat_features + catlabel_features
+
+        # choose if numeric is treated as categorical
+        if not self._num_as_cat:
+            numerical_features = (X.dtypes == 'float') | (X.dtypes == 'float32') | (X.dtypes == 'float64')
+        else:
+            numerical_features = X.dtypes == 'invalid'
+            # force oob imputation for numerics
+            self.oob_imputer = OOBImpute('oob', 'oob', 'oob',
+                                         self._impute_cat_type, self._oob_bool, self._oob_cat)
+            X = self.oob_imputer.fit_transform(X_dt)
+            X = X.to_pandas()
+
+        categorical_features = ~numerical_features
+        # below can lead to overlap between what is numeric and what is categorical
+        more_cats = (pd.Series([True if x in force_cats else False for x in list(categorical_features.index)], index=categorical_features.index))
+        categorical_features = (categorical_features) | (more_cats)
+        cat_X = X.loc[:, categorical_features]
+        num_X = X.loc[:, numerical_features]
+        # print("LR: Cat names: %s" % str(list(cat_X.columns)))
+        # print("LR: Num names: %s" % str(list(num_X.columns)))
+
+        # TRANSFORMERS
         lr_params = copy.deepcopy(self.params)
         lr_params.pop('grid_search_by_iterations', None)
         lr_params.pop('cv_search', None)
         grid_search = False  # WIP
 
-        # FEATURE GROUPS
-        # WIP: treat cat indicated features as cats
-        # cat_features = [x for x in X_names if CatOriginalTransformer.is_me_transformed(x)]
-        # noncat_features = [x for x in X_names if x not in cat_features]
-        numerical_features = (X.dtypes == 'float') | (X.dtypes == 'float32') | (X.dtypes == 'float64')
-        categorical_features = ~numerical_features
-        cat_X = X.loc[:, categorical_features]
-        num_X = X.loc[:, numerical_features]
-
-        # TRANSFORMERS
         full_features_list = []
         transformers = []
         if self._use_numerics and any(numerical_features.values):
@@ -511,7 +538,7 @@ class OOBImpute(object):
 
     def fit_transform(self, X: dt.Frame):
         # IMPUTE
-        # print("types number of columns: %d : %d %d %d %d" % (len(X.names), len(X[:, [float]].names), len(X[:, [int]].names), len(X[:, [bool]].names), len(X[:, [str]].names)))
+        # print("LR: types number of columns: %d : %d %d %d %d" % (len(X.names), len(X[:, [float]].names), len(X[:, [int]].names), len(X[:, [bool]].names), len(X[:, [str]].names)))
         for col in X[:, [float]].names:
             XX = X[:, col]
             XX.replace(None, np.nan)
