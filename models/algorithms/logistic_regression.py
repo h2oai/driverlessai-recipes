@@ -141,7 +141,7 @@ class LogisticRegressionModel(CustomModel):
         self.params["C"] = float(np.random.choice(C_list)) if not get_default else 0.1
 
         tol_list = [1e-4, 1e-3, 1e-5]
-        default_tol = 1e-6 if accuracy >= 6 else 1e-4
+        default_tol = 1e-5 if accuracy >= 7 else 1e-4
         if default_tol not in tol_list:
             tol_list.append(default_tol)
         self.params["tol"] = float(np.random.choice(tol_list)) if not get_default else default_tol
@@ -200,9 +200,9 @@ class LogisticRegressionModel(CustomModel):
             self.params['regularization'] = random.choice(regularization_list)
 
         # control search in recipe
-        self.params['grid_search_iterations'] = accuracy >= 7
+        self.params['grid_search_iterations'] = accuracy >= 8
         # cv search for hyper parameters, can be used in conjunction with _grid_search_by_iterations = True or False
-        self.params['cv_search'] = accuracy >= 8
+        self.params['cv_search'] = accuracy >= 9
 
         if self._mutate_by_one and not get_default and params_orig:
             pick_key = str(np.random.choice(list(self.params.keys()), size=1)[0])
