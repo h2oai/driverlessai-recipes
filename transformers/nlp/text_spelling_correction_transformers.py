@@ -6,7 +6,7 @@ from h2oaicore.transformer_utils import CustomTransformer
 
 class SpellingCorrectionTransformer(CustomTransformer):
     _numeric_output = False
-    _modules_needed_by_name = ['spellchecker']
+    _modules_needed_by_name = ['pyspellchecker==0.5.0']
 
     @property
     def display_name(self):
@@ -20,13 +20,13 @@ class SpellingCorrectionTransformer(CustomTransformer):
         return self.transform(X)
 
     def correction(self, x):
-        from spellchecker import SpellChecker
-        spell = SpellChecker()
         x = x.lower()
-        misspells = spell.unknown(x.split())
-        corrected = [spell.correction(w) if w in misspells else w for w in x.split()]
+        misspells = self.spell.unknown(x.split())
+        corrected = [self.spell.correction(w) if w in misspells else w for w in x.split()]
         corrected = " ".join(corrected)
         return corrected
 
     def transform(self, X: dt.Frame):
+        from spellchecker import SpellChecker
+        self.spell = SpellChecker()
         return X.to_pandas().astype(str).iloc[:, 0].apply(lambda x: self.correction(x))
