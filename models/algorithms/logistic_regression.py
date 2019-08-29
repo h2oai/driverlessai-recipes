@@ -17,7 +17,8 @@ from h2oaicore.models import CustomModel
 from h2oaicore.systemutils import config, physical_cores_count
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.transformers import CatOriginalTransformer
-from h2oaicore.transformers_more import CatTransformer
+from h2oaicore.transformer_utils import Transformer
+from h2oaicore.transformers_more import CatTransformer, LexiLabelEncoderTransformer
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
 
@@ -53,6 +54,10 @@ class LogisticRegressionModel(CustomModel):
     _kaggle = False  # some kaggle specific optimizations for https://www.kaggle.com/c/cat-in-the-dat
     # gives 0.8043 DAI validation for some seeds/runs,
     # which leads to 0.80802 public score after only 2 minutes of running on accuracy=2, interpretability=1
+
+    # whether to generate features for kaggle
+    # these features do not help the score, but do make sense as plausible features to build
+    _kaggle_features = False
 
     # numerical imputation for all columns (could be done per column chosen by mutations)
     _impute_num_type = 'sklearn'  # best for linear models
@@ -252,14 +257,17 @@ class LogisticRegressionModel(CustomModel):
 
         # convert to pandas for sklearn
         X = X.to_pandas()
+        X_orig_cols_names = list(X.columns)
+        if self._kaggle_features:
+            self.features = make_features()
+            X = self.features.fit_transform(X)
         # print("LR: pandas dtypes: %s" % (str(list(X.dtypes))))
-        X_names = list(X.columns)
 
         # FEATURE GROUPS
 
         # Choose which features are numeric or categorical
-        cat_features = [x for x in X_names if CatOriginalTransformer.is_me_transformed(x)]
-        catlabel_features = [x for x in X_names if CatTransformer.is_me_transformed(x)]
+        cat_features = [x for x in X_orig_cols_names if CatOriginalTransformer.is_me_transformed(x)]
+        catlabel_features = [x for x in X_orig_cols_names if CatTransformer.is_me_transformed(x)]
         # can add explicit column name list to below force_cats
         force_cats = cat_features + catlabel_features
 
@@ -273,15 +281,22 @@ class LogisticRegressionModel(CustomModel):
                                          self._impute_cat_type, self._oob_bool, self._oob_cat)
             X = self.oob_imputer.fit_transform(X_dt)
             X = X.to_pandas()
+            X = self.features.fit_transform(X)
+        if self._kaggle_features:
+            numerical_features = self.features.update_numerical_features(numerical_features)
 
         categorical_features = ~numerical_features
         # below can lead to overlap between what is numeric and what is categorical
-        more_cats = (pd.Series([True if x in force_cats else False for x in list(categorical_features.index)], index=categorical_features.index))
+        more_cats = (pd.Series([True if x in force_cats else False for x in list(categorical_features.index)],
+                               index=categorical_features.index))
         categorical_features = (categorical_features) | (more_cats)
+        if self._kaggle_features:
+            categorical_features = self.features.update_categorical_features(categorical_features)
+
         cat_X = X.loc[:, categorical_features]
         num_X = X.loc[:, numerical_features]
-        # print("LR: Cat names: %s" % str(list(cat_X.columns)))
-        # print("LR: Num names: %s" % str(list(num_X.columns)))
+        print("LR: Cat names: %s" % str(list(cat_X.columns)))
+        print("LR: Num names: %s" % str(list(num_X.columns)))
 
         # TRANSFORMERS
         lr_params = copy.deepcopy(self.params)
@@ -469,14 +484,20 @@ class LogisticRegressionModel(CustomModel):
                 ohe_features_short = ohe_features.apply(lambda x: f(x))
                 full_features_list.extend(list(ohe_features_short))
 
+        # aggregate our own features
+        if self._kaggle_features:
+            self.features.aggregate(full_features_list, importances)
+
         msg = "LR: num=%d cat=%d : ohe=%d : imp=%d full=%d" % (
             len(num_X.columns), len(cat_X.columns), len(ohe_features_short), len(importances), len(full_features_list))
         # print(msg)
         assert len(importances) == len(full_features_list), msg
 
-        # aggregate importances
+        # aggregate importances by dai feature name
         importances = pd.Series(np.abs(importances), index=full_features_list).groupby(level=0).mean()
-        assert len(importances) == len(X_names), "%d %d %s" % (len(importances), len(X_names), msg)
+        assert len(importances) == len(X_orig_cols_names), "%d %d %s : %s %s" % (
+            len(importances), len(X_orig_cols_names), msg,
+            str(list(X.columns)), str(list(X.dtypes)))
 
         # save hyper parameter searched results for next search
         self.params['max_iter'] = iterations
@@ -531,6 +552,8 @@ class LogisticRegressionModel(CustomModel):
         X = self.oob_imputer.transform(X)
         model, _, _, _ = self.get_model_properties()
         X = X.to_pandas()
+        if self._kaggle_features:
+            X = self.features.transform(X)
         if self.num_classes == 1:
             preds = model.predict(X)
         else:
@@ -618,3 +641,224 @@ class OOBImpute(object):
                 XX.replace(None, self._oob_cat)
                 X[:, col] = XX
         return X
+
+
+class make_features(object):
+    _postfix = "@%@(&#%@))){}#"
+
+    def __init__(self):
+        self.new_names_dict = {}
+        self.raw_names_dict = {}
+        self.raw_names_dict_reversed = {}
+        self.extra_dict = {}
+        self.spring = None
+        self.summer = None
+        self.fall = None
+        self.winter = None
+
+        self.monthcycle1 = None
+        self.monthcycle2 = None
+
+        self.weekend = None
+        self.daycycle1 = None
+        self.daycycle2 = None
+
+        self.lexi = None
+        self.lexi_names = None
+
+    def fit_transform(self, X: pd.DataFrame, transform=False):
+        self.raw_names_dict = {Transformer.raw_feat_name(v): v for v in list(X.columns)}
+        self.raw_names_dict_reversed = {k: v for k, v in self.raw_names_dict.items()}
+
+        # use circular color wheel position for nom_0
+        def nom12num(x):
+            # use number of sides
+            d = {'Circle': 0, 'Polygon': -1, 'Star': 10, 'Triangle': 3, 'Square': 4, 'Trapezoid': 5}
+            return d[x]
+
+        X, self.sides = self.make_feat(X, 'nom_1', 'sides', nom12num)
+
+        def nom22num(x):
+            # use family level features expanded encoding or relative size for nom_2
+            # ordered by height
+            d = {'Snake': 0, 'Axolotl': 1, 'Hamster': 2, 'Cat': 3, 'Dog': 4, 'Lion': 5}
+            return d[x]
+
+        X, self.animal = self.make_feat(X, 'nom_2', 'animal', nom22num)
+
+        # use geo-location for nom_3
+
+        # use static mapping encoding for ord_2 and ord_1
+        def ord12num1(x):
+            # ordered label
+            d = {'Novice': 0, 'Contributor': 1, 'Expert': 2, 'Master': 3, 'Grandmaster': 4}
+            return d[x]
+
+        X, self.kaggle1 = self.make_feat(X, 'ord_1', 'kaggle1', ord12num1)
+
+        def ord12num2(x):
+            # medals total
+            d = {'Novice': 0, 'Contributor': 0, 'Expert': 2, 'Master': 3, 'Grandmaster': 6}
+            return d[x]
+
+        X, self.kaggle2 = self.make_feat(X, 'ord_1', 'kaggle2', ord12num2)
+
+        def ord22num(x):
+            # ordered label
+            d = {'Freezing': 0, 'Cold': 1, 'Warm': 2, 'Hot': 3, 'Boiling Hot': 4, 'Lava Hot': 5}
+            return d[x]
+
+        X, self.temp1 = self.make_feat(X, 'ord_2', 'temp1', ord22num)
+
+        def ord22num2(x):
+            # temp in F
+            d = {'Freezing': 32, 'Cold': 50, 'Warm': 80, 'Hot': 100, 'Boiling Hot': 212, 'Lava Hot': 1700}
+            return d[x]
+
+        X, self.temp2 = self.make_feat(X, 'ord_2', 'temp2', ord22num2)
+
+        # use lexi LE directly as integers for alphabetical (ord_5, ord_4, ord_3)
+        orig_feat_names = ['ord_5', 'ord_4', 'ord_3',
+                           'nom_0', 'nom_1', 'nom_2',
+                           'nom_3', 'nom_4', 'nom_5',
+                           'nom_6', 'nom_7', 'nom_8',
+                           'nom_9', 'ord_1', 'ord_2']
+        new_names = ['lexi%d' % x for x in range(len(orig_feat_names))]
+        if not transform:
+            self.lexi = [None] * len(orig_feat_names)
+            self.lexi_names = [None] * len(orig_feat_names)
+        for ni, (new_name, orig_feat_name) in enumerate(zip(new_names, orig_feat_names)):
+            if orig_feat_name in self.raw_names_dict and self.raw_names_dict[orig_feat_name] in X.columns:
+                dai_feat_name = self.raw_names_dict[orig_feat_name]
+                if transform:
+                    Xnew = self.lexi[ni].transform(X[[dai_feat_name]])
+                else:
+                    self.lexi[ni] = LexiLabelEncoderTransformer([dai_feat_name])
+                    Xnew = self.lexi[ni].fit_transform(X[[dai_feat_name]])
+                extra_name = self._postfix + new_name
+                new_feat_name = dai_feat_name + extra_name
+                Xnew.columns = [new_feat_name]
+                assert not any(pd.isnull(Xnew).values.ravel())
+                X = pd.concat([X, Xnew], axis=1)
+                self.new_names_dict[new_feat_name] = dai_feat_name
+                self.lexi_names[ni] = new_feat_name
+
+        # Encode months by count of holidays, etc.
+
+        # Bin months to seasons
+        def month2spring(x):
+            return 1 if x >= 3 and x <= 5 else 0
+
+        X, self.spring = self.make_feat(X, 'month', 'spring', month2spring)
+
+        def month2summer(x):
+            return 1 if x >= 6 and x <= 8 else 0
+
+        X, self.summer = self.make_feat(X, 'month', 'summer', month2summer)
+
+        def month2fall(x):
+            return 1 if x >= 9 and x <= 11 else 0
+
+        X, self.fall = self.make_feat(X, 'month', 'fall', month2fall)
+
+        def month2winter(x):
+            return 1 if x >= 12 or x <= 2 else 0
+
+        X, self.winter = self.make_feat(X, 'month', 'winter', month2winter)
+
+        # Cycle months
+        def month2cycle1(x):
+            return np.sin(2.0 * np.pi * x / 12.0)
+
+        X, self.monthcycle1 = self.make_feat(X, 'month', 'month_cycle1', month2cycle1)
+
+        def month2cycle2(x):
+            return np.cos(2.0 * np.pi * x / 12.0)
+
+        X, self.monthcycle2 = self.make_feat(X, 'month', 'month_cycle2', month2cycle2)
+
+        # Bin day to weekend
+        def day2weekend(x):
+            return 1 if x == 1 or x == 2 else 0
+
+        X, self.weekend = self.make_feat(X, 'day', 'weekend', day2weekend)
+
+        # Cycle days
+        def day2cycle1(x):
+            return np.sin(2.0 * np.pi * x / 7.0)
+
+        X, self.daycycle1 = self.make_feat(X, 'day', 'day_cycle1', day2cycle1)
+
+        def day2cycle2(x):
+            return np.cos(2.0 * np.pi * x / 7.0)
+
+        X, self.daycycle2 = self.make_feat(X, 'day', 'day_cycle2', day2cycle2)
+
+        return X
+
+    def transform(self, X: pd.DataFrame):
+        return self.fit_transform(X, transform=True)
+
+    def make_feat(self, X, orig_feat, new_name, func):
+        new_feat_name = None
+        if orig_feat in self.raw_names_dict and self.raw_names_dict[orig_feat] in X:
+            dai_feat_name = self.raw_names_dict[orig_feat]
+            extra_name = self._postfix + new_name
+            new_feat_name = dai_feat_name + extra_name
+            X[new_feat_name] = X[dai_feat_name].apply(lambda x: func(x)).astype(np.float32)
+            self.new_names_dict[new_feat_name] = dai_feat_name
+            self.extra_dict[dai_feat_name] = extra_name
+        return X, new_feat_name
+
+    def aggregate(self, full_features_list, importances):
+        # for purposes of aggregation back to original space, re-assign generated features
+        for vi, v in enumerate(full_features_list):
+            if v in self.new_names_dict:
+                full_features_list[vi] = self.new_names_dict[v]
+                print("Derived importance: %s %s %g" % (v, self.new_names_dict[v], importances[vi]))
+                indices = [i for i, name in enumerate(full_features_list) if self.new_names_dict[v] == name]
+                for index in indices:
+                    if vi != index:
+                        print("matching other imp: %s %g" % (v, importances[index]))
+        return full_features_list
+
+    def update_numerical_features(self, numerical_features):
+        force_nums = [
+            # self.features.raw_names_dict['month'],
+            # self.features.raw_names_dict['day'],
+            self.monthcycle1,
+            self.monthcycle2,
+            self.daycycle1,
+            self.daycycle2,
+            self.temp1,
+            self.temp2,
+            self.kaggle1,
+            self.kaggle2,
+            self.sides,
+            self.animal,
+        ]
+        force_nums.extend(self.lexi_names)
+        force_nums = [x for x in force_nums if x is not None]
+        more_nums = (pd.Series([True if x in force_nums else False for x in list(numerical_features.index)],
+                               index=numerical_features.index))
+        numerical_features = (numerical_features) | (more_nums)
+        return numerical_features
+
+    def update_categorical_features(self, categorical_features):
+        avoid_as_cat = [
+            self.monthcycle1,
+            self.monthcycle2,
+            self.daycycle1,
+            self.daycycle2,
+            self.temp1,
+            self.temp2,
+            self.kaggle1,
+            self.kaggle2,
+            self.sides,
+            self.animal,
+        ]
+        avoid_as_cat.extend(self.lexi_names)
+        avoid_as_cats = (pd.Series([False if x in avoid_as_cat else True for x in list(categorical_features.index)],
+                                   index=categorical_features.index))
+        categorical_features = (categorical_features) & (avoid_as_cats)
+        return categorical_features
