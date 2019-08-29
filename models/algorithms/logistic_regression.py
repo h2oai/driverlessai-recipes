@@ -797,7 +797,8 @@ class make_features(object):
             if not transform:
                 self.ord_5_sorted = sorted(list(set(X[dai_feat_name].values)))
                 self.ord_5_sorted = dict(zip(self.ord_5_sorted, range(len(self.ord_5_sorted))))
-            X.loc[:, new_feat_name] = X[dai_feat_name].apply(lambda x: self.ord_5_sorted[x] if x in self.ord_5_sorted else -1).astype(np.float32)
+            X.loc[:, new_feat_name] = X[dai_feat_name].apply(
+                lambda x: self.ord_5_sorted[x] if x in self.ord_5_sorted else -1).astype(np.float32)
             self.new_names_dict[new_feat_name] = dai_feat_name
             self.ord5sorted = new_feat_name
 
@@ -896,11 +897,12 @@ class make_features(object):
         for vi, v in enumerate(full_features_list):
             if v in self.new_names_dict:
                 full_features_list[vi] = self.new_names_dict[v]
-                print("Derived importance: %s %s %g" % (v, self.new_names_dict[v], importances[vi]))
+                # print("Derived importance: %s %s %g" % (v, self.new_names_dict[v], importances[vi]))
                 indices = [i for i, name in enumerate(full_features_list) if self.new_names_dict[v] == name]
                 for index in indices:
                     if vi != index:
-                        print("matching other imp: %s %g" % (v, importances[index]))
+                        pass
+                        # print("matching other imp: %s %g" % (v, importances[index]))
         return full_features_list
 
     def update_numerical_features(self, numerical_features):
