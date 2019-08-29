@@ -140,7 +140,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [text_readability_transformers.py](./transformers/nlp/text_readability_transformers.py) [    Custom Recipe to extract Readability features from the text data    ## About Readability Features     ## References    - https://github.com/shivam5992/textstat    - http://www.readabilityformulas.com/free-readability-formula-tests.php]
     * [text_sentiment_transformer.py](./transformers/nlp/text_sentiment_transformer.py) [Extract sentiment from text using pretrained models from TextBlob]
     * [text_similarity_transformers.py](./transformers/nlp/text_similarity_transformers.py) [Row-by-row similarity between two text columns based on common N-grams, Jaccard similarity, Dice similarity and edit distance.]
-    * [text_spelling_correction_transformers.py](./transformers/nlp/text_spelling_correction_transformers.py)[Correct the spelling of text column]
+    * [text_spelling_correction_transformers.py](./transformers/nlp/text_spelling_correction_transformers.py) [Correct the spelling of text column]
     * [text_topic_modeling_transformer.py](./transformers/nlp/text_topic_modeling_transformer.py) [Extract topics from text column using LDA]
     * [text_url_summary_transformer.py](./transformers/nlp/text_url_summary_transformer.py) [Extract text from URL and summarizes it]
     * [vader_text_sentiment_transformer.py](./transformers/nlp/vader_text_sentiment_transformer.py) [Extract sentiment from text using lexicon and rule-based sentiment analysis tool called VADER]
