@@ -16,7 +16,7 @@ from sklearn.metrics import roc_auc_score, make_scorer
 from h2oaicore.models import CustomModel
 from h2oaicore.systemutils import config, physical_cores_count
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
-from h2oaicore.transformers import CatOriginalTransformer
+from h2oaicore.transformers import CatOriginalTransformer, FrequentTransformer
 from h2oaicore.transformer_utils import Transformer
 from h2oaicore.transformers_more import CatTransformer, LexiLabelEncoderTransformer
 from sklearn.model_selection import StratifiedKFold, cross_val_score
@@ -293,10 +293,16 @@ class LogisticRegressionModel(CustomModel):
         if self._kaggle_features:
             categorical_features = self.features.update_categorical_features(categorical_features)
 
+        # import uuid
+        # struuid = str(uuid.uuid4())
+        # Xy = X.copy()
+        # Xy.loc[:, 'target'] = y
+        # Xy.to_csv("munged_%s.csv" % struuid)
+
         cat_X = X.loc[:, categorical_features]
         num_X = X.loc[:, numerical_features]
-        print("LR: Cat names: %s" % str(list(cat_X.columns)))
-        print("LR: Num names: %s" % str(list(num_X.columns)))
+        # print("LR: Cat names: %s" % str(list(cat_X.columns)))
+        # print("LR: Num names: %s" % str(list(num_X.columns)))
 
         # TRANSFORMERS
         lr_params = copy.deepcopy(self.params)
@@ -554,6 +560,11 @@ class LogisticRegressionModel(CustomModel):
         X = X.to_pandas()
         if self._kaggle_features:
             X = self.features.transform(X)
+
+        import uuid
+        struuid = str(uuid.uuid4())
+        X.to_csv("munged_predict_%s.csv" % struuid)
+
         if self.num_classes == 1:
             preds = model.predict(X)
         else:
@@ -665,8 +676,13 @@ class make_features(object):
 
         self.lexi = None
         self.lexi_names = None
+        self.ord5sorted = None
+
+        self.ord5more1 = None
+        self.ord5more2 = None
 
     def fit_transform(self, X: pd.DataFrame, transform=False):
+        self.orig_cols = list(X.columns)
         self.raw_names_dict = {Transformer.raw_feat_name(v): v for v in list(X.columns)}
         self.raw_names_dict_reversed = {k: v for k, v in self.raw_names_dict.items()}
 
@@ -717,6 +733,34 @@ class make_features(object):
 
         X, self.temp2 = self.make_feat(X, 'ord_2', 'temp2', ord22num2)
 
+        # 1st char, keep for OHE
+        def ord5more1(x):
+            return x[0]
+
+        X, self.ord5more1 = self.make_feat(X, 'ord_5', 'more1', ord5more1, is_float=False)
+
+        # 2nd char, keep for OHE
+        def ord5more2(x):
+            return x[1]
+
+        X, self.ord5more2 = self.make_feat(X, 'ord_5', 'more2', ord5more2, is_float=False)
+
+        # 1st word, keep for OHE
+        def ord2more1(x):
+            return x.split(" ")[0]
+
+        X, self.ord2more1 = self.make_feat(X, 'ord_2', 'more1', ord2more1, is_float=False)
+
+        # 2nd word, keep for OHE
+        def ord2more2(x):
+            a = x.split(" ")
+            if len(a) > 1:
+                return a[1]
+            else:
+                return ""
+
+        X, self.ord2more2 = self.make_feat(X, 'ord_2', 'more2', ord2more2, is_float=False)
+
         # use lexi LE directly as integers for alphabetical (ord_5, ord_4, ord_3)
         orig_feat_names = ['ord_5', 'ord_4', 'ord_3',
                            'nom_0', 'nom_1', 'nom_2',
@@ -742,6 +786,41 @@ class make_features(object):
                 X = pd.concat([X, Xnew], axis=1)
                 self.new_names_dict[new_feat_name] = dai_feat_name
                 self.lexi_names[ni] = new_feat_name
+
+        # sorted label encoding of ord_5, use for numeric
+        orig_feat_name = 'ord_5'
+        new_name = 'ord5sorted'
+        if orig_feat_name in self.raw_names_dict and self.raw_names_dict[orig_feat_name] in X.columns:
+            dai_feat_name = self.raw_names_dict[orig_feat_name]
+            extra_name = self._postfix + new_name
+            new_feat_name = dai_feat_name + extra_name
+            if not transform:
+                self.ord_5_sorted = sorted(list(set(X[dai_feat_name].values)))
+                self.ord_5_sorted = dict(zip(self.ord_5_sorted, range(len(self.ord_5_sorted))))
+            X.loc[:, new_feat_name] = X[dai_feat_name].apply(lambda x: self.ord_5_sorted[x] if x in self.ord_5_sorted else -1).astype(np.float32)
+            self.new_names_dict[new_feat_name] = dai_feat_name
+            self.ord5sorted = new_feat_name
+
+        # frequency encode everything
+        # keep as cat for OHE
+        if not transform:
+            self.freq = [None] * len(X.columns)
+            self.freq_names = [None] * len(X.columns)
+        for ni, c in enumerate(list(self.orig_cols)):
+            new_name = "freq%d" % ni
+            dai_feat_name = c
+            if transform:
+                Xnew = self.freq[ni].transform(X[[dai_feat_name]].astype(str)).to_pandas()
+            else:
+                self.freq[ni] = FrequentTransformer([dai_feat_name])
+                Xnew = self.freq[ni].fit_transform(X[[dai_feat_name]].astype(str)).to_pandas()
+            extra_name = self._postfix + new_name
+            new_feat_name = dai_feat_name + extra_name
+            Xnew.columns = [new_feat_name]
+            assert not any(pd.isnull(Xnew).values.ravel())
+            X = pd.concat([X, Xnew], axis=1)
+            self.new_names_dict[new_feat_name] = dai_feat_name
+            self.freq_names[ni] = new_feat_name
 
         # Encode months by count of holidays, etc.
 
@@ -799,13 +878,15 @@ class make_features(object):
     def transform(self, X: pd.DataFrame):
         return self.fit_transform(X, transform=True)
 
-    def make_feat(self, X, orig_feat, new_name, func):
+    def make_feat(self, X, orig_feat, new_name, func, is_float=True):
         new_feat_name = None
         if orig_feat in self.raw_names_dict and self.raw_names_dict[orig_feat] in X:
             dai_feat_name = self.raw_names_dict[orig_feat]
             extra_name = self._postfix + new_name
             new_feat_name = dai_feat_name + extra_name
-            X[new_feat_name] = X[dai_feat_name].apply(lambda x: func(x)).astype(np.float32)
+            X[new_feat_name] = X[dai_feat_name].apply(lambda x: func(x))
+            if is_float:
+                X[new_feat_name] = X[new_feat_name].astype(np.float32)
             self.new_names_dict[new_feat_name] = dai_feat_name
             self.extra_dict[dai_feat_name] = extra_name
         return X, new_feat_name
@@ -836,6 +917,7 @@ class make_features(object):
             self.kaggle2,
             self.sides,
             self.animal,
+            self.ord5sorted,
         ]
         force_nums.extend(self.lexi_names)
         force_nums = [x for x in force_nums if x is not None]
@@ -856,6 +938,7 @@ class make_features(object):
             self.kaggle2,
             self.sides,
             self.animal,
+            self.ord5sorted,
         ]
         avoid_as_cat.extend(self.lexi_names)
         avoid_as_cats = (pd.Series([False if x in avoid_as_cat else True for x in list(categorical_features.index)],
