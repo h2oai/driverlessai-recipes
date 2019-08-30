@@ -1,4 +1,4 @@
-"""Extracts text from images using OCR"""
+"""Convert a path to an image to text using OCR based on tesseract"""
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
