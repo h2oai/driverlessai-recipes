@@ -26,9 +26,18 @@ class ImageOCRTextTransformer(CustomTransformer):
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         return self.transform(X)
  
-    def transform(self, X: dt.Frame):
+    def image_ocr(self,path):
         
         import pytesseract
         from PIL import Image
+        
+        try: 
+            img = Image.open(path)
+            text = pytesseract.image_to_string(img)
+        except: 
+            text = ''
 
-        return X.to_pandas().astype(str).iloc[:, 0].apply(lambda x: pytesseract.image_to_string(Image.open(x)))
+        return text
+    
+    def transform(self, X: dt.Frame):
+        return X.to_pandas().astype(str).iloc[:, 0].apply(lambda x: self.image_ocr(x))
