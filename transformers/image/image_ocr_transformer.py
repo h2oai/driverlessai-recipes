@@ -15,6 +15,14 @@ class ImageOCRTextTransformer(CustomTransformer):
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
    
+    @staticmethod
+    def is_enabled():
+        return False
+
+    @staticmethod
+    def do_acceptance_test():
+        return False
+    
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         return self.transform(X)
  
