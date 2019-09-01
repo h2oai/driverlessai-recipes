@@ -14,7 +14,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.metrics import roc_auc_score, make_scorer
 
 from h2oaicore.models import CustomModel
-from h2oaicore.systemutils import config, physical_cores_count
+from h2oaicore.systemutils import config, physical_cores_count, save_obj
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.transformers import CatOriginalTransformer, FrequentTransformer
 from h2oaicore.transformer_utils import Transformer
@@ -52,8 +52,13 @@ class LogisticRegressionModel(CustomModel):
 
     """
     _kaggle = False  # some kaggle specific optimizations for https://www.kaggle.com/c/cat-in-the-dat
+    # with _kaggle_features=False and no catboost features:
     # gives 0.8043 DAI validation for some seeds/runs,
     # which leads to 0.80802 public score after only 2 minutes of running on accuracy=2, interpretability=1
+
+    # with _kaggle_features=False and catboost features:
+    # gives 0.8054 DAI validation for some seeds/runs,
+    # which leads to 0.80814 public score after only 10 minutes of running on accuracy=7, interpretability=1
 
     # whether to generate features for kaggle
     # these features do not help the score, but do make sense as plausible features to build
@@ -110,13 +115,16 @@ class LogisticRegressionModel(CustomModel):
     _use_target_encoding = False
     _use_target_encoding_other = False
     _use_ordinal_encoding = False
-    _use_catboost_encoding = False  # Note: Requires data be randomly shuffled so target is not in special order
+    _use_catboost_encoding = False or _kaggle  # Note: Requires data be randomly shuffled so target is not in special order
     _use_woe_encoding = False
 
     # tell DAI what pip modules we will use
     _modules_needed_by_name = ['category_encoders']
     if _use_target_encoding_other:
         _modules_needed_by_name.extend(['target_encoding'])
+
+    # whether to show debug prints and write munged view to disk
+    _debug = False
 
     def set_default_params(self, accuracy=10, time_tolerance=10,
                            interpretability=1, **kwargs):
@@ -149,7 +157,10 @@ class LogisticRegressionModel(CustomModel):
         self.params['n_jobs'] = self.params_base.get('n_jobs', max(1, physical_cores_count))
 
         # Modify certain parameters for tuning
-        C_list = [0.05, 0.075, 0.1, 0.15, 0.2, 1.0, 5.0]
+        if self._kaggle:
+            C_list = [0.095, 0.1, 0.15, 0.12, 0.13, 0.14]
+        else:
+            C_list = [0.05, 0.075, 0.1, 0.15, 0.2, 1.0, 5.0]
         self.params["C"] = float(np.random.choice(C_list)) if not get_default else 0.1
 
         tol_list = [1e-4, 1e-3, 1e-5]
@@ -161,9 +172,11 @@ class LogisticRegressionModel(CustomModel):
             default_tol = 1e-6
         else:
             default_tol = 1e-7
+        if self._kaggle:
+            default_tol = 1e-8
         if default_tol not in tol_list:
             tol_list.append(default_tol)
-        self.params["tol"] = float(np.random.choice(tol_list)) if not get_default else default_tol
+        self.params["tol"] = float(np.random.choice(tol_list)) if not (self._kaggle or get_default) else default_tol
 
         # solver_list = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
         # newton-cg too slow
@@ -172,7 +185,10 @@ class LogisticRegressionModel(CustomModel):
         solver_list = ['lbfgs']
         self.params["solver"] = str(np.random.choice(solver_list)) if not get_default else 'lbfgs'
 
-        max_iter_list = [50, 100, 150, 200, 250, 300]
+        if self._kaggle:
+            max_iter_list = [300, 350, 400, 450, 500, 700, 1000]
+        else:
+            max_iter_list = [150, 175, 200, 225, 250, 300]
         self.params["max_iter"] = int(np.random.choice(max_iter_list)) if not get_default else 200
 
         if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
@@ -183,7 +199,7 @@ class LogisticRegressionModel(CustomModel):
             penalty_list = ['l1']
         else:
             raise RuntimeError("No such solver: %s" % self.params['solver'])
-        self.params["penalty"] = str(np.random.choice(penalty_list)) if not get_default else 'l2'
+        self.params["penalty"] = str(np.random.choice(penalty_list)) if not (self._kaggle or get_default) else 'l2'
 
         if self.params["penalty"] == 'elasticnet':
             l1_ratio_list = [0, 0.25, 0.5, 0.75, 1.0]
@@ -207,15 +223,15 @@ class LogisticRegressionModel(CustomModel):
             self.params['smoothing'] = float(np.random.choice(smoothing_list))
 
         if self._use_catboost_encoding:
-            sigma_list = [None, 1.0, 0.5, 10.0, 50.0]
+            sigma_list = [None, 0.01, 0.05, 0.1, 0.5]
             self.params['sigma'] = random.choice(sigma_list)
 
         if self._use_woe_encoding:
             randomized_list = [True, False]
             self.params['randomized'] = random.choice(randomized_list)
-            sigma_woe_list = [0.05, 0.025, 0.1, 0.2]
+            sigma_woe_list = [0.05, 0.001, 0.01, 0.1, 0.005]
             self.params['sigma_woe'] = random.choice(sigma_woe_list)
-            regularization_list = [1.0, 0.5, 2.0, 10.0]
+            regularization_list = [1.0, 0.1, 2.0]
             self.params['regularization'] = random.choice(regularization_list)
 
         # control search in recipe
@@ -261,6 +277,8 @@ class LogisticRegressionModel(CustomModel):
         if self._kaggle_features:
             self.features = make_features()
             X = self.features.fit_transform(X)
+        else:
+            self.features = None
         # print("LR: pandas dtypes: %s" % (str(list(X.dtypes))))
 
         # FEATURE GROUPS
@@ -293,16 +311,18 @@ class LogisticRegressionModel(CustomModel):
         if self._kaggle_features:
             categorical_features = self.features.update_categorical_features(categorical_features)
 
-        # import uuid
-        # struuid = str(uuid.uuid4())
-        # Xy = X.copy()
-        # Xy.loc[:, 'target'] = y
-        # Xy.to_csv("munged_%s.csv" % struuid)
+        if self._debug:
+            import uuid
+            struuid = str(uuid.uuid4())
+            Xy = X.copy()
+            Xy.loc[:, 'target'] = y
+            Xy.to_csv("munged_%s.csv" % struuid)
 
         cat_X = X.loc[:, categorical_features]
         num_X = X.loc[:, numerical_features]
-        # print("LR: Cat names: %s" % str(list(cat_X.columns)))
-        # print("LR: Num names: %s" % str(list(num_X.columns)))
+        if self._debug:
+            print("LR: Cat names: %s" % str(list(cat_X.columns)))
+            print("LR: Num names: %s" % str(list(num_X.columns)))
 
         # TRANSFORMERS
         lr_params = copy.deepcopy(self.params)
@@ -468,6 +488,11 @@ class LogisticRegressionModel(CustomModel):
         # get actual LR model
         lr_model = model.named_steps[estimator_name]
 
+        if self._debug and False:
+            import uuid
+            struuid = str(uuid.uuid4())
+            save_obj(model.named_steps['columntransformer'].fit_transform(X, y), "columns_csr_%s.pkl" % struuid)
+
         # average importances over classes
         importances = np.average(np.array(lr_model.coef_), axis=0)
         # average iterations over classes (can't take max_iter per class)
@@ -496,7 +521,8 @@ class LogisticRegressionModel(CustomModel):
 
         msg = "LR: num=%d cat=%d : ohe=%d : imp=%d full=%d" % (
             len(num_X.columns), len(cat_X.columns), len(ohe_features_short), len(importances), len(full_features_list))
-        # print(msg)
+        if self._debug:
+            print(msg)
         assert len(importances) == len(full_features_list), msg
 
         # aggregate importances by dai feature name
@@ -516,10 +542,11 @@ class LogisticRegressionModel(CustomModel):
         else:
             self.params['fit_count'] = 0
 
-        self.set_model_properties(model=model,
+        self.set_model_properties(model=(model, self.features),
                                   features=orig_cols,
                                   importances=importances.tolist(),
                                   iterations=iterations)
+        self.features = None
 
     def get_param_range(self, param, fit_count, range_limit=None, func_type='linear'):
         if func_type == 'log':
@@ -556,14 +583,16 @@ class LogisticRegressionModel(CustomModel):
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
         X = self.oob_imputer.transform(X)
-        model, _, _, _ = self.get_model_properties()
+        model_tuple, _, _, _ = self.get_model_properties()
+        model, features = model_tuple
         X = X.to_pandas()
-        if self._kaggle_features:
-            X = self.features.transform(X)
+        if self._kaggle_features and features is not None:
+            X = features.transform(X)
 
-        import uuid
-        struuid = str(uuid.uuid4())
-        X.to_csv("munged_predict_%s.csv" % struuid)
+        if self._debug:
+            import uuid
+            struuid = str(uuid.uuid4())
+            X.to_csv("munged_predict_%s.csv" % struuid)
 
         if self.num_classes == 1:
             preds = model.predict(X)
