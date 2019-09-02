@@ -16,10 +16,11 @@ from sklearn.metrics import roc_auc_score, make_scorer
 from h2oaicore.models import CustomModel
 from h2oaicore.systemutils import config, physical_cores_count, save_obj
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
-from h2oaicore.transformers import CatOriginalTransformer, FrequentTransformer
+from h2oaicore.transformers import CatOriginalTransformer, FrequentTransformer, CVTargetEncodeTransformer
 from h2oaicore.transformer_utils import Transformer
 from h2oaicore.transformers_more import CatTransformer, LexiLabelEncoderTransformer
 from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.ensemble import VotingClassifier
 
 
 class LogisticRegressionModel(CustomModel):
@@ -51,7 +52,7 @@ class LogisticRegressionModel(CustomModel):
     6) Implement other scorers (i.e. checking score_f_name -> sklearn metric or using DAI metrics)
 
     """
-    _kaggle = False  # some kaggle specific optimizations for https://www.kaggle.com/c/cat-in-the-dat
+    _kaggle = True  # some kaggle specific optimizations for https://www.kaggle.com/c/cat-in-the-dat
     # with _kaggle_features=False and no catboost features:
     # gives 0.8043 DAI validation for some seeds/runs,
     # which leads to 0.80802 public score after only 2 minutes of running on accuracy=2, interpretability=1
@@ -62,7 +63,7 @@ class LogisticRegressionModel(CustomModel):
 
     # whether to generate features for kaggle
     # these features do not help the score, but do make sense as plausible features to build
-    _kaggle_features = False
+    _kaggle_features = True
 
     # numerical imputation for all columns (could be done per column chosen by mutations)
     _impute_num_type = 'sklearn'  # best for linear models
@@ -127,6 +128,8 @@ class LogisticRegressionModel(CustomModel):
     # whether to show debug prints and write munged view to disk
     _debug = False
 
+    _ensemble = False
+
     def set_default_params(self, accuracy=10, time_tolerance=10,
                            interpretability=1, **kwargs):
         # Fill up parameters we care about
@@ -159,10 +162,10 @@ class LogisticRegressionModel(CustomModel):
 
         # Modify certain parameters for tuning
         if self._kaggle:
-            C_list = [0.095, 0.1, 0.15, 0.11, 0.12, 0.13, 0.14]
+            C_list = [0.095, 0.1, 0.115, 0.11, 0.105, 0.12, 0.125, 0.13, 0.14]
         else:
             C_list = [0.05, 0.075, 0.1, 0.15, 0.2, 1.0, 5.0]
-        self.params["C"] = float(np.random.choice(C_list)) if not get_default else 0.1
+        self.params["C"] = float(np.random.choice(C_list)) if not get_default else 0.12
 
         tol_list = [1e-4, 1e-3, 1e-5]
         if accuracy < 5:
@@ -187,10 +190,10 @@ class LogisticRegressionModel(CustomModel):
         self.params["solver"] = str(np.random.choice(solver_list)) if not get_default else 'lbfgs'
 
         if self._kaggle:
-            max_iter_list = [300, 350, 400, 450, 500, 700, 1000, 1200]
+            max_iter_list = [300, 350, 400, 450, 500, 700, 800, 900, 1000]
         else:
             max_iter_list = [150, 175, 200, 225, 250, 300]
-        self.params["max_iter"] = int(np.random.choice(max_iter_list)) if not get_default else 200
+        self.params["max_iter"] = int(np.random.choice(max_iter_list)) if not get_default else 700
 
         if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
             penalty_list = ['l2', 'none']
@@ -210,7 +213,7 @@ class LogisticRegressionModel(CustomModel):
         if self.params["penalty"] == 'none':
             self.params.pop('C', None)
         else:
-            self.params['C'] = float(np.random.choice(C_list)) if not get_default else 0.1
+            self.params['C'] = float(np.random.choice(C_list)) if not get_default else 0.12
         if self.num_classes > 2:
             self.params['multi_class'] = 'auto'
 
@@ -271,6 +274,10 @@ class LogisticRegressionModel(CustomModel):
             self.params['grid_search_iterations'] = False
             self.params['cv_search'] = False
 
+        if self._ensemble:
+            self.params['grid_search_iterations'] = False
+            self.params['cv_search'] = False
+
         # save pre-datatable-imputed X
         X_dt = X
 
@@ -284,7 +291,7 @@ class LogisticRegressionModel(CustomModel):
         X_orig_cols_names = list(X.columns)
         if self._kaggle_features:
             self.features = make_features()
-            X = self.features.fit_transform(X)
+            X = self.features.fit_transform(X, y)
         else:
             self.features = None
         # print("LR: pandas dtypes: %s" % (str(list(X.dtypes))))
@@ -307,7 +314,7 @@ class LogisticRegressionModel(CustomModel):
                                          self._impute_cat_type, self._oob_bool, self._oob_cat)
             X = self.oob_imputer.fit_transform(X_dt)
             X = X.to_pandas()
-            X = self.features.fit_transform(X)
+            X = self.features.fit_transform(X, y)
         if self._kaggle_features:
             numerical_features = self.features.update_numerical_features(numerical_features)
 
@@ -385,22 +392,10 @@ class LogisticRegressionModel(CustomModel):
             )
         if self._use_target_encoding_other and any(categorical_features.values):
             full_features_list.extend(list(cat_X.columns))
-            len_uniques = []
-            cat_X_copy = cat_X.copy()
-            for c in cat_X.columns:
-                le = LabelEncoder()
-                le.fit(cat_X[c])
-                cat_X_copy[c] = le.transform(cat_X_copy[c])
-                len_uniques.append(len(le.classes_))
-            if self._debug:
-                uniques_series = pd.Series(len_uniques, index=list(cat_X.columns))
-                print("uniques_series: %s" % uniques_series)
-            ALPHA = 75
-            MAX_UNIQUE = max(len_uniques)
-            # FEATURES_COUNT = cat_X.shape[1]
             cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=self.params['random_state'])
             split_cv = [cv]
             # split_cv = [3, 3]
+            ALPHA, MAX_UNIQUE, FEATURES_COUNT = get_TE_params(cat_X, debug=self._debug)
             from target_encoding import TargetEncoder
             transformers.append(
                 (TargetEncoder(alpha=ALPHA, max_unique=MAX_UNIQUE, split_in=split_cv),
@@ -460,9 +455,18 @@ class LogisticRegressionModel(CustomModel):
             estimator_name = 'logisticregressioncv'
 
         # PIPELINE
-        model = make_pipeline(
-            preprocess,
-            estimator)
+        if not self._ensemble:
+            model = make_pipeline(
+                preprocess,
+                estimator, memory="./")
+        else:
+            ALPHA, MAX_UNIQUE, FEATURES_COUNT = get_TE_params(cat_X, debug=self._debug)
+            from target_encoding import TargetEncoderClassifier
+            te_estimator = TargetEncoderClassifier(alpha=ALPHA, max_unique=MAX_UNIQUE, used_features=FEATURES_COUNT)
+            estimators = [(estimator_name, estimator), ('teclassifier', te_estimator)]
+            model = make_pipeline(
+                preprocess,
+                VotingClassifier(estimators))
 
         # FIT
         if self.params['grid_search_iterations'] and can_score:
@@ -698,6 +702,9 @@ class make_features(object):
     _postfix = "@%@(&#%@))){}#"
 
     def __init__(self):
+        self.dai_te = False
+        self.other_te = True
+
         self.new_names_dict = {}
         self.raw_names_dict = {}
         self.raw_names_dict_reversed = {}
@@ -721,7 +728,7 @@ class make_features(object):
         self.ord5more1 = None
         self.ord5more2 = None
 
-    def fit_transform(self, X: pd.DataFrame, transform=False):
+    def fit_transform(self, X: pd.DataFrame, y=None, transform=False):
         self.orig_cols = list(X.columns)
         self.raw_names_dict = {Transformer.raw_feat_name(v): v for v in list(X.columns)}
         self.raw_names_dict_reversed = {k: v for k, v in self.raw_names_dict.items()}
@@ -863,6 +870,53 @@ class make_features(object):
             self.new_names_dict[new_feat_name] = dai_feat_name
             self.freq_names[ni] = new_feat_name
 
+        if self.dai_te:
+            # target encode everything
+            # use as numeric and categorical
+            if not transform:
+                self.te = [None] * len(X.columns)
+                self.te_names = [None] * len(X.columns)
+            for ni, c in enumerate(list(self.orig_cols)):
+                new_name = "te%d" % ni
+                dai_feat_name = c
+                if transform:
+                    Xnew = self.te[ni].transform(X[[dai_feat_name]].astype(str), y).to_pandas()
+                else:
+                    self.te[ni] = CVTargetEncodeTransformer([dai_feat_name])
+                    Xnew = self.te[ni].fit_transform(X[[dai_feat_name]].astype(str), y).to_pandas()
+                extra_name = self._postfix + new_name
+                new_feat_name = dai_feat_name + extra_name
+                Xnew.columns = [new_feat_name]
+                assert not any(pd.isnull(Xnew).values.ravel())
+                X = pd.concat([X, Xnew], axis=1)
+                self.new_names_dict[new_feat_name] = dai_feat_name
+                self.te_names[ni] = new_feat_name
+
+        if self.other_te:
+            # target encode everything
+            # use as numeric and categorical
+            if not transform:
+                self.teo = [None] * len(X.columns)
+                self.teo_names = [None] * len(X.columns)
+            for ni, c in enumerate(list(self.orig_cols)):
+                new_name = "teo%d" % ni
+                dai_feat_name = c
+                X_local = X.loc[:, [dai_feat_name]].astype(str)
+                if transform:
+                    Xnew = pd.DataFrame(self.teo[ni].transform_test(X_local))
+                else:
+                    from target_encoding import TargetEncoder
+                    ALPHA, MAX_UNIQUE, FEATURES_COUNT = get_TE_params(X_local, debug=False)
+                    self.teo[ni] = TargetEncoder(alpha=ALPHA, max_unique=MAX_UNIQUE, split_in=[3])
+                    Xnew = pd.DataFrame(self.teo[ni].transform_train(X=X_local, y=y))
+                extra_name = self._postfix + new_name
+                new_feat_name = dai_feat_name + extra_name
+                Xnew.columns = [new_feat_name]
+                assert not any(pd.isnull(Xnew).values.ravel())
+                X = pd.concat([X, Xnew], axis=1)
+                self.new_names_dict[new_feat_name] = dai_feat_name
+                self.teo_names[ni] = new_feat_name
+
         # Encode months by count of holidays, etc.
 
         # Bin months to seasons
@@ -962,6 +1016,10 @@ class make_features(object):
             self.ord5sorted,
         ]
         force_nums.extend(self.lexi_names)
+        if self.other_te:
+            force_nums.extend(self.teo_names)  # numeric and cat
+        if self.dai_te:
+            force_nums.extend(self.te_names)  # numeric and cat
         force_nums = [x for x in force_nums if x is not None]
         more_nums = (pd.Series([True if x in force_nums else False for x in list(numerical_features.index)],
                                index=numerical_features.index))
@@ -987,3 +1045,20 @@ class make_features(object):
                                    index=categorical_features.index))
         categorical_features = (categorical_features) & (avoid_as_cats)
         return categorical_features
+
+
+def get_TE_params(cat_X, debug=False):
+    len_uniques = []
+    cat_X_copy = cat_X.copy()
+    for c in cat_X.columns:
+        le = LabelEncoder()
+        le.fit(cat_X[c])
+        cat_X_copy[c] = le.transform(cat_X_copy[c])
+        len_uniques.append(len(le.classes_))
+    if debug:
+        uniques_series = pd.Series(len_uniques, index=list(cat_X.columns))
+        print("uniques_series: %s" % uniques_series)
+    ALPHA = 75
+    MAX_UNIQUE = max(len_uniques)
+    FEATURES_COUNT = cat_X.shape[1]
+    return ALPHA, MAX_UNIQUE, FEATURES_COUNT
