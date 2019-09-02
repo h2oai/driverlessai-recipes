@@ -122,6 +122,7 @@ class LogisticRegressionModel(CustomModel):
     _modules_needed_by_name = ['category_encoders']
     if _use_target_encoding_other:
         _modules_needed_by_name.extend(['target_encoding'])
+        #_modules_needed_by_name.extend(['git+https://github.com/h2oai/target_encoding#egg=target_encoding'])
 
     # whether to show debug prints and write munged view to disk
     _debug = False
@@ -379,20 +380,23 @@ class LogisticRegressionModel(CustomModel):
             full_features_list.extend(list(cat_X.columns))
             len_uniques = []
             cat_X_copy = cat_X.copy()
-            test = pd.DataFrame(None, columns=cat_X.columns)
             for c in cat_X.columns:
                 le = LabelEncoder()
-                le.fit(pd.concat([categorical_features[c], test[c]]))
+                le.fit(cat_X[c])
                 cat_X_copy[c] = le.transform(cat_X_copy[c])
-                # test[c] = le.transform(test[c])
                 len_uniques.append(len(le.classes_))
+            if self._debug:
+                uniques_series = pd.Series(len_uniques, index=list(cat_X.columns))
+                print("uniques_series: %s" % uniques_series)
             ALPHA = 75
             MAX_UNIQUE = max(len_uniques)
-            FEATURES_COUNT = cat_X.shape[1]
+            # FEATURES_COUNT = cat_X.shape[1]
             cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=self.params['random_state'])
+            split_cv = [cv]
+            # split_cv = [3, 3]
             from target_encoding import TargetEncoder
             transformers.append(
-                (TargetEncoder(alpha=ALPHA, max_unique=MAX_UNIQUE, used_features=FEATURES_COUNT, split=[cv]),
+                (TargetEncoder(alpha=ALPHA, max_unique=MAX_UNIQUE, split_in=split_cv),
                  categorical_features)
             )
         if self._use_ohe_encoding and any(categorical_features.values):
