@@ -159,7 +159,7 @@ class LogisticRegressionModel(CustomModel):
 
         # Modify certain parameters for tuning
         if self._kaggle:
-            C_list = [0.095, 0.1, 0.15, 0.12, 0.13, 0.14]
+            C_list = [0.095, 0.1, 0.15, 0.11, 0.12, 0.13, 0.14]
         else:
             C_list = [0.05, 0.075, 0.1, 0.15, 0.2, 1.0, 5.0]
         self.params["C"] = float(np.random.choice(C_list)) if not get_default else 0.1
@@ -187,7 +187,7 @@ class LogisticRegressionModel(CustomModel):
         self.params["solver"] = str(np.random.choice(solver_list)) if not get_default else 'lbfgs'
 
         if self._kaggle:
-            max_iter_list = [300, 350, 400, 450, 500, 700, 1000]
+            max_iter_list = [300, 350, 400, 450, 500, 700, 1000, 1200]
         else:
             max_iter_list = [150, 175, 200, 225, 250, 300]
         self.params["max_iter"] = int(np.random.choice(max_iter_list)) if not get_default else 200
@@ -263,6 +263,13 @@ class LogisticRegressionModel(CustomModel):
             lb = LabelEncoder()
             lb.fit(self.labels)
             y = lb.transform(y)
+
+        min_count = np.min(np.unique(y, return_counts=True)[1])
+        if min_count < 9:
+            self.params['cv_search'] = False
+        if min_count < 3:
+            self.params['grid_search_iterations'] = False
+            self.params['cv_search'] = False
 
         # save pre-datatable-imputed X
         X_dt = X
