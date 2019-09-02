@@ -52,7 +52,7 @@ class LogisticRegressionModel(CustomModel):
     6) Implement other scorers (i.e. checking score_f_name -> sklearn metric or using DAI metrics)
 
     """
-    _kaggle = True  # some kaggle specific optimizations for https://www.kaggle.com/c/cat-in-the-dat
+    _kaggle = False  # some kaggle specific optimizations for https://www.kaggle.com/c/cat-in-the-dat
     # with _kaggle_features=False and no catboost features:
     # gives 0.8043 DAI validation for some seeds/runs,
     # which leads to 0.80802 public score after only 2 minutes of running on accuracy=2, interpretability=1
@@ -63,7 +63,7 @@ class LogisticRegressionModel(CustomModel):
 
     # whether to generate features for kaggle
     # these features do not help the score, but do make sense as plausible features to build
-    _kaggle_features = True
+    _kaggle_features = False
 
     # numerical imputation for all columns (could be done per column chosen by mutations)
     _impute_num_type = 'sklearn'  # best for linear models
@@ -532,7 +532,7 @@ class LogisticRegressionModel(CustomModel):
 
         # aggregate our own features
         if self._kaggle_features:
-            self.features.aggregate(full_features_list, importances)
+            full_features_list = self.features.aggregate(full_features_list, importances)
 
         msg = "LR: num=%d cat=%d : ohe=%d : imp=%d full=%d" % (
             len(num_X.columns), len(cat_X.columns), len(ohe_features_short), len(importances), len(full_features_list))
@@ -542,9 +542,9 @@ class LogisticRegressionModel(CustomModel):
 
         # aggregate importances by dai feature name
         importances = pd.Series(np.abs(importances), index=full_features_list).groupby(level=0).mean()
-        assert len(importances) == len(X_orig_cols_names), "%d %d %s : %s %s" % (
+        assert len(importances) == len(X_orig_cols_names), "lenimp=%d lenorigX=%d msg=%s : X.columns=%s dtypes=%s : full_features_list=%s" % (
             len(importances), len(X_orig_cols_names), msg,
-            str(list(X.columns)), str(list(X.dtypes)))
+            str(list(X.columns)), str(list(X.dtypes)), str(full_features_list))
 
         # save hyper parameter searched results for next search
         self.params['max_iter'] = iterations
@@ -731,7 +731,7 @@ class make_features(object):
     def fit_transform(self, X: pd.DataFrame, y=None, transform=False):
         self.orig_cols = list(X.columns)
         self.raw_names_dict = {Transformer.raw_feat_name(v): v for v in list(X.columns)}
-        self.raw_names_dict_reversed = {k: v for k, v in self.raw_names_dict.items()}
+        self.raw_names_dict_reversed = {v: k for k, v in self.raw_names_dict.items()}
 
         # use circular color wheel position for nom_0
         def nom12num(x):
@@ -814,6 +814,7 @@ class make_features(object):
                            'nom_3', 'nom_4', 'nom_5',
                            'nom_6', 'nom_7', 'nom_8',
                            'nom_9', 'ord_1', 'ord_2']
+        orig_feat_names = [self.raw_names_dict_reversed[x] for x in list(self.orig_cols)]  # try just encoding all columns
         new_names = ['lexi%d' % x for x in range(len(orig_feat_names))]
         if not transform:
             self.lexi = [None] * len(orig_feat_names)
@@ -852,8 +853,8 @@ class make_features(object):
         # frequency encode everything
         # keep as cat for OHE
         if not transform:
-            self.freq = [None] * len(X.columns)
-            self.freq_names = [None] * len(X.columns)
+            self.freq = [None] * len(self.orig_cols)
+            self.freq_names = [None] * len(self.orig_cols)
         for ni, c in enumerate(list(self.orig_cols)):
             new_name = "freq%d" % ni
             dai_feat_name = c
@@ -874,8 +875,8 @@ class make_features(object):
             # target encode everything
             # use as numeric and categorical
             if not transform:
-                self.te = [None] * len(X.columns)
-                self.te_names = [None] * len(X.columns)
+                self.te = [None] * len(self.orig_cols)
+                self.te_names = [None] * len(self.orig_cols)
             for ni, c in enumerate(list(self.orig_cols)):
                 new_name = "te%d" % ni
                 dai_feat_name = c
@@ -893,12 +894,14 @@ class make_features(object):
                 self.te_names[ni] = new_feat_name
 
         if self.other_te:
-            # target encode everything
+            # target encode lexilabel encoded features
             # use as numeric and categorical
             if not transform:
-                self.teo = [None] * len(X.columns)
-                self.teo_names = [None] * len(X.columns)
-            for ni, c in enumerate(list(self.orig_cols)):
+                self.teo = [None] * len(self.lexi_names)
+                self.teo_names = [None] * len(self.lexi_names)
+            for ni, c in enumerate(self.lexi_names):
+                if c is None:
+                    continue
                 new_name = "teo%d" % ni
                 dai_feat_name = c
                 X_local = X.loc[:, [dai_feat_name]].astype(str)
@@ -914,7 +917,7 @@ class make_features(object):
                 Xnew.columns = [new_feat_name]
                 assert not any(pd.isnull(Xnew).values.ravel())
                 X = pd.concat([X, Xnew], axis=1)
-                self.new_names_dict[new_feat_name] = dai_feat_name
+                self.new_names_dict[new_feat_name] = self.new_names_dict[dai_feat_name]  # 2nd layer derived
                 self.teo_names[ni] = new_feat_name
 
         # Encode months by count of holidays, etc.
