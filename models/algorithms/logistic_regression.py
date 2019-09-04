@@ -6,6 +6,7 @@ import numpy as np
 import random
 import pandas as pd
 import copy
+import codecs
 from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 from sklearn.compose import ColumnTransformer, make_column_transformer
@@ -227,7 +228,10 @@ class LogisticRegressionModel(CustomModel):
             self.params['smoothing'] = float(np.random.choice(smoothing_list))
 
         if self._use_catboost_encoding:
-            sigma_list = [None, 0.01, 0.05, 0.1, 0.5]
+            if self._kaggle:
+                sigma_list = [None, 0.1, 0.2, 0.3, 0.4, 0.45, 0.5, 0.55, 0.6, 0.7, 0.8, 0.9]
+            else:
+                sigma_list = [None, 0.01, 0.05, 0.1, 0.5]
             self.params['sigma'] = random.choice(sigma_list)
 
         if self._use_woe_encoding:
@@ -728,6 +732,8 @@ class make_features(object):
         self.ord5more1 = None
         self.ord5more2 = None
 
+        self.lenfeats = None
+
     def fit_transform(self, X: pd.DataFrame, y=None, transform=False):
         self.orig_cols = list(X.columns)
         self.raw_names_dict = {Transformer.raw_feat_name(v): v for v in list(X.columns)}
@@ -749,6 +755,64 @@ class make_features(object):
 
         X, self.animal = self.make_feat(X, 'nom_2', 'animal', nom22num)
 
+        #def has_char(x, char):
+        #    x_str = str(x)
+        #    return 1 if char.upper() in x_str.upper() else 0
+
+        #self.haschars = [None] * len(self.orig_cols)
+        #for ni, c in enumerate(self.orig_cols):
+        #    X, self.lenfeats[ni] = self.make_feat(X, c, 'len', get_len)
+
+        # convert hex to binary and use as 8-feature (per hex feature) encoding
+
+        def get_len(x):
+            x_str = str(x)
+            return len(x_str)
+
+        self.lenfeats = [None] * len(self.orig_cols)
+        for ni, c in enumerate(self.orig_cols):
+            X, self.lenfeats[ni] = self.make_feat(X, c, 'len', get_len)
+        #
+        def get_first(x):
+            x_str = str(x)
+            return x_str[0] if len(x_str) > 0 else ""
+
+        self.firstchar = [None] * len(self.orig_cols)
+        for ni, c in enumerate(self.orig_cols):
+            X, self.firstchar[ni] = self.make_feat(X, c, 'firstc', get_first, is_float=False)
+
+        #
+        def get_last(x):
+            x_str = str(x)
+            return x_str[-1] if len(x_str) > 0 else ""
+
+        self.lastchar = [None] * len(self.orig_cols)
+        for ni, c in enumerate(self.orig_cols):
+            X, self.lastchar[ni] = self.make_feat(X, c, 'lastc', get_last, is_float=False)
+
+        #
+        hex_strings = ['nom_5', 'nom_6', 'nom_7', 'nom_8', 'nom_9']
+        #
+        def hex_to_int(x):
+            x_int = int(eval('0x' + str(x)))
+            return x_int
+
+        self.hexints = [None] * len(hex_strings)
+        for ni, c in enumerate(hex_strings):
+            X, self.hexints[ni] = self.make_feat(X, c, 'hex2int', hex_to_int)
+
+        #
+        def hex_to_string(x):
+            try:
+                x_str = codecs.decode('0' + x, 'hex')
+            except:
+                x_str = codecs.decode(x, 'hex')
+            return x_str
+
+        self.hexstr = [None] * len(hex_strings)
+        for ni, c in enumerate(hex_strings):
+            X, self.lenfeats[ni] = self.make_feat(X, c, 'hex2str', hex_to_string, is_float=False)
+
         # use geo-location for nom_3
 
         # use static mapping encoding for ord_2 and ord_1
@@ -766,6 +830,11 @@ class make_features(object):
 
         X, self.kaggle2 = self.make_feat(X, 'ord_1', 'kaggle2', ord12num2)
 
+        def ord1master(x):
+            return 1 if 'master' in x or 'Master' in x else 0
+
+        X, self.kaggle3 = self.make_feat(X, 'ord_1', 'kaggle3', ord1master)
+
         def ord22num(x):
             # ordered label
             d = {'Freezing': 0, 'Cold': 1, 'Warm': 2, 'Hot': 3, 'Boiling Hot': 4, 'Lava Hot': 5}
@@ -779,6 +848,11 @@ class make_features(object):
             return d[x]
 
         X, self.temp2 = self.make_feat(X, 'ord_2', 'temp2', ord22num2)
+
+        def ord2hot(x):
+            return 1 if 'hot' in x or 'Hot' in x else 0
+
+        X, self.temp4 = self.make_feat(X, 'ord_2', 'temp4', ord2hot)
 
         # 1st char, keep for OHE
         def ord5more1(x):
@@ -804,7 +878,7 @@ class make_features(object):
             if len(a) > 1:
                 return a[1]
             else:
-                return ""
+                return a[0]
 
         X, self.ord2more2 = self.make_feat(X, 'ord_2', 'more2', ord2more2, is_float=False)
 
@@ -1019,6 +1093,8 @@ class make_features(object):
             self.ord5sorted,
         ]
         force_nums.extend(self.lexi_names)
+        force_nums.extend(self.lenfeats)
+        force_nums.extend(self.hexints)
         if self.other_te:
             force_nums.extend(self.teo_names)  # numeric and cat
         if self.dai_te:
