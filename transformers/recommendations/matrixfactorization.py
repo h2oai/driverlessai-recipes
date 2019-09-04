@@ -1,21 +1,21 @@
 """Collaborative filtering features using various techniques of Matrix Factorization for recommendations"""
 
 """
-Please edit the user column name and item name in the transformer initializationto match the
+Please edit the user column name and item column name in the transformer initialization to match the
 column names as per the dataset or use the default 'user' and 'item' respectively in your dataset
 
 Sample Datasets
 Netflix - https://www.kaggle.com/netflix-inc/netflix-prize-data
-user_col = user
-item_col = movie
+user_col = 'user'
+item_col = 'movie'
 
 MovieLens - https://grouplens.org/datasets/movielens/
-user_col = userId
-item_col = movieId
+user_col = 'userId'
+item_col = 'movieId'
 
 RPackages - https://www.kaggle.com/c/R/data
-user_col = User
-item_col = Package
+user_col = 'User'
+item_col = 'Package'
 """
 
 import datatable as dt
@@ -36,10 +36,20 @@ class RecH2OMFTransformer(CustomTransformer):
     _can_use_gpu = True
     _mf_type = "h2o4gpu"
 
-    def __init__(self, **kwargs):
+    def __init__(self, n_components=50, _lambda=0.1, batches=1, max_iter=100, alpha=0.1,**kwargs):
         super().__init__(**kwargs)
         self.user_col = "user" ## edit this to the user column name
-        self.item_col = "item" ## edit this to the item column name
+        self.item_col = "movie" ## edit this to the item column name
+
+        if self.__class__._mf_type == "h2o4gpu":
+            self._n_components = n_components
+            self._lambda = _lambda
+            self._batches = batches
+            self._max_iter = max_iter
+        elif self.__class__._mf_type == "nmf":
+            self._n_components = n_components
+            self._alpha = alpha
+            self._max_iter = max_iter
 
     @staticmethod
     def do_acceptance_test():
@@ -49,20 +59,15 @@ class RecH2OMFTransformer(CustomTransformer):
     def get_default_properties():
         return dict(col_type="all", min_cols="all", max_cols="all", relative_importance=1, num_default_instances=1)
 
-    def set_params(self):
-        if self.__class__._mf_type == "h2o4gpu":
-            self.params = {"n_components": 50,
-                           "lambda": 0.01,
-                           "batches": 1,
-                           "max_iter": 50}
-        elif self.__class__._mf_type == "nmf":
-            self.params = {"n_components": 50,
-                           "alpha": 0.01,
-                           "max_iter": 50}
+    @staticmethod
+    def get_parameter_choices():
+        return {"n_components": [10, 30, 50, 70, 100],
+                "_lambda": [0.01, 0.05, 0.1],
+                "batches": [1],
+                "max_iter": [10, 50, 100, 200],
+                "alpha": [0.01, 0.05, 0.1]}
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
-        self.set_params()
-
         if len(np.unique(self.labels)) == 2:
             le = LabelEncoder()
             self.labels = le.fit_transform(self.labels)
@@ -80,8 +85,12 @@ class RecH2OMFTransformer(CustomTransformer):
 
         X_pd = X.to_pandas()
 
-        kfold = KFold(n_splits=5)
-        preds = np.zeros(X.nrows)
+        if len(np.unique(self.labels)) == 2:
+            kfold = StratifiedKFold(n_splits=10)
+        else:
+            kfold = KFold(n_splits=10)
+
+        preds = np.full(X.nrows, fill_value=np.nan)
 
         for train_index, val_index in kfold.split(X_pd, y):
             X_train, y_train = X_pd.iloc[train_index,], y[train_index]
@@ -101,11 +110,11 @@ class RecH2OMFTransformer(CustomTransformer):
             X_val_user_item_matrix = scipy.sparse.coo_matrix((np.ones(len(X_val2), dtype="float32"), (user_indices[len(X_train):], item_indices[len(X_train):])), shape=X_train_shape)
             
             if self.__class__._mf_type == "h2o4gpu":
-                factorization = h2o4gpu.solvers.FactorizationH2O(self.params["n_components"], self.params["lambda"], max_iter=self.params["max_iter"])
-                factorization.fit(X_train_user_item_matrix, X_BATCHES=self.params["batches"], THETA_BATCHES=self.params["batches"])
+                factorization = h2o4gpu.solvers.FactorizationH2O(self._n_components, self._lambda, max_iter=self._max_iter)
+                factorization.fit(X_train_user_item_matrix, X_BATCHES=self._batches, THETA_BATCHES=self._batches)
                 preds[val_index[(X_val[self.user_col].isin(np.unique(X_train[self.user_col]))) & (X_val[self.item_col].isin(np.unique(X_train[self.item_col])))]] = factorization.predict(X_val_user_item_matrix).data
             elif self.__class__._mf_type == "nmf":
-                factorization = NMF(n_components=self.params["n_components"], alpha=self.params["alpha"], max_iter=self.params["max_iter"])
+                factorization = NMF(n_components=self._n_components, alpha=self._alpha, max_iter=self._max_iter)
                 user_matrix = factorization.fit_transform(X_train_user_item_matrix)
                 item_matrix = factorization.components_.T
                 val_users = np.take(user_matrix, X_val_user_item_matrix.row, axis=0)
@@ -119,10 +128,10 @@ class RecH2OMFTransformer(CustomTransformer):
         self.X_train_shape = X_train_user_item_matrix.shape
 
         if self.__class__._mf_type == "h2o4gpu":
-            self.factorization = h2o4gpu.solvers.FactorizationH2O(self.params["n_components"], self.params["lambda"], max_iter=self.params["max_iter"])
-            self.factorization.fit(X_train_user_item_matrix, X_BATCHES=self.params["batches"], THETA_BATCHES=self.params["batches"])
+            self.factorization = h2o4gpu.solvers.FactorizationH2O(self._n_components, self._lambda, max_iter=self._max_iter)
+            self.factorization.fit(X_train_user_item_matrix, X_BATCHES=self._batches, THETA_BATCHES=self._batches)
         elif self.__class__._mf_type == "nmf":
-            factorization = NMF(n_components=self.params["n_components"], alpha=self.params["alpha"], max_iter=self.params["max_iter"])
+            factorization = NMF(n_components=self._n_components, alpha=self._alpha, max_iter=self._max_iter)
             self.user_matrix = factorization.fit_transform(X_train_user_item_matrix)
             self.item_matrix = factorization.components_.T
 
@@ -131,7 +140,7 @@ class RecH2OMFTransformer(CustomTransformer):
     def transform(self, X: dt.Frame):
         X = X[:, [self.user_col, self.item_col]]
         
-        preds = np.zeros(X.nrows)
+        preds = np.full(X.nrows, fill_value=np.nan)
 
         X_pd = X.to_pandas()
         
