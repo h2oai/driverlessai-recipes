@@ -158,8 +158,8 @@ class USZipcodeDBTransformer(CustomTransformer):
         try:
             X = dt.Frame(X)
             original_zip_column_name = X.names[0]
+            X = X[:, dt.str64(dt.f[0])]
             X.names = ['zip_key']
-            X = X[:, str('zip_key')]
             zip_list = dt.unique(X[~dt.isna(dt.f.zip_key), 0]).to_list()[0] + ['79936']
             zip_features = [self.get_zipcode_features(x) for x in zip_list]
             X_g = dt.Frame({"zip_key": zip_list})
