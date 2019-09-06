@@ -27,7 +27,7 @@ import h2o4gpu
 
 from h2oaicore.transformer_utils import CustomTransformer
 from sklearn.decomposition import NMF
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 
 
