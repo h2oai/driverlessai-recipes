@@ -31,6 +31,8 @@
   * Look at the [examples in this repository](https://github.com/h2oai/driverlessai-recipes/blob/master/README.md#sample-recipes).
   * Clone this repository and make modifications to existing recipes.
   * Start an experiment and upload the recipe in the expert settings of an experiment.
+  #### What version of Python does Driverless AI use?
+  Driverless AI uses Python version 3.6, so all custom recipes will run with Python 3.6 as well.
   #### How do I know whether my recipe works?
   Driverless AI will tell you whether it makes the cut:
   * First, it is subjected to acceptance tests. If it passes, great. If not, Driverless AI provides you with feedback on how to improve it.

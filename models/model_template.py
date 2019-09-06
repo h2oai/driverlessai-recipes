@@ -18,6 +18,10 @@ class CustomModel(BaseCustomModel):
     during feature creation for this model."""
     _can_handle_non_numeric = False
 
+    """Specify whether the model can handle label-encoded categoricals in special way. If not, some transformers might be skipped
+    during feature creation for this model."""
+    _can_handle_categorical = False
+
     """Specify whether the model is expected to create reproducible results. If disabled, model might be 
     skipped for experiments run in reproducible mode."""
     _is_reproducible = True
