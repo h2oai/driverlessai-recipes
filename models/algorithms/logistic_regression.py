@@ -53,7 +53,7 @@ class LogisticRegressionModel(CustomModel):
     6) Implement other scorers (i.e. checking score_f_name -> sklearn metric or using DAI metrics)
 
     """
-    _kaggle = False  # some kaggle specific optimizations for https://www.kaggle.com/c/cat-in-the-dat
+    _kaggle = True  # some kaggle specific optimizations for https://www.kaggle.com/c/cat-in-the-dat
     # with _kaggle_features=False and no catboost features:
     # gives 0.8043 DAI validation for some seeds/runs,
     # which leads to 0.80802 public score after only 2 minutes of running on accuracy=2, interpretability=1
@@ -64,7 +64,7 @@ class LogisticRegressionModel(CustomModel):
 
     # whether to generate features for kaggle
     # these features do not help the score, but do make sense as plausible features to build
-    _kaggle_features = False
+    _kaggle_features = True
 
     # numerical imputation for all columns (could be done per column chosen by mutations)
     _impute_num_type = 'sklearn'  # best for linear models
@@ -90,6 +90,7 @@ class LogisticRegressionModel(CustomModel):
     _can_handle_non_numeric = True  # tell DAI we can handle non-numeric (i.e. strings)
     _can_handle_categorical = True  # tell DAI we can handle numerically encoded categoricals for use as categoricals
     _num_as_cat = False or _kaggle  # treating numeric as categorical best handled per column, but can force all numerics as cats
+    _num_as_num = False
 
     _mutate_all = True  # tell DAI we fully controls mutation
     _mutate_by_one = False  # tell our recipe only changes one key at a time, can limit exploration if set as True
@@ -110,6 +111,7 @@ class LogisticRegressionModel(CustomModel):
     _fit_iteration_name = 'max_iter'
     _display_name = "LR"
     _description = "Logistic Regression"
+    _allow_basis_of_default_individuals = False
 
     # recipe vars for encoding choices
     _use_numerics = True
@@ -127,7 +129,7 @@ class LogisticRegressionModel(CustomModel):
         # _modules_needed_by_name.extend(['git+https://github.com/h2oai/target_encoding#egg=target_encoding'])
 
     # whether to show debug prints and write munged view to disk
-    _debug = False
+    _debug = True
 
     _ensemble = False
 
@@ -195,6 +197,7 @@ class LogisticRegressionModel(CustomModel):
         else:
             max_iter_list = [150, 175, 200, 225, 250, 300]
         self.params["max_iter"] = int(np.random.choice(max_iter_list)) if not get_default else 700
+        # self.params["max_iter"] = 37
 
         if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
             penalty_list = ['l2', 'none']
@@ -308,21 +311,33 @@ class LogisticRegressionModel(CustomModel):
         # can add explicit column name list to below force_cats
         force_cats = cat_features + catlabel_features
 
+        actual_numerical_features = (X.dtypes == 'float') | (X.dtypes == 'float32') | (X.dtypes == 'float64') | (X.dtypes == 'int') | (X.dtypes == 'int32') | (X.dtypes == 'int64') | (X.dtypes == 'bool')
         # choose if numeric is treated as categorical
-        if not self._num_as_cat:
-            numerical_features = (X.dtypes == 'float') | (X.dtypes == 'float32') | (X.dtypes == 'float64')
+        if not self._num_as_cat or self._num_as_num:
+            # treat (e.g.) binary as both numeric and categorical
+            numerical_features = copy.deepcopy(actual_numerical_features)
         else:
+            # no numerics
             numerical_features = X.dtypes == 'invalid'
+
+        if self._num_as_cat:
+            # then can't have None sent to cats, impute already up front
             # force oob imputation for numerics
             self.oob_imputer = OOBImpute('oob', 'oob', 'oob',
                                          self._impute_cat_type, self._oob_bool, self._oob_cat)
             X = self.oob_imputer.fit_transform(X_dt)
             X = X.to_pandas()
-            X = self.features.fit_transform(X, y)
+            if self._kaggle_features:
+                X = self.features.fit_transform(X, y)
         if self._kaggle_features:
             numerical_features = self.features.update_numerical_features(numerical_features)
 
-        categorical_features = ~numerical_features
+        if not self._num_as_cat:
+            # then cats are only things that are not numeric
+            categorical_features = ~actual_numerical_features
+        else:
+            # then everything is a cat
+            categorical_features = ~(X.dtypes == 'invalid')
         # below can lead to overlap between what is numeric and what is categorical
         more_cats = (pd.Series([True if x in force_cats else False for x in list(categorical_features.index)],
                                index=categorical_features.index))
@@ -513,9 +528,9 @@ class LogisticRegressionModel(CustomModel):
             save_obj(model.named_steps['columntransformer'].fit_transform(X, y), "columns_csr_%s.pkl" % struuid)
 
         # average importances over classes
-        importances = np.average(np.array(lr_model.coef_), axis=0)
+        importances = np.average(np.fabs(np.array(lr_model.coef_)), axis=0)
         # average iterations over classes (can't take max_iter per class)
-        iterations = np.average(lr_model.n_iter_)
+        iterations = int(np.average(lr_model.n_iter_))
         # print("LR: iterations: %d" % iterations)
 
         # reduce OHE features to original names
@@ -561,9 +576,11 @@ class LogisticRegressionModel(CustomModel):
         else:
             self.params['fit_count'] = 0
 
+        importances_list = importances.tolist()
+        importances_list = list(np.array(importances_list) / np.max(importances_list))
         self.set_model_properties(model=(model, self.features),
                                   features=orig_cols,
-                                  importances=importances.tolist(),
+                                  importances=importances_list,
                                   iterations=iterations)
         self.features = None
 
@@ -726,13 +743,10 @@ class make_features(object):
         self.daycycle2 = None
 
         self.lexi = None
-        self.lexi_names = None
         self.ord5sorted = None
 
         self.ord5more1 = None
         self.ord5more2 = None
-
-        self.lenfeats = None
 
     def fit_transform(self, X: pd.DataFrame, y=None, transform=False):
         self.orig_cols = list(X.columns)
@@ -763,8 +777,6 @@ class make_features(object):
         #for ni, c in enumerate(self.orig_cols):
         #    X, self.lenfeats[ni] = self.make_feat(X, c, 'len', get_len)
 
-        # convert hex to binary and use as 8-feature (per hex feature) encoding
-
         def get_len(x):
             x_str = str(x)
             return len(x_str)
@@ -793,6 +805,17 @@ class make_features(object):
         #
         hex_strings = ['nom_5', 'nom_6', 'nom_7', 'nom_8', 'nom_9']
         #
+        if False:
+            # convert hex to binary and use as 8-feature (per hex feature) encoding
+            def get_charnum(x, i=None):
+                return str(x)[i]
+
+            width = 9
+            self.hexchar = [None] * len(hex_strings) * width
+            for ni, c in enumerate(hex_strings):
+                for nii in range(0, width):
+                    X, self.hexchar[ni * width + nii] = self.make_feat(X, c, 'hexchar%d' % nii, get_charnum, is_float=False, i=nii)
+        #
         def hex_to_int(x):
             x_int = int(eval('0x' + str(x)))
             return x_int
@@ -802,16 +825,22 @@ class make_features(object):
             X, self.hexints[ni] = self.make_feat(X, c, 'hex2int', hex_to_int)
 
         #
-        def hex_to_string(x):
-            try:
-                x_str = codecs.decode('0' + x, 'hex')
-            except:
-                x_str = codecs.decode(x, 'hex')
-            return x_str
+        if False:  # ValueError: could not convert string to float: b'\x05\x0f\x11k\xcf'
+            def hex_to_string(x):
+                try:
+                    x_str = codecs.decode('0' + x, 'hex')
+                except:
+                    x_str = codecs.decode(x, 'hex')
+                return x_str
 
-        self.hexstr = [None] * len(hex_strings)
-        for ni, c in enumerate(hex_strings):
-            X, self.lenfeats[ni] = self.make_feat(X, c, 'hex2str', hex_to_string, is_float=False)
+            self.hexstr = [None] * len(hex_strings)
+            for ni, c in enumerate(hex_strings):
+                X, self.hexstr[ni] = self.make_feat(X, c, 'hex2str', hex_to_string, is_float=False)
+
+        # TODO: add and subtract versions of bin_0 and bin_1
+        # TODO: manual OHE fixed width for out of 16 digits always (not sure all rows lead to all values)
+
+        # one-hot encode text by each character
 
         # use geo-location for nom_3
 
@@ -1050,13 +1079,13 @@ class make_features(object):
     def transform(self, X: pd.DataFrame):
         return self.fit_transform(X, transform=True)
 
-    def make_feat(self, X, orig_feat, new_name, func, is_float=True):
+    def make_feat(self, X, orig_feat, new_name, func, is_float=True, **kwargs):
         new_feat_name = None
         if orig_feat in self.raw_names_dict and self.raw_names_dict[orig_feat] in X:
             dai_feat_name = self.raw_names_dict[orig_feat]
             extra_name = self._postfix + new_name
             new_feat_name = dai_feat_name + extra_name
-            X[new_feat_name] = X[dai_feat_name].apply(lambda x: func(x))
+            X[new_feat_name] = X[dai_feat_name].apply(lambda x: func(x, **kwargs))
             if is_float:
                 X[new_feat_name] = X[new_feat_name].astype(np.float32)
             self.new_names_dict[new_feat_name] = dai_feat_name
