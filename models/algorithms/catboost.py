@@ -91,7 +91,7 @@ class CatBoostModel(CustomModel):
 
         if isinstance(X, dt.Frame):
             orig_cols = list(X.names)
-            # dt -> lightgbm internally using buffer leaks, so convert here
+            # dt -> catboost internally using buffer leaks, so convert here
             # assume predict is after pipeline collection or in subprocess so needs no protection
             X = X.to_numpy()  # don't assign back to X so don't damage during predict
             X = np.ascontiguousarray(X, dtype=np.float32 if config.data_precision == "float32" else np.float64)
@@ -102,7 +102,7 @@ class CatBoostModel(CustomModel):
                 valid_y = eval_set[0][1]
                 if self.num_classes >= 2:
                     valid_y = lb.transform(valid_y)
-                eval_set[0] = (valid_X, valid_y)
+                eval_set = [(valid_X, valid_y)]
         else:
             orig_cols = list(X.columns)
 
