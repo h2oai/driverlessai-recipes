@@ -5,6 +5,7 @@ import datatable as dt
 import numpy as np
 import random
 import pandas as pd
+import os
 import copy
 import codecs
 from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
@@ -15,7 +16,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.metrics import roc_auc_score, make_scorer
 
 from h2oaicore.models import CustomModel
-from h2oaicore.systemutils import config, physical_cores_count, save_obj
+from h2oaicore.systemutils import config, physical_cores_count, save_obj, load_obj
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.transformers import CatOriginalTransformer, FrequentTransformer, CVTargetEncodeTransformer
 from h2oaicore.transformer_utils import Transformer
@@ -130,6 +131,7 @@ class LogisticRegressionModel(CustomModel):
 
     # whether to show debug prints and write munged view to disk
     _debug = True
+    _cache = True
 
     _ensemble = False
 
@@ -297,7 +299,7 @@ class LogisticRegressionModel(CustomModel):
         X = X.to_pandas()
         X_orig_cols_names = list(X.columns)
         if self._kaggle_features:
-            self.features = make_features()
+            self.features = make_features(cache=self._cache)
             X = self.features.fit_transform(X, y)
         else:
             self.features = None
@@ -311,7 +313,7 @@ class LogisticRegressionModel(CustomModel):
         # can add explicit column name list to below force_cats
         force_cats = cat_features + catlabel_features
 
-        actual_numerical_features = (X.dtypes == 'float') | (X.dtypes == 'float32') | (X.dtypes == 'float64') | (X.dtypes == 'int') | (X.dtypes == 'int32') | (X.dtypes == 'int64') | (X.dtypes == 'bool')
+        actual_numerical_features = (X.dtypes == 'float') | (X.dtypes == 'float32') | (X.dtypes == 'float64')# | (X.dtypes == 'int') | (X.dtypes == 'int32') | (X.dtypes == 'int64') | (X.dtypes == 'bool')
         # choose if numeric is treated as categorical
         if not self._num_as_cat or self._num_as_num:
             # treat (e.g.) binary as both numeric and categorical
@@ -337,20 +339,13 @@ class LogisticRegressionModel(CustomModel):
             categorical_features = ~actual_numerical_features
         else:
             # then everything is a cat
-            categorical_features = ~(X.dtypes == 'invalid')
+            categorical_features = ~numerical_features  # (X.dtypes == 'invalid')
         # below can lead to overlap between what is numeric and what is categorical
         more_cats = (pd.Series([True if x in force_cats else False for x in list(categorical_features.index)],
                                index=categorical_features.index))
         categorical_features = (categorical_features) | (more_cats)
         if self._kaggle_features:
             categorical_features = self.features.update_categorical_features(categorical_features)
-
-        if self._debug:
-            import uuid
-            struuid = str(uuid.uuid4())
-            Xy = X.copy()
-            Xy.loc[:, 'target'] = y
-            Xy.to_csv("munged_%s.csv" % struuid)
 
         cat_X = X.loc[:, categorical_features]
         num_X = X.loc[:, numerical_features]
@@ -522,11 +517,6 @@ class LogisticRegressionModel(CustomModel):
         # get actual LR model
         lr_model = model.named_steps[estimator_name]
 
-        if self._debug and False:
-            import uuid
-            struuid = str(uuid.uuid4())
-            save_obj(model.named_steps['columntransformer'].fit_transform(X, y), "columns_csr_%s.pkl" % struuid)
-
         # average importances over classes
         importances = np.average(np.fabs(np.array(lr_model.coef_)), axis=0)
         # average iterations over classes (can't take max_iter per class)
@@ -625,11 +615,6 @@ class LogisticRegressionModel(CustomModel):
         if self._kaggle_features and features is not None:
             X = features.transform(X)
 
-        if self._debug:
-            import uuid
-            struuid = str(uuid.uuid4())
-            X.to_csv("munged_predict_%s.csv" % struuid)
-
         if self.num_classes == 1:
             preds = model.predict(X)
         else:
@@ -722,7 +707,8 @@ class OOBImpute(object):
 class make_features(object):
     _postfix = "@%@(&#%@))){}#"
 
-    def __init__(self):
+    def __init__(self, cache=False):
+        self.cache = cache
         self.dai_te = False
         self.other_te = True
 
@@ -748,10 +734,24 @@ class make_features(object):
         self.ord5more1 = None
         self.ord5more2 = None
 
+    def apply_clone(self, src):
+        for k, v in src.__dict__.items():
+            setattr(self, k, v)
+
     def fit_transform(self, X: pd.DataFrame, y=None, transform=False):
         self.orig_cols = list(X.columns)
         self.raw_names_dict = {Transformer.raw_feat_name(v): v for v in list(X.columns)}
         self.raw_names_dict_reversed = {v: k for k, v in self.raw_names_dict.items()}
+
+        file = "munged_%s_%s_%d_%d.csv" % (__name__, transform, X.shape[0], X.shape[1])
+        file2 = file.replace("munged", "clone")
+        if self.cache and os.path.isfile(file) and os.path.isfile(file2):
+            #X = pd.read_csv(file, sep=',', header=0)
+            X = load_obj(file)
+            X = X.drop("target", axis=1, errors='ignore')
+            if not transform:
+                self.apply_clone(load_obj(file2))
+            return X
 
         # use circular color wheel position for nom_0
         def nom12num(x):
@@ -805,7 +805,7 @@ class make_features(object):
         #
         hex_strings = ['nom_5', 'nom_6', 'nom_7', 'nom_8', 'nom_9']
         #
-        if False:
+        if True:
             # convert hex to binary and use as 8-feature (per hex feature) encoding
             def get_charnum(x, i=None):
                 return str(x)[i]
@@ -1074,6 +1074,14 @@ class make_features(object):
 
         X, self.daycycle2 = self.make_feat(X, 'day', 'day_cycle2', day2cycle2)
 
+        if self.cache and not (os.path.isfile(file) or os.path.isfile(file2)):
+            Xy = X.copy()
+            if not transform:
+                Xy.loc[:, 'target'] = y
+            #Xy.to_csv(file, index=False)
+            save_obj(Xy, file)
+            if not transform:
+                save_obj(self, file2)
         return X
 
     def transform(self, X: pd.DataFrame):
@@ -1105,10 +1113,10 @@ class make_features(object):
                         # print("matching other imp: %s %g" % (v, importances[index]))
         return full_features_list
 
-    def update_numerical_features(self, numerical_features):
-        force_nums = [
-            # self.features.raw_names_dict['month'],
-            # self.features.raw_names_dict['day'],
+    def update_numerical_features(self, features):
+        force = [
+            # self.raw_names_dict['month'],
+            # self.raw_names_dict['day'],
             self.monthcycle1,
             self.monthcycle2,
             self.daycycle1,
@@ -1121,20 +1129,21 @@ class make_features(object):
             self.animal,
             self.ord5sorted,
         ]
-        force_nums.extend(self.lexi_names)
-        force_nums.extend(self.lenfeats)
-        force_nums.extend(self.hexints)
+        force.extend(self.lexi_names)
+        force.extend(self.lenfeats)
+        force.extend(self.hexints)
         if self.other_te:
-            force_nums.extend(self.teo_names)  # numeric and cat
+            force.extend(self.teo_names)
         if self.dai_te:
-            force_nums.extend(self.te_names)  # numeric and cat
-        force_nums = [x for x in force_nums if x is not None]
-        more_nums = (pd.Series([True if x in force_nums else False for x in list(numerical_features.index)],
-                               index=numerical_features.index))
-        numerical_features = (numerical_features) | (more_nums)
-        return numerical_features
+            force.extend(self.te_names)
+        self.update_cat_and_num(force)
+        force = [x for x in force if x is not None]
+        more_nums = (pd.Series([True if x in force else False for x in list(features.index)], index=features.index))
+        features = (features) | (more_nums)
+        return features
 
-    def update_categorical_features(self, categorical_features):
+    def update_categorical_features(self, features):
+        # remove numerical as cat
         avoid_as_cat = [
             self.monthcycle1,
             self.monthcycle2,
@@ -1149,10 +1158,33 @@ class make_features(object):
             self.ord5sorted,
         ]
         avoid_as_cat.extend(self.lexi_names)
-        avoid_as_cats = (pd.Series([False if x in avoid_as_cat else True for x in list(categorical_features.index)],
-                                   index=categorical_features.index))
-        categorical_features = (categorical_features) & (avoid_as_cats)
-        return categorical_features
+        avoid_as_cats = (pd.Series([False if x in avoid_as_cat else True for x in list(features.index)],
+                                   index=features.index))
+        features = (features) & (avoid_as_cats)
+
+        # include
+        force = []
+        self.update_cat_and_num(force)
+        force = [x for x in force if x is not None]
+        more_cats = (pd.Series([True if x in force else False for x in list(features.index)],
+                               index=features.index))
+        features = (features) | (more_cats)
+
+        return features
+
+    def update_cat_and_num(self, force):
+        #if self.other_te:
+        #    force.extend(self.teo_names)  # numeric and cat
+        #if self.dai_te:
+        #    force.extend(self.te_names)  # numeric and cat
+
+        #if 'bin_0' in self.raw_names_dict:
+        #    force.append(self.raw_names_dict['bin_0'])
+        #if 'bin_1' in self.raw_names_dict:
+        #    force.append(self.raw_names_dict['bin_1'])
+        #if 'bin_2' in self.raw_names_dict:
+        #    force.append(self.raw_names_dict['bin_2'])
+        return force
 
 
 def get_TE_params(cat_X, debug=False):
