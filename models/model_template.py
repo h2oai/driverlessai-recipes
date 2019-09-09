@@ -99,6 +99,13 @@ class CustomModel(BaseCustomModel):
         return True
 
     @staticmethod
+    def acceptance_test_timeout():
+        """
+        Timeout in minutes for each test of a custom recipe.
+        """
+        return config.acceptance_test_timeout
+
+    @staticmethod
     def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0):
         """
         Return whether the model can be used given the settings and parameters that are passed in.
@@ -304,6 +311,7 @@ class CustomTimeSeriesModel(CustomModel):
     column names (available in self.params_base["tgc"])
     """
     _is_custom_time_series = True
+    _time_series_only = True
     _can_handle_non_numeric = True  # date format strings and time grouping columns
     _included_transformers = ts_raw_data_transformers  # this enforces the constraint on input features
 
