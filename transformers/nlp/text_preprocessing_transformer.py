@@ -1,4 +1,4 @@
-"""Transformer to preprocess the text column by stemming, lemmatization and stop word removal"""
+"""Preprocess the text column by stemming, lemmatization and stop word removal"""
 import datatable as dt
 import numpy as np
 from h2oaicore.transformer_utils import CustomTransformer
