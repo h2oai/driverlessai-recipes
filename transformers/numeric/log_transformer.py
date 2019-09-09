@@ -22,6 +22,7 @@ class MyLogTransformer(CustomTransformer):
     def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame):
         from h2oaicore.mojo import MojoColumn, MojoFrame
         from h2oaicore.mojo_transformers import MjT_Log
+        from h2oaicore.mojo_transformers_utils import AsType
         from h2oaicore.systemutils import dtype_global
         xnew = iframe[self.input_feature_names]
         oframe = MojoFrame()
