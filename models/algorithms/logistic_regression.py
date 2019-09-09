@@ -16,7 +16,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.metrics import roc_auc_score, make_scorer
 
 from h2oaicore.models import CustomModel
-from h2oaicore.systemutils import config, physical_cores_count, save_obj, load_obj
+from h2oaicore.systemutils import config, physical_cores_count, save_obj, load_obj, DefaultOrderedDict
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.transformers import CatOriginalTransformer, FrequentTransformer, CVTargetEncodeTransformer
 from h2oaicore.transformer_utils import Transformer
@@ -54,7 +54,7 @@ class LogisticRegressionModel(CustomModel):
     6) Implement other scorers (i.e. checking score_f_name -> sklearn metric or using DAI metrics)
 
     """
-    _kaggle = True  # some kaggle specific optimizations for https://www.kaggle.com/c/cat-in-the-dat
+    _kaggle = False  # some kaggle specific optimizations for https://www.kaggle.com/c/cat-in-the-dat
     # with _kaggle_features=False and no catboost features:
     # gives 0.8043 DAI validation for some seeds/runs,
     # which leads to 0.80802 public score after only 2 minutes of running on accuracy=2, interpretability=1
@@ -65,7 +65,7 @@ class LogisticRegressionModel(CustomModel):
 
     # whether to generate features for kaggle
     # these features do not help the score, but do make sense as plausible features to build
-    _kaggle_features = True
+    _kaggle_features = False
 
     # numerical imputation for all columns (could be done per column chosen by mutations)
     _impute_num_type = 'sklearn'  # best for linear models
@@ -113,6 +113,8 @@ class LogisticRegressionModel(CustomModel):
     _display_name = "LR"
     _description = "Logistic Regression"
     _allow_basis_of_default_individuals = False
+    _fs_permute_must_use_self = True
+    _check_stall = False  # avoid stall check, joblib loky stuff detatches sometimes
 
     # recipe vars for encoding choices
     _use_numerics = True
@@ -131,7 +133,8 @@ class LogisticRegressionModel(CustomModel):
 
     # whether to show debug prints and write munged view to disk
     _debug = True
-    _cache = True
+    # wehther to cache feature results, only by transformer instance and X shape, so risky to use without care.
+    _cache = False
 
     _ensemble = False
 
@@ -523,21 +526,37 @@ class LogisticRegressionModel(CustomModel):
         iterations = int(np.average(lr_model.n_iter_))
         # print("LR: iterations: %d" % iterations)
 
+        if self._debug:
+            full_features_list_copy = copy.deepcopy(full_features_list)
+
         # reduce OHE features to original names
         ohe_features_short = []
         if self._use_ohe_encoding and any(categorical_features.values):
-            if self._use_ohe_encoding:
-                input_features = [x + self._ohe_postfix for x in cat_X.columns]
-                ohe_features = pd.Series(
-                    model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names(
-                        input_features=input_features))
+            input_features = [x + self._ohe_postfix for x in cat_X.columns]
+            ohe_features = pd.Series(
+                model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names(
+                    input_features=input_features))
 
-                def f(x):
-                    return '_'.join(x.split(self._ohe_postfix + '_')[:-1])
+            def f(x):
+                return '_'.join(x.split(self._ohe_postfix + '_')[:-1])
 
-                # identify OHE features
-                ohe_features_short = ohe_features.apply(lambda x: f(x))
-                full_features_list.extend(list(ohe_features_short))
+            # identify OHE features
+            ohe_features_short = ohe_features.apply(lambda x: f(x))
+            full_features_list.extend(list(ohe_features_short))
+
+            if self._debug:
+                full_features_list_copy.extend(list(ohe_features))
+                imp = pd.Series(importances, index=full_features_list_copy).sort_values(ascending=False)
+                import uuid
+                struuid = str(uuid.uuid4())
+                imp.to_csv("prepreimp_%s.csv" % struuid)
+
+
+        if self._debug:
+            imp = pd.Series(importances, index=full_features_list).sort_values(ascending=False)
+            import uuid
+            struuid = str(uuid.uuid4())
+            imp.to_csv("preimp_%s.csv" % struuid)
 
         # aggregate our own features
         if self._kaggle_features:
@@ -548,6 +567,11 @@ class LogisticRegressionModel(CustomModel):
         if self._debug:
             print(msg)
         assert len(importances) == len(full_features_list), msg
+        if self._debug:
+            imp = pd.Series(importances, index=full_features_list).sort_values(ascending=False)
+            import uuid
+            struuid = str(uuid.uuid4())
+            imp.to_csv("imp_%s.csv" % struuid)
 
         # aggregate importances by dai feature name
         importances = pd.Series(np.abs(importances), index=full_features_list).groupby(level=0).mean()
@@ -715,7 +739,6 @@ class make_features(object):
         self.new_names_dict = {}
         self.raw_names_dict = {}
         self.raw_names_dict_reversed = {}
-        self.extra_dict = {}
         self.spring = None
         self.summer = None
         self.fall = None
@@ -744,6 +767,7 @@ class make_features(object):
         self.raw_names_dict_reversed = {v: k for k, v in self.raw_names_dict.items()}
 
         file = "munged_%s_%s_%d_%d.csv" % (__name__, transform, X.shape[0], X.shape[1])
+        file = file.replace("csv", "pkl")
         file2 = file.replace("munged", "clone")
         if self.cache and os.path.isfile(file) and os.path.isfile(file2):
             #X = pd.read_csv(file, sep=',', header=0)
@@ -752,6 +776,11 @@ class make_features(object):
             if not transform:
                 self.apply_clone(load_obj(file2))
             return X
+
+        if 'bin_0' in self.raw_names_dict:
+            X.drop(self.raw_names_dict['bin_0'], errors='ignore')
+        if 'bin_3' in self.raw_names_dict:
+            X.drop(self.raw_names_dict['bin_3'], errors='ignore')
 
         # use circular color wheel position for nom_0
         def nom12num(x):
@@ -837,7 +866,21 @@ class make_features(object):
             for ni, c in enumerate(hex_strings):
                 X, self.hexstr[ni] = self.make_feat(X, c, 'hex2str', hex_to_string, is_float=False)
 
-        # TODO: add and subtract versions of bin_0 and bin_1
+        def bin012a(x):
+            return bool(x[0]) & bool(x[1]) & bool(x[2])
+
+        X, self.bin012a = self.make_feat(X, ['bin_0', 'bin_1', 'bin_2'], 'bin012a', bin012a)
+
+        def bin012b(x):
+            return (bool(x[0]) ^ bool(x[1])) ^ bool(x[2])
+
+        X, self.bin012b = self.make_feat(X, ['bin_0', 'bin_1', 'bin_2'], 'bin012b', bin012b)
+
+        def bin012c(x):
+            return bool(x[0]) ^ (bool(x[1]) ^ bool(x[2]))
+
+        X, self.bin012c = self.make_feat(X, ['bin_0', 'bin_1', 'bin_2'], 'bin012c', bin012c)
+
         # TODO: manual OHE fixed width for out of 16 digits always (not sure all rows lead to all values)
 
         # one-hot encode text by each character
@@ -883,6 +926,12 @@ class make_features(object):
 
         X, self.temp4 = self.make_feat(X, 'ord_2', 'temp4', ord2hot)
 
+        # lower ord_5
+        def ord5more0(x):
+            return x.lower()
+
+        X, self.ord5more0 = self.make_feat(X, 'ord_5', 'more0', ord5more0, is_float=False)
+
         # 1st char, keep for OHE
         def ord5more1(x):
             return x[0]
@@ -894,6 +943,18 @@ class make_features(object):
             return x[1]
 
         X, self.ord5more2 = self.make_feat(X, 'ord_5', 'more2', ord5more2, is_float=False)
+
+        # 1st char, keep for OHE
+        def ord5more3(x):
+            return x[0].lower()
+
+        X, self.ord5more3 = self.make_feat(X, 'ord_5', 'more3', ord5more3, is_float=False)
+
+        # 2nd char, keep for OHE
+        def ord5more4(x):
+            return x[1].lower()
+
+        X, self.ord5more4 = self.make_feat(X, 'ord_5', 'more4', ord5more4, is_float=False)
 
         # 1st word, keep for OHE
         def ord2more1(x):
@@ -935,23 +996,24 @@ class make_features(object):
                 Xnew.columns = [new_feat_name]
                 assert not any(pd.isnull(Xnew).values.ravel())
                 X = pd.concat([X, Xnew], axis=1)
-                self.new_names_dict[new_feat_name] = dai_feat_name
+                self.new_names_dict[new_feat_name] = [dai_feat_name]
                 self.lexi_names[ni] = new_feat_name
 
-        # sorted label encoding of ord_5, use for numeric
-        orig_feat_name = 'ord_5'
-        new_name = 'ord5sorted'
-        if orig_feat_name in self.raw_names_dict and self.raw_names_dict[orig_feat_name] in X.columns:
-            dai_feat_name = self.raw_names_dict[orig_feat_name]
-            extra_name = self._postfix + new_name
-            new_feat_name = dai_feat_name + extra_name
-            if not transform:
-                self.ord_5_sorted = sorted(list(set(X[dai_feat_name].values)))
-                self.ord_5_sorted = dict(zip(self.ord_5_sorted, range(len(self.ord_5_sorted))))
-            X.loc[:, new_feat_name] = X[dai_feat_name].apply(
-                lambda x: self.ord_5_sorted[x] if x in self.ord_5_sorted else -1).astype(np.float32)
-            self.new_names_dict[new_feat_name] = dai_feat_name
-            self.ord5sorted = new_feat_name
+        if False: # already done by lexi encoding
+            # sorted label encoding of ord_5, use for numeric
+            orig_feat_name = 'ord_5'
+            new_name = 'ord5sorted'
+            if orig_feat_name in self.raw_names_dict and self.raw_names_dict[orig_feat_name] in X.columns:
+                dai_feat_name = self.raw_names_dict[orig_feat_name]
+                extra_name = self._postfix + new_name
+                new_feat_name = dai_feat_name + extra_name
+                if not transform:
+                    self.ord_5_sorted = sorted(list(set(X[dai_feat_name].values)))
+                    self.ord_5_sorted = dict(zip(self.ord_5_sorted, range(len(self.ord_5_sorted))))
+                X.loc[:, new_feat_name] = X[dai_feat_name].apply(
+                    lambda x: self.ord_5_sorted[x] if x in self.ord_5_sorted else -1).astype(np.float32)
+                self.new_names_dict[new_feat_name] = [dai_feat_name]
+                self.ord5sorted = new_feat_name
 
         # frequency encode everything
         # keep as cat for OHE
@@ -971,7 +1033,7 @@ class make_features(object):
             Xnew.columns = [new_feat_name]
             assert not any(pd.isnull(Xnew).values.ravel())
             X = pd.concat([X, Xnew], axis=1)
-            self.new_names_dict[new_feat_name] = dai_feat_name
+            self.new_names_dict[new_feat_name] = [dai_feat_name]
             self.freq_names[ni] = new_feat_name
 
         if self.dai_te:
@@ -993,7 +1055,7 @@ class make_features(object):
                 Xnew.columns = [new_feat_name]
                 assert not any(pd.isnull(Xnew).values.ravel())
                 X = pd.concat([X, Xnew], axis=1)
-                self.new_names_dict[new_feat_name] = dai_feat_name
+                self.new_names_dict[new_feat_name] = [dai_feat_name]
                 self.te_names[ni] = new_feat_name
 
         if self.other_te:
@@ -1074,39 +1136,50 @@ class make_features(object):
 
         X, self.daycycle2 = self.make_feat(X, 'day', 'day_cycle2', day2cycle2)
 
-        if self.cache and not (os.path.isfile(file) or os.path.isfile(file2)):
+        if self.cache and (not os.path.isfile(file) or not os.path.isfile(file2)):
             Xy = X.copy()
             if not transform:
                 Xy.loc[:, 'target'] = y
             #Xy.to_csv(file, index=False)
             save_obj(Xy, file)
             if not transform:
-                save_obj(self, file2)
+                save_obj(copy.deepcopy(self), file2)
         return X
 
     def transform(self, X: pd.DataFrame):
         return self.fit_transform(X, transform=True)
 
-    def make_feat(self, X, orig_feat, new_name, func, is_float=True, **kwargs):
+    def make_feat(self, X, orig_feats, new_name, func, is_float=True, **kwargs):
+        simple = False
+        if not isinstance(orig_feats, list):
+            orig_feats = [orig_feats]
+            simple = True
         new_feat_name = None
-        if orig_feat in self.raw_names_dict and self.raw_names_dict[orig_feat] in X:
-            dai_feat_name = self.raw_names_dict[orig_feat]
-            extra_name = self._postfix + new_name
-            new_feat_name = dai_feat_name + extra_name
-            X[new_feat_name] = X[dai_feat_name].apply(lambda x: func(x, **kwargs))
+        in_raw = all([orig_feat in self.raw_names_dict for orig_feat in orig_feats])
+        if in_raw:
+            in_X = all([self.raw_names_dict[orig_feat] in X for orig_feat in orig_feats])
+        else:
+            in_X = False
+        extra_name = self._postfix + new_name
+        if in_raw and in_X:
+            dai_feat_names = [self.raw_names_dict[orig_feat] for orig_feat in orig_feats]
+            new_feat_name = [dai_feat_name + extra_name for dai_feat_name in dai_feat_names][0]
+            if simple:
+                X[new_feat_name] = X[dai_feat_names[0]].apply(lambda x: func(x, **kwargs))
+            else:
+                X[new_feat_name] = X[dai_feat_names].apply(lambda x: func(x, **kwargs), axis=1)
             if is_float:
                 X[new_feat_name] = X[new_feat_name].astype(np.float32)
-            self.new_names_dict[new_feat_name] = dai_feat_name
-            self.extra_dict[dai_feat_name] = extra_name
+            self.new_names_dict[new_feat_name] = dai_feat_names
         return X, new_feat_name
 
     def aggregate(self, full_features_list, importances):
         # for purposes of aggregation back to original space, re-assign generated features
         for vi, v in enumerate(full_features_list):
             if v in self.new_names_dict:
-                full_features_list[vi] = self.new_names_dict[v]
+                full_features_list[vi] = self.new_names_dict[v][0]  # FIXME: just take first element for now
                 # print("Derived importance: %s %s %g" % (v, self.new_names_dict[v], importances[vi]))
-                indices = [i for i, name in enumerate(full_features_list) if self.new_names_dict[v] == name]
+                indices = [i for i, name in enumerate(full_features_list) if self.new_names_dict[v][0] == name]
                 for index in indices:
                     if vi != index:
                         pass
