@@ -12,7 +12,6 @@ import pandas as pd
 class VaderSentimentTransformer(CustomTransformer):
     _modules_needed_by_name = ['vaderSentiment']
 
-    
     @staticmethod
     def do_acceptance_test():
         return True

@@ -37,16 +37,16 @@ class TextTFIDFModel(CustomModel):
     _multiclass = True
     _can_handle_non_numeric = True
 
-    _included_transformers = ["TextIdentityTransformer"] # Takes input only from above transformer
+    _included_transformers = ["TextIdentityTransformer"]  # Takes input only from above transformer
 
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
         self.params = dict(max_features=kwargs.get("max_features", None),
-                           ngram_range=kwargs.get("ngram_range", (1,1)))
+                           ngram_range=kwargs.get("ngram_range", (1, 1)))
 
     def mutate_params(self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs):
         self.params["max_features"] = np.random.choice([50000, 100000, None])
-        self.params["ngram_range"] = random.choice([(1,1), (1,2), (1,3)])
+        self.params["ngram_range"] = random.choice([(1, 1), (1, 2), (1, 3)])
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         orig_cols = list(X.names)
@@ -72,7 +72,7 @@ class TextTFIDFModel(CustomModel):
                 new_X = sp.sparse.hstack([new_X, XX])
 
         model.fit(new_X, y)
-        importances = [1]*len(orig_cols)
+        importances = [1] * len(orig_cols)
         self.set_model_properties(model=model,
                                   features=orig_cols,
                                   importances=importances,
@@ -96,4 +96,3 @@ class TextTFIDFModel(CustomModel):
         else:
             preds = model.predict_proba(new_X)
         return preds
-            
