@@ -1,7 +1,7 @@
-"""A best effort to determine a browser device characteristics from a user-agent string"""
+"""A best effort transformer to determine browser device characteristics from a user-agent string"""
 #
 # Custom transformer: UserAgent
-# UserAgent column should have one fo the following names: ua, user-agent, user_agent, useragent
+# UserAgent column should have one of the following names: ua, user-agent, user_agent, useragent
 #
 
 import datatable as dt
