@@ -15,7 +15,12 @@ class NamedEntityTransformer:
         super().__init__(**kwargs)
 
         import spacy
-        self.nlp = spacy.load('en_core_web_sm')
+        try:
+            self.nlp = spacy.load('en_core_web_sm')
+        except IOError:
+            from spacy.cli import download
+            download('en_core_web_sm')
+            self.nlp = spacy.load('en_core_web_sm')
 
     @staticmethod
     def get_default_properties():
