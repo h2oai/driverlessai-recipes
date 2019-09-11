@@ -9,13 +9,18 @@ from h2oaicore.transformer_utils import CustomTransformer
 class NamedEntityTransformer:
     """Transformer to extract the count of Named Entities"""
     _method = NotImplemented
-    _modules_needed_by_name = ["spacy==2.1.8"]
+    _modules_needed_by_name = ["spacy>2.1.0"]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         import spacy
-        self.nlp = spacy.load('en_core_web_sm')
+        try:
+            self.nlp = spacy.load('en_core_web_sm')
+        except IOError:
+            from spacy.cli import download
+            download('en_core_web_sm')
+            self.nlp = spacy.load('en_core_web_sm')
 
     @staticmethod
     def get_default_properties():
