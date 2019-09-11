@@ -12,9 +12,9 @@ class TextPreprocessingTransformer(CustomTransformer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.do_stemming = True # turn off as needed
-        self.do_lemmatization = True # turn off as needed
-        self.remove_stopwords = True # turn off as needed
+        self.do_stemming = True  # turn off as needed
+        self.do_lemmatization = True  # turn off as needed
+        self.remove_stopwords = True  # turn off as needed
 
         import nltk
         if self.do_stemming:
@@ -36,11 +36,11 @@ class TextPreprocessingTransformer(CustomTransformer):
                 from nltk.corpus import wordnet
                 self.lemmatizer = nltk.stem.WordNetLemmatizer()
                 self.pos_tagger = nltk.pos_tag
-            self.wordnet_map = {"N":wordnet.NOUN,
-                                "V":wordnet.VERB,
-                                "J":wordnet.ADJ,
-                                "R":wordnet.ADV,
-                                "O":wordnet.NOUN}
+            self.wordnet_map = {"N": wordnet.NOUN,
+                                "V": wordnet.VERB,
+                                "J": wordnet.ADJ,
+                                "R": wordnet.ADV,
+                                "O": wordnet.NOUN}
         if self.remove_stopwords:
             try:
                 self.stopwords = set(nltk.corpus.stopwords.words('english'))

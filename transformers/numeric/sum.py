@@ -5,7 +5,6 @@ import numpy as np
 
 
 class SumTransformer(CustomTransformer):
-    
     _regression = True
     _binary = True
     _multiclass = True

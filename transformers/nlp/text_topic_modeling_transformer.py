@@ -19,7 +19,7 @@ class TextLDATopicTransformer(CustomTransformer):
 
     @staticmethod
     def get_parameter_choices():
-        return {"n_topics" : [3, 5, 10, 50]}
+        return {"n_topics": [3, 5, 10, 50]}
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         import gensim
@@ -44,5 +44,6 @@ class TextLDATopicTransformer(CustomTransformer):
         new_X = [self.dictionary.doc2bow(doc) for doc in new_X]
         new_X = self.model.inference(new_X)[0]
         self._output_feature_names = [f'{orig_col_name}_LDATopic{i}' for i in range(new_X.shape[1])]
-        self._feature_desc = [f'LDA Topic {i} of {self.n_topics} for {orig_col_name} column' for i in range(new_X.shape[1])]
+        self._feature_desc = [f'LDA Topic {i} of {self.n_topics} for {orig_col_name} column' for i in
+                              range(new_X.shape[1])]
         return new_X
