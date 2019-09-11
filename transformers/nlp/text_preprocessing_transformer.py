@@ -8,7 +8,7 @@ class TextPreprocessingTransformer(CustomTransformer):
     """Transformer to preprocess the text"""
     _numeric_output = False
     _is_reproducible = True
-    _modules_needed_by_name = ["nltk==3.4"]
+    _modules_needed_by_name = ["nltk==3.4.3"]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
