@@ -34,12 +34,10 @@ class UserAgent(CustomTransformer):
         ua_column_names = ['ua', 'user-agent', 'user_agent', 'useragent']
         col_name = X.names[0]
         if col_name in ua_column_names:
-            _X = X.to_pandas()
-            _X[col_name + "_browser"] = _X[col_name].apply(lambda x: get_ua_info(x)[0])
-            _X[col_name + "_os"] = _X[col_name].apply(lambda x: get_ua_info(x)[1])
-            _X[col_name + "_device"] = _X[col_name].apply(lambda x: get_ua_info(x)[2])
-            _X[col_name + "_is_mobile"] = _X[col_name].apply(lambda x: get_ua_info(x)[3])
-            _X[col_name + "_is_tablet"] = _X[col_name].apply(lambda x: get_ua_info(x)[4])
-            dt.DataTable(_X)
+            newnames = ("browser", "os", "device", "is_mobile", "is_tablet")
+            Y = X[col_name].to_list()[0]
+            Z = dt.Frame([get_ua_info(x) for x in Y], names=[f"{col_name}_{s}" for s in newnames])
+            X.cbind(Z)
+            return X
         else:
             return X.to_pandas().iloc[:, 0]
