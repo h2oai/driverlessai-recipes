@@ -30,7 +30,6 @@ class AudioMFCCTransformer(CustomTransformer):
         
         import librosa
         
-        base_dir = '/home/trushant/dai/dai-1.7.1-linux-x86_64/data/audio/'
         sampling_rate = 16000
         duration = 1 #in secs
         hop_length = 347*duration 
@@ -44,7 +43,7 @@ class AudioMFCCTransformer(CustomTransformer):
         
         try:
             
-            audio, sr = librosa.load(base_dir+file_path, sr=sampling_rate)
+            audio, sr = librosa.load(file_path, sr=sampling_rate)
             
             #Trim silence
             if len(audio)> 0: 
