@@ -1,12 +1,14 @@
 """H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB/AutoML)
 """
+import copy
+
 from h2oaicore.models import CustomModel
 import datatable as dt
 import uuid
 from h2oaicore.systemutils import config, temporary_files_path
 import numpy as np
 
-_global_modules_needed_by_name = ['h2o==3.24.0.5']
+_global_modules_needed_by_name = ['h2o==3.26.0.1']
 import h2o
 import os
 
@@ -91,15 +93,16 @@ class H2OBaseModel:
 
         try:
             train_kwargs = dict()
+            params = copy.deepcopy(self.params)
             if not isinstance(self, H2OAutoMLModel):
                 # AutoML needs max_runtime_secs in initializer, all others in train() method
-                max_runtime_secs = self.params.pop('max_runtime_secs')
+                max_runtime_secs = params.pop('max_runtime_secs')
                 train_kwargs = dict(max_runtime_secs=max_runtime_secs)
             if valid_frame is not None:
                 train_kwargs['validation_frame'] = valid_frame
             if sample_weight is not None:
                 train_kwargs['weights_column'] = self.weight
-            model = self.make_instance(**self.params)
+            model = self.make_instance(**params)
             model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
             if isinstance(model, H2OAutoML):
                 model = model.leader

@@ -36,6 +36,13 @@ class CustomScorer(BaseScorer):
         """
         return True
 
+    @staticmethod
+    def acceptance_test_timeout():
+        """
+        Timeout in minutes for each test of a custom recipe.
+        """
+        return config.acceptance_test_timeout
+
     def score(
             self,
             actual: np.array,
@@ -58,5 +65,3 @@ class CustomScorer(BaseScorer):
 
         """
         raise NotImplementedError
-
-
