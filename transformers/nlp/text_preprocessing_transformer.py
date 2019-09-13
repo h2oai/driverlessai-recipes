@@ -20,6 +20,7 @@ class TextPreprocessingTransformer(CustomTransformer):
         if self.do_stemming:
             try:
                 self.stemmer = nltk.stem.porter.PorterStemmer()
+                self.stemmer.stem("test")
             except LookupError:
                 nltk.download("punkt")
                 self.stemmer = nltk.stem.porter.PorterStemmer()
@@ -29,6 +30,7 @@ class TextPreprocessingTransformer(CustomTransformer):
                 self.lemmatizer = nltk.stem.WordNetLemmatizer()
                 self.pos_tagger = nltk.pos_tag
                 self.pos_tagger("test")
+                self.lemmatizer.lemmatize("test", wordnet.NOUN)
             except LookupError:
                 nltk.download("averaged_perceptron_tagger")
                 nltk.download("maxent_treebank_pos_tagger")
