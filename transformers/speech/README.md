@@ -1,0 +1,29 @@
+# SPEECH
+
+## AudioMFCCTransformer
+
+### ➡️ Code
+- [audio_mfcc_transformer.py](audio_mfcc_transformer.py)
+
+#### ➡️ Description
+Extracts numerical features from audio files using spectrograms and Mel-Frequency Cepstral Coefficients (MFCC)
+
+#### ➡️ Inputs
+- Single text column which contains paths to audio files
+
+#### ➡️ Outputs
+- Multiple numerical columns depending on the audio file
+
+#### ➡️ Environment expectation
+No limitations
+
+#### ➡️ Dependenencies
+- librosa
+
+----
+
+## Name of recipe 2
+
+...
+
+----
