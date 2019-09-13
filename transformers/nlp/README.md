@@ -2,22 +2,22 @@
 
 ## TextUrlSummaryTransformer
 
-### Code
+### ➡️ Code
 https://github.com/h2oai/driverlessai-recipes/blob/master/transformers/nlp/text_url_summary_transformer.py
 
-### Description
+### ➡️ Description
 Extract text from URL and summarizes it
 
-### Inputs
+### ➡️ Inputs
 - single text column which contains URLs of pages to summarize
 
-### Outputs
+### ➡️ Outputs
 - single text column `URLSummary` which contains summary of pages from input column
 
-### Environment expectation
+### ➡️ Environment expectation
 No limitations
 
-### Dependenencies
+### ➡️ Dependenencies
 - gensim
 - beautifulsoup4
 
