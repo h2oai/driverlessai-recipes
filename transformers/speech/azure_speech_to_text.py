@@ -1,4 +1,4 @@
-"""An example of integration with """
+"""An example of integration with Azure Speech Recognition Service"""
 #
 # Custom transformer: AzureSpeechToText
 #
