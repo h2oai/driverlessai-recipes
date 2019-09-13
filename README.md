@@ -134,7 +134,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [IMAGE](./transformers/image)
     * [image_ocr_transformer.py](./transformers/image/image_ocr_transformer.py) [Convert a path to an image to text using OCR based on tesseract]
     * [image_url_transformer.py](./transformers/image/image_url_transformer.py) [Convert a path to an image (JPG/JPEG/PNG) to a vector of class probabilities created by a pretrained ImageNet deeplearning model (Keras, TensorFlow).]
-  * [Speech](./transformers/speech)
+  * [SPEECH](./transformers/speech)
     * [audio_MFCC_transformer.py](./transformers/speech/audio_MFCC_transformer.py) [Convert a path to an audio file to numerical outputs based on Mel Spectrograms and Mel-Frequency Cepstral Coefficients (MFCC)]
   * [NLP](./transformers/nlp)
     * [fuzzy_text_similarity_transformers.py](./transformers/nlp/fuzzy_text_similarity_transformers.py) [Row-by-row similarity between two text columns based on FuzzyWuzzy]
