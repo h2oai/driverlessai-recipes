@@ -18,6 +18,10 @@ class CustomModel(BaseCustomModel):
     during feature creation for this model."""
     _can_handle_non_numeric = False
 
+    """Specify whether the model can handle label-encoded categoricals in special way. If not, some transformers might be skipped
+    during feature creation for this model."""
+    _can_handle_categorical = False
+
     """Specify whether the model is expected to create reproducible results. If disabled, model might be 
     skipped for experiments run in reproducible mode."""
     _is_reproducible = True
@@ -93,6 +97,13 @@ class CustomModel(BaseCustomModel):
         for how to fix any potential issues. Disable if your recipe requires specific data or won't work on random data.
         """
         return True
+
+    @staticmethod
+    def acceptance_test_timeout():
+        """
+        Timeout in minutes for each test of a custom recipe.
+        """
+        return config.acceptance_test_timeout
 
     @staticmethod
     def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0):
@@ -300,6 +311,7 @@ class CustomTimeSeriesModel(CustomModel):
     column names (available in self.params_base["tgc"])
     """
     _is_custom_time_series = True
+    _time_series_only = True
     _can_handle_non_numeric = True  # date format strings and time grouping columns
     _included_transformers = ts_raw_data_transformers  # this enforces the constraint on input features
 
@@ -367,5 +379,3 @@ class CustomTimeSeriesTensorFlowModel(CustomTimeSeriesModel, CustomTensorFlowMod
         TensorFlow-based Time-Series Custom Model
     """
     pass
-
-

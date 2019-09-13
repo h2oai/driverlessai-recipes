@@ -108,10 +108,10 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         # Create a temp folder to store files used during multi processing experiment
         # This temp folder will be removed at the end of the process
         # Set the default value without context available (required to pass acceptance test
-        tmp_folder = str(uuid.uuid4()) + "_arima_folder/"
+        tmp_folder = os.path.join(temporary_files_path, "%s_arima_folder" % uuid.uuid4())
         # Make a real tmp folder when experiment is available
         if self.context and self.context.experiment_id:
-            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_arima_folder/"
+            tmp_folder = os.path.join(self.context.experiment_tmp_dir, "%s_arima_folder" % uuid.uuid4())
 
         # Now let's try to create that folder
         try:
@@ -119,16 +119,16 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         except PermissionError:
             # This not occur so log a warning
             loggerwarning(logger, "Arima was denied temp folder creation rights")
-            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_arima_folder/"
+            tmp_folder = os.path.join(temporary_files_path, "%s_arima_folder" % uuid.uuid4())
             os.mkdir(tmp_folder)
         except FileExistsError:
             # We should never be here since temp dir name is expected to be unique
             loggerwarning(logger, "Arima temp folder already exists")
-            tmp_folder = self.context.experiment_tmp_dir + "/" + str(uuid.uuid4()) + "_arima_folder/"
+            tmp_folder = os.path.join(self.context.experiment_tmp_dir, "%s_arima_folder" % uuid.uuid4())
             os.mkdir(tmp_folder)
         except:
             # Revert to temporary file path
-            tmp_folder = temporary_files_path + "/" + str(uuid.uuid4()) + "_arima_folder/"
+            tmp_folder = os.path.join(temporary_files_path, "%s_arima_folder" % uuid.uuid4())
             os.mkdir(tmp_folder)
 
         loggerinfo(logger, "Arima temp folder {}".format(tmp_folder))
@@ -355,7 +355,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         """
         print("auto arima - update history")
         X = X.to_pandas()
-        XX = X[self.tgc].copy
+        XX = X[self.tgc].copy()
         XX['y'] = np.array(y)
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
         if len(tgc_wo_time) > 0:

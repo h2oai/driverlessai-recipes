@@ -19,15 +19,15 @@ class CustomTransformer(DataTableTransformer):
     _binary = True  # y has shape (N,) and can be numeric or string, cardinality 2, no missing values
     _multiclass = True  # y has shape (N,) and can be numeric or string, cardinality 3+, no missing values
 
-    """Specify whether the transformer creates numeric output data or not. If not, some models might not be able 
+    """Specify whether the transformer creates numeric output data or not. If not, some models might not be able
     to consume the transformer's features."""
     _numeric_output = True
 
-    """Specify whether the transformer is expected to create reproducible results. If disabled, transformer might be 
+    """Specify whether the transformer is expected to create reproducible results. If disabled, transformer might be
     skipped for experiments run in reproducible mode."""
     _is_reproducible = True
 
-    """Optional list of included/excluded models, specified by their booster string 
+    """Optional list of included/excluded models, specified by their booster string
     (e.g., _included_model_classes = ['CatBoostModel'], _excluded_model_classes = ['tensorflow'])"""
     _included_model_classes = None  # List[str]
     _excluded_model_classes = None  # List[str]
@@ -39,7 +39,8 @@ class CustomTransformer(DataTableTransformer):
     _display_name = NotImplemented  # str
 
     """Expert settings for optimal hardware usage"""
-    _parallel_task = True  # if enabled, params_base['n_jobs'] will be >= 1 (adaptive to system), otherwise 1
+    _parallel_task = True  # if enabled, fit_transform and transform will be given self.n_jobs and kwargs['n_jobs']
+    # n_jobs will be  >= 1 (adaptive to system resources and tasks), otherwise 1 if _parallel_task = False
     _can_use_gpu = False  # if enabled, will use special job scheduler for GPUs
     _can_use_multi_gpu = False  # if enabled, can get access to multiple GPUs for single transformer (experimental)
     _check_stall = True  # whether to check for stall, should disable if separate server running task
@@ -72,6 +73,13 @@ class CustomTransformer(DataTableTransformer):
         for how to fix any potential issues. Disable if your recipe requires specific data or won't work on random data.
         """
         return True
+
+    @staticmethod
+    def acceptance_test_timeout():
+        """
+        Timeout in minutes for each test of a custom recipe.
+        """
+        return config.acceptance_test_timeout
 
     @staticmethod
     def get_default_properties():
@@ -266,16 +274,12 @@ class CustomTimeSeriesTransformer(CustomTransformer):
         self.tgc = kwargs['tgc']  # name(s) of time group columns (also includes time column)
         self.pred_gap = kwargs['pred_gap']  # gap between train and test in periods
         self.pred_periods = kwargs['pred_periods']  # requested forecast horizon in periods
-        self.lag_sizes = kwargs['lag_sizes']  # suggested lag sizes
-        self.lag_feature = kwargs['lag_feature']  # name of feature/column to lag (can be same as target)
         self.target = kwargs['target']  # name of target column
-        self.tsp = kwargs['tsp']  # lots of TS related info like period/frequency and lag autocorrelation sort order
-        self.time_column = None
+        self.time_column = kwargs['time_column'][0] if isinstance(kwargs['time_column'], list) else kwargs[
+            'time_column']
         self._datetime_formats = kwargs['datetime_formats']  # dictionary of date/datetime column name -> date format
-        if self.tsp is not None:
-            self.time_column = self.tsp._time_column  # name of time column (if present)
 
-    def update_history(self, X: dt.Frame, y: np.array = None):
+    def update_history(self, X: dt.Frame, y: np.array = None, **fit_params):
         """
         Update the model fit with additional observed endogeneous/exogeneous values during batch scoring of test set.
 
@@ -301,5 +305,3 @@ class CustomTimeSeriesTransformer(CustomTransformer):
         :return: self
         """
         return self
-
-

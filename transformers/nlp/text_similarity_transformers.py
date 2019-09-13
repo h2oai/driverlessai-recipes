@@ -45,6 +45,7 @@ class CountCommonNGramsTransformer(CustomTransformer):
 
 class JaccardSimilarityTransformer(CustomTransformer):
     """Jaccard similarity measure on n-grams"""
+
     def __init__(self, ngrams, **kwargs):
         super().__init__(**kwargs)
         self.ngrams = ngrams
@@ -82,6 +83,7 @@ class JaccardSimilarityTransformer(CustomTransformer):
 
 class DiceSimilarityTransformer(CustomTransformer):
     """Dice similarity measure on n-grams"""
+
     def __init__(self, ngrams, **kwargs):
         super().__init__(**kwargs)
         self.ngrams = ngrams
@@ -111,7 +113,7 @@ class DiceSimilarityTransformer(CustomTransformer):
                 text1 = set(nltk.ngrams(str(text1).lower().split(), self.ngrams))
                 text2 = text2_arr[ind]
                 text2 = set(nltk.ngrams(str(text2).lower().split(), self.ngrams))
-                output.append((2*len(text1.intersection(text2))) / (len(text1)+len(text2)))
+                output.append((2 * len(text1.intersection(text2))) / (len(text1) + len(text2)))
             except:
                 output.append(-1)
         return np.array(output)
