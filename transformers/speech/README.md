@@ -22,8 +22,6 @@ No limitations
 
 ----
 
-## Name of recipe 2
 
-...
 
 ----
