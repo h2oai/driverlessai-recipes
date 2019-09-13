@@ -27,7 +27,8 @@ from h2oaicore.transformer_utils import CustomTransformer
 
 
 class AzureSpeechToText(CustomTransformer):
-
+    _numeric_output = False
+    _display_name = 'AzureSpeechToTextTransformer'
     _modules_needed_by_name = ["azure-cognitiveservices-speech==1.6.0"]
 
     @staticmethod
