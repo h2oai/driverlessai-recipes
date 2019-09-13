@@ -9,7 +9,7 @@
 Extracts numerical features from audio files using spectrograms and Mel-Frequency Cepstral Coefficients (MFCC)
 
 #### ➡️ Inputs
-- Single text column which contains paths to audio files
+- Single text column which contains full paths to audio files on the same machine running DAI
 
 #### ➡️ Outputs
 - Multiple numerical columns depending on the audio file
