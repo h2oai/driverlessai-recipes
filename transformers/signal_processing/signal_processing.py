@@ -187,7 +187,6 @@ class MySignalProcessingTransformer(CustomTransformer):
     def __init__(self, mfcc_size=10, **kwargs):
         super().__init__(**kwargs)
         self._mfcc_size = mfcc_size
-        self._dir = "/home/goldentom/lanl/files/"
 
     def fit(self, X: dt.Frame, y: np.array = None):
         # The transformer does not require to be fitted
@@ -295,7 +294,6 @@ class MyNumbaSignalProcessingTransformer(CustomTransformer):
     def __init__(self, mfcc_size=10, **kwargs):
         super().__init__(**kwargs)
         self._mfcc_size = mfcc_size
-        self._dir = "/home/goldentom/lanl/files/"
 
     def fit(self, X: dt.Frame, y: np.array = None):
         # The transformer does not require to be fitted
