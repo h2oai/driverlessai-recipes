@@ -23,14 +23,19 @@ You may also want to disable the Text DAI Recipes.
 - `signalFilePath`: file location storing signal information
 
 #### ➡️ Outputs
-- ➡️ FILL ME
+The custom recipe outputs following features:
+ - Statistics: mean, median, min/max, standard deviation, skewness, kurtosis
+ - Mel Frequency Cepstral Coefficient (MFCC)
+ - Autocorrelation at different lags
+ - Trend information
+ - Number of events having an amplitude greater than a threshold
 
 #### ➡️ Environment expectation
-No limitations
+Python 3.6, DAI 1.7.0 and above
 
-#### ➡️ Dependenencies
-- pywavelets
-- librosa,
-- numba
-- progressbar2
-- tsfresh
+#### ➡️ Dependencies
+- [librosa](https://librosa.github.io/librosa/) used for music and audio analysis
+- [tsfresh](https://tsfresh.readthedocs.io/en/latest/) amazing time series and signal processing package.
+- [pywavelets](https://pywavelets.readthedocs.io/en/latest/) for wavelet transforms. 
+- [numba](https://numba.pydata.org/) used to accelerate heavy computations
+- [progressbar2]() to display progress as signals are processed
