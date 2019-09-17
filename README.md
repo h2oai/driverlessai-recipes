@@ -49,7 +49,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 ## Sample Recipes
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
-### Count: 102
+### Count: 108
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
@@ -99,6 +99,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
       * [hamming_loss.py](./scorers/classification/multiclass/hamming_loss.py) [Hamming Loss - Misclassification Rate (1 - Accuracy)]
       * [quadratic_weighted_kappa.py](./scorers/classification/multiclass/quadratic_weighted_kappa.py) [Qudratic Weighted Kappa]
   * [REGRESSION](./scorers/regression)
+    * [WAPE_scorer.py](./scorers/regression/WAPE_scorer.py) [please add description]
     * [cosh_loss.py](./scorers/regression/cosh_loss.py) [Hyperbolic Cosine Loss]
     * [explained_variance.py](./scorers/regression/explained_variance.py) [Explained Variance. Fraction of variance that is explained by the model.]
     * [largest_error.py](./scorers/regression/largest_error.py) [Largest error for regression problems. Highly sensitive to outliers.]
@@ -131,13 +132,15 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [geodesic.py](./transformers/geospatial/geodesic.py) [Calculates the distance in miles between two latitude/longitude points in space]
     * [myhaversine.py](./transformers/geospatial/myhaversine.py) [Computes miles between first two *_latitude and *_longitude named columns in the data set]
   * [IMAGE](./transformers/image)
-    * [image_url_transformer.py](./transformers/image/image_url_transformer.py) [Convert a path to an image (JPG/JPEG/PNG) to a vector of class probabilities created by a pretrained ImageNet deeplearning model (Keras, TensorFlow).]
     * [image_ocr_transformer.py](./transformers/image/image_ocr_transformer.py) [Convert a path to an image to text using OCR based on tesseract]
+    * [image_url_transformer.py](./transformers/image/image_url_transformer.py) [Convert a path to an image (JPG/JPEG/PNG) to a vector of class probabilities created by a pretrained ImageNet deeplearning model (Keras, TensorFlow).]
   * [NLP](./transformers/nlp)
     * [fuzzy_text_similarity_transformers.py](./transformers/nlp/fuzzy_text_similarity_transformers.py) [Row-by-row similarity between two text columns based on FuzzyWuzzy]
     * [text_embedding_similarity_transformers.py](./transformers/nlp/text_embedding_similarity_transformers.py) [Row-by-row similarity between two text columns based on pretrained Deep Learning embedding space]
     * [text_lang_detect_transformer.py](./transformers/nlp/text_lang_detect_transformer.py) [Detect the language for a text value using Google's 'langdetect' package]
     * [text_meta_transformers.py](./transformers/nlp/text_meta_transformers.py) [Extract common meta features from text]
+    * [text_pos_tagging_transformer.py](./transformers/nlp/text_pos_tagging_transformer.py) [Extract the count of nouns, verbs, adjectives and adverbs in the text]
+    * [text_preprocessing_transformer.py](./transformers/nlp/text_preprocessing_transformer.py) [Preprocess the text column by stemming, lemmatization and stop word removal]
     * [text_readability_transformers.py](./transformers/nlp/text_readability_transformers.py) [    Custom Recipe to extract Readability features from the text data    ## About Readability Features     ## References    - https://github.com/shivam5992/textstat    - http://www.readabilityformulas.com/free-readability-formula-tests.php]
     * [text_sentiment_transformer.py](./transformers/nlp/text_sentiment_transformer.py) [Extract sentiment from text using pretrained models from TextBlob]
     * [text_similarity_transformers.py](./transformers/nlp/text_similarity_transformers.py) [Row-by-row similarity between two text columns based on common N-grams, Jaccard similarity, Dice similarity and edit distance.]
@@ -163,6 +166,11 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [twosigma_winsorizer.py](./transformers/outliers/twosigma_winsorizer.py) [Winsorizes (truncates) univariate outliers outside of two standard deviations from the mean.]
   * [RECOMMENDATIONS](./transformers/recommendations)
     * [matrixfactorization.py](./transformers/recommendations/matrixfactorization.py) [Collaborative filtering features using various techniques of Matrix Factorization for recommendations]
+  * [SIGNAL_PROCESSING](./transformers/signal_processing)
+    * [signal_processing.py](./transformers/signal_processing/signal_processing.py) [This custom transformer processes signal files to create features used by DriverlessAI to solve a regression problem]
+  * [SPEECH](./transformers/speech)
+    * [audio_MFCC_transformer.py](./transformers/speech/audio_MFCC_transformer.py) [Extract MFCC and spectrogram features from audio files]
+    * [azure_speech_to_text.py](./transformers/speech/azure_speech_to_text.py) [An example of integration with Azure Speech Recognition Service]
   * [STRING](./transformers/string)
     * [strlen_transformer.py](./transformers/string/strlen_transformer.py) [Returns the string length of categorical values]
     * [to_string_transformer.py](./transformers/string/to_string_transformer.py) [Converts numbers to strings]
