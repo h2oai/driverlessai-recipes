@@ -99,6 +99,13 @@ class CustomModel(BaseCustomModel):
         return True
 
     @staticmethod
+    def acceptance_test_timeout():
+        """
+        Timeout in minutes for each test of a custom recipe.
+        """
+        return config.acceptance_test_timeout
+
+    @staticmethod
     def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0):
         """
         Return whether the model can be used given the settings and parameters that are passed in.
@@ -232,6 +239,8 @@ ll
                 :param importances: list of associated numerical importance of features
                 :param iterations: number of iterations, used to predict on or re-use for fitting on full training data
 
+        Recipe can raise h2oaicore.systemutils.IgnoreError to ignore error and avoid logging error for genetic algorithm.
+
         """
         raise NotImplemented("No fit for %s" % self.__class__.__name__)
 
@@ -260,6 +269,9 @@ ll
         Note:
             Retrieve the fitted state via `get_model_properties()`, which returns the arguments that were passed after
             the call to `set_model_properties()` during `fit()`. See examples.
+
+        Recipe can raise h2oaicore.systemutils.IgnoreError to ignore error and avoid logging error for genetic algorithm.
+
         """
 
         raise NotImplemented("No predict for %s" % self.__class__.__name__)
@@ -304,6 +316,7 @@ class CustomTimeSeriesModel(CustomModel):
     column names (available in self.params_base["tgc"])
     """
     _is_custom_time_series = True
+    _time_series_only = True
     _can_handle_non_numeric = True  # date format strings and time grouping columns
     _included_transformers = ts_raw_data_transformers  # this enforces the constraint on input features
 
