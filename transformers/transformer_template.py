@@ -204,6 +204,8 @@ class CustomTransformer(DataTableTransformer):
         Raises:
             ValueError: If acceptance test fails.
             Exception: If implementation has problems.
+
+        Recipe can raise h2oaicore.systemutils.IgnoreError to ignore error and avoid logging error for genetic algorithm.
         """
         raise NotImplementedError("Please implement the fit_transform method.")
 
@@ -233,6 +235,8 @@ class CustomTransformer(DataTableTransformer):
         Raises:
             ValueError: If acceptance test fails.
             Exception: If implementation has problems.
+
+        Recipe can raise h2oaicore.systemutils.IgnoreError to ignore error and avoid logging error for genetic algorithm.
         """
         raise NotImplementedError("Please implement the transform method.")
 
@@ -305,3 +309,5 @@ class CustomTimeSeriesTransformer(CustomTransformer):
         :return: self
         """
         return self
+
+

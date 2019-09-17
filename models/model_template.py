@@ -239,6 +239,8 @@ ll
                 :param importances: list of associated numerical importance of features
                 :param iterations: number of iterations, used to predict on or re-use for fitting on full training data
 
+        Recipe can raise h2oaicore.systemutils.IgnoreError to ignore error and avoid logging error for genetic algorithm.
+
         """
         raise NotImplemented("No fit for %s" % self.__class__.__name__)
 
@@ -267,6 +269,9 @@ ll
         Note:
             Retrieve the fitted state via `get_model_properties()`, which returns the arguments that were passed after
             the call to `set_model_properties()` during `fit()`. See examples.
+
+        Recipe can raise h2oaicore.systemutils.IgnoreError to ignore error and avoid logging error for genetic algorithm.
+
         """
 
         raise NotImplemented("No predict for %s" % self.__class__.__name__)
@@ -379,3 +384,5 @@ class CustomTimeSeriesTensorFlowModel(CustomTimeSeriesModel, CustomTensorFlowMod
         TensorFlow-based Time-Series Custom Model
     """
     pass
+
+
