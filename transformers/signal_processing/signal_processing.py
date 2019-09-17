@@ -1,4 +1,6 @@
-"""This custom transformer processes signal files to create features used by DriverlessAI to solve a regression problem
+"""This custom transformer processes signal files to create features used by DriverlessAI to solve a regression problem"""
+
+"""
 This recipe has been created in the context of LANL Earthquake Prediction challenge on Kaggle
 https://www.kaggle.com/c/LANL-Earthquake-Prediction
 
