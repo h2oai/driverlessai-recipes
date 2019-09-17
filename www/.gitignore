@@ -1,0 +1,7 @@
+node_modules/
+public/
+.DS_Store
+
+# explicitly ignore generated content
+src/content/recipes.yaml
+
