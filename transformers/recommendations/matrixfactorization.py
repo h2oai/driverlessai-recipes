@@ -1,35 +1,33 @@
-"""Collaborative filtering features using various techniques of Matrix Factorization for recommendations"""
+"""Collaborative filtering features using various techniques of Matrix Factorization for recommendations.
+Recommended for large data"""
 
 """
-Please edit the user column name and item column name in the transformer initialization to match the
+Add the user column name and item column name in recipe_dict in config to match the
 column names as per the dataset or use the default 'user' and 'item' respectively in your dataset
 
 Sample Datasets
-Netflix - https://www.kaggle.com/netflix-inc/netflix-prize-data
-user_col = 'user'
-item_col = 'movie'
+# Netflix - https://www.kaggle.com/netflix-inc/netflix-prize-data
+recipe_dict = "{'user_col': 'user', 'item_col': 'movie'}"
 
-MovieLens - https://grouplens.org/datasets/movielens/
-user_col = 'userId'
-item_col = 'movieId'
+# MovieLens - https://grouplens.org/datasets/movielens/
+recipe_dict = "{'user_col': 'userId', 'item_col': 'movieId'}"
 
-RPackages - https://www.kaggle.com/c/R/data
-user_col = 'User'
-item_col = 'Package'
+# RPackages - https://www.kaggle.com/c/R/data
+recipe_dict = "{'user_col': 'User', 'item_col': 'Package'}"
 """
 
 import datatable as dt
 import numpy as np
 import pandas as pd
 
-import scipy
 import h2o4gpu
+import scipy
 
+from h2oaicore.systemutils import config
 from h2oaicore.transformer_utils import CustomTransformer
 from sklearn.decomposition import NMF
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
-
 
 class RecH2OMFTransformer(CustomTransformer):
     _multiclass = False
@@ -38,8 +36,8 @@ class RecH2OMFTransformer(CustomTransformer):
 
     def __init__(self, n_components=50, _lambda=0.1, batches=1, max_iter=100, alpha=0.1,**kwargs):
         super().__init__(**kwargs)
-        self.user_col = "user" ## edit this to the user column name
-        self.item_col = "movie" ## edit this to the item column name
+        self.user_col = config.recipe_dict['user_col'] ## recipe_dict in config should have the user column name
+        self.item_col = config.recipe_dict['item_col'] ## recipe_dict in config should have the item column name
 
         if self.__class__._mf_type == "h2o4gpu":
             self._n_components = n_components
