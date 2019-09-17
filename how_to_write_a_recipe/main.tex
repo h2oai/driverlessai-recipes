@@ -1,0 +1,347 @@
+\documentclass[11pt,
+			   %10pt, 
+               %hyperref={colorlinks},
+               aspectratio=169,
+               hyperref={colorlinks}
+               ]{beamer}
+\usetheme{Singapore}
+\usecolortheme[snowy, cautious]{owl}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[american]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    urlcolor=[rgb]{1,0,1},
+    linkcolor=[rgb]{1,0,1}}
+
+\usepackage[natbib=true,style=authoryear,backend=bibtex,useprefix=true]{biblatex}
+\usepackage{listings}
+\lstset{numbers=right, 
+        numberstyle=\tiny, 
+%        breaklines=true,
+%        backgroundcolor=\color{light-gray},
+        numbersep=5pt,
+	xleftmargin=\parindent,
+	xrightmargin=.25in} 
+
+%\setbeamercolor*{bibliography entry title}{fg=black}
+%\setbeamercolor*{bibliography entry location}{fg=black}
+%\setbeamercolor*{bibliography entry note}{fg=black}
+\definecolor{OwlGreen}{RGB}{75,0,130} % easier to see
+\setbeamertemplate{bibliography item}{}
+\setbeamerfont{caption}{size=\footnotesize}
+\setbeamertemplate{frametitle continuation}{}
+\setcounter{tocdepth}{1}
+\renewcommand*{\bibfont}{\scriptsize}
+\addbibresource{bibliography.bib}
+
+\renewcommand*{\thefootnote}{\fnsymbol{footnote}}
+
+%\author{\copyright\hspace{1pt}Ashrith Barthur\footnote{\tiny{This material is shared under a \href{https://creativecommons.org/licenses/by/4.0/deed.ast}{CC By 4.0 license} which allows for editing and redistribution, even for commercial purposes. However, any derivative work should attribute the author and H2O.AI.}}}
+\author{Ashrith Barthur}
+\title{How to Write A Recipe?}
+\subtitle{Automating Feature Engineering Using DriverlessAI}
+\logo{\includegraphics[height=8pt]{img/h2o_logo.png}}
+\institute{\href{https://www.h2o.ai}{H\textsubscript{2}O.ai}}
+\date{\today}
+\subject{How to Write A Recipe?}
+
+\begin{document}
+	
+	\maketitle
+	
+%	\begin{frame}
+	
+%		\frametitle{Contents}
+		
+%		\tableofcontents{}
+		
+%	\end{frame}
+
+%-------------------------------------------------------------------------------
+	\subsection{Question}
+%-------------------------------------------------------------------------------
+	\begin{frame}
+		\frametitle{Question}
+		\begin{enumerate}
+			\item How many of us have built variables, features, transformers, or feature transformers?
+			\item What are they?
+		\end{enumerate}
+	\end{frame}
+%-------------------------------------------------------------------------------
+	\subsection{Answer}
+%-------------------------------------------------------------------------------
+	\begin{frame}
+		\frametitle{Answer}
+		\begin{enumerate}
+			\item Variables, features, transformers, feature transformers are refer to the same.
+			\item Each column in your data is considered a variable or a feature.
+			\item Each \textit{new} column created is also referred to as a variable or a feature.
+			\item The process of creating a new variable, or a feature is called a transformation. 
+			\item The code processing an \textit{existing} column to a \textit{new} column is called a \textit{transformer}.
+		\end{enumerate}
+	\end{frame}
+%-------------------------------------------------------------------------------
+	\subsection{Example Transformation}
+%-------------------------------------------------------------------------------
+	\begin{frame}[fragile]
+		\frametitle{Example Transformation}
+		\begin{enumerate}
+			\item \textit{height}- Variable
+			\item New variable after transformation \textit{log2(height)}
+		\end{enumerate}
+\end{frame}
+%-------------------------------------------------------------------------------
+	\subsection{Question}
+%-------------------------------------------------------------------------------
+	\begin{frame}
+		\frametitle{Question}
+		\begin{enumerate}
+			\item How many of us are familiar with Custom Transformers in Driverless AI?
+			\item What are they?
+		\end{enumerate}
+	\end{frame}
+%-------------------------------------------------------------------------------
+	\subsection{Answer}
+%-------------------------------------------------------------------------------
+	\begin{frame}
+		\frametitle{Answer}
+		\begin{enumerate}
+			\item DriverlessAI already has a large, comprehensive set of transformers. 
+			\item But there are always domains that require nuanced features. 
+			\item And for this, DriverlessAI provides us to create custom transformers. 
+			\item This is provided by provisioning an extension class \textit{CustomTransformer}
+		\end{enumerate}
+	\end{frame}
+%-------------------------------------------------------------------------------
+	\subsection{Recipe Introduction}
+%-------------------------------------------------------------------------------
+	\begin{frame}[fragile]
+		\frametitle{How Did We Build A Custom Transformer?}
+		Driverless AI provides an extension. \\
+		This is a class `CustomTransformer`
+		\begin{verbatim}
+		class ExampleLogTransformer(CustomTransformer):
+		\end{verbatim}
+\end{frame}
+%-------------------------------------------------------------------------------
+		\section{Feature Recipe Structure}
+%-------------------------------------------------------------------------------
+	\begin{frame}[fragile]
+		\frametitle{How Did We Build This?}
+		The class has:
+		\begin{enumerate}
+			\item Parameters that need to be provided. 
+			\item These parameters are specific to the type of feature recipe that you are building. 
+			\item It also has four methods which primarily handle your feature engineering transformation. 
+		\end{enumerate}
+			
+\end{frame}
+%-------------------------------------------------------------------------------
+		\subsection{Parameters - Basic}
+%-------------------------------------------------------------------------------
+	\begin{frame}[fragile]
+		\frametitle{Parameters - Basic}
+		\begin{verbatim}
+		class ExampleLogTransformer(CustomTransformer):
+			_regression = True
+			_binary = True
+			_multiclass = True
+		\end{verbatim}
+			
+\end{frame}
+%-------------------------------------------------------------------------------
+		\subsection{Parameters - Advanced}
+%-------------------------------------------------------------------------------
+	\begin{frame}[fragile]
+		\frametitle{Parameters - Advanced}
+		\begin{verbatim}
+		class ExampleLogTransformer(CustomTransformer):
+			_regression = True
+			_binary = True
+			_multiclass = True
+			_numeric_output = True
+			_is_reproducible = True
+			_excluded_model_classes = ['tensorflow']
+			_modules_needed_by_name = ["custom_package==1.0.0"]
+		\end{verbatim}
+			
+\end{frame}
+%-------------------------------------------------------------------------------
+%		\subsection{Parameters - Advanced}
+%-------------------------------------------------------------------------------
+	\begin{frame}[fragile]
+		\frametitle{Acceptance Method}
+		\begin{verbatim}
+		class ExampleLogTransformer(CustomTransformer):
+		_regression = True
+		_binary = True
+		_multiclass = True
+		_numeric_output = True
+		_is_reproducible = True
+		_excluded_model_classes = ['tensorflow']
+		_modules_needed_by_name = ["custom_package==1.0.0"]
+	
+		@staticmethod
+		def do_acceptance_test():
+		return True
+		\end{verbatim}
+			
+\end{frame}
+%-------------------------------------------------------------------------------
+%		\subsection{Parameters - Advanced}
+%-------------------------------------------------------------------------------
+	\begin{frame}[fragile]
+		\frametitle{Input Data}
+		\begin{verbatim}
+		...
+		@staticmethod
+		def do_acceptance_test():
+		return True
+
+		@staticmethod
+		def get_default_properties():
+		return dict(col_type = "numeric", min_cols = 1, max_cols = 1, 
+		relative_importance = 1)
+		\end{verbatim}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+%		\subsection{Parameters - Advanced}
+%-------------------------------------------------------------------------------
+	\begin{frame}[fragile]
+		\frametitle{Input Data Types}
+		\begin{verbatim}
+		a. "all"         - all column types
+		b. "any"         - any column types
+		c. "numeric"     - numeric int/float column
+		d. "categorical" - string/int/float column considered a categorical for 
+		feature engineering
+		e. "numcat"      - allow both numeric or categorical
+		f. "datetime"    - string or int column with raw datetime such as 
+		'%Y/%m/%d %H:%M:%S' or '%Y%m%d%H%M'
+		\end{verbatim}
+\end{frame}
+%-------------------------------------------------------------------------------
+%		\subsection{Parameters - Advanced}
+%-------------------------------------------------------------------------------
+	\begin{frame}[fragile]
+		\frametitle{Input Data Types}
+		\begin{verbatim}
+		g. "date"        - string or int column with raw date such as 
+		'%Y/%m/%d' or '%Y%m%d'
+		h. "text"        - string column containing text 
+		(and hence not treated as categorical)
+		i. "time_column" - the time column specified at the start of 
+		the experiment (unmodified)
+		\end{verbatim}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+%		\subsection{Parameters - Advanced}
+%-------------------------------------------------------------------------------
+	\begin{frame}[fragile]
+		\frametitle{Fit Function}
+		\begin{verbatim}
+		@staticmethod
+		def get_default_properties():
+		return dict(col_type = "numeric", min_cols = 1, max_cols = 1,
+		relative_importance = 1)
+
+		def fit_transform(self, X: dt.Frame, y: np.array = None):
+			X_pandas = X.to_pandas()
+			X_p_log = np.log10(X_pandas)
+			return X_p_log
+		\end{verbatim}
+\end{frame}
+%-------------------------------------------------------------------------------
+%		\subsection{Parameters - Advanced}
+%-------------------------------------------------------------------------------
+	\begin{frame}[fragile]
+		\frametitle{Transform Function}
+		\begin{verbatim}
+		def fit_transform(self, X: dt.Frame, y: np.array = None):
+			X_pandas = X.to_pandas()
+			X_p_log = np.log10(X_pandas)
+			return X_p_log
+
+		def transform(self, X: dt.Frame):
+			X_pandas = X.to_pandas()
+			X_p_log = np.log10(X_pandas)
+			return X_p_log
+		\end{verbatim}
+\end{frame}
+%-------------------------------------------------------------------------------
+%		\subsection{Parameters - Advanced}
+%-------------------------------------------------------------------------------
+	\begin{frame}[fragile]
+		\frametitle{Library}
+		\begin{verbatim}
+		from h2oaicore.systemutils import segfault, loggerinfo, main_logger
+		from h2oaicore.transformer_utils import CustomTransformer
+		import datatable as dt
+		import numpy as np
+		import pandas as pd
+		import logging
+		\end{verbatim}
+\end{frame}
+%-------------------------------------------------------------------------------
+%		\subsection{Question}
+%-------------------------------------------------------------------------------
+	\begin{frame}
+		\frametitle{DEMO}
+	\end{frame}
+
+%-------------------------------------------------------------------------------
+%		\subsection{Question}
+%-------------------------------------------------------------------------------
+	\begin{frame}
+		\frametitle{Advantages}
+		\begin{enumerate}
+			\item Feature engineering process standardised by:
+				\begin{enumerate}
+					\item preset parameters
+					\item preset methods
+				\end{enumerate}
+			\item Effort minimisation leads to minimisation in time spent.
+			\item Build only once - Feature engineering is carried over from training/testing to production.
+			\item DAI automatically, runs multiple models on various sets of features to get the best model. 
+			\item All the requirements are handled internally by DAI. 
+		\end{enumerate}
+\end{frame}
+%-------------------------------------------------------------------------------
+%	References
+%-------------------------------------------------------------------------------
+
+	\begin{frame}[t, allowframebreaks]
+	
+		\frametitle{References}	
+		
+			\textbf{How to build a recipe}\\
+			\small{\url{https://github.com/ashrith/how_to_write_a_recipe}}
+			\textbf{MLI-2 Issue}\\
+			\small{\url{https://github.com/h2oai/mli-2/issues/322}}
+			
+		\framebreak		
+		
+		\printbibliography
+		
+	\end{frame}
+%-------------------------------------------------------------------------------
+	\section{Questions}
+%------------------------------------------------------------------------------
+
+		\begin{frame}
+
+			\frametitle{Thanks \& Questions}
+
+		\end{frame}
+
+%-------------------------------------------------------------------------------
+	%	\section{End}
+%------------------------------------------------------------------------------
+\end{document}
+\end{document}
