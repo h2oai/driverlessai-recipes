@@ -36,8 +36,8 @@ class RecH2OMFTransformer(CustomTransformer):
 
     def __init__(self, n_components=50, _lambda=0.1, batches=1, max_iter=100, alpha=0.1, **kwargs):
         super().__init__(**kwargs)
-        self.user_col = config.recipe_dict['user_col'] ## recipe_dict in config should have the user column name
-        self.item_col = config.recipe_dict['item_col'] ## recipe_dict in config should have the item column name
+        self.user_col = config.recipe_dict['user_col'] if "user_col" in config.recipe_dict else "user"
+        self.item_col = config.recipe_dict['item_col'] if "item_col" in config.recipe_dict else "item"
 
         if self.__class__._mf_type == "h2o4gpu":
             self._n_components = n_components
