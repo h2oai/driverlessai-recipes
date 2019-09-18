@@ -1,4 +1,4 @@
-exclude = ['.', '.idea', 'pycache', '.git', 'data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py']
+exclude = ['.', '.idea', 'pycache', '.git', 'data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py', '.pytest_cache']
 sep = '  '
 
 
@@ -32,7 +32,7 @@ for dirpath, dirs, files in os.walk("."):
             depth = len(path) - 2
             print_offset(depth, "[" + pdir.upper() + "](" + dirpath + ")", ret)
             for f in sorted(files):
-                if f not in exclude:
+                if f not in exclude and not f.startswith("test_"):
                     if f[-3:] == ".py":
                         docstring = get_module_docstring(os.path.join(dirpath, f)) or \
                                     "please add description"

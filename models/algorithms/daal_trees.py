@@ -143,7 +143,7 @@ def _setup_recipe():
                          dest_path=daal_temp_path)
         file3 = download("%s/daal/2019.4/download/linux-64/daal-2019.4-intel_243.tar.bz2" % prefix,
                          dest_path=daal_temp_path)
-        file4 = download("https://github.com/intel/daal/releases/download/2019_u1.1/l_daal_oss_p_2019.1.004.tgz",
+        file4 = download("https://github.com/intel/daal/releases/download/2019_u4/l_daal_oss_p_2019.4.007.tgz",
                          dest_path=daal_temp_path)
         temp_path = os.path.join(config.data_directory, config.contrib_env_relative_directory, "info")
         os.makedirs(temp_path, exist_ok=True)
@@ -162,7 +162,7 @@ def _setup_recipe():
                 shutil.copy(file, new_file)
 
         other_path = os.path.join(python_site_packages_path2,
-                                  "l_daal_oss_p_2019.1.004/daal_prebuild/linux/tbb/lib/intel64_lin/gcc4.4/")
+                                  "l_daal_oss_p_2019.4.007/daal_prebuild/linux/tbb/lib/intel64_lin/gcc4.4/")
         import glob
         for file in glob.glob(os.path.join(other_path, "*.so*")):
             new_file = os.path.join(python_site_packages_path2, "lib", os.path.basename(file))

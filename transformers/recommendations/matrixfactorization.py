@@ -1,45 +1,43 @@
-"""Collaborative filtering features using various techniques of Matrix Factorization for recommendations"""
+"""Collaborative filtering features using various techniques of Matrix Factorization for recommendations.
+Recommended for large data"""
 
 """
-Please edit the user column name and item column name in the transformer initialization to match the
+Add the user column name and item column name in recipe_dict in config to match the
 column names as per the dataset or use the default 'user' and 'item' respectively in your dataset
 
 Sample Datasets
-Netflix - https://www.kaggle.com/netflix-inc/netflix-prize-data
-user_col = 'user'
-item_col = 'movie'
+# Netflix - https://www.kaggle.com/netflix-inc/netflix-prize-data
+recipe_dict = "{'user_col': 'user', 'item_col': 'movie'}"
 
-MovieLens - https://grouplens.org/datasets/movielens/
-user_col = 'userId'
-item_col = 'movieId'
+# MovieLens - https://grouplens.org/datasets/movielens/
+recipe_dict = "{'user_col': 'userId', 'item_col': 'movieId'}"
 
-RPackages - https://www.kaggle.com/c/R/data
-user_col = 'User'
-item_col = 'Package'
+# RPackages - https://www.kaggle.com/c/R/data
+recipe_dict = "{'user_col': 'User', 'item_col': 'Package'}"
 """
 
 import datatable as dt
 import numpy as np
 import pandas as pd
 
-import scipy
 import h2o4gpu
+import scipy
 
+from h2oaicore.systemutils import config
 from h2oaicore.transformer_utils import CustomTransformer
 from sklearn.decomposition import NMF
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
-
 
 class RecH2OMFTransformer(CustomTransformer):
     _multiclass = False
     _can_use_gpu = True
     _mf_type = "h2o4gpu"
 
-    def __init__(self, n_components=50, _lambda=0.1, batches=1, max_iter=100, alpha=0.1,**kwargs):
+    def __init__(self, n_components=50, _lambda=0.1, batches=1, max_iter=100, alpha=0.1, **kwargs):
         super().__init__(**kwargs)
-        self.user_col = "user" ## edit this to the user column name
-        self.item_col = "movie" ## edit this to the item column name
+        self.user_col = config.recipe_dict['user_col'] if "user_col" in config.recipe_dict else "user"
+        self.item_col = config.recipe_dict['item_col'] if "item_col" in config.recipe_dict else "item"
 
         if self.__class__._mf_type == "h2o4gpu":
             self._n_components = n_components
@@ -95,40 +93,52 @@ class RecH2OMFTransformer(CustomTransformer):
         for train_index, val_index in kfold.split(X_pd, y):
             X_train, y_train = X_pd.iloc[train_index,], y[train_index]
             X_val, y_val = X_pd.iloc[val_index,], y[val_index]
-            
-            X_val2 = X_val[(X_val[self.user_col].isin(np.unique(X_train[self.user_col]))) & (X_val[self.item_col].isin(np.unique(X_train[self.item_col])))]
-            y_val2 = y_val[(X_val[self.user_col].isin(np.unique(X_train[self.user_col]))) & (X_val[self.item_col].isin(np.unique(X_train[self.item_col])))]
-            
+
+            X_val2 = X_val[(X_val[self.user_col].isin(np.unique(X_train[self.user_col]))) & (
+                X_val[self.item_col].isin(np.unique(X_train[self.item_col])))]
+            y_val2 = y_val[(X_val[self.user_col].isin(np.unique(X_train[self.user_col]))) & (
+                X_val[self.item_col].isin(np.unique(X_train[self.item_col])))]
+
             X_panel = pd.concat([X_train, X_val2], axis=0)
-            
+
             users, user_indices = np.unique(np.array(X_panel[self.user_col], dtype="int32"), return_inverse=True)
             items, item_indices = np.unique(np.array(X_panel[self.item_col], dtype="int32"), return_inverse=True)
-            
-            X_train_user_item_matrix = scipy.sparse.coo_matrix((y_train, (user_indices[:len(X_train)], item_indices[:len(X_train)])), shape=(len(users), len(items)))
+
+            X_train_user_item_matrix = scipy.sparse.coo_matrix(
+                (y_train, (user_indices[:len(X_train)], item_indices[:len(X_train)])), shape=(len(users), len(items)))
             X_train_shape = X_train_user_item_matrix.shape
-            
-            X_val_user_item_matrix = scipy.sparse.coo_matrix((np.ones(len(X_val2), dtype="float32"), (user_indices[len(X_train):], item_indices[len(X_train):])), shape=X_train_shape)
-            
+
+            X_val_user_item_matrix = scipy.sparse.coo_matrix(
+                (np.ones(len(X_val2), dtype="float32"), (user_indices[len(X_train):], item_indices[len(X_train):])),
+                shape=X_train_shape)
+
             if self.__class__._mf_type == "h2o4gpu":
-                factorization = h2o4gpu.solvers.FactorizationH2O(self._n_components, self._lambda, max_iter=self._max_iter)
+                factorization = h2o4gpu.solvers.FactorizationH2O(self._n_components, self._lambda,
+                                                                 max_iter=self._max_iter)
                 factorization.fit(X_train_user_item_matrix, X_BATCHES=self._batches, THETA_BATCHES=self._batches)
-                preds[val_index[(X_val[self.user_col].isin(np.unique(X_train[self.user_col]))) & (X_val[self.item_col].isin(np.unique(X_train[self.item_col])))]] = factorization.predict(X_val_user_item_matrix).data
+                preds[val_index[(X_val[self.user_col].isin(np.unique(X_train[self.user_col]))) & (
+                    X_val[self.item_col].isin(np.unique(X_train[self.item_col])))]] = factorization.predict(
+                    X_val_user_item_matrix).data
             elif self.__class__._mf_type == "nmf":
                 factorization = NMF(n_components=self._n_components, alpha=self._alpha, max_iter=self._max_iter)
                 user_matrix = factorization.fit_transform(X_train_user_item_matrix)
                 item_matrix = factorization.components_.T
                 val_users = np.take(user_matrix, X_val_user_item_matrix.row, axis=0)
                 val_items = np.take(item_matrix, X_val_user_item_matrix.col, axis=0)
-                preds[val_index[(X_val[self.user_col].isin(np.unique(X_train[self.user_col]))) & (X_val[self.item_col].isin(np.unique(X_train[self.item_col])))]] = np.sum(val_users * val_items, axis=1)
-            
+                preds[val_index[(X_val[self.user_col].isin(np.unique(X_train[self.user_col]))) & (
+                    X_val[self.item_col].isin(np.unique(X_train[self.item_col])))]] = np.sum(val_users * val_items,
+                                                                                             axis=1)
+
         users, user_indices = np.unique(np.array(X_pd[self.user_col], dtype="int32"), return_inverse=True)
         items, item_indices = np.unique(np.array(X_pd[self.item_col], dtype="int32"), return_inverse=True)
 
-        X_train_user_item_matrix = scipy.sparse.coo_matrix((y_train, (user_indices[:len(X_train)], item_indices[:len(X_train)])), shape=(len(users), len(items)))
+        X_train_user_item_matrix = scipy.sparse.coo_matrix(
+            (y_train, (user_indices[:len(X_train)], item_indices[:len(X_train)])), shape=(len(users), len(items)))
         self.X_train_shape = X_train_user_item_matrix.shape
 
         if self.__class__._mf_type == "h2o4gpu":
-            self.factorization = h2o4gpu.solvers.FactorizationH2O(self._n_components, self._lambda, max_iter=self._max_iter)
+            self.factorization = h2o4gpu.solvers.FactorizationH2O(self._n_components, self._lambda,
+                                                                  max_iter=self._max_iter)
             self.factorization.fit(X_train_user_item_matrix, X_BATCHES=self._batches, THETA_BATCHES=self._batches)
         elif self.__class__._mf_type == "nmf":
             factorization = NMF(n_components=self._n_components, alpha=self._alpha, max_iter=self._max_iter)
@@ -139,25 +149,32 @@ class RecH2OMFTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         X = X[:, [self.user_col, self.item_col]]
-        
+
         preds = np.full(X.nrows, fill_value=np.nan)
 
         X_pd = X.to_pandas()
-        
-        X_test = X_pd[(X_pd[self.user_col].isin(self.user_le.classes_)) & (X_pd[self.item_col].isin(self.item_le.classes_))]
+
+        X_test = X_pd[
+            (X_pd[self.user_col].isin(self.user_le.classes_)) & (X_pd[self.item_col].isin(self.item_le.classes_))]
         X_test[self.user_col] = self.user_le.transform(X_test[self.user_col])
         X_test[self.item_col] = self.item_le.transform(X_test[self.item_col])
 
-        X_test_user_item_matrix = scipy.sparse.coo_matrix((np.ones(len(X_test), dtype="float32"), (X_test[self.user_col], X_test[self.item_col])), shape=self.X_train_shape)
+        X_test_user_item_matrix = scipy.sparse.coo_matrix(
+            (np.ones(len(X_test), dtype="float32"), (X_test[self.user_col], X_test[self.item_col])),
+            shape=self.X_train_shape)
 
         if self.__class__._mf_type == "h2o4gpu":
-            preds[(X_pd[self.user_col].isin(self.user_le.classes_)) & (X_pd[self.item_col].isin(self.item_le.classes_))] = self.factorization.predict(X_test_user_item_matrix).data
+            preds[(X_pd[self.user_col].isin(self.user_le.classes_)) & (
+                X_pd[self.item_col].isin(self.item_le.classes_))] = self.factorization.predict(
+                X_test_user_item_matrix).data
         elif self.__class__._mf_type == "nmf":
             test_users = np.take(self.user_matrix, X_test_user_item_matrix.row, axis=0)
             test_items = np.take(self.item_matrix, X_test_user_item_matrix.col, axis=0)
-            preds[(X_pd[self.user_col].isin(self.user_le.classes_)) & (X_pd[self.item_col].isin(self.item_le.classes_))] = np.sum(test_users * test_items, axis=1)
+            preds[(X_pd[self.user_col].isin(self.user_le.classes_)) & (
+                X_pd[self.item_col].isin(self.item_le.classes_))] = np.sum(test_users * test_items, axis=1)
 
         return preds
+
 
 class RecNMFTransformer(RecH2OMFTransformer):
     _can_use_gpu = False

@@ -49,7 +49,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 ## Sample Recipes
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
-### Count: 105
+### Count: 108
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
@@ -166,6 +166,11 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [twosigma_winsorizer.py](./transformers/outliers/twosigma_winsorizer.py) [Winsorizes (truncates) univariate outliers outside of two standard deviations from the mean.]
   * [RECOMMENDATIONS](./transformers/recommendations)
     * [matrixfactorization.py](./transformers/recommendations/matrixfactorization.py) [Collaborative filtering features using various techniques of Matrix Factorization for recommendations]
+  * [SIGNAL_PROCESSING](./transformers/signal_processing)
+    * [signal_processing.py](./transformers/signal_processing/signal_processing.py) [This custom transformer processes signal files to create features used by DriverlessAI to solve a regression problem]
+  * [SPEECH](./transformers/speech)
+    * [audio_MFCC_transformer.py](./transformers/speech/audio_MFCC_transformer.py) [Extract MFCC and spectrogram features from audio files]
+    * [azure_speech_to_text.py](./transformers/speech/azure_speech_to_text.py) [An example of integration with Azure Speech Recognition Service]
   * [STRING](./transformers/string)
     * [strlen_transformer.py](./transformers/string/strlen_transformer.py) [Returns the string length of categorical values]
     * [to_string_transformer.py](./transformers/string/to_string_transformer.py) [Converts numbers to strings]

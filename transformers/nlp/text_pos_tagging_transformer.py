@@ -7,7 +7,7 @@ from h2oaicore.transformer_utils import CustomTransformer
 class POSTagTransformer:
     """Transformer to extract the count of POS tags"""
     _method = NotImplemented
-    _modules_needed_by_name = ["nltk==3.4"]
+    _modules_needed_by_name = ["nltk==3.4.3"]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
