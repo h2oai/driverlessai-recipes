@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from h2oaicore.transformer_utils import CustomTransformer
 
+
 class SpellingCorrectionTransformer(CustomTransformer):
     _numeric_output = False
     _modules_needed_by_name = ['pyspellchecker==0.5.0']
@@ -15,11 +16,11 @@ class SpellingCorrectionTransformer(CustomTransformer):
     @staticmethod
     def is_enabled():
         return False
-    
+
     @staticmethod
     def do_acceptance_test():
         return False
-    
+
     @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)

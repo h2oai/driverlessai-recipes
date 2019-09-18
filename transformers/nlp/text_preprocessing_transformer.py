@@ -8,18 +8,19 @@ class TextPreprocessingTransformer(CustomTransformer):
     """Transformer to preprocess the text"""
     _numeric_output = False
     _is_reproducible = True
-    _modules_needed_by_name = ["nltk==3.4"]
+    _modules_needed_by_name = ["nltk==3.4.3"]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.do_stemming = True # turn off as needed
-        self.do_lemmatization = True # turn off as needed
-        self.remove_stopwords = True # turn off as needed
+        self.do_stemming = True  # turn off as needed
+        self.do_lemmatization = True  # turn off as needed
+        self.remove_stopwords = True  # turn off as needed
 
         import nltk
         if self.do_stemming:
             try:
                 self.stemmer = nltk.stem.porter.PorterStemmer()
+                self.stemmer.stem("test")
             except LookupError:
                 nltk.download("punkt")
                 self.stemmer = nltk.stem.porter.PorterStemmer()
@@ -29,6 +30,7 @@ class TextPreprocessingTransformer(CustomTransformer):
                 self.lemmatizer = nltk.stem.WordNetLemmatizer()
                 self.pos_tagger = nltk.pos_tag
                 self.pos_tagger("test")
+                self.lemmatizer.lemmatize("test", wordnet.NOUN)
             except LookupError:
                 nltk.download("averaged_perceptron_tagger")
                 nltk.download("maxent_treebank_pos_tagger")
@@ -36,11 +38,11 @@ class TextPreprocessingTransformer(CustomTransformer):
                 from nltk.corpus import wordnet
                 self.lemmatizer = nltk.stem.WordNetLemmatizer()
                 self.pos_tagger = nltk.pos_tag
-            self.wordnet_map = {"N":wordnet.NOUN,
-                                "V":wordnet.VERB,
-                                "J":wordnet.ADJ,
-                                "R":wordnet.ADV,
-                                "O":wordnet.NOUN}
+            self.wordnet_map = {"N": wordnet.NOUN,
+                                "V": wordnet.VERB,
+                                "J": wordnet.ADJ,
+                                "R": wordnet.ADV,
+                                "O": wordnet.NOUN}
         if self.remove_stopwords:
             try:
                 self.stopwords = set(nltk.corpus.stopwords.words('english'))

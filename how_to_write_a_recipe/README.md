@@ -11,7 +11,7 @@ The structure of a recipe that works with DriverlessAI is quite straight forward
 1. DriverlessAI provides a `CustomTransformer` Base class that needs to be extended for one to write a recipe. The `CustomTransformer` class provides one the ability to add a customized transformation function. In the following example we are going to create a transformer that will transform a column with the `log10` of the same column. The new column, which is transformed by `log10` will be returned to DriverlessAI as a new column that will be used for modeling. 
 
 ```{python eval=FALSE}
-class ExampleLogTransformer(CustomerTransformer):
+class ExampleLogTransformer(CustomTransformer):
 
 ```
 The `ExampleLogTransformer` is the class name of the transformer that is being newly created. And in the parenthesis the `CustomTransformer` is being extended. 
@@ -24,7 +24,7 @@ The `ExampleLogTransformer` is the class name of the transformer that is being n
 Depending on what kind of outcome the custom transformer is solving, each one of the above needs to be enabled or disabled. And the following example will show you how this can be done
 
 ```{python eval=FALSE}
-class ExampleLogTransformer(CustomerTransformer):
+class ExampleLogTransformer(CustomTransformer):
 	_regression = True
 	_binary = True
 	_multiclass = True
@@ -40,7 +40,7 @@ In the above example we are building a `log10` transformer, and this transformer
       
 
 ```{python eval=FALSE}
-class ExampleLogTransformer(CustomerTransformer):
+class ExampleLogTransformer(CustomTransformer):
 	_regression = True
 	_binary = True
 	_multiclass = True
@@ -54,7 +54,7 @@ In the above example we have set the `_numeric_output` to be `True` as our outpu
 4. In the following section we will discussion about DriverlessAI's ability to check the custom recipe. When the following function is enabled DriverlessAI has the ability to check the workings of the transformer using a synthetic dataset. If this is disabled then DriverlessAI will ingest the recipe but ignore the check. 
 
 ```{python eval=FALSE}
-class ExampleLogTransformer(CustomerTransformer):
+class ExampleLogTransformer(CustomTransformer):
 	_regression = True
 	_binary = True
 	_multiclass = True
@@ -91,7 +91,7 @@ The `relative_importance` takes a positive value. If this value is more than `1`
 i , which will over, or under representation. Default value is `1`, value greater than `1` is over representation and under `1` is under representation. 
 
 ```{python eval=FALSE}
-class ExampleLogTransformer(CustomerTransformer):
+class ExampleLogTransformer(CustomTransformer):
 	_regression = True
 	_binary = True
 	_multiclass = True
@@ -117,7 +117,7 @@ In the above example, as we are dealing with a numeric column (recall, that we a
 
 
 ```{python eval=FALSE}
-class ExampleLogTransformer(CustomerTransformer):
+class ExampleLogTransformer(CustomTransformer):
 	_regression = True
 	_binary = True
 	_multiclass = True
@@ -134,7 +134,7 @@ class ExampleLogTransformer(CustomerTransformer):
 	def get_default_properties():
 	return dict(col_type = "numeric", min_cols = 1, max_cols = 1, relative_importance = 1)
 
-	def fit_transform(self, X: dt.Frame, y: np.arry = None):
+	def fit_transform(self, X: dt.Frame, y: np.array = None):
 		X_pandas = X.to_pandas()
 		X_p_log = np.log10(X_pandas)
 		return X_p_log
@@ -144,7 +144,17 @@ class ExampleLogTransformer(CustomerTransformer):
 		X_p_log = np.log10(X_pandas)
 		return X_p_log
 ```
-In the above example, we compose the `fit_transform` and `transform` for training and testing data, respectively. In the `fit_transform` the response variable `y` is available. Here our dataframe is named `X`. Now `X` will be transformed to pandas frame by using the `to_pandas()` function. Further, a `log10` of the column will be applied and returned. The `to_pandas()` function is described here for ease of understanding. A real-world implementation of log transformer is available at the following link [HyperLink to LogTransformer](https://github.com/h2oai/driverlessai-recipes/blob/master/transformers/numeric/log_transformer.py)
+In the above example, we compose the `fit_transform` and `transform` for training and testing data, respectively. In the `fit_transform` the response variable `y` is available. Here our dataframe is named `X`. Now `X` will be transformed to pandas frame by using the `to_pandas()` function. Further, a `log10` of the column will be applied and returned. The `to_pandas()` function is described here for ease of understanding. 
+
+```{python eval=FALSE}
+from h2oaicore.systemutils import segfault, loggerinfo, main_logger
+from h2oaicore.transformer_utils import CustomTransformer
+import datatable as dt
+import numpy as np
+import pandas as pd
+import logging
+```
+We, finally add the required library to the top of the `.py` file. The primary library required is `CustomTransformer`. `loggerinfo` and `main_logger` for house keeping. `datatable` and `pandas` for data handling. 
 
 7. This code is to be stored as a python code file - `example_transform.py`
 8. To ingest this code, one needs to first need to add dataset to be modeled upon into DriverlessAI. 
