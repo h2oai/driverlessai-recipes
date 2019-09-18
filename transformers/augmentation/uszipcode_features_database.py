@@ -1,4 +1,4 @@
-"""Lightweight transformer to parse and augment US zipcodes with info from zipcode database."""
+"""Transformer to parse and augment US zipcodes with info from zipcode database."""
 from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 import datatable as dt
