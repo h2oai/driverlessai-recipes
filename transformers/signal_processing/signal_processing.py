@@ -13,11 +13,10 @@ which means that row ID 1 has a target value of 3.05
 and the related signal can be found in file_folder/signal_0001.csv
 
 The custom transformer uses the following libraries:
- - pywavelets
+  - pywavelets
   - librosa,
   - numba
   - progressbar2
-  - tsfresh
 
 Please make sure to set the file_path feature as a text in DAI
 To do so, click on the dataset in the dataset panel and chose DETAILS
@@ -33,8 +32,94 @@ import datatable as dt
 import numpy as np
 import pandas as pd
 
-from scipy.stats import kurtosis, skew
+from scipy.stats import kurtosis, skew, linregress
+from statsmodels.tsa.stattools import acf, adfuller, pacf
 import math
+
+# tsfresh python package requires pandas<=0.23.4, which is older than pandas used in DriverlessAI
+# To avoid relying on tsfresh package and potential install issues
+# It has been decided to just copy tsfresh methods used in this recipe
+# Please see https://tsfresh.readthedocs.io/en/latest/_modules/tsfresh/feature_extraction/
+
+def autocorrelation(x, lag):
+    """Credit goes to https://github.com/blue-yonder/tsfresh"""
+    if type(x) is pd.Series:
+        x = x.values
+    if len(x) < lag:
+        return np.nan
+        # Slice the relevant subseries based on the lag
+    y1 = x[:(len(x) - lag)]
+    y2 = x[lag:]
+    # Subtract the mean of the whole series x
+    x_mean = np.mean(x)
+    # The result is sometimes referred to as "covariation"
+    sum_product = np.sum((y1 - x_mean) * (y2 - x_mean))
+    # Return the normalized unbiased covariance
+    v = np.var(x)
+    if np.isclose(v, 0):
+        return np.NaN
+    else:
+        return sum_product / ((len(x) - lag) * v)
+
+
+def absolute_sum_of_changes(x):
+    """Credit goes to https://github.com/blue-yonder/tsfresh"""
+    return np.sum(np.abs(np.diff(x)))
+
+
+def abs_energy(x):
+    """Credit goes to https://github.com/blue-yonder/tsfresh"""
+    if not isinstance(x, (np.ndarray, pd.Series)):
+        x = np.asarray(x)
+    return np.dot(x, x)
+
+
+def agg_autocorrelation(x, param):
+    """Credit goes to https://github.com/blue-yonder/tsfresh"""
+    # if the time series is longer than the following threshold, we use fft to calculate the acf
+    THRESHOLD_TO_USE_FFT = 1250
+    var = np.var(x)
+    n = len(x)
+    max_maxlag = max([config["maxlag"] for config in param])
+
+    if np.abs(var) < 10 ** -10 or n == 1:
+        a = [0] * len(x)
+    else:
+        a = acf(x, unbiased=True, fft=n > THRESHOLD_TO_USE_FFT, nlags=max_maxlag)[1:]
+    return [("f_agg_\"{}\"__maxlag_{}".format(config["f_agg"], config["maxlag"]),
+             getattr(np, config["f_agg"])(a[:int(config["maxlag"])])) for config in param]
+
+
+def binned_entropy(x, max_bins):
+    """Credit goes to https://github.com/blue-yonder/tsfresh"""
+    if not isinstance(x, (np.ndarray, pd.Series)):
+        x = np.asarray(x)
+    hist, bin_edges = np.histogram(x, bins=max_bins)
+    probs = hist / x.size
+    return - np.sum(p * np.math.log(p) for p in probs if p != 0)
+
+
+def cid_ce(x, normalize=True):
+    """Credit goes to https://github.com/blue-yonder/tsfresh"""
+    if not isinstance(x, (np.ndarray, pd.Series)):
+        x = np.asarray(x)
+    if normalize:
+        s = np.std(x)
+        if s != 0:
+            x = (x - np.mean(x)) / s
+        else:
+            return 0.0
+
+    x = np.diff(x)
+    return np.sqrt(np.dot(x, x))
+
+
+def linear_trend(x, param):
+    """Credit goes to https://github.com/blue-yonder/tsfresh"""
+    linReg = linregress(range(len(x)), x)
+
+    return [("attr_\"{}\"".format(config["attr"]), getattr(linReg, config["attr"]))
+            for config in param]
 
 
 def mad(x, axis=None):
@@ -82,14 +167,12 @@ def get_features(i_f, sig_file, mfcc_size):
     # Read the file
     sig = dt.fread(sig_file).to_numpy()[:, 0]
 
-    from tsfresh.feature_extraction import feature_calculators
-
     # Wavelet info
     denoised_d, denoised_a, threshold_d, threshold_a = wavelet_denoise(sig.astype(np.float64))
     the_mean = np.mean(sig)
     sig = sig - the_mean
 
-    diff = sig[:-1] - sig[1:]
+    diff = np.diff(sig)
     eps = 1e-10
 
     sample = {
@@ -103,6 +186,8 @@ def get_features(i_f, sig_file, mfcc_size):
         # Energy features
         'sig_l1_energy': np.abs(sig).mean(),
         'sig_l2_energy': np.abs((sig) ** 2).mean() ** .5,
+        "ratio_diff": (diff[diff >= 0].sum() + eps) / (diff[diff < 0].sum() + eps),
+        "mean_change": np.mean(diff),
 
         # Wavelet features
         "denoise_threshold_d": threshold_d,
@@ -114,40 +199,23 @@ def get_features(i_f, sig_file, mfcc_size):
         "amp_max_a": np.max(abs(denoised_a)),
         "amp_max_d": np.max(abs(denoised_d)),
 
-        # More complex features
-        "autocorr1": feature_calculators.autocorrelation(sig, 1),
-        "autocorr2": feature_calculators.autocorrelation(sig, 2),
-        "autocorr3": feature_calculators.autocorrelation(sig, 3),
-        "autocorr5": feature_calculators.autocorrelation(sig, 5),
-        "autocorr10": feature_calculators.autocorrelation(sig, 10),
+        # TSFresh features
+        "trend_stderr": linear_trend(x=sig, param=[{"attr": "stderr"}])[0][1],
+        "abs_change": absolute_sum_of_changes(x=sig),
+        "abs_energy": abs_energy(x=sig - np.mean(sig)),
+        "agg_autocorr_mean": agg_autocorrelation(x=sig, param=[{"f_agg": "mean", "maxlag": 10}])[0][1],
+        "agg_autocorr_std": agg_autocorrelation(x=sig, param=[{"f_agg": "std", "maxlag": 10}])[0][1],
+        "agg_autocorr_abs_mean": agg_autocorrelation(x=np.abs(sig), param=[{"f_agg": "mean", "maxlag": 10}])[0][1],
+        "agg_autocorr_abs_std": agg_autocorrelation(x=np.abs(sig), param=[{"f_agg": "std", "maxlag": 10}])[0][1],
+        "binned_entropy": binned_entropy(x=sig, max_bins=250),
+        "cid_ce_normed": cid_ce(x=sig, normalize=True),
 
-        "autocorr_abs_01": feature_calculators.autocorrelation(x=np.abs(sig), lag=1),
-        "autocorr_abs_02": feature_calculators.autocorrelation(x=np.abs(sig), lag=2),
-        "autocorr_abs_03": feature_calculators.autocorrelation(x=np.abs(sig), lag=3),
-        "autocorr_abs_05": feature_calculators.autocorrelation(x=np.abs(sig), lag=5),
-        "autocorr_abs_10": feature_calculators.autocorrelation(x=np.abs(sig), lag=10),
-
-        # Trend error
-        "trend_stderr": feature_calculators.linear_trend(x=sig, param=[{"attr": "stderr"}])[0][1],
-
-        "abs_change": feature_calculators.absolute_sum_of_changes(x=sig),
-        "mean_change": np.mean(diff),
-        "ratio_diff": (diff[diff >= 0].sum() + eps) / (diff[diff < 0].sum() + eps),
-        "abs_energy": feature_calculators.abs_energy(x=sig - np.mean(sig)),
-        "agg_autocorr_mean":
-            feature_calculators.agg_autocorrelation(x=sig, param=[{"f_agg": "mean", "maxlag": 10}])[0][
-                1],
-        "agg_autocorr_std":
-            feature_calculators.agg_autocorrelation(x=sig, param=[{"f_agg": "std", "maxlag": 10}])[0][
-                1],
-        "agg_autocorr_abs_mean":
-            feature_calculators.agg_autocorrelation(x=np.abs(sig), param=[{"f_agg": "mean", "maxlag": 10}])[0][1],
-        "agg_autocorr_abs_std":
-            feature_calculators.agg_autocorrelation(x=np.abs(sig), param=[{"f_agg": "std", "maxlag": 10}])[0][1],
-
-        "binned_entropy": feature_calculators.binned_entropy(x=sig, max_bins=250),
-        "cid_ce_normed": feature_calculators.cid_ce(x=sig, normalize=True),
     }
+
+    # More complex features
+    for lag in [1, 2, 3, 5, 10]:
+        sample[f"autocorr{lag}"] = autocorrelation(sig, lag)
+        sample[f"autocorr_abs_{lag}"] = autocorrelation(np.abs(sig), lag)
 
     mfcc = librosa.feature.mfcc(sig.astype(np.float64) - the_mean, n_mfcc=mfcc_size).mean(axis=1)
     for i_mf, val in enumerate(mfcc):
@@ -252,15 +320,19 @@ class MySignalProcessingTransformer(CustomTransformer):
 
             pool.finish()
 
+            features_df = pd.DataFrame(features)
+
+            self._output_feature_names = list(features_df.columns)
+            self._feature_desc = list(features_df.columns)
+
+            return features_df
+
         except ValueError as e:
             err_msg = e.args[0]
             if "file" in err_msg.lower() and "does not exist" in err_msg.lower():
                 print("Error in {} : {}".format(self.display_name, err_msg))
                 return np.zeros(X.shape[0])
 
-        # Use pandas instead of dt.Frame(features)
-        # Pending issue #9894
-        return pd.DataFrame(features)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         # no fitting for now
