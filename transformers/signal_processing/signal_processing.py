@@ -232,7 +232,7 @@ class MySignalProcessingTransformer(CustomTransformer):
 
     The transformer has no fit method and only transforms the data, at least for now
     """
-    _modules_needed_by_name = ["pywavelets", "librosa", "numba", "progressbar2", "tsfresh"]
+    _modules_needed_by_name = ["pywavelets", "librosa", "numba", "progressbar2"]
 
     @staticmethod
     def is_enabled():
