@@ -285,7 +285,7 @@ class MySignalProcessingTransformer(CustomTransformer):
         if isinstance(X, dt.Frame):
             # Datatable can select features directly on type
             if X[:, [str]].shape[1] == 0:
-                return np.zeros
+                return np.zeros(X.shape[0])
             files = X[:, [str]].to_numpy()[:, 0]
         else:
             if X[X.columns[0]].dtype != "object":
