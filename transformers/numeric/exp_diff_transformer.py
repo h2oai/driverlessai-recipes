@@ -16,4 +16,6 @@ class MyExpDiffTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        return X[:, dt.exp(dt.f[0] - dt.f[1])]
+        X_diff = X[:, dt.f[0] - dt.f[1]]
+        X_diff[dt.f[0] > 20, 0] = 20  # want no more than e**20
+        return X_diff[:, dt.exp(dt.f[0])]
