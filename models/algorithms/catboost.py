@@ -13,7 +13,7 @@ from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarn
 class CatBoostModel(CustomModel):
     _regression = True
     _binary = True
-    _multiclass = False  # WIP
+    _multiclass = True  # WHat's the issue here ? WIP
     _display_name = "CatBoost"
     _description = "Yandex CatBoost GBM"
 
@@ -76,7 +76,7 @@ class CatBoostModel(CustomModel):
 
         # The below generates a message in the GUI top-middle panel above the progress wheel
         if self.test_count == 0 and self.context and self.context.experiment_id:
-            message = "TestMessage: CatBoost"
+            message = "Tuning CatBoost"
             loggerinfo(logger, message)
             task = kwargs.get('task')
             if task:
@@ -159,21 +159,31 @@ class CatBoostModel(CustomModel):
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
         if not pred_contribs:
             if self.num_classes >= 2:
-                preds = model.predict_proba(X,
-                                            ntree_start=iterations - 1,
-                                            thread_count=self.params['thread_count'])
+                preds = model.predict_proba(
+                    data=X,
+                    ntree_start=0,
+                    ntree_end=iterations - 1,
+                    thread_count=self.params['thread_count']
+                )
+
                 if preds.shape[1] == 2:
                     return preds[:, 1]
                 else:
                     return preds
             else:
-                return model.predict(X,
-                                     ntree_start=iterations - 1,
-                                     thread_count=self.params['thread_count'])
+                return model.predict(
+                    data=X,
+                    ntree_start=0,
+                    ntree_end=iterations - 1,
+                    thread_count=self.params['thread_count']
+                )
         else:
             # For Shapley, doesn't come from predict, instead:
-            return model.get_feature_importance(data=X,
-                                                ntree_start=iterations - 1,
-                                                thread_count=self.params['thread_count'],
-                                                type=EFstrType.ShapValues)
+            return model.get_feature_importance(
+                data=X,
+                ntree_start=0,
+                ntree_end=iterations - 1,
+                thread_count=self.params['thread_count'],
+                type=EFstrType.ShapValues
+            )
             # FIXME: Do equivalent of preds = self._predict_internal_fixup(preds, **mykwargs) or wrap-up
