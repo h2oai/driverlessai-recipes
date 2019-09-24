@@ -1,4 +1,4 @@
-"""Converts numbers to their Logarithm"""
+"""Target-encode numbers by their logarithm"""
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
