@@ -49,8 +49,9 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 ## Sample Recipes
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
-### Count: 108
+### Count: 111
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
+  * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description]
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
   * [ALGORITHMS](./models/algorithms)
@@ -118,7 +119,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [ipaddress_features.py](./transformers/augmentation/ipaddress_features.py) [Parses IP addresses and networks and extracts its properties.]
     * [is_ramadan.py](./transformers/augmentation/is_ramadan.py) [Returns a flag for whether a date falls on Ramadan in Saudi Arabia]
     * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py) [Flag for whether a date falls on a public holiday in Singapore.]
-    * [uszipcode_features_database.py](./transformers/augmentation/uszipcode_features_database.py) [Lightweight transformer to parse and augment US zipcodes with info from zipcode database.]
+    * [uszipcode_features_database.py](./transformers/augmentation/uszipcode_features_database.py) [Transformer to parse and augment US zipcodes with info from zipcode database.]
     * [uszipcode_features_light.py](./transformers/augmentation/uszipcode_features_light.py) [Lightweight transformer to parse and augment US zipcodes with info from zipcode database.]
   * [DATETIME](./transformers/datetime)
     * [datetime_diff_transformer.py](./transformers/datetime/datetime_diff_transformer.py) [Difference in time between two datetime columns]
@@ -131,6 +132,8 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [GEOSPATIAL](./transformers/geospatial)
     * [geodesic.py](./transformers/geospatial/geodesic.py) [Calculates the distance in miles between two latitude/longitude points in space]
     * [myhaversine.py](./transformers/geospatial/myhaversine.py) [Computes miles between first two *_latitude and *_longitude named columns in the data set]
+  * [HIERARCHICAL](./transformers/hierarchical)
+    * [log_scale_target_encoding.py](./transformers/hierarchical/log_scale_target_encoding.py) [Target-encode numbers by their logarithm]
   * [IMAGE](./transformers/image)
     * [image_ocr_transformer.py](./transformers/image/image_ocr_transformer.py) [Convert a path to an image to text using OCR based on tesseract]
     * [image_url_transformer.py](./transformers/image/image_url_transformer.py) [Convert a path to an image (JPG/JPEG/PNG) to a vector of class probabilities created by a pretrained ImageNet deeplearning model (Keras, TensorFlow).]
@@ -165,13 +168,14 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [quantile_winsorizer.py](./transformers/outliers/quantile_winsorizer.py) [Winsorizes (truncates) univariate outliers outside of a given quantile threshold]
     * [twosigma_winsorizer.py](./transformers/outliers/twosigma_winsorizer.py) [Winsorizes (truncates) univariate outliers outside of two standard deviations from the mean.]
   * [RECOMMENDATIONS](./transformers/recommendations)
-    * [matrixfactorization.py](./transformers/recommendations/matrixfactorization.py) [Collaborative filtering features using various techniques of Matrix Factorization for recommendations]
+    * [matrixfactorization.py](./transformers/recommendations/matrixfactorization.py) [Collaborative filtering features using various techniques of Matrix Factorization for recommendations.Recommended for large data]
   * [SIGNAL_PROCESSING](./transformers/signal_processing)
     * [signal_processing.py](./transformers/signal_processing/signal_processing.py) [This custom transformer processes signal files to create features used by DriverlessAI to solve a regression problem]
   * [SPEECH](./transformers/speech)
     * [audio_MFCC_transformer.py](./transformers/speech/audio_MFCC_transformer.py) [Extract MFCC and spectrogram features from audio files]
     * [azure_speech_to_text.py](./transformers/speech/azure_speech_to_text.py) [An example of integration with Azure Speech Recognition Service]
   * [STRING](./transformers/string)
+    * [firstNChars.py](./transformers/string/firstNChars.py) [First N chars of a string variable]
     * [strlen_transformer.py](./transformers/string/strlen_transformer.py) [Returns the string length of categorical values]
     * [to_string_transformer.py](./transformers/string/to_string_transformer.py) [Converts numbers to strings]
   * [TARGETENCODING](./transformers/targetencoding)
