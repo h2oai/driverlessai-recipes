@@ -10,7 +10,7 @@ from sklearn.metrics import confusion_matrix
 
 
 class cost_binary(CustomScorer):
-    _description = "Calculates how revenue a specific model could make or lose"
+    _description = "Calculates how much revenue a specific model could make or lose (per row)"
     _binary = True
     _maximize = True
     _perfect_score = 100000000000
@@ -56,4 +56,4 @@ class cost_binary(CustomScorer):
         fp_loss = fp * cost * (self.__class__._is_zero_predict_one - self.__class__._is_zero_predict_zero)
         tn_profit = tn * cost * (self.__class__._is_zero_predict_zero - self.__class__._is_zero_predict_one)
 
-        return tp_profit + fn_loss + fp_loss + tn_profit
+        return (tp_profit + fn_loss + fp_loss + tn_profit) / len(actual)  # divide by len(actual) to make loss invariant of data size

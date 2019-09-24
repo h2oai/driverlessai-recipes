@@ -8,7 +8,7 @@ from sklearn.metrics import confusion_matrix
 
 
 class CostBinary(CustomScorer):
-    _description = "Calculates cost in binary classification: `$1*FP + $2*FN`"
+    _description = "Calculates cost per row in binary classification: `(fp_cost*FP + fn_cost*FN) / N`"
     _binary = True
     _maximize = False
     _perfect_score = 0
@@ -38,4 +38,4 @@ class CostBinary(CustomScorer):
         tn, fp, fn, tp = cm.ravel()
 
         # calculate`$1*FP + $2*FN`
-        return (fp * self.__class__._fp_cost) + (fn * self.__class__._fn_cost)
+        return ((fp * self.__class__._fp_cost) + (fn * self.__class__._fn_cost)) / len(actual)  # divide by len(actual) to make loss invariant to data size
