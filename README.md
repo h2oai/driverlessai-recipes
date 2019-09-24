@@ -49,7 +49,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 ## Sample Recipes
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
-### Count: 110
+### Count: 106
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description]
 * [MODELS](./models)
@@ -90,12 +90,8 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
       * [brier_loss.py](./scorers/classification/binary/brier_loss.py) [Brier Loss]
       * [cost.py](./scorers/classification/binary/cost.py) [Using hard-coded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `x * FP + y * FN`]
       * [false_discovery_rate.py](./scorers/classification/binary/false_discovery_rate.py) [False Discovery Rate: `FP / (FP + TP)` for binary classification - only recommended if threshold is adjusted`]
-      * [false_negative_count.py](./scorers/classification/binary/false_negative_count.py) [Optimizes for specific Confusion Matrix Values: `FN` - only recommended if threshold is adjusted]
-      * [false_positive_count.py](./scorers/classification/binary/false_positive_count.py) [Optimizes for specific Confusion Matrix Values: `FP` - only recommended if threshold is adjusted]
       * [marketing_campaign.py](./scorers/classification/binary/marketing_campaign.py) [Computes the mean profit per outbound marketing letter, given a fraction of the population addressed, and fixed cost and reward]
       * [profit.py](./scorers/classification/binary/profit.py) [Uses domain information about user behavior to calculate the profit or loss of a model.]
-      * [true_negative_count.py](./scorers/classification/binary/true_negative_count.py) [Optimizes for specific Confusion Matrix Values: `TN` - only recommended if threshold is adjusted]
-      * [true_positive_count.py](./scorers/classification/binary/true_positive_count.py) [Optimizes for specific Confusion Matrix Values: `TP` - only recommended if threshold is adjusted]
     * [MULTICLASS](./scorers/classification/multiclass)
       * [hamming_loss.py](./scorers/classification/multiclass/hamming_loss.py) [Hamming Loss - Misclassification Rate (1 - Accuracy)]
       * [quadratic_weighted_kappa.py](./scorers/classification/multiclass/quadratic_weighted_kappa.py) [Qudratic Weighted Kappa]
