@@ -47,7 +47,7 @@ class POSTagTransformer:
     def atomic_move(self, src, dst):
         try:
             shutil.move(src, dst)
-        except FileExistsError:
+        except shutil.Error:
             pass
         remove(src)
 
