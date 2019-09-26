@@ -1,7 +1,12 @@
 """Extract the count of nouns, verbs, adjectives and adverbs in the text"""
 import datatable as dt
 import numpy as np
+import shutil
+import os
+from zipfile import ZipFile
 from h2oaicore.transformer_utils import CustomTransformer
+from h2oaicore.systemutils import config, remove, temporary_files_path
+from h2oaicore.systemutils_more import download
 
 
 class POSTagTransformer:
@@ -13,13 +18,38 @@ class POSTagTransformer:
         super().__init__(**kwargs)
 
         import nltk
+        nltk_data_path = os.path.join(config.data_directory, config.contrib_env_relative_directory, "nltk_data")
+        nltk_temp_path = os.path.join(temporary_files_path, "nltk_data")
+        nltk.data.path.append(nltk_data_path)
         try:
             self.pos_tagger = nltk.pos_tag
             self.pos_tagger("test")
         except LookupError:
-            nltk.download("averaged_perceptron_tagger")
-            nltk.download("maxent_treebank_pos_tagger")
+            os.makedirs(nltk_data_path, exist_ok=True)
+            os.makedirs(nltk_temp_path, exist_ok=True)
+            tagger_path = os.path.join(nltk_data_path, "taggers")
+            os.makedirs(tagger_path, exist_ok=True)
+            file1 = download("https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/averaged_perceptron_tagger.zip",
+                             dest_path=nltk_temp_path)
+            file2 = download("https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/maxent_treebank_pos_tagger.zip",
+                             dest_path=nltk_temp_path)
+            self.unzip_file(file1, tagger_path)
+            self.unzip_file(file2, tagger_path)
+            self.atomic_move(file1, tagger_path)
+            self.atomic_move(file2, tagger_path)
             self.pos_tagger = nltk.pos_tag
+            self.pos_tagger("test")
+
+    def unzip_file(self, src, dst_dir):
+        with ZipFile(src, 'r') as zip_ref:
+            zip_ref.extractall(dst_dir)
+
+    def atomic_move(self, src, dst):
+        try:
+            shutil.move(src, dst)
+        except FileExistsError:
+            pass
+        remove(src)
 
     @staticmethod
     def get_default_properties():
