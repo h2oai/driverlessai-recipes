@@ -26,7 +26,7 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
         model_path = None
         try:
             model.train(x=list(range(X.ncols)), training_frame=frame, model_id=self.id)
-            model_path = h2o.save_model(model=model)
+            model_path = h2o.save_model(model=model, path=temporary_files_path)
             with open(model_path, "rb") as f:
                 self.raw_model_bytes = f.read()
             return model.anomaly(frame).as_data_frame(header=False)
