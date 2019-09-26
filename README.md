@@ -49,7 +49,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 ## Sample Recipes
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
-### Count: 106
+### Count: 107
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description]
 * [MODELS](./models)
@@ -129,6 +129,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [geodesic.py](./transformers/geospatial/geodesic.py) [Calculates the distance in miles between two latitude/longitude points in space]
     * [myhaversine.py](./transformers/geospatial/myhaversine.py) [Computes miles between first two *_latitude and *_longitude named columns in the data set]
   * [HIERARCHICAL](./transformers/hierarchical)
+    * [firstNCharCVTE.py](./transformers/hierarchical/firstNCharCVTE.py) [Target-encode high cardinality categorical text by their first few characters in the string ]
     * [log_scale_target_encoding.py](./transformers/hierarchical/log_scale_target_encoding.py) [Target-encode numbers by their logarithm]
   * [IMAGE](./transformers/image)
     * [image_ocr_transformer.py](./transformers/image/image_ocr_transformer.py) [Convert a path to an image to text using OCR based on tesseract]
