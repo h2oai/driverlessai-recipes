@@ -1275,3 +1275,4 @@ def get_TE_params(cat_X, debug=False):
     MAX_UNIQUE = max(len_uniques)
     FEATURES_COUNT = cat_X.shape[1]
     return ALPHA, MAX_UNIQUE, FEATURES_COUNT
+
