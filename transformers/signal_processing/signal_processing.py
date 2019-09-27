@@ -236,7 +236,7 @@ class MySignalProcessingTransformer(CustomTransformer):
 
     @staticmethod
     def is_enabled():
-        return True
+        return False
 
     @staticmethod
     def do_acceptance_test():
@@ -351,7 +351,7 @@ class MyNumbaSignalProcessingTransformer(CustomTransformer):
 
     @staticmethod
     def is_enabled():
-        return True
+        return False
 
     @staticmethod
     def do_acceptance_test():
