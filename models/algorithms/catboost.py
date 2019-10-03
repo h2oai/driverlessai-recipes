@@ -592,4 +592,6 @@ class CatBoostModel(CustomModel):
         if params['task_type'] == 'GPU':
             params['max_bin'] = min(params['max_bin'], 127)  # https://github.com/catboost/catboost/issues/1010
 
+        params['silent'] = False
+
         return params
