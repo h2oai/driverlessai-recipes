@@ -3,6 +3,7 @@
 import datatable as dt
 from h2oaicore.models import CustomModel
 import numpy as np
+from h2oaicore.systemutils import arch_type
 from sklearn.preprocessing import LabelEncoder
 import daal4py as d4p
 
@@ -13,6 +14,10 @@ class DaalBaseModel(object):
     _multiclass = False  # FIXME: shape issue
     _can_use_gpu = False
     _is_reproducible = False
+
+    @staticmethod
+    def is_enabled():
+        return not (arch_type == "ppc64le")
 
     def dt_to_numpy(self, X, y=None):
         if isinstance(X, dt.Frame):
