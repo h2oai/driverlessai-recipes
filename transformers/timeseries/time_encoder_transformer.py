@@ -1,3 +1,4 @@
+"""converts the Time Column to an ordered integer"""
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 import datatable as dt
 import numpy as np
