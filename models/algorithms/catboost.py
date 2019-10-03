@@ -9,6 +9,7 @@ from sklearn.preprocessing import LabelEncoder
 from h2oaicore.models import CustomModel
 from h2oaicore.systemutils import config, arch_type, physical_cores_count
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
+from h2oaicore.models import LightGBMModel
 
 
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
@@ -27,6 +28,30 @@ class CatBoostModel(CustomModel):
 
     _show_logger_test = True  # set to True to see how to send information to experiment logger
     _show_task_test = False  # set to True to see how task is used to send message to GUI
+
+    def __init__(self, context=None,
+                 unfitted_pipeline_path=None,
+                 transformed_features=None,
+                 original_user_cols=None,
+                 date_format_strings=None,
+                 **kwargs):
+
+        super().__init__(context=context, unfitted_pipeline_path=unfitted_pipeline_path,
+                         transformed_features=transformed_features, original_user_cols=original_user_cols,
+                         date_format_strings=date_format_strings, **kwargs)
+
+        self.fake_lgbm_model = LightGBMModel(context=context, unfitted_pipeline_path=unfitted_pipeline_path,
+                                             transformed_features=transformed_features,
+                                             original_user_cols=original_user_cols,
+                                             date_format_strings=date_format_strings, **kwargs)
+        # self.fake_lgbm_model.params_base = copy.deepcopy(self.params_base)
+        # self.fake_lgbm_model.params = copy.deepcopy(self.params)
+        # self.fake_lgbm_model.num_classes = self.num_classes
+        # self.fake_lgbm_model.labels = self.labels
+        # self.fake_lgbm_model.label_counts = self.label_counts
+
+        # self.fake_lgbm_model.set_default_params_base(**kwargs)
+        # self.fake_lgbm_model.set_default_params(**kwargs)
 
     @staticmethod
     def is_enabled():
@@ -55,17 +80,20 @@ class CatBoostModel(CustomModel):
         #  https://catboost.ai/docs/concepts/python-reference_catboostclassifier.html
         # optimize for final model as transcribed from best lightgbm model
         n_estimators = self.params_base.get('n_estimators', 100)
+        early_stopping_rounds = min(500, max(1, int(n_estimators / 4)))
         self.params = {'train_dir': config.data_directory,
                        'allow_writing_files': False,
                        'thread_count': self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
 
+                       'bootstrap_type': 'Bayesian',
                        'n_estimators': n_estimators,
                        'learning_rate': 0.018,
-                       'random_seed': self.params_base.get('seed', 1234),
-                       'metric_period': 500,
-                       'od_wait': min(500, n_estimators),
+                       'random_state': self.params_base.get('random_state', 1234),
+                       'metric_period': early_stopping_rounds,
+                       'early_stopping_rounds': early_stopping_rounds,
                        'task_type': 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU',
-                       'depth': 8,
+                       'max_depth': 8,
+                       'silent': self.params_base.get('silent', True),
                        # 'one_hot_max_size': 10000,
                        # 'colsample_bylevel': 0.35, # kyak commented out
                        }
@@ -77,7 +105,7 @@ class CatBoostModel(CustomModel):
                                'learning_rate': 0.018000000000000002, 'early_stopping_rounds': 100, 'reg_alpha': 0.0,
                                'reg_lambda': 0.5, 'gamma': 0, 'max_bin': 64, 'scale_pos_weight': 1, 'max_delta_step': 0,
                                'min_child_weight': 1, 'subsample': 1, 'colsample_bytree': 0.35, 'tree_method': 'hist',
-                               'grow_policy': 'lossguide', 'max_leaves': 64, 'max_depth': 0, 'min_data_in_bin': 1,
+                               'grow_policy': 'lossguide', 'num_leaves': 64, 'max_depth': 0, 'min_data_in_bin': 1,
                                'min_child_samples': 1, 'boosting_type': 'gbdt', 'objective': 'xentropy',
                                'eval_metric': 'auc',
                                'monotonicity_constraints': False, 'max_cat_to_onehot': 10000, 'silent': True,
@@ -95,7 +123,9 @@ class CatBoostModel(CustomModel):
                       **kwargs):
         # Default version is do no mutation
         # Otherwise, change self.params for this model
-        pass
+        self.fake_lgbm_model.mutate_params(**kwargs)
+        self.params = self.fake_lgbm_model.lightgbm_params
+        self.params = self.filter_params(self.params)
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
 
@@ -140,9 +170,9 @@ class CatBoostModel(CustomModel):
         if self.num_classes >= 2:
             lb.fit(self.labels)
             y = lb.transform(y)
-            params.update({'eval_metric': 'AUC', 'loss_function': 'Logloss'})
-        if self.num_classes >= 2:
-            params.update({'eval_metric': 'AUC', 'loss_function': 'MultiClass'})
+            params.update({'eval_metric': 'AUC', 'objective': 'Logloss'})
+        if self.num_classes > 2:
+            params.update({'eval_metric': 'AUC', 'objective': 'MultiClass'})
 
         if isinstance(X, dt.Frame):
             orig_cols = list(X.names)
@@ -184,7 +214,6 @@ class CatBoostModel(CustomModel):
                   baseline=baseline,
                   eval_set=eval_set,
                   early_stopping_rounds=kwargs.get('early_stopping_rounds', None),
-                  verbose=self.params.get('verbose', False)
                   )
 
         # need to move to wrapper
@@ -435,4 +464,64 @@ class CatBoostModel(CustomModel):
         for k, v in params_copy.items():
             if k not in allowed_params.keys():
                 del params[k]
+
+        # now transcribe
+        k = 'boosting_type'
+        if k in params:
+            params[k] = 'Plain'
+
+        k = 'grow_policy'
+        if k in params:
+            params[k] = 'Depthwise' if params[k] == 'depthwise' else 'Lossguide'
+
+        k = 'eval_metric'
+        if k in params and params[k].upper() == 'AUC':
+            params[k] = 'AUC'
+
+        map = {'regression': 'RMSE', 'mae': 'MAE', "mape": 'MAPE', "huber": 'RMSE', "fair": 'RMSE', "rmse": "RMSE",
+               "gamma": "RMSE", "tweedie": "RMSE", "poisson": "Poisson", "quantile": "Quantile", 'binary': 'Logloss',
+               'auc': 'AUC', "xentropy": 'CrossEntropy'}
+        k = 'objective'
+        if k in params and params[k] in map.keys():
+            params[k] = map[params[k]]
+
+        k = 'eval_metric'
+        if k in params and params[k] in map.keys():
+            params[k] = map[params[k]]
+
+        params.pop('verbose', None)
+        params.pop('verbose_eval', None)
+        params.pop('logging_level', None)
+
+        if 'grow_policy' in params:
+            if params['grow_policy'] == 'Lossguide':
+                params.pop('max_depth', None)
+            if params['grow_policy'] == 'Depthwise':
+                params.pop('num_leaves', None)
+        else:
+            params['grow_policy'] = 'SymmetricTree'
+
+        params['task_type'] = 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU'
+
+        if params['task_type'] == 'CPU':
+            params.pop('grow_policy', None)
+            params.pop('num_leaves', None)
+            params.pop('min_data_in_leaf', None)
+            params.pop('min_child_samples', None)
+
+        if 'max_depth' in params and params['max_depth'] == -1:
+            params['max_depth'] = max(2, int(np.log(params.get('num_leaves', 2 ** 6))))
+        if 'num_leaves' in params and params['num_leaves'] == -1:
+            params['num_leaves'] = 2 ** params.get('max_depth', 6)
+
+        if 'bootstrap_type' not in params or not params['bootstrap_type'] in ['Poisson', 'Bernoulli']:
+            params.pop('subsample', None)
+
+        params.update({'train_dir': config.data_directory,
+                       'allow_writing_files': False,
+                       'thread_count': self.params_base.get('n_jobs', 4)})
+
+        if 'reg_lambda' in params and params['reg_lambda'] <= 0.0:
+            params['reg_lambda'] = 3.0  # assume meant unset
+
         return params
