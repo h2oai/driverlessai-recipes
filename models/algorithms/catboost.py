@@ -7,7 +7,7 @@ import _pickle as pickle
 from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel, MainModel
-from h2oaicore.systemutils import config, arch_type, physical_cores_count
+from h2oaicore.systemutils import config, arch_type, physical_cores_count, ngpus_vis
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.models import LightGBMModel
 
@@ -20,6 +20,8 @@ class CatBoostModel(CustomModel):
     _multiclass = True
     _display_name = "CatBoost"
     _description = "Yandex CatBoost GBM"
+    _can_use_multi_gpu = False  # Can enable, but consumes too much memory
+    _can_use_gpu = True  # Catboost uses alot of GPU memory, e.g. 6GB for 25k x 20 dataset!
     _can_handle_categorical = True
     _can_handle_non_numeric = True
     _fit_by_iteration = True
@@ -232,7 +234,7 @@ class CatBoostModel(CustomModel):
                   sample_weight=sample_weight,
                   baseline=baseline,
                   eval_set=eval_set,
-                  early_stopping_rounds=kwargs.get('early_stopping_rounds', None),
+                  early_stopping_rounds=kwargs.get('early_stopping_rounds', None)
                   )
 
         # https://catboost.ai/docs/concepts/python-reference_catboostclassifier.html
@@ -565,12 +567,20 @@ class CatBoostModel(CustomModel):
         if params['task_type'] == 'GPU':
             params.pop('colsample_bylevel', None)  # : 0.35
 
-        if 'max_depth' in params and params['max_depth'] == -1:
-            params['max_depth'] = max(2, int(np.log(params.get('num_leaves', 2 ** 6))))
-        if 'num_leaves' in params and params['num_leaves'] == -1:
-            params['num_leaves'] = 2 ** params.get('max_depth', 6)
-        if 'max_leaves' in params and params['max_leaves'] == -1:
-            params['max_leaves'] = 2 ** params.get('max_depth', 6)
+        if 'grow_policy' in params and params['grow_policy'] in ['Depthwise', 'SymmetricTree']:
+            if 'max_depth' in params and params['max_depth'] == -1:
+                params['max_depth'] = max(2, int(np.log(params.get('num_leaves', 2 ** 6))))
+        else:
+            params.pop('max_depth', None)
+            params.pop('depth', None)
+        if 'grow_policy' in params and params['grow_policy'] == 'Lossguide':
+            # if 'num_leaves' in params and params['num_leaves'] == -1:
+            #    params['num_leaves'] = 2 ** params.get('max_depth', 6)
+            if 'max_leaves' in params and params['max_leaves'] == -1:
+                params['max_leaves'] = 2 ** params.get('max_depth', 6)
+        else:
+            params.pop('max_leaves', None)
+            params.pop('num_leaves', None)
 
         if 'bootstrap_type' not in params or not params['bootstrap_type'] in ['Poisson', 'Bernoulli']:
             params.pop('subsample', None)
@@ -593,5 +603,16 @@ class CatBoostModel(CustomModel):
             params['max_bin'] = min(params['max_bin'], 127)  # https://github.com/catboost/catboost/issues/1010
 
         params['silent'] = False
+
+        n_gpus = self.params_base.get('n_gpus', 0)
+        if n_gpus == -1:
+            n_gpus = ngpus_vis
+        if params['task_type'] == 'GPU' and n_gpus > 0:
+            # https://catboost.ai/docs/features/training-on-gpu.html
+            params['devices'] = "%d-%d" % (
+            self.params_base.get('gpu_id', 0), self.params_base.get('gpu_id', 0) + n_gpus)
+
+        if self.num_classes > 2:
+            params.pop("eval_metric", None)
 
         return params
