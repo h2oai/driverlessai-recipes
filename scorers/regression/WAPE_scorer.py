@@ -1,3 +1,4 @@
+"""Weighted Absoluted Percent Error"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
