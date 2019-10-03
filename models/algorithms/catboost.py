@@ -21,7 +21,9 @@ class CatBoostModel(CustomModel):
     _display_name = "CatBoost"
     _description = "Yandex CatBoost GBM"
     _can_use_multi_gpu = False  # Can enable, but consumes too much memory
-    _can_use_gpu = True  # Catboost uses alot of GPU memory, e.g. 6GB for 25k x 20 dataset!
+    # WIP: leakage can't find _catboost module, unsure what special.  Probably shift would fail too if used catboost.
+    _can_use_gpu = True
+    _force_gpu = False  # force use of GPU regardless of what DAI says
     _can_handle_categorical = True
     _can_handle_non_numeric = True
     _fit_by_iteration = True
@@ -77,6 +79,9 @@ class CatBoostModel(CustomModel):
         # optimize for final model as transcribed from best lightgbm model
         n_estimators = self.params_base.get('n_estimators', 100)
         early_stopping_rounds = min(500, max(1, int(n_estimators / 4)))
+        task_type = 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU'
+        if self._force_gpu:
+            task_type = 'GPU'
         self.params = {'train_dir': config.data_directory,
                        'allow_writing_files': False,
                        'thread_count': self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
@@ -87,7 +92,7 @@ class CatBoostModel(CustomModel):
                        'random_state': self.params_base.get('random_state', 1234),
                        # 'metric_period': early_stopping_rounds,
                        'early_stopping_rounds': early_stopping_rounds,
-                       'task_type': 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU',
+                       'task_type': task_type,
                        'max_depth': 8,
                        'silent': self.params_base.get('silent', True),
                        }
@@ -95,6 +100,9 @@ class CatBoostModel(CustomModel):
         if self._can_handle_categorical:
             max_cat_to_onehot_list = [1, 4, 10, 20, 40, config.max_int_as_cat_uniques]
             self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list, get_best=True)
+            uses_gpus, n_gpus = self.get_uses_gpus(self.params)
+            if uses_gpus:
+                self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 255)
 
         lgbm_params_example = {'booster': 'lightgbm', 'model_class_name': 'LightGBMModel', 'n_gpus': 0, 'gpu_id': 0,
                                'n_jobs': 5, 'num_classes': 2, 'num_class': 1, 'score_f_name': 'AUC',
@@ -136,6 +144,9 @@ class CatBoostModel(CustomModel):
         if self._can_handle_categorical:
             max_cat_to_onehot_list = [1, 4, 10, 20, 40, config.max_int_as_cat_uniques]
             self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list)
+            uses_gpus, n_gpus = self.get_uses_gpus(params)
+            if uses_gpus:
+                self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 255)
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
 
@@ -550,6 +561,10 @@ class CatBoostModel(CustomModel):
 
         if 'task_type' not in params:
             params['task_type'] = 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU'
+            if self._force_gpu:
+                params['task_type'] = 'GPU'
+
+        uses_gpus, n_gpus = self.get_uses_gpus(params)
 
         if params['task_type'] == 'CPU':
             params.pop('grow_policy', None)
@@ -588,6 +603,8 @@ class CatBoostModel(CustomModel):
 
         if 'max_cat_to_onehot' in params:
             params['one_hot_max_size'] = params['max_cat_to_onehot']
+            if uses_gpus:
+                params['one_hot_max_size'] = min(params['one_hot_max_size'], 255)
             params.pop('max_cat_to_onehot', None)
 
         params['max_bin'] = params.get('max_bin', 254)
@@ -598,10 +615,7 @@ class CatBoostModel(CustomModel):
 
         params['silent'] = False
 
-        n_gpus = self.params_base.get('n_gpus', 0)
-        if n_gpus == -1:
-            n_gpus = ngpus_vis
-        if params['task_type'] == 'GPU' and n_gpus > 0:
+        if uses_gpus:
             # https://catboost.ai/docs/features/training-on-gpu.html
             params['devices'] = "%d-%d" % (
             self.params_base.get('gpu_id', 0), self.params_base.get('gpu_id', 0) + n_gpus - 1)
@@ -611,3 +625,12 @@ class CatBoostModel(CustomModel):
             params.pop("eval_metric", None)
 
         return params
+
+    def get_uses_gpus(self, params):
+        n_gpus = self.params_base.get('n_gpus', 0)
+        if self._force_gpu:
+            n_gpus = 1
+        if n_gpus == -1:
+            n_gpus = ngpus_vis
+        uses_gpus = params['task_type'] == 'GPU' and n_gpus > 0
+        return uses_gpus, n_gpus
