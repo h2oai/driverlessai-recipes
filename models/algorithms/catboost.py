@@ -43,18 +43,10 @@ class CatBoostModel(CustomModel):
                          transformed_features=transformed_features, original_user_cols=original_user_cols,
                          date_format_strings=date_format_strings, **kwargs)
 
-        self.fake_lgbm_model = LightGBMModel(context=context, unfitted_pipeline_path=unfitted_pipeline_path,
-                                             transformed_features=transformed_features,
-                                             original_user_cols=original_user_cols,
-                                             date_format_strings=date_format_strings, **kwargs)
-        # self.fake_lgbm_model.params_base = copy.deepcopy(self.params_base)
-        # self.fake_lgbm_model.params = copy.deepcopy(self.params)
-        # self.fake_lgbm_model.num_classes = self.num_classes
-        # self.fake_lgbm_model.labels = self.labels
-        # self.fake_lgbm_model.label_counts = self.label_counts
-
-        # self.fake_lgbm_model.set_default_params_base(**kwargs)
-        # self.fake_lgbm_model.set_default_params(**kwargs)
+        self.input_dict = dict(context=context, unfitted_pipeline_path=unfitted_pipeline_path,
+                               transformed_features=transformed_features,
+                               original_user_cols=original_user_cols,
+                               date_format_strings=date_format_strings, **kwargs)
 
     @staticmethod
     def is_enabled():
@@ -129,8 +121,10 @@ class CatBoostModel(CustomModel):
                       **kwargs):
         # Default version is do no mutation
         # Otherwise, change self.params for this model
-        self.fake_lgbm_model.mutate_params(**kwargs)
-        self.params = self.fake_lgbm_model.lightgbm_params
+        fake_lgbm_model = LightGBMModel(**self.input_dict)
+        fake_lgbm_model.params = self.params
+        fake_lgbm_model.mutate_params(**kwargs)
+        self.params = fake_lgbm_model.lightgbm_params
         self.params['bagging_temperature'] = MainModel.get_one([0, 0.1, 0.5, 0.9, 1.0])
 
         # see what else can mutate, need to know things don't want to preserve
