@@ -6,13 +6,14 @@ import numpy as np
 import _pickle as pickle
 from sklearn.preprocessing import LabelEncoder
 
-from h2oaicore.models import CustomModel
+from h2oaicore.models import CustomModel, MainModel
 from h2oaicore.systemutils import config, arch_type, physical_cores_count
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.models import LightGBMModel
 
 
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
+# https://catboost.ai/docs/concepts/python-usages-examples.html
 class CatBoostModel(CustomModel):
     _regression = True
     _binary = True
@@ -66,6 +67,7 @@ class CatBoostModel(CustomModel):
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
                            **kwargs):
+        # https://catboost.ai/docs/concepts/python-reference_parameters-list.html
         n_jobs = max(1, physical_cores_count)
         max_iterations = min(kwargs['n_estimators'],
                              config.max_nestimators) if 'n_estimators' in kwargs else config.max_nestimators
@@ -89,14 +91,16 @@ class CatBoostModel(CustomModel):
                        'n_estimators': n_estimators,
                        'learning_rate': 0.018,
                        'random_state': self.params_base.get('random_state', 1234),
-                       'metric_period': early_stopping_rounds,
+                       # 'metric_period': early_stopping_rounds,
                        'early_stopping_rounds': early_stopping_rounds,
                        'task_type': 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU',
                        'max_depth': 8,
                        'silent': self.params_base.get('silent', True),
-                       # 'one_hot_max_size': 10000,
-                       # 'colsample_bylevel': 0.35, # kyak commented out
                        }
+
+        if self._can_handle_categorical:
+            max_cat_to_onehot_list = [1, 4, 10, 20, 40, config.max_int_as_cat_uniques]
+            self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list, get_best=True)
 
         lgbm_params_example = {'booster': 'lightgbm', 'model_class_name': 'LightGBMModel', 'n_gpus': 0, 'gpu_id': 0,
                                'n_jobs': 5, 'num_classes': 2, 'num_class': 1, 'score_f_name': 'AUC',
@@ -125,7 +129,17 @@ class CatBoostModel(CustomModel):
         # Otherwise, change self.params for this model
         self.fake_lgbm_model.mutate_params(**kwargs)
         self.params = self.fake_lgbm_model.lightgbm_params
-        self.params = self.filter_params(self.params)
+        self.params['bagging_temperature'] = MainModel.get_one([0, 0.1, 0.5, 0.9, 1.0])
+
+        # see what else can mutate, need to know things don't want to preserve
+        params = copy.deepcopy(self.params)
+        params = self.filter_params(params)
+        if params['task_type'] == 'CPU':
+            self.params['colsample_bylevel'] = MainModel.get_one([0.3, 0.5, 0.9, 1.0])
+
+        if self._can_handle_categorical:
+            max_cat_to_onehot_list = [1, 4, 10, 20, 40, config.max_int_as_cat_uniques]
+            self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list)
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
 
@@ -165,17 +179,23 @@ class CatBoostModel(CustomModel):
                     task.flush()
 
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
-        params = self.params.copy()
         lb = LabelEncoder()
         if self.num_classes >= 2:
             lb.fit(self.labels)
             y = lb.transform(y)
-            params.update({'eval_metric': 'AUC', 'objective': 'Logloss'})
+            self.params.update({'eval_metric': 'AUC', 'objective': 'Logloss'})
         if self.num_classes > 2:
-            params.update({'eval_metric': 'AUC', 'objective': 'MultiClass'})
+            self.params.update({'eval_metric': 'AUC', 'objective': 'MultiClass'})
 
         if isinstance(X, dt.Frame):
             orig_cols = list(X.names)
+        else:
+            orig_cols = list(X.columns)
+
+        # unlike lightgbm that needs label encoded categoricals, catboots can take raw strings etc.
+        self.params['cat_features'] = [i for i, x in enumerate(orig_cols) if 'CatOrig:' in x or 'Cat:' in x]
+
+        if isinstance(X, dt.Frame) and len(self.params['cat_features']) == 0:
             # dt -> catboost internally using buffer leaks, so convert here
             # assume predict is after pipeline collection or in subprocess so needs no protection
             X = X.to_numpy()  # don't assign back to X so don't damage during predict
@@ -188,14 +208,13 @@ class CatBoostModel(CustomModel):
                 if self.num_classes >= 2:
                     valid_y = lb.transform(valid_y)
                 eval_set = [(valid_X, valid_y)]
-        else:
-            orig_cols = list(X.columns)
 
-        # unlike lightgbm that needs label encoded categoricals, catboots can take raw strings etc.
-        params['cat_features'] = [i for i, x in enumerate(orig_cols) if 'CatOrig:' in x or 'Cat:' in x]
+        X, eval_set = self.process_cats(X, eval_set, orig_cols)
+        params = copy.deepcopy(self.params)  # keep separate, since then can be pulled form lightgbm params
         params = self.filter_params(params)
+
         if self._show_logger_test:
-            loggerinfo(logger, "CatBoost parameters: %s" % str(params))
+            loggerinfo(logger, "CatBoost parameters: %s %s" % (str(self.params), str(params)))
 
         if self.num_classes == 1:
             model = CatBoostRegressor(**params)
@@ -216,6 +235,7 @@ class CatBoostModel(CustomModel):
                   early_stopping_rounds=kwargs.get('early_stopping_rounds', None),
                   )
 
+        # https://catboost.ai/docs/concepts/python-reference_catboostclassifier.html
         # need to move to wrapper
         if model.get_best_iteration() is not None:
             iterations = model.get_best_iteration() + 1
@@ -227,14 +247,43 @@ class CatBoostModel(CustomModel):
                                   importances=model.feature_importances_,
                                   iterations=iterations)
 
+    def process_cats(self, X, eval_set, orig_cols):
+        # ensure catboost treats as cat by making str
+        if len(self.params['cat_features']) > 0:
+            X = X.to_pandas()
+            if eval_set is not None:
+                valid_X = eval_set[0][0]
+                valid_y = eval_set[0][1]
+                valid_X = valid_X.to_pandas()
+                eval_set = [(valid_X, valid_y)]
+            for coli in self.params['cat_features']:
+                col = orig_cols[coli]
+                if 'CatOrig:' in col:
+                    cattype = str
+                    # must be string for catboost
+                elif 'Cat:' in col:
+                    cattype = int
+                else:
+                    cattype = None
+                if cattype is not None:
+                    X[col] = X[col].astype(cattype)
+                    if eval_set is not None:
+                        valid_X = eval_set[0][0]
+                        valid_y = eval_set[0][1]
+                        valid_X[col] = valid_X[col].astype(cattype)
+                        eval_set = [(valid_X, valid_y)]
+        return X, eval_set
+
     def predict(self, X, **kwargs):
         model, features, importances, iterations = self.get_model_properties()
         # FIXME: Do equivalent throttling of predict size like def _predict_internal(self, X, **kwargs), wrap-up.
-        if isinstance(X, dt.Frame):
+        if isinstance(X, dt.Frame) and len(self.params['cat_features']) == 0:
             # dt -> lightgbm internally using buffer leaks, so convert here
             # assume predict is after pipeline collection or in subprocess so needs no protection
             X = X.to_numpy()  # don't assign back to X so don't damage during predict
             X = np.ascontiguousarray(X, dtype=np.float32 if config.data_precision == "float32" else np.float64)
+
+        X, eval_set = self.process_cats(X, None, self.feature_names_fitted)
 
         pred_contribs = kwargs.get('pred_contribs', None)
         output_margin = kwargs.get('output_margin', None)
@@ -247,13 +296,14 @@ class CatBoostModel(CustomModel):
 
         # implicit import
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
+        n_jobs = max(1, physical_cores_count)
         if not pred_contribs:
             if self.num_classes >= 2:
                 preds = model.predict_proba(
                     data=X,
                     ntree_start=0,
                     ntree_end=iterations - 1,
-                    thread_count=self.params['thread_count']
+                    thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
                 )
 
                 if preds.shape[1] == 2:
@@ -265,7 +315,7 @@ class CatBoostModel(CustomModel):
                     data=X,
                     ntree_start=0,
                     ntree_end=iterations - 1,
-                    thread_count=self.params['thread_count']
+                    thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
                 )
         else:
             # For Shapley, doesn't come from predict, instead:
@@ -273,7 +323,7 @@ class CatBoostModel(CustomModel):
                 data=X,
                 ntree_start=0,
                 ntree_end=iterations - 1,
-                thread_count=self.params['thread_count'],
+                thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported,
                 type=EFstrType.ShapValues
             )
             # FIXME: Do equivalent of preds = self._predict_internal_fixup(preds, **mykwargs) or wrap-up
@@ -367,6 +417,7 @@ class CatBoostModel(CustomModel):
                           ctr_history_unit=None,
                           monotone_constraints=None)
 
+        # https://catboost.ai/docs/concepts/python-reference_catboostclassifier.html
         classification = dict(iterations=None,
                               learning_rate=None,
                               depth=None,
@@ -501,18 +552,25 @@ class CatBoostModel(CustomModel):
         else:
             params['grow_policy'] = 'SymmetricTree'
 
-        params['task_type'] = 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU'
+        if 'task_type' not in params:
+            params['task_type'] = 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU'
 
         if params['task_type'] == 'CPU':
             params.pop('grow_policy', None)
             params.pop('num_leaves', None)
+            params.pop('max_leaves', None)
             params.pop('min_data_in_leaf', None)
             params.pop('min_child_samples', None)
+
+        if params['task_type'] == 'GPU':
+            params.pop('colsample_bylevel', None)  # : 0.35
 
         if 'max_depth' in params and params['max_depth'] == -1:
             params['max_depth'] = max(2, int(np.log(params.get('num_leaves', 2 ** 6))))
         if 'num_leaves' in params and params['num_leaves'] == -1:
             params['num_leaves'] = 2 ** params.get('max_depth', 6)
+        if 'max_leaves' in params and params['max_leaves'] == -1:
+            params['max_leaves'] = 2 ** params.get('max_depth', 6)
 
         if 'bootstrap_type' not in params or not params['bootstrap_type'] in ['Poisson', 'Bernoulli']:
             params.pop('subsample', None)
@@ -523,5 +581,15 @@ class CatBoostModel(CustomModel):
 
         if 'reg_lambda' in params and params['reg_lambda'] <= 0.0:
             params['reg_lambda'] = 3.0  # assume meant unset
+
+        if 'max_cat_to_onehot' in params:
+            params['one_hot_max_size'] = params['max_cat_to_onehot']
+            params.pop('max_cat_to_onehot', None)
+
+        params['max_bin'] = params.get('max_bin', 254)
+        if params['task_type'] == 'CPU':
+            params['max_bin'] = min(params['max_bin'], 254)  # https://github.com/catboost/catboost/issues/1010
+        if params['task_type'] == 'GPU':
+            params['max_bin'] = min(params['max_bin'], 127)  # https://github.com/catboost/catboost/issues/1010
 
         return params
