@@ -91,6 +91,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 print("## Sample Recipes")
 print("[Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)")
 print(" [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)")
+print(" [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)")
 print("### Count: %d" % count)
 for l in ret:
     print(l)

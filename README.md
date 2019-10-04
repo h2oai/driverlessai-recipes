@@ -49,6 +49,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 ## Sample Recipes
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
+ [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
 ### Count: 107
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description]
