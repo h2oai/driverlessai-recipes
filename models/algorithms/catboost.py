@@ -196,11 +196,13 @@ class CatBoostModel(CustomModel):
 
         if isinstance(X, dt.Frame):
             orig_cols = list(X.names)
+            numeric_cols = list(X[:, [bool, int, float]].names)
         else:
             orig_cols = list(X.columns)
+            numeric_cols = list(X.select_dtypes([np.number]).columns)
 
         # unlike lightgbm that needs label encoded categoricals, catboots can take raw strings etc.
-        self.params['cat_features'] = [i for i, x in enumerate(orig_cols) if 'CatOrig:' in x or 'Cat:' in x]
+        self.params['cat_features'] = [i for i, x in enumerate(orig_cols) if 'CatOrig:' in x or 'Cat:' in x or x not in numeric_cols]
 
         if isinstance(X, dt.Frame) and len(self.params['cat_features']) == 0:
             # dt -> catboost internally using buffer leaks, so convert here
