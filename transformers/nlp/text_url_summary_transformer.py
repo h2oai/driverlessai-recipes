@@ -10,6 +10,10 @@ class TextURLSummaryTransformer(CustomTransformer):
     _display_name = 'TextURLSummaryTransformer'
 
     @staticmethod
+    def is_enabled():
+        return False
+
+    @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
 
