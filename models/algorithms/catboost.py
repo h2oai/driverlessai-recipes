@@ -10,6 +10,7 @@ from h2oaicore.models import CustomModel, MainModel
 from h2oaicore.systemutils import config, arch_type, physical_cores_count, ngpus_vis
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.models import LightGBMModel
+import inspect
 
 
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
@@ -127,8 +128,6 @@ class CatBoostModel(CustomModel):
 
     def mutate_params(self,
                       **kwargs):
-        # Default version is do no mutation
-        # Otherwise, change self.params for this model
         fake_lgbm_model = LightGBMModel(**self.input_dict)
         fake_lgbm_model.params = self.params
         fake_lgbm_model.mutate_params(**kwargs)
@@ -136,20 +135,20 @@ class CatBoostModel(CustomModel):
         self.params['bagging_temperature'] = MainModel.get_one([0, 0.1, 0.5, 0.9, 1.0])
 
         # see what else can mutate, need to know things don't want to preserve
-        params = copy.deepcopy(self.params)
-        params = self.filter_params(params)
-        if params['task_type'] == 'CPU':
+        uses_gpus, n_gpus = self.get_uses_gpus(self.params)
+        if not uses_gpus:
             self.params['colsample_bylevel'] = MainModel.get_one([0.3, 0.5, 0.9, 1.0])
+
+        if not (uses_gpus and self.num_classes > 2):
+            self.params['boosting_type'] = MainModel.get_one(['Plain', 'Ordered'])
 
         if self._can_handle_categorical:
             max_cat_to_onehot_list = [1, 4, 10, 20, 40, config.max_int_as_cat_uniques]
             self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list)
-            uses_gpus, n_gpus = self.get_uses_gpus(params)
             if uses_gpus:
                 self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 255)
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
-
         if self._show_logger_test:
             # Example use of logger, with required import of:
             #  from h2oaicore.systemutils import make_experiment_logger, loggerinfo
@@ -186,10 +185,17 @@ class CatBoostModel(CustomModel):
                     task.flush()
 
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
+
+        # label encode target and setup type of problem
         lb = LabelEncoder()
         if self.num_classes >= 2:
             lb.fit(self.labels)
             y = lb.transform(y)
+            if eval_set is not None:
+                valid_X = eval_set[0][0]
+                valid_y = eval_set[0][1]
+                valid_y = lb.transform(valid_y)
+                eval_set = [(valid_X, valid_y)]
             self.params.update({'eval_metric': 'AUC', 'objective': 'Logloss'})
         if self.num_classes > 2:
             self.params.update({'eval_metric': 'AUC', 'objective': 'MultiClass'})
@@ -204,6 +210,22 @@ class CatBoostModel(CustomModel):
         # unlike lightgbm that needs label encoded categoricals, catboots can take raw strings etc.
         self.params['cat_features'] = [i for i, x in enumerate(orig_cols) if 'CatOrig:' in x or 'Cat:' in x or x not in numeric_cols]
 
+        if not self.get_uses_gpus(self.params):
+            # monotonicity constraints not available for GPU for catboost
+            # get names of columns in same order
+            X_names = list(dt.Frame(X).names)
+            X_numeric = self.get_X_ordered_numerics(X)
+            X_numeric_names = list(X_numeric.names)
+            self.set_monotone_constraints(X=X_numeric, y=y, params=self.params)
+            numeric_constraints = copy.deepcopy(self.params['monotone_constraints'])
+            # if non-numerics, then fix those to have 0 constraint
+            self.params['monotone_constraints'] = [0] * len(X_names)
+            colnumi = 0
+            for coli in X_names:
+                if X_names[coli] in X_numeric_names:
+                    self.params['monotone_constraints'][coli] = numeric_constraints[colnumi]
+                    colnumi += 1
+
         if isinstance(X, dt.Frame) and len(self.params['cat_features']) == 0:
             # dt -> catboost internally using buffer leaks, so convert here
             # assume predict is after pipeline collection or in subprocess so needs no protection
@@ -214,8 +236,6 @@ class CatBoostModel(CustomModel):
                 valid_X = np.ascontiguousarray(valid_X,
                                                dtype=np.float32 if config.data_precision == "float32" else np.float64)
                 valid_y = eval_set[0][1]
-                if self.num_classes >= 2:
-                    valid_y = lb.transform(valid_y)
                 eval_set = [(valid_X, valid_y)]
 
         X, eval_set = self.process_cats(X, eval_set, orig_cols)
@@ -338,187 +358,16 @@ class CatBoostModel(CustomModel):
             # FIXME: Do equivalent of preds = self._predict_internal_fixup(preds, **mykwargs) or wrap-up
 
     def filter_params(self, params):
-        regression = dict(iterations=None,
-                          learning_rate=None,
-                          depth=None,
-                          l2_leaf_reg=None,
-                          model_size_reg=None,
-                          rsm=None,
-                          loss_function='RMSE',
-                          border_count=None,
-                          feature_border_type=None,
-                          per_float_feature_quantization=None,
-                          input_borders=None,
-                          output_borders=None,
-                          fold_permutation_block=None,
-                          od_pval=None,
-                          od_wait=None,
-                          od_type=None,
-                          nan_mode=None,
-                          counter_calc_method=None,
-                          leaf_estimation_iterations=None,
-                          leaf_estimation_method=None,
-                          thread_count=None,
-                          random_seed=None,
-                          use_best_model=None,
-                          best_model_min_trees=None,
-                          verbose=None,
-                          silent=None,
-                          logging_level=None,
-                          metric_period=None,
-                          ctr_leaf_count_limit=None,
-                          store_all_simple_ctr=None,
-                          max_ctr_complexity=None,
-                          has_time=None,
-                          allow_const_label=None,
-                          one_hot_max_size=None,
-                          random_strength=None,
-                          name=None,
-                          ignored_features=None,
-                          train_dir=None,
-                          custom_metric=None,
-                          eval_metric=None,
-                          bagging_temperature=None,
-                          save_snapshot=None,
-                          snapshot_file=None,
-                          snapshot_interval=None,
-                          fold_len_multiplier=None,
-                          used_ram_limit=None,
-                          gpu_ram_part=None,
-                          pinned_memory_size=None,
-                          allow_writing_files=None,
-                          final_ctr_computation_mode=None,
-                          approx_on_full_history=None,
-                          boosting_type=None,
-                          simple_ctr=None,
-                          combinations_ctr=None,
-                          per_feature_ctr=None,
-                          ctr_target_border_count=None,
-                          task_type=None,
-                          device_config=None,
-                          devices=None,
-                          bootstrap_type=None,
-                          subsample=None,
-                          sampling_unit=None,
-                          dev_score_calc_obj_block_size=None,
-                          max_depth=None,
-                          n_estimators=None,
-                          num_boost_round=None,
-                          num_trees=None,
-                          colsample_bylevel=None,
-                          random_state=None,
-                          reg_lambda=None,
-                          objective=None,
-                          eta=None,
-                          max_bin=None,
-                          gpu_cat_features_storage=None,
-                          data_partition=None,
-                          metadata=None,
-                          early_stopping_rounds=None,
-                          cat_features=None,
-                          grow_policy=None,
-                          min_data_in_leaf=None,
-                          min_child_samples=None,
-                          max_leaves=None,
-                          num_leaves=None,
-                          score_function=None,
-                          leaf_estimation_backtracking=None,
-                          ctr_history_unit=None,
-                          monotone_constraints=None)
-
-        # https://catboost.ai/docs/concepts/python-reference_catboostclassifier.html
-        classification = dict(iterations=None,
-                              learning_rate=None,
-                              depth=None,
-                              l2_leaf_reg=None,
-                              model_size_reg=None,
-                              rsm=None,
-                              loss_function=None,
-                              border_count=None,
-                              feature_border_type=None,
-                              per_float_feature_quantization=None,
-                              input_borders=None,
-                              output_borders=None,
-                              fold_permutation_block=None,
-                              od_pval=None,
-                              od_wait=None,
-                              od_type=None,
-                              nan_mode=None,
-                              counter_calc_method=None,
-                              leaf_estimation_iterations=None,
-                              leaf_estimation_method=None,
-                              thread_count=None,
-                              random_seed=None,
-                              use_best_model=None,
-                              verbose=None,
-                              logging_level=None,
-                              metric_period=None,
-                              ctr_leaf_count_limit=None,
-                              store_all_simple_ctr=None,
-                              max_ctr_complexity=None,
-                              has_time=None,
-                              allow_const_label=None,
-                              classes_count=None,
-                              class_weights=None,
-                              one_hot_max_size=None,
-                              random_strength=None,
-                              name=None,
-                              ignored_features=None,
-                              train_dir=None,
-                              custom_loss=None,
-                              custom_metric=None,
-                              eval_metric=None,
-                              bagging_temperature=None,
-                              save_snapshot=None,
-                              snapshot_file=None,
-                              snapshot_interval=None,
-                              fold_len_multiplier=None,
-                              used_ram_limit=None,
-                              gpu_ram_part=None,
-                              allow_writing_files=None,
-                              final_ctr_computation_mode=None,
-                              approx_on_full_history=None,
-                              boosting_type=None,
-                              simple_ctr=None,
-                              combinations_ctr=None,
-                              per_feature_ctr=None,
-                              task_type=None,
-                              device_config=None,
-                              devices=None,
-                              bootstrap_type=None,
-                              subsample=None,
-                              sampling_unit=None,
-                              dev_score_calc_obj_block_size=None,
-                              max_depth=None,
-                              n_estimators=None,
-                              num_boost_round=None,
-                              num_trees=None,
-                              colsample_bylevel=None,
-                              random_state=None,
-                              reg_lambda=None,
-                              objective=None,
-                              eta=None,
-                              max_bin=None,
-                              scale_pos_weight=None,
-                              gpu_cat_features_storage=None,
-                              data_partition=None,
-                              metadata=None,
-                              early_stopping_rounds=None,
-                              cat_features=None,
-                              grow_policy=None,
-                              min_data_in_leaf=None,
-                              min_child_samples=None,
-                              max_leaves=None,
-                              num_leaves=None,
-                              score_function=None,
-                              leaf_estimation_backtracking=None,
-                              ctr_history_unit=None,
-                              monotone_constraints=None)
+        from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
+        fullspec_regression = inspect.getfullargspec(CatBoostRegressor)
+        kwargs_regression = {k: v for k, v in zip(fullspec_regression.args, fullspec_regression.defaults)}
+        fullspec_classification = inspect.getfullargspec(CatBoostClassifier)
+        kwargs_classification = {k: v for k, v in zip(fullspec_classification.args, fullspec_classification.defaults)}
 
         if self.num_classes == 1:
-            allowed_params = regression
+            allowed_params = kwargs_regression
         else:
-            allowed_params = classification
+            allowed_params = kwargs_classification
 
         params_copy = copy.deepcopy(params)
         for k, v in params_copy.items():
@@ -629,6 +478,11 @@ class CatBoostModel(CustomModel):
         return params
 
     def get_uses_gpus(self, params):
+        if 'task_type' not in params:
+            params['task_type'] = 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU'
+            if self._force_gpu:
+                params['task_type'] = 'GPU'
+
         n_gpus = self.params_base.get('n_gpus', 0)
         if self._force_gpu:
             n_gpus = 1
