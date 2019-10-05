@@ -1,5 +1,5 @@
 """CatBoost gradient boosting by Yandex. Currently supports regression and binary classification."""
-import copy
+import copy, os, uuid
 
 import datatable as dt
 import numpy as np
@@ -31,6 +31,7 @@ class CatBoostModel(CustomModel):
     _fit_iteration_name = 'n_estimators'
     _predict_by_iteration = True
     _predict_iteration_name = 'ntree_end'
+    _save_by_pickle = True  # if False, use catboost save/load model as intermediate binary file
 
     _show_logger_test = True  # set to True to see how to send information to experiment logger
     _show_task_test = False  # set to True to see how task is used to send message to GUI
@@ -62,41 +63,31 @@ class CatBoostModel(CustomModel):
     _modules_needed_by_name = ['catboost']
 
     def set_default_params(self,
-                           accuracy=None, time_tolerance=None, interpretability=None,
+                           accuracy=10, time_tolerance=10, interpretability=1,
                            **kwargs):
         # https://catboost.ai/docs/concepts/python-reference_parameters-list.html
-        n_jobs = max(1, physical_cores_count)
-        max_iterations = min(kwargs['n_estimators'],
-                             config.max_nestimators) if 'n_estimators' in kwargs else config.max_nestimators
-        max_iterations = min(kwargs['iterations'], max_iterations) if 'iterations' in kwargs else max_iterations
-        self.params = {'iterations': max_iterations,
-                       'learning_rate': config.min_learning_rate,
-                       'train_dir': config.data_directory,
-                       'allow_writing_files': False,
-                       'thread_count': self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
-                       'early_stopping_rounds': 20
-                       }
         #  https://catboost.ai/docs/concepts/python-reference_catboostclassifier.html
         # optimize for final model as transcribed from best lightgbm model
         n_estimators = self.params_base.get('n_estimators', 100)
-        early_stopping_rounds = min(500, max(1, int(n_estimators / 4)))
-        task_type = 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU'
-        if self._force_gpu:
-            task_type = 'GPU'
-        self.params = {'train_dir': config.data_directory,
-                       'allow_writing_files': False,
-                       'thread_count': self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
-
-                       'bootstrap_type': 'Bayesian',
+        learning_rate = self.params_base.get('learning_rate', config.min_learning_rate)
+        early_stopping_rounds_default = min(500, max(1, int(n_estimators / 4)))
+        early_stopping_rounds = self.params_base.get('early_stopping_rounds', early_stopping_rounds_default)
+        self.params = {'bootstrap_type': 'Bayesian',
                        'n_estimators': n_estimators,
-                       'learning_rate': 0.018,
-                       'random_state': self.params_base.get('random_state', 1234),
-                       # 'metric_period': early_stopping_rounds,
+                       'learning_rate': learning_rate,
                        'early_stopping_rounds': early_stopping_rounds,
-                       'task_type': task_type,
-                       'max_depth': 8,
-                       'silent': self.params_base.get('silent', True),
-                       }
+                       'max_depth': 8
+                      }
+
+        dummy = kwargs.get('dummy', False)
+        ensemble_level = kwargs.get('ensemble_level', 0)
+        train_shape = kwargs.get('train_shape', (1, 1))
+        valid_shape = kwargs.get('valid_shape', (1, 1))
+        self.get_gbm_main_params_evolution(self.params, dummy, accuracy,
+                                           self.num_classes,
+                                           ensemble_level, train_shape,
+                                           valid_shape)
+
 
         if self._can_handle_categorical:
             max_cat_to_onehot_list = [1, 4, 10, 20, 40, config.max_int_as_cat_uniques]
@@ -104,27 +95,6 @@ class CatBoostModel(CustomModel):
             uses_gpus, n_gpus = self.get_uses_gpus(self.params)
             if uses_gpus:
                 self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 255)
-
-        lgbm_params_example = {'booster': 'lightgbm', 'model_class_name': 'LightGBMModel', 'n_gpus': 0, 'gpu_id': 0,
-                               'n_jobs': 5, 'num_classes': 2, 'num_class': 1, 'score_f_name': 'AUC',
-                               'random_state': 889688271,
-                               'pred_gap': None, 'pred_periods': None, 'n_estimators': 6000,
-                               'learning_rate': 0.018000000000000002, 'early_stopping_rounds': 100, 'reg_alpha': 0.0,
-                               'reg_lambda': 0.5, 'gamma': 0, 'max_bin': 64, 'scale_pos_weight': 1, 'max_delta_step': 0,
-                               'min_child_weight': 1, 'subsample': 1, 'colsample_bytree': 0.35, 'tree_method': 'hist',
-                               'grow_policy': 'lossguide', 'num_leaves': 64, 'max_depth': 0, 'min_data_in_bin': 1,
-                               'min_child_samples': 1, 'boosting_type': 'gbdt', 'objective': 'xentropy',
-                               'eval_metric': 'auc',
-                               'monotonicity_constraints': False, 'max_cat_to_onehot': 10000, 'silent': True,
-                               'seed': 889688271,
-                               'disable_gpus': True, 'lossguide': False, 'dummy': False, 'accuracy': 7,
-                               'time_tolerance': 10,
-                               'interpretability': 1, 'ensemble_level': 2, 'train_shape': (590540, 1182),
-                               'valid_shape': None,
-                               'model_origin': 'DefaultIndiv: do_te:True,interp:1,depth:6,num_as_cat:False',
-                               'subsample_freq': 1, 'min_data_per_group': 10, 'max_cat_threshold': 50,
-                               'cat_smooth': 1.0,
-                               'cat_l2': 1.0}
 
     def mutate_params(self,
                       **kwargs):
@@ -240,10 +210,10 @@ class CatBoostModel(CustomModel):
 
         X, eval_set = self.process_cats(X, eval_set, orig_cols)
         params = copy.deepcopy(self.params)  # keep separate, since then can be pulled form lightgbm params
-        params = self.filter_params(params)
+        params = self.filter_params(params, eval_set is not None)
 
         if self._show_logger_test:
-            loggerinfo(logger, "CatBoost parameters: %s %s" % (str(self.params), str(params)))
+            loggerinfo(logger, "CatBoost parameters: params_base : %s params: %s catboost_params: %s" % (str(self.params_base), str(self.params), str(params)))
 
         if self.num_classes == 1:
             model = CatBoostRegressor(**params)
@@ -260,9 +230,7 @@ class CatBoostModel(CustomModel):
         model.fit(X, y=y,
                   sample_weight=sample_weight,
                   baseline=baseline,
-                  eval_set=eval_set,
-                  early_stopping_rounds=kwargs.get('early_stopping_rounds', None)
-                  )
+                  eval_set=eval_set)
 
         # https://catboost.ai/docs/concepts/python-reference_catboostclassifier.html
         # need to move to wrapper
@@ -271,9 +239,18 @@ class CatBoostModel(CustomModel):
         else:
             iterations = self.params['n_estimators'] + 1
         # must always set best_iterations
+        self.model_path = None
+        importances = copy.deepcopy(model.feature_importances_)
+        if not self._save_by_pickle:
+            self.uuid = str(uuid.uuid4())[:6]
+            model_file = "catboost_%s.bin" % str(self.uuid)
+            self.model_path = os.path.join(self.context.experiment_tmp_dir, model_file)
+            model.save_model(self.model_path)
+            with open(self.model_path, mode='rb') as f:
+                model = f.read()
         self.set_model_properties(model=model,
                                   features=orig_cols,
-                                  importances=model.feature_importances_,
+                                  importances=importances,
                                   iterations=iterations)
 
     def process_cats(self, X, eval_set, orig_cols):
@@ -305,6 +282,16 @@ class CatBoostModel(CustomModel):
 
     def predict(self, X, **kwargs):
         model, features, importances, iterations = self.get_model_properties()
+        if not self._save_by_pickle:
+            from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
+            if self.num_classes >= 2:
+                from_file = CatBoostClassifier()
+            else:
+                from_file = CatBoostRegressor()
+            with open(self.model_path, mode='wb') as f:
+                f.write(model)
+            model = from_file.load_model(self.model_path)
+
         # FIXME: Do equivalent throttling of predict size like def _predict_internal(self, X, **kwargs), wrap-up.
         if isinstance(X, dt.Frame) and len(self.params['cat_features']) == 0:
             # dt -> lightgbm internally using buffer leaks, so convert here
@@ -357,7 +344,7 @@ class CatBoostModel(CustomModel):
             )
             # FIXME: Do equivalent of preds = self._predict_internal_fixup(preds, **mykwargs) or wrap-up
 
-    def filter_params(self, params):
+    def filter_params(self, params, has_eval_set):
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
         fullspec_regression = inspect.getfullargspec(CatBoostRegressor)
         kwargs_regression = {k: v for k, v in zip(fullspec_regression.args, fullspec_regression.defaults)}
@@ -464,7 +451,6 @@ class CatBoostModel(CustomModel):
         if params['task_type'] == 'GPU':
             params['max_bin'] = min(params['max_bin'], 127)  # https://github.com/catboost/catboost/issues/1010
 
-        params['silent'] = False
 
         if uses_gpus:
             # https://catboost.ai/docs/features/training-on-gpu.html
@@ -474,6 +460,21 @@ class CatBoostModel(CustomModel):
 
         if self.num_classes > 2:
             params.pop("eval_metric", None)
+
+        params['train_dir'] = self.context.experiment_tmp_dir
+        params['allow_writing_files'] = False
+
+        assert 'n_estimators' in params
+        assert 'learning_rate' in params
+        if 'early_stopping_rounds' not in params and has_eval_set:
+            params['early_stopping_rounds'] = 150  # temp fix
+            # assert 'early_stopping_rounds' in params
+
+        # set system stuff here
+        params['silent'] = self.params_base.get('silent', True)
+        params['silent'] = False  # override for now
+        params['random_state'] = self.params_base.get('random_state', 1234)
+        params['thread_count'] = self.params_base.get('n_jobs', max(1, physical_cores_count))  # -1 is not supported
 
         return params
 
