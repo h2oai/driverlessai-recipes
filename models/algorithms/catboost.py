@@ -397,11 +397,6 @@ class CatBoostModel(CustomModel):
         else:
             params['grow_policy'] = 'SymmetricTree'
 
-        if 'task_type' not in params:
-            params['task_type'] = 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU'
-            if self._force_gpu:
-                params['task_type'] = 'GPU'
-
         uses_gpus, n_gpus = self.get_uses_gpus(params)
 
         if params['task_type'] == 'CPU':
@@ -439,11 +434,12 @@ class CatBoostModel(CustomModel):
         if 'reg_lambda' in params and params['reg_lambda'] <= 0.0:
             params['reg_lambda'] = 3.0  # assume meant unset
 
-        if 'max_cat_to_onehot' in params:
-            params['one_hot_max_size'] = params['max_cat_to_onehot']
+        if self._can_handle_categorical:
+            if 'max_cat_to_onehot' in params:
+                params['one_hot_max_size'] = params['max_cat_to_onehot']
+                params.pop('max_cat_to_onehot', None)
             if uses_gpus:
-                params['one_hot_max_size'] = min(params['one_hot_max_size'], 255)
-            params.pop('max_cat_to_onehot', None)
+                params['one_hot_max_size'] = min(params.get('one_hot_max_size', 255), 255)
 
         params['max_bin'] = params.get('max_bin', 254)
         if params['task_type'] == 'CPU':
@@ -479,10 +475,9 @@ class CatBoostModel(CustomModel):
         return params
 
     def get_uses_gpus(self, params):
-        if 'task_type' not in params:
-            params['task_type'] = 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU'
-            if self._force_gpu:
-                params['task_type'] = 'GPU'
+        params['task_type'] = 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU'
+        if self._force_gpu:
+            params['task_type'] = 'GPU'
 
         n_gpus = self.params_base.get('n_gpus', 0)
         if self._force_gpu:
