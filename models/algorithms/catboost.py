@@ -243,7 +243,7 @@ class CatBoostModel(CustomModel):
         self.acquire_gpus_function(train_shape=X.shape, valid_shape=valid_X_shape)
 
         params = copy.deepcopy(self.params)  # keep separate, since then can be pulled form lightgbm params
-        params = self.filter_params(params, eval_set is not None)
+        params = self.transcribe_and_filter_params(params, eval_set is not None)
 
         if logger is not None:
             loggerinfo(logger, "CatBoost parameters: params_base : %s params: %s catboost_params: %s" % (str(self.params_base), str(self.params), str(params)))
@@ -377,7 +377,7 @@ class CatBoostModel(CustomModel):
             )
             # FIXME: Do equivalent of preds = self._predict_internal_fixup(preds, **mykwargs) or wrap-up
 
-    def filter_params(self, params, has_eval_set):
+    def transcribe_and_filter_params(self, params, has_eval_set):
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
         fullspec_regression = inspect.getfullargspec(CatBoostRegressor)
         kwargs_regression = {k: v for k, v in zip(fullspec_regression.args, fullspec_regression.defaults)}
@@ -457,9 +457,6 @@ class CatBoostModel(CustomModel):
             params.pop('max_leaves', None)
             params.pop('num_leaves', None)
 
-        if 'bootstrap_type' not in params or not params['bootstrap_type'] in ['Poisson', 'Bernoulli']:
-            params.pop('subsample', None)
-
         params.update({'train_dir': config.data_directory,
                        'allow_writing_files': False,
                        'thread_count': self.params_base.get('n_jobs', 4)})
@@ -503,18 +500,18 @@ class CatBoostModel(CustomModel):
             # assert 'early_stopping_rounds' in params
 
         if uses_gpus:
-            self.params.pop('sampling_frequency', None)
+            params.pop('sampling_frequency', None)
 
-        if not uses_gpus and self.params['bootstrap_type'] == 'Poisson':
-            self.params['bootstrap_type'] = 'Bayesian'  # revert to default
-        if uses_gpus and self.params['bootstrap_type'] == 'MVS':
-            self.params['bootstrap_type'] = 'Bayesian'  # revert to default
+        if not uses_gpus and params['bootstrap_type'] == 'Poisson':
+            params['bootstrap_type'] = 'Bayesian'  # revert to default
+        if uses_gpus and params['bootstrap_type'] == 'MVS':
+            params['bootstrap_type'] = 'Bayesian'  # revert to default
 
-        if self.params['bootstrap_type'] not in ['Poisson', 'Bernoulli']:
-            self.params.pop('subsample', None)  # only allowed for those 2 bootstrap_type settings
+        if 'bootstrap_type' not in params or params['bootstrap_type'] not in ['Poisson', 'Bernoulli']:
+            params.pop('subsample', None)  # only allowed for those 2 bootstrap_type settings
 
-        if self.params['bootstrap_type'] not in ['Bayesian']:
-            self.params.pop('bagging_temperature', None)
+        if params['bootstrap_type'] not in ['Bayesian']:
+            params.pop('bagging_temperature', None)
 
         # set system stuff here
         params['silent'] = self.params_base.get('silent', True)
