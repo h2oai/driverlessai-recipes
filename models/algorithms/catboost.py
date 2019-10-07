@@ -88,6 +88,7 @@ class CatBoostModel(CustomModel):
                                            ensemble_level, train_shape,
                                            valid_shape)
 
+        # self.params['has_time'] # should use this if TS problem
 
         if self._can_handle_categorical:
             max_cat_to_onehot_list = [1, 4, 10, 20, 40, config.max_int_as_cat_uniques]
@@ -117,6 +118,22 @@ class CatBoostModel(CustomModel):
             self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list)
             if uses_gpus:
                 self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 255)
+
+        if not uses_gpus:
+            self.params['sampling_frequency'] = MainModel.get_one(['PerTree', 'PerTreeLevel', 'PerTreeLevel', 'PerTreeLevel'])
+
+        bootstrap_type_list = ['Bayesian', 'Bayesian', 'Bayesian', 'Bayesian', 'Bernoulli', 'MVS', 'Poisson', 'No']
+        if not uses_gpus:
+            bootstrap_type_list.remove('Poisson')
+        self.params['bootstrap_type'] = MainModel.get_one(bootstrap_type_list)
+
+        if self.params['bootstrap_type'] in ['Poisson', 'Bernoulli']:
+            self.params['subsample'] = MainModel.get_one([0.5, 0.66, 0.66, 0.9])  # will get pop'ed if not Poisson/Bernoulli
+
+        # overfit protection different sometimes compared to early_stopping_rounds
+        # self.params['od_type']
+        # self.params['od_pval']
+        # self.params['od_wait']
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         if self._show_logger_test:
@@ -465,6 +482,16 @@ class CatBoostModel(CustomModel):
         if 'early_stopping_rounds' not in params and has_eval_set:
             params['early_stopping_rounds'] = 150  # temp fix
             # assert 'early_stopping_rounds' in params
+
+        if uses_gpus:
+            self.params.pop('sampling_frequency', None)
+
+        if not uses_gpus and self.params['bootstrap_type'] == 'Poisson':
+            self.params['bootstrap_type'] = 'Bayesian'  # revert to default
+
+        if self.params['bootstrap_type'] not in ['Poisson', 'Bernoulli']:
+            self.params.pop('subsample', None)  # only allowed for those 2 bootstrap_type settings
+
 
         # set system stuff here
         params['silent'] = self.params_base.get('silent', True)
