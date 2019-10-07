@@ -33,7 +33,8 @@ class CatBoostModel(CustomModel):
     _predict_iteration_name = 'ntree_end'
     _save_by_pickle = True  # if False, use catboost save/load model as intermediate binary file
 
-    _show_logger_test = True  # set to True to see how to send information to experiment logger
+    _make_logger = True  # set to True to make logger
+    _show_logger_test = False  # set to True to see how to send information to experiment logger
     _show_task_test = False  # set to True to see how task is used to send message to GUI
 
     def __init__(self, context=None,
@@ -103,7 +104,6 @@ class CatBoostModel(CustomModel):
         fake_lgbm_model.params = self.params
         fake_lgbm_model.mutate_params(**kwargs)
         self.params = fake_lgbm_model.lightgbm_params
-        self.params['bagging_temperature'] = MainModel.get_one([0, 0.1, 0.5, 0.9, 1.0])
 
         # see what else can mutate, need to know things don't want to preserve
         uses_gpus, n_gpus = self.get_uses_gpus(self.params)
@@ -125,10 +125,15 @@ class CatBoostModel(CustomModel):
         bootstrap_type_list = ['Bayesian', 'Bayesian', 'Bayesian', 'Bayesian', 'Bernoulli', 'MVS', 'Poisson', 'No']
         if not uses_gpus:
             bootstrap_type_list.remove('Poisson')
+        if uses_gpus:
+            bootstrap_type_list.remove('MVS')  # undocumented CPU only
         self.params['bootstrap_type'] = MainModel.get_one(bootstrap_type_list)
 
         if self.params['bootstrap_type'] in ['Poisson', 'Bernoulli']:
             self.params['subsample'] = MainModel.get_one([0.5, 0.66, 0.66, 0.9])  # will get pop'ed if not Poisson/Bernoulli
+
+        if self.params['bootstrap_type'] in ['Bayesian']:
+            self.params['bagging_temperature'] = MainModel.get_one([0, 0.1, 0.5, 0.9, 1.0])
 
         # overfit protection different sometimes compared to early_stopping_rounds
         # self.params['od_type']
@@ -136,14 +141,16 @@ class CatBoostModel(CustomModel):
         # self.params['od_wait']
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
-        if self._show_logger_test:
+        logger = None
+        if self._make_logger:
             # Example use of logger, with required import of:
             #  from h2oaicore.systemutils import make_experiment_logger, loggerinfo
             # Can use loggerwarning, loggererror, etc. for different levels
-            logger = None
             if self.context and self.context.experiment_id:
                 logger = make_experiment_logger(experiment_id=self.context.experiment_id, tmp_dir=self.context.tmp_dir,
                                                 experiment_tmp_dir=self.context.experiment_tmp_dir)
+
+        if self._show_logger_test:
             loggerinfo(logger, "TestLOGGER: Fit CatBoost")
 
         if self._show_task_test:
@@ -225,11 +232,20 @@ class CatBoostModel(CustomModel):
                 valid_y = eval_set[0][1]
                 eval_set = [(valid_X, valid_y)]
 
+        if eval_set is not None:
+            valid_X_shape = eval_set[0][0].shape
+        else:
+            valid_X_shape = None
+
         X, eval_set = self.process_cats(X, eval_set, orig_cols)
+
+        # modify self.params_base['gpu_id'] based upon actually-available GPU
+        self.acquire_gpus_function(train_shape=X.shape, valid_shape=valid_X_shape)
+
         params = copy.deepcopy(self.params)  # keep separate, since then can be pulled form lightgbm params
         params = self.filter_params(params, eval_set is not None)
 
-        if self._show_logger_test:
+        if logger is not None:
             loggerinfo(logger, "CatBoost parameters: params_base : %s params: %s catboost_params: %s" % (str(self.params_base), str(self.params), str(params)))
 
         if self.num_classes == 1:
@@ -477,8 +493,11 @@ class CatBoostModel(CustomModel):
         params['train_dir'] = self.context.experiment_tmp_dir
         params['allow_writing_files'] = False
 
+        # assume during fit self.params_base could have been updated
         assert 'n_estimators' in params
         assert 'learning_rate' in params
+        params['n_estimators'] = self.params_base.get('n_estimators', 100)
+        params['learning_rate'] = self.params_base.get('learning_rate', config.min_learning_rate)
         if 'early_stopping_rounds' not in params and has_eval_set:
             params['early_stopping_rounds'] = 150  # temp fix
             # assert 'early_stopping_rounds' in params
@@ -488,14 +507,18 @@ class CatBoostModel(CustomModel):
 
         if not uses_gpus and self.params['bootstrap_type'] == 'Poisson':
             self.params['bootstrap_type'] = 'Bayesian'  # revert to default
+        if uses_gpus and self.params['bootstrap_type'] == 'MVS':
+            self.params['bootstrap_type'] = 'Bayesian'  # revert to default
 
         if self.params['bootstrap_type'] not in ['Poisson', 'Bernoulli']:
             self.params.pop('subsample', None)  # only allowed for those 2 bootstrap_type settings
 
+        if self.params['bootstrap_type'] not in ['Bayesian']:
+            self.params.pop('bagging_temperature', None)
 
         # set system stuff here
         params['silent'] = self.params_base.get('silent', True)
-        params['silent'] = False  # override for now
+        # params['silent'] = False  # Can enable for tracking improvement in console/dai.log if have access
         params['random_state'] = self.params_base.get('random_state', 1234)
         params['thread_count'] = self.params_base.get('n_jobs', max(1, physical_cores_count))  # -1 is not supported
 
