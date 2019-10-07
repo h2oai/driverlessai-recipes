@@ -239,7 +239,7 @@ class CatBoostModel(CustomModel):
 
         X, eval_set = self.process_cats(X, eval_set, orig_cols)
 
-        # modify self.params_base['gpu_id'] based upon actually-available GPU
+        # modify self.params_base['gpu_id'] based upon actually-available GPU based upon training and valid shapes
         self.acquire_gpus_function(train_shape=X.shape, valid_shape=valid_X_shape)
 
         params = copy.deepcopy(self.params)  # keep separate, since then can be pulled form lightgbm params
