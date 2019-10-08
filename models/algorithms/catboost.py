@@ -7,7 +7,7 @@ import _pickle as pickle
 from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel, MainModel
-from h2oaicore.systemutils import config, arch_type, physical_cores_count, ngpus_vis
+from h2oaicore.systemutils import config, arch_type, physical_cores_count, ngpus_vis, save_obj
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.models import LightGBMModel
 import inspect
@@ -260,10 +260,21 @@ class CatBoostModel(CustomModel):
         else:
             baseline = None
 
-        model.fit(X, y=y,
+        kargs=dict(X=X, y=y,
                   sample_weight=sample_weight,
                   baseline=baseline,
                   eval_set=eval_set)
+        pickle_path = None
+        if config.debug_daimodel_level >= 2:
+            self.uuid = str(uuid.uuid4())[:6]
+            pickle_path = "catboost%s.pickle" % self.uuid
+            save_obj((model, kargs), pickle_path)
+
+        # FIT
+        model.fit(**kargs)
+
+        if config.debug_daimodel_level <= 2:
+            remove(pickle_path)
 
         # https://catboost.ai/docs/concepts/python-reference_catboostclassifier.html
         # need to move to wrapper
@@ -515,7 +526,8 @@ class CatBoostModel(CustomModel):
 
         # set system stuff here
         params['silent'] = self.params_base.get('silent', True)
-        # params['silent'] = False  # Can enable for tracking improvement in console/dai.log if have access
+        if config.debug_daimodel_level >= 1:
+            params['silent'] = False  # Can enable for tracking improvement in console/dai.log if have access
         params['random_state'] = self.params_base.get('random_state', 1234)
         params['thread_count'] = self.params_base.get('n_jobs', max(1, physical_cores_count))  # -1 is not supported
 
