@@ -37,6 +37,8 @@ class CatBoostModel(CustomModel):
     _show_logger_test = False  # set to True to see how to send information to experiment logger
     _show_task_test = False  # set to True to see how task is used to send message to GUI
 
+    _min_one_hot_max_size = 4
+
     def __init__(self, context=None,
                  unfitted_pipeline_path=None,
                  transformed_features=None,
@@ -92,7 +94,8 @@ class CatBoostModel(CustomModel):
         # self.params['has_time'] # should use this if TS problem
 
         if self._can_handle_categorical:
-            max_cat_to_onehot_list = [1, 4, 10, 20, 40, config.max_int_as_cat_uniques]
+            # less than 2 is risky, can get stuck in learning
+            max_cat_to_onehot_list = [4, 10, 20, 40, config.max_int_as_cat_uniques]
             self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list, get_best=True)
             uses_gpus, n_gpus = self.get_uses_gpus(self.params)
             if uses_gpus:
@@ -114,7 +117,7 @@ class CatBoostModel(CustomModel):
             self.params['boosting_type'] = MainModel.get_one(['Plain', 'Ordered'])
 
         if self._can_handle_categorical:
-            max_cat_to_onehot_list = [1, 4, 10, 20, 40, config.max_int_as_cat_uniques]
+            max_cat_to_onehot_list = [4, 10, 20, 40, config.max_int_as_cat_uniques]
             self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list)
             if uses_gpus:
                 self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 255)
@@ -481,6 +484,9 @@ class CatBoostModel(CustomModel):
                 params.pop('max_cat_to_onehot', None)
             if uses_gpus:
                 params['one_hot_max_size'] = min(params.get('one_hot_max_size', 255), 255)
+
+        if 'one_hot_max_size' in params:
+            params['one_hot_max_size'] = max(self._min_one_hot_max_size, params['one_hot_max_size'])
 
         params['max_bin'] = params.get('max_bin', 254)
         if params['task_type'] == 'CPU':
