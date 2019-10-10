@@ -4,9 +4,11 @@ from h2oaicore.models import CustomModel
 import datatable as dt
 import uuid
 from h2oaicore.systemutils import config, temporary_files_path
+from h2o.estimators.gbm import H2OGradientBoostingEstimator
+
 import numpy as np
 
-_global_modules_needed_by_name = ['h2o==3.26.0.1']
+_global_modules_needed_by_name = ['h2o==3.24.0.5']
 import h2o
 import os
 
@@ -145,10 +147,8 @@ class H2OBaseModel:
             if preds_frame is not None:
                 h2o.remove(preds_frame)
 
-from h2o.estimators.gbm import H2OGradientBoostingEstimator
 
-
-class H2OGBMModel(H2OBaseModel, CustomModel):
+class H2OGBMPoissonModel(H2OBaseModel, CustomModel):
     _display_name = "H2O GBM Poisson"
     _description = "H2O-3 Gradient Boosting Machine with Poisson loss function."
     _class = H2OGradientBoostingEstimator
