@@ -30,21 +30,19 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         """
         # Import the ARIMA python module
         pm = importlib.import_module('pmdarima')
-        # Init models
+
+        # Create dictionary that will link models to groups
         self.models = {}
+
         # Convert to pandas
         X = X.to_pandas()
+        # Keep the Time Group Columns
         XX = X[self.tgc].copy()
+        # Add the target
         XX['y'] = np.array(y)
-        self.nan_value = np.mean(y)
-        self.ntrain = X.shape[0]
 
-        # Group the input by TGC (Time group column) excluding the time column itself
-        tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
-        if len(tgc_wo_time) > 0:
-            XX_grp = XX.groupby(tgc_wo_time)
-        else:
-            XX_grp = [([None], XX)]
+        self.mean_value = np.mean(y)
+        self.ntrain = X.shape[0]
 
         # Get the logger if it exists
         logger = None
@@ -54,6 +52,15 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
                 tmp_dir=self.context.tmp_dir,
                 experiment_tmp_dir=self.context.experiment_tmp_dir
             )
+
+        # Group the input by TGC (Time group column) excluding the time column itself
+        # What we want is being able to access the time series related to each group
+        # So that we can predict future sales for each store/department independently
+        tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
+        if len(tgc_wo_time) > 0:
+            XX_grp = XX.groupby(tgc_wo_time)
+        else:
+            XX_grp = [([None], XX)]
 
         # Build 1 ARIMA model per time group columns
         nb_groups = len(XX_grp)
@@ -68,9 +75,12 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
             order = np.argsort(X[self.time_column])
             try:
                 model = pm.auto_arima(X['y'].values[order], error_action='ignore')
-            except:
+            except Exception as e:
+                loggerinfo(logger, "Auto ARIMA warning: {}".format(e))
                 model = None
+
             self.models[grp_hash] = model
+
         return self
 
     def transform(self, X: dt.Frame):
@@ -81,13 +91,53 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         :param X: Datatable Frame containing the features
         :return: ARIMA predictions
         """
+        # Convert to pandas
         X = X.to_pandas()
+        # Keep the Time Group Columns
         XX = X[self.tgc].copy()
+
+        # Group the input by TGC (Time group column) excluding the time column itself
+        # What we want is being able to predict the time series related to each group
+        # So that we can predict future sales for each store/department independently
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
         if len(tgc_wo_time) > 0:
             XX_grp = XX.groupby(tgc_wo_time)
         else:
             XX_grp = [([None], XX)]
+
+        # Go over all groups
+        preds = []
+        for _i_g, (key, X) in enumerate(XX_grp):
+            # Build unique group identifier to access the dedicated model
+            key = key if isinstance(key, list) else [key]
+            grp_hash = '_'.join(map(str, key))
+            # Ensure dates are ordered
+            order = np.argsort(X[self.time_column])
+            if grp_hash in self.models:
+                # Access the model
+                model = self.models[grp_hash]
+                if model is not None:
+                    # Get predictions from ARIMA model
+                    yhat = model.predict(n_periods=X.shape[0])
+                    # Assign predictions the same order the dates had
+                    yhat = yhat[order]
+                    # Create a DataFrame
+                    XX = pd.DataFrame(yhat, columns=['yhat'])
+                else:
+                    XX = pd.DataFrame(np.full((X.shape[0], 1), self.mean_value), columns=['yhat'])  # invalid model
+            else:
+                # If group to predict did not exist at prediction time
+                # simply return the average value of the target
+                XX = pd.DataFrame(np.full((X.shape[0], 1), self.mean_value), columns=['yhat'])  # unseen groups
+            # Assign the predictions the original index of the group DataFrame
+            XX.index = X.index
+            # Add the predictions the list for future concatenation
+            preds.append(XX)
+
+        # Concatenate the frames to create the prediction series for all groups
+        XX = pd.concat(tuple(preds), axis=0).sort_index()
+
+        return XX
 
         # Get the logger if it exists
         logger = None
@@ -122,6 +172,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
                 XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # unseen groups
             XX.index = X.index
             preds.append(XX)
+
         XX = pd.concat(tuple(preds), axis=0).sort_index()
 
         return XX
