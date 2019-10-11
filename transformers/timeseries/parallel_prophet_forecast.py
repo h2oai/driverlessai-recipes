@@ -57,15 +57,38 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
     _multiclass = False
     # some package dependencies are best sequential to overcome known issues
     _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.4.post2']
-    # _modules_needed_by_name = ['fbprophet']
     _included_model_classes = None  # ["gblinear"] for strong trends - can extrapolate
+
+    def __init__(
+            self,
+            country_holidays=None,
+            monthly_seasonality=False,  **kwargs):
+        super().__init__(**kwargs)
+        self.country_holidays = country_holidays
+        self.monthly_seasonality = monthly_seasonality
+
+    @property
+    def display_name(self):
+        name = "FBProphet"
+        if self.country_holidays is not None:
+            name += "_Holiday_{}".format(self.country_holidays)
+        if self.monthly_seasonality:
+            name += "_MonthlySeason"
+        return name
 
     @staticmethod
     def get_default_properties():
         return dict(col_type="time_column", min_cols=1, max_cols=1, relative_importance=1)
 
     @staticmethod
-    def _fit_async(X_path, grp_hash, tmp_folder):
+    def get_parameter_choices():
+        return {
+            "country_holidays": [None, "US"],
+            "monthly_seasonality": [False, True],
+        }
+
+    @staticmethod
+    def _fit_async(X_path, grp_hash, tmp_folder, params):
         """
         Fits a FB Prophet model for a particular time group
         :param X_path: Path to the data used to fit the FB Prophet model
@@ -85,6 +108,11 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         Prophet = getattr(mod, "Prophet")
         model = Prophet()
 
+        if params["country_holidays"] is not None:
+            model.add_country_holidays(country_name=params["country_holidays"])
+        if params["monthly_seasonality"]:
+            model.add_seasonality(name='monthly', period=30.5, fourier_order=5)
+
         with suppress_stdout_stderr():
             model.fit(X[['ds', 'y']])
         model_path = os.path.join(tmp_folder, "fbprophet_model" + str(uuid.uuid4()))
@@ -103,7 +131,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             loggerinfo(logger, "Prophet No Max Worker in kwargs. Set n_jobs to 1")
             n_jobs = 1
 
-        return n_jobs
+        return n_jobs if n_jobs > 1 else 2
 
     def _clean_tmp_folder(self, logger, tmp_folder):
         try:
@@ -192,6 +220,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
         pool_to_use = small_job_pool
         loggerinfo(logger, "Prophet will use {} workers for fitting".format(n_jobs))
+        loggerinfo(logger, "Prophet parameters holidays {} / monthly {}".format(self.country_holidays, self.monthly_seasonality))
         pool = pool_to_use(
             logger=None, processor=processor,
             num_tasks=num_tasks, max_workers=n_jobs
@@ -212,7 +241,12 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
             self.priors[grp_hash] = X['y'].mean()
 
-            args = (X_path, grp_hash, tmp_folder)
+            params = {
+                "country_holidays": self.country_holidays,
+                "monthly_seasonality": self.monthly_seasonality
+            }
+
+            args = (X_path, grp_hash, tmp_folder, params)
             kwargs = {}
             pool.submit_tryget(None, MyParallelProphetTransformer_fit_async, args=args, kwargs=kwargs, out=self.models)
         pool.finish()
