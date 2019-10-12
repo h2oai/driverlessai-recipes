@@ -5,13 +5,7 @@ from h2oaicore.stats import CustomData
 import numpy as np
 
 class AirlinesData(CustomData):
-    @staticmethod
-    def is_enabled():
-        return False
-
-    _display_name = "Airlines"
-    _description = "Create airlines data from raw data"
-
+    pass
 
 def _create_data(input_file=""):
     import os
