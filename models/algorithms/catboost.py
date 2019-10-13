@@ -1,5 +1,5 @@
 """CatBoost gradient boosting by Yandex. Currently supports regression and binary classification."""
-import copy
+import copy, os, uuid
 
 import datatable as dt
 import numpy as np
@@ -7,9 +7,10 @@ import _pickle as pickle
 from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel, MainModel
-from h2oaicore.systemutils import config, arch_type, physical_cores_count, ngpus_vis
+from h2oaicore.systemutils import config, arch_type, physical_cores_count, ngpus_vis, save_obj, remove
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.models import LightGBMModel
+import inspect
 
 
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
@@ -30,9 +31,13 @@ class CatBoostModel(CustomModel):
     _fit_iteration_name = 'n_estimators'
     _predict_by_iteration = True
     _predict_iteration_name = 'ntree_end'
+    _save_by_pickle = True  # if False, use catboost save/load model as intermediate binary file
 
-    _show_logger_test = True  # set to True to see how to send information to experiment logger
+    _make_logger = True  # set to True to make logger
+    _show_logger_test = False  # set to True to see how to send information to experiment logger
     _show_task_test = False  # set to True to see how task is used to send message to GUI
+
+    _min_one_hot_max_size = 4
 
     def __init__(self, context=None,
                  unfitted_pipeline_path=None,
@@ -61,103 +66,94 @@ class CatBoostModel(CustomModel):
     _modules_needed_by_name = ['catboost']
 
     def set_default_params(self,
-                           accuracy=None, time_tolerance=None, interpretability=None,
+                           accuracy=10, time_tolerance=10, interpretability=1,
                            **kwargs):
         # https://catboost.ai/docs/concepts/python-reference_parameters-list.html
-        n_jobs = max(1, physical_cores_count)
-        max_iterations = min(kwargs['n_estimators'],
-                             config.max_nestimators) if 'n_estimators' in kwargs else config.max_nestimators
-        max_iterations = min(kwargs['iterations'], max_iterations) if 'iterations' in kwargs else max_iterations
-        self.params = {'iterations': max_iterations,
-                       'learning_rate': config.min_learning_rate,
-                       'train_dir': config.data_directory,
-                       'allow_writing_files': False,
-                       'thread_count': self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
-                       'early_stopping_rounds': 20
-                       }
         #  https://catboost.ai/docs/concepts/python-reference_catboostclassifier.html
         # optimize for final model as transcribed from best lightgbm model
         n_estimators = self.params_base.get('n_estimators', 100)
-        early_stopping_rounds = min(500, max(1, int(n_estimators / 4)))
-        task_type = 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU'
-        if self._force_gpu:
-            task_type = 'GPU'
-        self.params = {'train_dir': config.data_directory,
-                       'allow_writing_files': False,
-                       'thread_count': self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
-
-                       'bootstrap_type': 'Bayesian',
+        learning_rate = self.params_base.get('learning_rate', config.min_learning_rate)
+        early_stopping_rounds_default = min(500, max(1, int(n_estimators / 4)))
+        early_stopping_rounds = self.params_base.get('early_stopping_rounds', early_stopping_rounds_default)
+        self.params = {'bootstrap_type': 'Bayesian',
                        'n_estimators': n_estimators,
-                       'learning_rate': 0.018,
-                       'random_state': self.params_base.get('random_state', 1234),
-                       # 'metric_period': early_stopping_rounds,
+                       'learning_rate': learning_rate,
                        'early_stopping_rounds': early_stopping_rounds,
-                       'task_type': task_type,
-                       'max_depth': 8,
-                       'silent': self.params_base.get('silent', True),
-                       }
+                       'max_depth': 8
+                      }
+
+        dummy = kwargs.get('dummy', False)
+        ensemble_level = kwargs.get('ensemble_level', 0)
+        train_shape = kwargs.get('train_shape', (1, 1))
+        valid_shape = kwargs.get('valid_shape', (1, 1))
+        self.get_gbm_main_params_evolution(self.params, dummy, accuracy,
+                                           self.num_classes,
+                                           ensemble_level, train_shape,
+                                           valid_shape)
+
+        # self.params['has_time'] # should use this if TS problem
 
         if self._can_handle_categorical:
-            max_cat_to_onehot_list = [1, 4, 10, 20, 40, config.max_int_as_cat_uniques]
+            # less than 2 is risky, can get stuck in learning
+            max_cat_to_onehot_list = [4, 10, 20, 40, config.max_int_as_cat_uniques]
             self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list, get_best=True)
             uses_gpus, n_gpus = self.get_uses_gpus(self.params)
             if uses_gpus:
                 self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 255)
 
-        lgbm_params_example = {'booster': 'lightgbm', 'model_class_name': 'LightGBMModel', 'n_gpus': 0, 'gpu_id': 0,
-                               'n_jobs': 5, 'num_classes': 2, 'num_class': 1, 'score_f_name': 'AUC',
-                               'random_state': 889688271,
-                               'pred_gap': None, 'pred_periods': None, 'n_estimators': 6000,
-                               'learning_rate': 0.018000000000000002, 'early_stopping_rounds': 100, 'reg_alpha': 0.0,
-                               'reg_lambda': 0.5, 'gamma': 0, 'max_bin': 64, 'scale_pos_weight': 1, 'max_delta_step': 0,
-                               'min_child_weight': 1, 'subsample': 1, 'colsample_bytree': 0.35, 'tree_method': 'hist',
-                               'grow_policy': 'lossguide', 'num_leaves': 64, 'max_depth': 0, 'min_data_in_bin': 1,
-                               'min_child_samples': 1, 'boosting_type': 'gbdt', 'objective': 'xentropy',
-                               'eval_metric': 'auc',
-                               'monotonicity_constraints': False, 'max_cat_to_onehot': 10000, 'silent': True,
-                               'seed': 889688271,
-                               'disable_gpus': True, 'lossguide': False, 'dummy': False, 'accuracy': 7,
-                               'time_tolerance': 10,
-                               'interpretability': 1, 'ensemble_level': 2, 'train_shape': (590540, 1182),
-                               'valid_shape': None,
-                               'model_origin': 'DefaultIndiv: do_te:True,interp:1,depth:6,num_as_cat:False',
-                               'subsample_freq': 1, 'min_data_per_group': 10, 'max_cat_threshold': 50,
-                               'cat_smooth': 1.0,
-                               'cat_l2': 1.0}
-
     def mutate_params(self,
                       **kwargs):
-        # Default version is do no mutation
-        # Otherwise, change self.params for this model
         fake_lgbm_model = LightGBMModel(**self.input_dict)
         fake_lgbm_model.params = self.params
         fake_lgbm_model.mutate_params(**kwargs)
         self.params = fake_lgbm_model.lightgbm_params
-        self.params['bagging_temperature'] = MainModel.get_one([0, 0.1, 0.5, 0.9, 1.0])
 
         # see what else can mutate, need to know things don't want to preserve
-        params = copy.deepcopy(self.params)
-        params = self.filter_params(params)
-        if params['task_type'] == 'CPU':
+        uses_gpus, n_gpus = self.get_uses_gpus(self.params)
+        if not uses_gpus:
             self.params['colsample_bylevel'] = MainModel.get_one([0.3, 0.5, 0.9, 1.0])
 
+        if not (uses_gpus and self.num_classes > 2):
+            self.params['boosting_type'] = MainModel.get_one(['Plain', 'Ordered'])
+
         if self._can_handle_categorical:
-            max_cat_to_onehot_list = [1, 4, 10, 20, 40, config.max_int_as_cat_uniques]
+            max_cat_to_onehot_list = [4, 10, 20, 40, config.max_int_as_cat_uniques]
             self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list)
-            uses_gpus, n_gpus = self.get_uses_gpus(params)
             if uses_gpus:
                 self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 255)
 
-    def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        if not uses_gpus:
+            self.params['sampling_frequency'] = MainModel.get_one(['PerTree', 'PerTreeLevel', 'PerTreeLevel', 'PerTreeLevel'])
 
-        if self._show_logger_test:
+        bootstrap_type_list = ['Bayesian', 'Bayesian', 'Bayesian', 'Bayesian', 'Bernoulli', 'MVS', 'Poisson', 'No']
+        if not uses_gpus:
+            bootstrap_type_list.remove('Poisson')
+        if uses_gpus:
+            bootstrap_type_list.remove('MVS')  # undocumented CPU only
+        self.params['bootstrap_type'] = MainModel.get_one(bootstrap_type_list)
+
+        if self.params['bootstrap_type'] in ['Poisson', 'Bernoulli']:
+            self.params['subsample'] = MainModel.get_one([0.5, 0.66, 0.66, 0.9])  # will get pop'ed if not Poisson/Bernoulli
+
+        if self.params['bootstrap_type'] in ['Bayesian']:
+            self.params['bagging_temperature'] = MainModel.get_one([0, 0.1, 0.5, 0.9, 1.0])
+
+        # overfit protection different sometimes compared to early_stopping_rounds
+        # self.params['od_type']
+        # self.params['od_pval']
+        # self.params['od_wait']
+
+    def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        logger = None
+        if self._make_logger:
             # Example use of logger, with required import of:
             #  from h2oaicore.systemutils import make_experiment_logger, loggerinfo
             # Can use loggerwarning, loggererror, etc. for different levels
-            logger = None
             if self.context and self.context.experiment_id:
                 logger = make_experiment_logger(experiment_id=self.context.experiment_id, tmp_dir=self.context.tmp_dir,
                                                 experiment_tmp_dir=self.context.experiment_tmp_dir)
+
+        if self._show_logger_test:
             loggerinfo(logger, "TestLOGGER: Fit CatBoost")
 
         if self._show_task_test:
@@ -186,21 +182,46 @@ class CatBoostModel(CustomModel):
                     task.flush()
 
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
+
+        # label encode target and setup type of problem
         lb = LabelEncoder()
         if self.num_classes >= 2:
             lb.fit(self.labels)
             y = lb.transform(y)
+            if eval_set is not None:
+                valid_X = eval_set[0][0]
+                valid_y = eval_set[0][1]
+                valid_y = lb.transform(valid_y)
+                eval_set = [(valid_X, valid_y)]
             self.params.update({'eval_metric': 'AUC', 'objective': 'Logloss'})
         if self.num_classes > 2:
             self.params.update({'eval_metric': 'AUC', 'objective': 'MultiClass'})
 
         if isinstance(X, dt.Frame):
             orig_cols = list(X.names)
+            numeric_cols = list(X[:, [bool, int, float]].names)
         else:
             orig_cols = list(X.columns)
+            numeric_cols = list(X.select_dtypes([np.number]).columns)
 
         # unlike lightgbm that needs label encoded categoricals, catboots can take raw strings etc.
-        self.params['cat_features'] = [i for i, x in enumerate(orig_cols) if 'CatOrig:' in x or 'Cat:' in x]
+        self.params['cat_features'] = [i for i, x in enumerate(orig_cols) if 'CatOrig:' in x or 'Cat:' in x or x not in numeric_cols]
+
+        if not self.get_uses_gpus(self.params):
+            # monotonicity constraints not available for GPU for catboost
+            # get names of columns in same order
+            X_names = list(dt.Frame(X).names)
+            X_numeric = self.get_X_ordered_numerics(X)
+            X_numeric_names = list(X_numeric.names)
+            self.set_monotone_constraints(X=X_numeric, y=y, params=self.params)
+            numeric_constraints = copy.deepcopy(self.params['monotone_constraints'])
+            # if non-numerics, then fix those to have 0 constraint
+            self.params['monotone_constraints'] = [0] * len(X_names)
+            colnumi = 0
+            for coli in X_names:
+                if X_names[coli] in X_numeric_names:
+                    self.params['monotone_constraints'][coli] = numeric_constraints[colnumi]
+                    colnumi += 1
 
         if isinstance(X, dt.Frame) and len(self.params['cat_features']) == 0:
             # dt -> catboost internally using buffer leaks, so convert here
@@ -212,16 +233,23 @@ class CatBoostModel(CustomModel):
                 valid_X = np.ascontiguousarray(valid_X,
                                                dtype=np.float32 if config.data_precision == "float32" else np.float64)
                 valid_y = eval_set[0][1]
-                if self.num_classes >= 2:
-                    valid_y = lb.transform(valid_y)
                 eval_set = [(valid_X, valid_y)]
 
-        X, eval_set = self.process_cats(X, eval_set, orig_cols)
-        params = copy.deepcopy(self.params)  # keep separate, since then can be pulled form lightgbm params
-        params = self.filter_params(params)
+        if eval_set is not None:
+            valid_X_shape = eval_set[0][0].shape
+        else:
+            valid_X_shape = None
 
-        if self._show_logger_test:
-            loggerinfo(logger, "CatBoost parameters: %s %s" % (str(self.params), str(params)))
+        X, eval_set = self.process_cats(X, eval_set, orig_cols)
+
+        # modify self.params_base['gpu_id'] based upon actually-available GPU based upon training and valid shapes
+        self.acquire_gpus_function(train_shape=X.shape, valid_shape=valid_X_shape)
+
+        params = copy.deepcopy(self.params)  # keep separate, since then can be pulled form lightgbm params
+        params = self.transcribe_and_filter_params(params, eval_set is not None)
+
+        if logger is not None:
+            loggerinfo(logger, "CatBoost parameters: params_base : %s params: %s catboost_params: %s" % (str(self.params_base), str(self.params), str(params)))
 
         if self.num_classes == 1:
             model = CatBoostRegressor(**params)
@@ -235,12 +263,21 @@ class CatBoostModel(CustomModel):
         else:
             baseline = None
 
-        model.fit(X, y=y,
+        kargs=dict(X=X, y=y,
                   sample_weight=sample_weight,
                   baseline=baseline,
-                  eval_set=eval_set,
-                  early_stopping_rounds=kwargs.get('early_stopping_rounds', None)
-                  )
+                  eval_set=eval_set)
+        pickle_path = None
+        if config.debug_daimodel_level >= 2:
+            self.uuid = str(uuid.uuid4())[:6]
+            pickle_path = "catboost%s.pickle" % self.uuid
+            save_obj((model, kargs), pickle_path)
+
+        # FIT
+        model.fit(**kargs)
+
+        if config.debug_daimodel_level <= 2:
+            remove(pickle_path)
 
         # https://catboost.ai/docs/concepts/python-reference_catboostclassifier.html
         # need to move to wrapper
@@ -249,9 +286,18 @@ class CatBoostModel(CustomModel):
         else:
             iterations = self.params['n_estimators'] + 1
         # must always set best_iterations
+        self.model_path = None
+        importances = copy.deepcopy(model.feature_importances_)
+        if not self._save_by_pickle:
+            self.uuid = str(uuid.uuid4())[:6]
+            model_file = "catboost_%s.bin" % str(self.uuid)
+            self.model_path = os.path.join(self.context.experiment_tmp_dir, model_file)
+            model.save_model(self.model_path)
+            with open(self.model_path, mode='rb') as f:
+                model = f.read()
         self.set_model_properties(model=model,
                                   features=orig_cols,
-                                  importances=model.feature_importances_,
+                                  importances=importances,
                                   iterations=iterations)
 
     def process_cats(self, X, eval_set, orig_cols):
@@ -283,6 +329,16 @@ class CatBoostModel(CustomModel):
 
     def predict(self, X, **kwargs):
         model, features, importances, iterations = self.get_model_properties()
+        if not self._save_by_pickle:
+            from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
+            if self.num_classes >= 2:
+                from_file = CatBoostClassifier()
+            else:
+                from_file = CatBoostRegressor()
+            with open(self.model_path, mode='wb') as f:
+                f.write(model)
+            model = from_file.load_model(self.model_path)
+
         # FIXME: Do equivalent throttling of predict size like def _predict_internal(self, X, **kwargs), wrap-up.
         if isinstance(X, dt.Frame) and len(self.params['cat_features']) == 0:
             # dt -> lightgbm internally using buffer leaks, so convert here
@@ -335,188 +391,17 @@ class CatBoostModel(CustomModel):
             )
             # FIXME: Do equivalent of preds = self._predict_internal_fixup(preds, **mykwargs) or wrap-up
 
-    def filter_params(self, params):
-        regression = dict(iterations=None,
-                          learning_rate=None,
-                          depth=None,
-                          l2_leaf_reg=None,
-                          model_size_reg=None,
-                          rsm=None,
-                          loss_function='RMSE',
-                          border_count=None,
-                          feature_border_type=None,
-                          per_float_feature_quantization=None,
-                          input_borders=None,
-                          output_borders=None,
-                          fold_permutation_block=None,
-                          od_pval=None,
-                          od_wait=None,
-                          od_type=None,
-                          nan_mode=None,
-                          counter_calc_method=None,
-                          leaf_estimation_iterations=None,
-                          leaf_estimation_method=None,
-                          thread_count=None,
-                          random_seed=None,
-                          use_best_model=None,
-                          best_model_min_trees=None,
-                          verbose=None,
-                          silent=None,
-                          logging_level=None,
-                          metric_period=None,
-                          ctr_leaf_count_limit=None,
-                          store_all_simple_ctr=None,
-                          max_ctr_complexity=None,
-                          has_time=None,
-                          allow_const_label=None,
-                          one_hot_max_size=None,
-                          random_strength=None,
-                          name=None,
-                          ignored_features=None,
-                          train_dir=None,
-                          custom_metric=None,
-                          eval_metric=None,
-                          bagging_temperature=None,
-                          save_snapshot=None,
-                          snapshot_file=None,
-                          snapshot_interval=None,
-                          fold_len_multiplier=None,
-                          used_ram_limit=None,
-                          gpu_ram_part=None,
-                          pinned_memory_size=None,
-                          allow_writing_files=None,
-                          final_ctr_computation_mode=None,
-                          approx_on_full_history=None,
-                          boosting_type=None,
-                          simple_ctr=None,
-                          combinations_ctr=None,
-                          per_feature_ctr=None,
-                          ctr_target_border_count=None,
-                          task_type=None,
-                          device_config=None,
-                          devices=None,
-                          bootstrap_type=None,
-                          subsample=None,
-                          sampling_unit=None,
-                          dev_score_calc_obj_block_size=None,
-                          max_depth=None,
-                          n_estimators=None,
-                          num_boost_round=None,
-                          num_trees=None,
-                          colsample_bylevel=None,
-                          random_state=None,
-                          reg_lambda=None,
-                          objective=None,
-                          eta=None,
-                          max_bin=None,
-                          gpu_cat_features_storage=None,
-                          data_partition=None,
-                          metadata=None,
-                          early_stopping_rounds=None,
-                          cat_features=None,
-                          grow_policy=None,
-                          min_data_in_leaf=None,
-                          min_child_samples=None,
-                          max_leaves=None,
-                          num_leaves=None,
-                          score_function=None,
-                          leaf_estimation_backtracking=None,
-                          ctr_history_unit=None,
-                          monotone_constraints=None)
-
-        # https://catboost.ai/docs/concepts/python-reference_catboostclassifier.html
-        classification = dict(iterations=None,
-                              learning_rate=None,
-                              depth=None,
-                              l2_leaf_reg=None,
-                              model_size_reg=None,
-                              rsm=None,
-                              loss_function=None,
-                              border_count=None,
-                              feature_border_type=None,
-                              per_float_feature_quantization=None,
-                              input_borders=None,
-                              output_borders=None,
-                              fold_permutation_block=None,
-                              od_pval=None,
-                              od_wait=None,
-                              od_type=None,
-                              nan_mode=None,
-                              counter_calc_method=None,
-                              leaf_estimation_iterations=None,
-                              leaf_estimation_method=None,
-                              thread_count=None,
-                              random_seed=None,
-                              use_best_model=None,
-                              verbose=None,
-                              logging_level=None,
-                              metric_period=None,
-                              ctr_leaf_count_limit=None,
-                              store_all_simple_ctr=None,
-                              max_ctr_complexity=None,
-                              has_time=None,
-                              allow_const_label=None,
-                              classes_count=None,
-                              class_weights=None,
-                              one_hot_max_size=None,
-                              random_strength=None,
-                              name=None,
-                              ignored_features=None,
-                              train_dir=None,
-                              custom_loss=None,
-                              custom_metric=None,
-                              eval_metric=None,
-                              bagging_temperature=None,
-                              save_snapshot=None,
-                              snapshot_file=None,
-                              snapshot_interval=None,
-                              fold_len_multiplier=None,
-                              used_ram_limit=None,
-                              gpu_ram_part=None,
-                              allow_writing_files=None,
-                              final_ctr_computation_mode=None,
-                              approx_on_full_history=None,
-                              boosting_type=None,
-                              simple_ctr=None,
-                              combinations_ctr=None,
-                              per_feature_ctr=None,
-                              task_type=None,
-                              device_config=None,
-                              devices=None,
-                              bootstrap_type=None,
-                              subsample=None,
-                              sampling_unit=None,
-                              dev_score_calc_obj_block_size=None,
-                              max_depth=None,
-                              n_estimators=None,
-                              num_boost_round=None,
-                              num_trees=None,
-                              colsample_bylevel=None,
-                              random_state=None,
-                              reg_lambda=None,
-                              objective=None,
-                              eta=None,
-                              max_bin=None,
-                              scale_pos_weight=None,
-                              gpu_cat_features_storage=None,
-                              data_partition=None,
-                              metadata=None,
-                              early_stopping_rounds=None,
-                              cat_features=None,
-                              grow_policy=None,
-                              min_data_in_leaf=None,
-                              min_child_samples=None,
-                              max_leaves=None,
-                              num_leaves=None,
-                              score_function=None,
-                              leaf_estimation_backtracking=None,
-                              ctr_history_unit=None,
-                              monotone_constraints=None)
+    def transcribe_and_filter_params(self, params, has_eval_set):
+        from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
+        fullspec_regression = inspect.getfullargspec(CatBoostRegressor)
+        kwargs_regression = {k: v for k, v in zip(fullspec_regression.args, fullspec_regression.defaults)}
+        fullspec_classification = inspect.getfullargspec(CatBoostClassifier)
+        kwargs_classification = {k: v for k, v in zip(fullspec_classification.args, fullspec_classification.defaults)}
 
         if self.num_classes == 1:
-            allowed_params = regression
+            allowed_params = kwargs_regression
         else:
-            allowed_params = classification
+            allowed_params = kwargs_classification
 
         params_copy = copy.deepcopy(params)
         for k, v in params_copy.items():
@@ -559,11 +444,6 @@ class CatBoostModel(CustomModel):
         else:
             params['grow_policy'] = 'SymmetricTree'
 
-        if 'task_type' not in params:
-            params['task_type'] = 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU'
-            if self._force_gpu:
-                params['task_type'] = 'GPU'
-
         uses_gpus, n_gpus = self.get_uses_gpus(params)
 
         if params['task_type'] == 'CPU':
@@ -591,9 +471,6 @@ class CatBoostModel(CustomModel):
             params.pop('max_leaves', None)
             params.pop('num_leaves', None)
 
-        if 'bootstrap_type' not in params or not params['bootstrap_type'] in ['Poisson', 'Bernoulli']:
-            params.pop('subsample', None)
-
         params.update({'train_dir': config.data_directory,
                        'allow_writing_files': False,
                        'thread_count': self.params_base.get('n_jobs', 4)})
@@ -601,11 +478,15 @@ class CatBoostModel(CustomModel):
         if 'reg_lambda' in params and params['reg_lambda'] <= 0.0:
             params['reg_lambda'] = 3.0  # assume meant unset
 
-        if 'max_cat_to_onehot' in params:
-            params['one_hot_max_size'] = params['max_cat_to_onehot']
+        if self._can_handle_categorical:
+            if 'max_cat_to_onehot' in params:
+                params['one_hot_max_size'] = params['max_cat_to_onehot']
+                params.pop('max_cat_to_onehot', None)
             if uses_gpus:
-                params['one_hot_max_size'] = min(params['one_hot_max_size'], 255)
-            params.pop('max_cat_to_onehot', None)
+                params['one_hot_max_size'] = min(params.get('one_hot_max_size', 255), 255)
+
+        if 'one_hot_max_size' in params:
+            params['one_hot_max_size'] = max(self._min_one_hot_max_size, params['one_hot_max_size'])
 
         params['max_bin'] = params.get('max_bin', 254)
         if params['task_type'] == 'CPU':
@@ -613,7 +494,6 @@ class CatBoostModel(CustomModel):
         if params['task_type'] == 'GPU':
             params['max_bin'] = min(params['max_bin'], 127)  # https://github.com/catboost/catboost/issues/1010
 
-        params['silent'] = False
 
         if uses_gpus:
             # https://catboost.ai/docs/features/training-on-gpu.html
@@ -624,9 +504,46 @@ class CatBoostModel(CustomModel):
         if self.num_classes > 2:
             params.pop("eval_metric", None)
 
+        params['train_dir'] = self.context.experiment_tmp_dir
+        params['allow_writing_files'] = False
+
+        # assume during fit self.params_base could have been updated
+        assert 'n_estimators' in params
+        assert 'learning_rate' in params
+        params['n_estimators'] = self.params_base.get('n_estimators', 100)
+        params['learning_rate'] = self.params_base.get('learning_rate', config.min_learning_rate)
+        if 'early_stopping_rounds' not in params and has_eval_set:
+            params['early_stopping_rounds'] = 150  # temp fix
+            # assert 'early_stopping_rounds' in params
+
+        if uses_gpus:
+            params.pop('sampling_frequency', None)
+
+        if not uses_gpus and params['bootstrap_type'] == 'Poisson':
+            params['bootstrap_type'] = 'Bayesian'  # revert to default
+        if uses_gpus and params['bootstrap_type'] == 'MVS':
+            params['bootstrap_type'] = 'Bayesian'  # revert to default
+
+        if 'bootstrap_type' not in params or params['bootstrap_type'] not in ['Poisson', 'Bernoulli']:
+            params.pop('subsample', None)  # only allowed for those 2 bootstrap_type settings
+
+        if params['bootstrap_type'] not in ['Bayesian']:
+            params.pop('bagging_temperature', None)
+
+        # set system stuff here
+        params['silent'] = self.params_base.get('silent', True)
+        if config.debug_daimodel_level >= 1:
+            params['silent'] = False  # Can enable for tracking improvement in console/dai.log if have access
+        params['random_state'] = self.params_base.get('random_state', 1234)
+        params['thread_count'] = self.params_base.get('n_jobs', max(1, physical_cores_count))  # -1 is not supported
+
         return params
 
     def get_uses_gpus(self, params):
+        params['task_type'] = 'CPU' if self.params_base.get('n_gpus', 0) == 0 else 'GPU'
+        if self._force_gpu:
+            params['task_type'] = 'GPU'
+
         n_gpus = self.params_base.get('n_gpus', 0)
         if self._force_gpu:
             n_gpus = 1
