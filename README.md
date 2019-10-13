@@ -50,7 +50,8 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
  [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
-### Count: 107
+ [1.8.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.1)
+### Count: 109
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description]
 * [MODELS](./models)
@@ -59,6 +60,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.]
     * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL]
     * [extra_trees.py](./models/algorithms/extra_trees.py) [Extremely Randomized Trees (ExtraTrees) model from sklearn]
+    * [h2o-3-gbm-poisson.py](./models/algorithms/h2o-3-gbm-poisson.py) [H2O-3 Distributed Scalable Machine Learning Models: Poisson GLM]
     * [h2o-3-models.py](./models/algorithms/h2o-3-models.py) [H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB/AutoML)]
     * [h2o-glm-poisson.py](./models/algorithms/h2o-glm-poisson.py) [H2O-3 Distributed Scalable Machine Learning Models: Poisson GLM]
     * [knearestneighbour.py](./models/algorithms/knearestneighbour.py) [K-Nearest Neighbor implementation by sklearn. For small data (< 200k rows).]
@@ -112,10 +114,11 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [Testing a BYOR Transformer the PyClient - works on 1.7.0 & 1.7.1-17]
   * [transformer_template.py](./transformers/transformer_template.py) [Template base class for a custom transformer recipe.]
   * [AUGMENTATION](./transformers/augmentation)
-    * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [Returns a flag for whether a date falls on a holiday for each of Germany's Bundeslaender]
+    * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [Returns a flag for whether a date falls on a holiday for each of Germany's Bundeslaender. ]
     * [ipaddress_features.py](./transformers/augmentation/ipaddress_features.py) [Parses IP addresses and networks and extracts its properties.]
     * [is_ramadan.py](./transformers/augmentation/is_ramadan.py) [Returns a flag for whether a date falls on Ramadan in Saudi Arabia]
     * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py) [Flag for whether a date falls on a public holiday in Singapore.]
+    * [usairportcode_origin_dest.py](./transformers/augmentation/usairportcode_origin_dest.py) [Transformer to parse and augment US airport codes with geolocation info.]
     * [uszipcode_features_database.py](./transformers/augmentation/uszipcode_features_database.py) [Transformer to parse and augment US zipcodes with info from zipcode database.]
     * [uszipcode_features_light.py](./transformers/augmentation/uszipcode_features_light.py) [Lightweight transformer to parse and augment US zipcodes with info from zipcode database.]
   * [DATETIME](./transformers/datetime)
