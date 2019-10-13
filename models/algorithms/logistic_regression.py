@@ -273,6 +273,9 @@ class LogisticRegressionModel(CustomModel):
                     self.params['penalty'] = penalty_list[0]  # just choose first
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        orig_dir = os.getcwd()
+        os.chdir(self.context.experiment_tmp_dir)  # for joblib
+
         orig_cols = list(X.names)
         if self.num_classes >= 2:
             lb = LabelEncoder()
@@ -597,6 +600,7 @@ class LogisticRegressionModel(CustomModel):
                                   importances=importances_list,
                                   iterations=iterations)
         self.features = None
+        os.chdir(orig_dir)
 
     def get_param_range(self, param, fit_count, range_limit=None, func_type='linear'):
         if func_type == 'log':
@@ -631,6 +635,9 @@ class LogisticRegressionModel(CustomModel):
         return param_range
 
     def predict(self, X, **kwargs):
+        orig_dir = os.getcwd()
+        os.chdir(self.context.experiment_tmp_dir)  # for joblib
+
         X = dt.Frame(X)
         X = self.oob_imputer.transform(X)
         model_tuple, _, _, _ = self.get_model_properties()
@@ -643,6 +650,7 @@ class LogisticRegressionModel(CustomModel):
             preds = model.predict(X)
         else:
             preds = model.predict_proba(X)
+        os.chdir(orig_dir)
         return preds
 
 

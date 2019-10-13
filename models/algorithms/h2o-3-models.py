@@ -266,6 +266,10 @@ from h2o.automl import H2OAutoML
 
 
 class H2OAutoMLModel(H2OBaseModel, CustomModel):
+    @property
+    def is_enabled(self):
+        return False  # automl inside automl can be too slow, especially given small max_runtime_secs above
+
     @staticmethod
     def do_acceptance_test():
         return False  # save time
