@@ -56,12 +56,13 @@ class CustomModel(BaseCustomModel):
         avoid overfitting when there are multiple folds/splits/repeats.
         If _fit_by_iteration=False, then no overfit avoidance will be attempted by DAI.
     """
-    _fit_by_iteration = True
+    _fit_by_iteration = False
 
     """ Name of param passed to constructor or fit as kwargs to control iterations
-        The DAI universal name for this is mapped to model.params_base['n_estimators']
+        The DAI universal name for this is mapped to model.params_base[_fit_iteration_name]
+        and model.params[_fit_iteration_name]
     """
-    _fit_iteration_name = 'n_estimators'
+    _fit_iteration_name = None
 
     """ Whether externally-provided iterations can control the predict for fitted model.
         If so, then predictions can be made on well-defined fold/split/repeat-averaged count,
