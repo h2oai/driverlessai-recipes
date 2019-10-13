@@ -63,7 +63,6 @@ def _create_data(input_file=""):
         'Month',
         'DayofMonth',
         'DayOfWeek',
-        'DepTime',
         'CRSDepTime',
         'UniqueCarrier',
         'FlightNum',
