@@ -6,6 +6,11 @@ import pandas as pd
 import math
 import numpy as np
 
+def computeDistance(lat1, lon1, lat2, lon2):
+    p = 0.017453292519943295     #Pi/180
+    a = 0.5 - math.cos((lat2 - lat1) * p)/2 + math.cos(lat1 * p) * math.cos(lat2 * p) * (1 - math.cos((lon2 - lon1) * p)) / 2
+    return 12742 * math.asin(math.sqrt(a)) #2*R*asin...
+
 class AirportOriginDestTransformer(CustomTransformer):
     _allow_transform_to_modify_output_feature_names = True
 
@@ -68,17 +73,23 @@ class AirportOriginDestTransformer(CustomTransformer):
 
             all_pd['long_diff'] = all_pd['origin_long'] - all_pd['dest_long']
 
+            all_pd['distance_km'] = all_pd.apply(lambda row: computeDistance(row['origin_lat'], row['origin_long'],
+                                                                             row['dest_lat'], row['dest_long']),
+                                                 axis=1)
+
             # self._output_feature_names = ['origin_elevation_ft', 'origin_long', 'origin_lat', 'dest_elevation_ft',
        # 'dest_long', 'dest_lat', 'elevation_diff', 'lat_diff', 'long_diff']
             self._output_feature_names = ["{}.{}".format(self.transformer_name, f) for f in
                                           ['origin_elevation_ft', 'origin_long', 'origin_lat', 'dest_elevation_ft',
-                                           'dest_long', 'dest_lat', 'elevation_diff', 'lat_diff', 'long_diff' ]]
+                                           'dest_long', 'dest_lat', 'elevation_diff', 'lat_diff', 'long_diff',
+                                           'distance_km']]
 
             self._feature_desc = ['Origin Elevation Ft.', 'Origin Longitude', 'Origin Latitude',
                               'Destination Elevation', 'Destination Longitude', 'Destination Latitude',
                               'Elevation difference between Origin and Destination',
                               'Latitude difference between Origin and Destination',
-                              'Longitude difference between Origin and Destination']
+                              'Longitude difference between Origin and Destination',
+                              'Distance in km between Origin and Destination (Harvestine approx.)']
         else:
             all_pd = np.zeros(X.shape[0])
 
