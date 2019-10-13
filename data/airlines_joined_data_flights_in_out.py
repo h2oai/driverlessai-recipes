@@ -23,8 +23,6 @@ def _create_data(input_file=""):
     # specify which years are used for training and testing
     training = [2007]
     testing = [2008]
-    timeslice_mins = 60
-    depdelay_threshold = 30
 
     # download and unzip files
     files = []
@@ -43,10 +41,11 @@ def _create_data(input_file=""):
     X[:, date_col] = dt.f['Year'] * 10000 + dt.f['Month'] * 100 + dt.f['DayofMonth']
     cols_to_keep = ['Date']
 
-    # add number of flights in/out for each airport per 15-minute interval
+    # add number of flights in/out for each airport per given interval
+    timeslice_mins = 60
     for name, new_col, col, group in [
-        ("out", "CRSDepTime_mod15", "CRSDepTime", "Origin"),
-        ("in", "CRSArrTime_mod15", "CRSArrTime", "Dest")
+        ("out", "CRSDepTime_mod", "CRSDepTime", "Origin"),
+        ("in", "CRSArrTime_mod", "CRSArrTime", "Dest")
     ]:
         X[:, new_col] = X[:, dt.f[col] // timeslice_mins]
         group_cols = [date_col, group, new_col]
@@ -57,8 +56,9 @@ def _create_data(input_file=""):
         X = X[:, :, dt.join(flights)]
 
     # create binary target column
-    target = 'DepDelay%dm' % depdelay_threshold
-    X[:, target] = dt.f['DepDelay'] > depdelay_threshold
+    depdelay_threshold_mins = 30
+    target = 'DepDelay%dm' % depdelay_threshold_mins
+    X[:, target] = dt.f['DepDelay'] > depdelay_threshold_mins
     cols_to_keep.extend([
         target,
         'Year',
@@ -74,6 +74,7 @@ def _create_data(input_file=""):
         'Dest',
         'Distance',
         # Leaks for delay
+        # 'DepTime',
         # 'ArrTime', #'CRSArrTime',
         # 'ActualElapsedTime',
         # 'AirTime', #'ArrDelay', #'DepDelay',
