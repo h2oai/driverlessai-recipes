@@ -2,8 +2,8 @@
 
 from h2oaicore.stats import CustomData
 
-## This end-to-end data preparation script does the following steps:
-##
+## AIRLINE DATA - END-TO-END DATA PREPARATION
+
 ##  1) Download multiple .bz2 files from http://stat-computing.org/dataexpo/2009/
 ##  2) Unzip all .bz2 files
 ##  3) Concatenate all files
