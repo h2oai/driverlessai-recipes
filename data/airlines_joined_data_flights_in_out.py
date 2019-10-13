@@ -2,6 +2,19 @@
 
 from h2oaicore.stats import CustomData
 
+## This end-to-end data preparation script does the following steps:
+##
+##  1) Download multiple .bz2 files from http://stat-computing.org/dataexpo/2009/
+##  2) Unzip all .bz2 files
+##  3) Concatenate all files
+##  4) Create a linear date (time) column for time-series modeling
+##  5) Compute the number of scheduled flights in/out-bound for a given airport, for each hour
+##  6) Create a binary target column (Departure Delay > 30 minutes)
+##  7) Join Carrier, Airport and Plane data, also downloaded from http://stat-computing.org/dataexpo/2009/
+##  8) Optionally: Split the data by time
+##  9) Import the data into Driverless AI for further experimentation
+
+
 class AirlinesData(CustomData):
     pass
 
