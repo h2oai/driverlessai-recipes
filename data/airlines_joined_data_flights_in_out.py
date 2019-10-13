@@ -9,7 +9,7 @@ from h2oaicore.stats import CustomData
 ##  3) Concatenate all files
 ##  4) Create a linear date (time) column for time-series modeling
 ##  5) Compute the number of scheduled flights in/out-bound for a given airport, for each hour
-##  6) Create a binary target column (Departure Delay > 30 minutes)
+##  6) Create a binary target column (Departure Delay > 15 minutes)
 ##  7) Join Carrier, Airport and Plane data, also downloaded from http://stat-computing.org/dataexpo/2009/
 ##  8) Optionally: Split the data by time
 ##  9) Import the data into Driverless AI for further experimentation
@@ -72,7 +72,7 @@ def _create_data(input_file=""):
     X[dt.isna(dt.f['DepDelay']), 'DepDelay'] = 0
 
     # create binary target column
-    depdelay_threshold_mins = 30
+    depdelay_threshold_mins = 15
     target = 'DepDelay%dm' % depdelay_threshold_mins
     X[:, target] = dt.f['DepDelay'] > depdelay_threshold_mins
     cols_to_keep.extend([
