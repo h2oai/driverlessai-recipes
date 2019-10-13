@@ -55,15 +55,10 @@ def _create_data(input_file=""):
         cols_to_keep.append(new_name)
         X = X[:, :, dt.join(flights)]
 
-    # Fill NaNs in DepDelay column
+    # Fill NaNs with 0s
     X[dt.isna(dt.f['DepDelay']), 'DepDelay'] = 0
-
-    # create binary target column
-    depdelay_threshold_mins = 30
-    target = 'DepDelay%dm' % depdelay_threshold_mins
-    X[:, target] = dt.f['DepDelay'] > depdelay_threshold_mins
     cols_to_keep.extend([
-        target,
+        'DepDelay',
         'Year',
         'Month',
         'DayofMonth',
@@ -105,7 +100,7 @@ def _create_data(input_file=""):
 
     if not split:
         filename = os.path.join(temp_path,
-                                "flight_delays_%d-%d.jay" % (min(training), max(testing)))
+                                "flight_delays_regression_%d-%d.jay" % (min(training), max(testing)))
         X.to_jay(filename)
         return filename
     else:
