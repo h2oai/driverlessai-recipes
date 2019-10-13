@@ -118,7 +118,7 @@ def _create_data(input_file=""):
 
     if not split:
         filename = os.path.join(temp_path,
-                                "flight_delays_%d-%d.jay" % (min(training), max(testing)))
+                                "flight_delays_data_recipe_%d-%d.jay" % (min(training), max(testing)))
         X.to_jay(filename)
         return filename
     else:
@@ -129,7 +129,7 @@ def _create_data(input_file=""):
             ((min(testing) <= dt.f['Year']) & (dt.f['Year'] <= max(testing)), 'test'),
         ]:
             X_split = X[condition, :]
-            filename = os.path.join(temp_path, "flight_delays_%s.jay" % name)
+            filename = os.path.join(temp_path, "flight_delays_data_recipe_%s.jay" % name)
             X_split.to_jay(filename)
             output_files.append(filename)
         return output_files
