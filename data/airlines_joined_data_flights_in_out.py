@@ -98,15 +98,22 @@ def _create_data(input_file=""):
         X = X[:, :, dt.join(X_join)]
         del X[:, join_key]
 
-    # prepare splits (by year) and create binary .jay files for import into Driverless AI
-    output_files = []
-    for condition, name in [
-        ((min(training) <= dt.f['Year']) & (dt.f['Year'] <= max(training)), 'training'),
-        ((min(testing) <= dt.f['Year']) & (dt.f['Year'] <= max(testing)), 'test'),
-    ]:
-        X_split = X[condition, :]
-        filename = os.path.join(temp_path, "flight_delays_%s.jay" % name)
-        X_split.to_jay(filename)
-        output_files.append(filename)
+    split = False
 
-    return output_files
+    if not split:
+        filename = os.path.join(temp_path,
+                                "flight_delays_%d-%d.jay" % (min(training), max(testing)))
+        X.to_jay(filename)
+        return filename
+    else:
+        # prepare splits (by year) and create binary .jay files for import into Driverless AI
+        output_files = []
+        for condition, name in [
+            ((min(training) <= dt.f['Year']) & (dt.f['Year'] <= max(training)), 'training'),
+            ((min(testing) <= dt.f['Year']) & (dt.f['Year'] <= max(testing)), 'test'),
+        ]:
+            X_split = X[condition, :]
+            filename = os.path.join(temp_path, "flight_delays_%s.jay" % name)
+            X_split.to_jay(filename)
+            output_files.append(filename)
+        return output_files
