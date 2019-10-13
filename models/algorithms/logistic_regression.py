@@ -273,6 +273,8 @@ class LogisticRegressionModel(CustomModel):
                     self.params['penalty'] = penalty_list[0]  # just choose first
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        os.chdir(self.context.experiment_tmp_dir)  # for joblib
+
         orig_cols = list(X.names)
         if self.num_classes >= 2:
             lb = LabelEncoder()
@@ -631,6 +633,8 @@ class LogisticRegressionModel(CustomModel):
         return param_range
 
     def predict(self, X, **kwargs):
+        os.chdir(self.context.experiment_tmp_dir)  # for joblib
+
         X = dt.Frame(X)
         X = self.oob_imputer.transform(X)
         model_tuple, _, _, _ = self.get_model_properties()
