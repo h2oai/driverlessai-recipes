@@ -4,15 +4,16 @@ from h2oaicore.stats import CustomData
 
 ## AIRLINE DATA - END-TO-END DATA PREPARATION
 
-##  1) Download multiple .bz2 files from http://stat-computing.org/dataexpo/2009/
+##  1) Download selected yearly airline datasets from http://stat-computing.org/dataexpo/2009/
 ##  2) Unzip all .bz2 files
 ##  3) Concatenate all files
-##  4) Create a linear date (time) column for time-series modeling
-##  5) Compute the number of scheduled flights in/out-bound for a given airport, for each hour
-##  6) Create a binary target column (Departure Delay > 15 minutes)
-##  7) Join Carrier, Airport and Plane data, also downloaded from http://stat-computing.org/dataexpo/2009/
-##  8) Optionally: Split the data by time
-##  9) Import the data into Driverless AI for further experimentation
+##  4) Select flights leaving from SFO only
+##  5) Create a linear date (time) column for time-series modeling
+##  6) Compute the number of scheduled flights in/out-bound for a given airport, for each hour
+##  7) Create a binary target column (Departure Delay > 15 minutes)
+##  8) Join Carrier, Airport and Plane data, also downloaded from http://stat-computing.org/dataexpo/2009/
+##  9) Optionally: Split the data by time
+##  10) Import the data into Driverless AI for further experimentation
 
 
 class AirlinesData(CustomData):
@@ -32,9 +33,10 @@ def _create_data(input_file=""):
 
     temp_path = os.path.join(config.data_directory, config.contrib_relative_directory, "airlines")
     os.makedirs(temp_path, exist_ok=True)
+    dt.options.nthreads = 8
 
     # specify which years are used for training and testing
-    training = [2007]
+    training = list(range(2005, 2008))
     testing = [2008]
 
     # download and unzip files
@@ -43,11 +45,15 @@ def _create_data(input_file=""):
         link = "http://stat-computing.org/dataexpo/2009/%s" % f
         file = download(link, dest_path=temp_path)
         output_file = file.replace(".bz2", "")
-        extract_bz2(file, output_file)
+        if not os.path.exists(output_file):
+            extract_bz2(file, output_file)
         files.append(output_file)
 
     # parse with datatable
     X = dt.rbind(*[dt.fread(x) for x in files])
+
+    # select flights leaving from SFO only
+    X = X[dt.f['Origin'] == 'SFO', :]
 
     # add date
     date_col = 'Date'
@@ -114,12 +120,11 @@ def _create_data(input_file=""):
         X = X[:, :, dt.join(X_join)]
         del X[:, join_key]
 
-    split = False
-
+    split = True
     if not split:
         filename = os.path.join(temp_path,
-                                "flight_delays_data_recipe_%d-%d.jay" % (min(training), max(testing)))
-        X.to_jay(filename)
+                                "flight_delays_data_recipe_%d-%d.csv" % (min(training), max(testing)))
+        X.to_csv(filename)
         return filename
     else:
         # prepare splits (by year) and create binary .jay files for import into Driverless AI
@@ -129,7 +134,8 @@ def _create_data(input_file=""):
             ((min(testing) <= dt.f['Year']) & (dt.f['Year'] <= max(testing)), 'test'),
         ]:
             X_split = X[condition, :]
-            filename = os.path.join(temp_path, "flight_delays_data_recipe_%s.jay" % name)
-            X_split.to_jay(filename)
+            filename = os.path.join(temp_path, "augmented_flights_%s-%d_%s.csv" %
+                                    (X[:, 'Year'].min1(), X[:, 'Year'].max1(), name))
+            X_split.to_csv(filename)
             output_files.append(filename)
         return output_files
