@@ -135,7 +135,7 @@ def _create_data(input_file=""):
         ]:
             X_split = X[condition, :]
             filename = os.path.join(temp_path, "augmented_flights_%s-%d_%s.csv" %
-                                    (X[:, 'Year'].min1(), X[:, 'Year'].max1(), name))
+                                    (X_split[:, 'Year'].min1(), X_split[:, 'Year'].max1(), name))
             X_split.to_csv(filename)
             output_files.append(filename)
         return output_files
