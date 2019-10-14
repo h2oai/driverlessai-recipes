@@ -52,9 +52,6 @@ def _create_data(input_file=""):
     # parse with datatable
     X = dt.rbind(*[dt.fread(x) for x in files])
 
-    # select flights leaving from SFO only
-    X = X[dt.f['Origin'] == 'SFO', :]
-
     # add date
     date_col = 'Date'
     X[:, date_col] = dt.f['Year'] * 10000 + dt.f['Month'] * 100 + dt.f['DayofMonth']
@@ -68,11 +65,14 @@ def _create_data(input_file=""):
     ]:
         X[:, new_col] = X[:, dt.f[col] // timeslice_mins]
         group_cols = [date_col, group, new_col]
-        new_name = 'flights_%s' % name
+        new_name = 'flights_%s_per_%d_min' % (name, timeslice_mins)
         flights = X[:, {new_name: dt.count()}, dt.by(*group_cols)]
         flights.key = group_cols
         cols_to_keep.append(new_name)
         X = X[:, :, dt.join(flights)]
+
+    # select flights leaving from SFO only
+    X = X[dt.f['Origin'] == 'SFO', :]
 
     # Fill NaNs in DepDelay column
     X[dt.isna(dt.f['DepDelay']), 'DepDelay'] = 0
