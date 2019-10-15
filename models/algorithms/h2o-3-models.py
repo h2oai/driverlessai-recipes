@@ -267,7 +267,7 @@ from h2o.automl import H2OAutoML
 
 class H2OAutoMLModel(H2OBaseModel, CustomModel):
     @staticmethod
-    def is_enabled(self):
+    def is_enabled():
         return False  # automl inside automl can be too slow, especially given small max_runtime_secs above
 
     @staticmethod
