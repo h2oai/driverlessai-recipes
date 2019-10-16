@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel, MainModel
 from h2oaicore.systemutils import config, arch_type, physical_cores_count, ngpus_vis, save_obj, remove
-from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
+from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdata
 from h2oaicore.models import LightGBMModel
 import inspect
 
@@ -249,7 +249,7 @@ class CatBoostModel(CustomModel):
         params = self.transcribe_and_filter_params(params, eval_set is not None)
 
         if logger is not None:
-            loggerinfo(logger, "CatBoost parameters: params_base : %s params: %s catboost_params: %s" % (str(self.params_base), str(self.params), str(params)))
+            loggerdata(logger, "CatBoost parameters: params_base : %s params: %s catboost_params: %s" % (str(self.params_base), str(self.params), str(params)))
 
         if self.num_classes == 1:
             model = CatBoostRegressor(**params)
