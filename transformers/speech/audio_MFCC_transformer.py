@@ -11,7 +11,10 @@ class AudioMFCCTransformer(CustomTransformer):
     _can_use_multi_gpu = True  # if enabled, can get access to multiple GPUs for single transformer (experimental)
     _numeric_output = True
 
-    
+    @staticmethod
+    def is_enabled():
+        return False
+
     @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
