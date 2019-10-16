@@ -69,11 +69,9 @@ class AirportOriginDestDTTransformer(CustomTransformer):
             self._output_feature_names = self._output_feature_names + ["{}.{}".format(self.transformer_name, f) for f in X_dest.names]
             self._feature_desc = self._feature_desc + ['Destination Elevation', 'Destination Longitude', 'Destination Latitude']
 
-        # All features frame
-        all_dt = dt.Frame()
-
         # Both Origin and Destination
         if (isOrigin and isDest):
+            all_dt = dt.Frame()
             all_dt.cbind(X_origin, X_dest)
 
             all_dt["elevation_diff"] = all_dt[:, dt.f["origin_elevation_ft"] - dt.f["dest_elevation_ft"]]
@@ -97,7 +95,7 @@ class AirportOriginDestDTTransformer(CustomTransformer):
             all_dt = X_origin
         elif (isDest and not isOrigin):
             all_dt = X_dest
-        elif (not (isOrigin or isDest)):
+        else:
             all_dt = dt.Frame(np.zeros((X.shape[0], 1)), names = ["dummy"])
             self._output_feature_names = ["dummy"]
             self._feature_desc = ["dummy"]
