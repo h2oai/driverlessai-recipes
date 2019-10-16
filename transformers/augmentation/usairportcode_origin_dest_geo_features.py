@@ -39,7 +39,7 @@ class AirportOriginDestDTTransformer(CustomTransformer):
         all_names = X.names
         X = dt.Frame(X)
         X[:, {col: dt.str64(dt.f[col]) for col in X.names}]
-        codes_dt = AirportOriginDestTransformer.make_airportcode_data()
+        codes_dt = AirportOriginDestDTTransformer.make_airportcode_data()
         codes_dt.key = "iata_code"
 
         # Origin
@@ -93,6 +93,10 @@ class AirportOriginDestDTTransformer(CustomTransformer):
                                   'Latitude difference between Origin and Destination',
                                   'Longitude difference between Origin and Destination',
                                   'Distance in km between Origin and Destination (Harvestine approx.)']
+        elif (isOrigin and not isDest):
+            all_dt = X_origin
+        elif (isDest and not isOrigin):
+            all_dt = X_dest
         elif (not (isOrigin or isDest)):
             all_dt = dt.Frame(np.zeros((X.shape[0], 1)), names = ["dummy"])
             self._output_feature_names = ["dummy"]
