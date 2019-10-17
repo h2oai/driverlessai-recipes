@@ -3,21 +3,17 @@
 import datatable as dt
 import numpy as np
 import pandas as pd
-from typing import Union, List
-from h2oaicore.data import BaseData
-
 
 class CustomData(BaseData):
     """Base class for a custom data creation recipe that can be specified externally to Driverless AI.
 
     Note: Experimental API, will most likely change in future versions.
     """
-
     @staticmethod
-    def create_data(X: dt.Frame = None) -> Union[str, List[str],
-                                                 dt.Frame, List[dt.Frame],
-                                                 np.ndarray, List[np.ndarray],
-                                                 pd.DataFrame, List[pd.DataFrame]]:
+    def create_data(X: dt.Frame=None) -> Union[str, List[str],
+                                               dt.Frame, List[dt.Frame],
+                                               np.ndarray, List[np.ndarray],
+                                               pd.DataFrame, List[pd.DataFrame]]:
         """
         Create one or multiple datasets to be imported into Driverless AI
 
@@ -27,5 +23,4 @@ class CustomData(BaseData):
         Otherwise, have to create the data from scratch.
         """
         return X
-
 
