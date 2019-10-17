@@ -1,11 +1,18 @@
 """Create augmented airlines datasets for regression"""
 
+from typing import Union, List
 from h2oaicore.data import CustomData
 import datatable as dt
+import numpy as np
+import pandas as pd
 
 
 class AirlinesData(CustomData):
-    def _create_data(data: dt.Frame = None):
+    @staticmethod
+    def create_data(X: dt.Frame = None) -> Union[str, List[str],
+                                                 dt.Frame, List[dt.Frame],
+                                                 np.ndarray, List[np.ndarray],
+                                                 pd.DataFrame, List[pd.DataFrame]]:
         import os
         from h2oaicore.systemutils_more import download
         from h2oaicore.systemutils import config
