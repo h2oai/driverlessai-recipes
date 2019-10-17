@@ -1,6 +1,4 @@
-"""Create some non-trivial airlines datasets"""
-
-from h2oaicore.data import CustomData
+"""Create augmented airlines datasets"""
 
 ## AIRLINE DATA - END-TO-END DATA PREPARATION
 
@@ -16,9 +14,12 @@ from h2oaicore.data import CustomData
 ##  10) Import the data into Driverless AI for further experimentation
 
 
+from h2oaicore.data import CustomData
+import datatable as dt
+
+
 class AirlinesData(CustomData):
     def create_data(data: dt.Frame = None):
-        import datatable as dt
         import os
         from h2oaicore.systemutils_more import download
         from h2oaicore.systemutils import config
