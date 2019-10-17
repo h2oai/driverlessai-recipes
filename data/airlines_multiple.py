@@ -6,7 +6,7 @@ import numpy as np
 
 class AirlinesData(CustomData):
     @staticmethod
-    def create_data(data: dt.Frame = ""):
+    def create_data(data: dt.Frame = None):
         import os
         from h2oaicore.systemutils_more import download
         from h2oaicore.systemutils import config
