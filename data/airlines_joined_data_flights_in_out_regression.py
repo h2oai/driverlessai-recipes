@@ -1,10 +1,11 @@
-"""Create some non-trivial airlines datasets"""
+"""Create augmented airlines datasets for regression"""
 
 from h2oaicore.data import CustomData
+import datatable as dt
+
 
 class AirlinesData(CustomData):
     def _create_data(data: dt.Frame = None):
-        import datatable as dt
         import os
         from h2oaicore.systemutils_more import download
         from h2oaicore.systemutils import config
