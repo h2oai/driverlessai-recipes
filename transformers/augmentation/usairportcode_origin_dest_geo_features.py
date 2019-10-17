@@ -1,17 +1,12 @@
-"""Transformer to parse and augment US airport codes with geolocation info."""
+"""Transformer to augment US airport codes with geolocation info."""
 from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 import datatable as dt
-import pandas as pd
+from datatable import f
 import math
 import numpy as np
 
-def computeDistance(lat1, lon1, lat2, lon2):
-    p = 0.017453292519943295     #Pi/180
-    a = 0.5 - math.cos((lat2 - lat1) * p)/2 + math.cos(lat1 * p) * math.cos(lat2 * p) * (1 - math.cos((lon2 - lon1) * p)) / 2
-    return 12742 * math.asin(math.sqrt(a)) #2*R*asin...
-
-class AirportOriginDestPDTransformer(CustomTransformer):
+class AirportOriginDestDTTransformer(CustomTransformer):
     _allow_transform_to_modify_output_feature_names = True
 
     _numeric_output = True
@@ -42,62 +37,76 @@ class AirportOriginDestPDTransformer(CustomTransformer):
                                             tmp_dir=self.context.tmp_dir,
                                             experiment_tmp_dir=self.context.experiment_tmp_dir)
 
-        # X = X[:, dt.str64(dt.f[0])]
+        all_names = X.names
         X = dt.Frame(X)
-        codes_pd = self.make_airportcode_data().to_pandas()
+        X[:, {col: dt.str64(f[col]) for col in X.names}]
+        codes_dt = AirportOriginDestDTTransformer.make_airportcode_data()
+        codes_dt.key = "iata_code"
 
         # Origin
         isOrigin = False
-        if ("Origin" in X.names):
+        if ("Origin" in all_names):
             isOrigin = True
-            origin_pd = X[:, "Origin"].to_pandas()
-            origin_pd = pd.merge(origin_pd, codes_pd, how="left", left_on="Origin", right_on="iata_code")
-            origin_pd = origin_pd.drop(["Origin", "iata_code"], axis=1)
-            origin_pd.columns = ["origin_elevation_ft", "origin_long", "origin_lat"]
+            origin_dt = X["Origin"]
+            origin_dt.names = ["iata_code"]
+            X_origin = origin_dt[:, :, dt.join(codes_dt)]
+            del X_origin[:, "iata_code"]
+            X_origin.names = ["origin_elevation_ft", "origin_long", "origin_lat"]
+            self._output_feature_names = ["{}.{}".format(self.transformer_name, f) for f in X_origin.names]
+            self._feature_desc = ['Origin Elevation Ft.', 'Origin Longitude', 'Origin Latitude']
+        else:
+            self._output_feature_names = []
+            self._feature_desc = []
 
         # Destination
         isDest = False
-        if ("Dest" in X.names):
+        if ("Dest" in all_names):
             isDest = True
-            dest_pd = X[:, "Dest"].to_pandas()
-            dest_pd = pd.merge(dest_pd, codes_pd, how="left", left_on="Dest", right_on="iata_code")
-            dest_pd = dest_pd.drop(["Dest", "iata_code"], axis=1)
-            dest_pd.columns = ["dest_elevation_ft", "dest_long", "dest_lat"]
+            dest_dt = X["Dest"]
+            dest_dt.names = ["iata_code"]
+            X_dest = dest_dt[:, :, dt.join(codes_dt)]
+            del X_dest[:, "iata_code"]
+            X_dest.names = ["dest_elevation_ft", "dest_long", "dest_lat"]
+            self._output_feature_names = self._output_feature_names + ["{}.{}".format(self.transformer_name, f) for f in X_dest.names]
+            self._feature_desc = self._feature_desc + ['Destination Elevation', 'Destination Longitude', 'Destination Latitude']
 
         # Both Origin and Destination
         if (isOrigin and isDest):
-            all_pd = pd.concat([origin_pd, dest_pd], axis=1)
-            all_pd['elevation_diff'] = all_pd['origin_elevation_ft'] - all_pd['dest_elevation_ft']
+            all_dt = dt.Frame()
+            all_dt.cbind(X_origin, X_dest)
 
-            all_pd['lat_diff'] = all_pd['origin_lat'] - all_pd['dest_lat']
+            all_dt["elevation_diff"] = all_dt[:, f["origin_elevation_ft"] - f["dest_elevation_ft"]]
+            all_dt["lat_diff"] = all_dt[:, f["origin_lat"] - f["dest_lat"]]
+            all_dt["long_diff"] = all_dt[:, f["origin_long"] - f["dest_long"]]
 
-            all_pd['long_diff'] = all_pd['origin_long'] - all_pd['dest_long']
+            p = dt.math.pi / 180
+            a = 0.5 - dt.math.cos((f["dest_lat"] - f["origin_lat"]) * p) / 2 + \
+                    dt.math.cos(f["origin_lat"] * p) * dt.math.cos(f["dest_lat"] * p) * (1 - dt.math.cos((f["dest_long"] - f["origin_long"]) * p)) / 2
+            b = 12742 * dt.math.arcsin(dt.math.sqrt(a))  # 2*R*asin...
+            all_dt.cbind(all_dt[:, {"distance_km": b}])
 
-            all_pd['distance_km'] = all_pd.apply(lambda row: computeDistance(row['origin_lat'], row['origin_long'],
-                                                                             row['dest_lat'], row['dest_long']),
-                                                 axis=1)
-
-            # self._output_feature_names = ['origin_elevation_ft', 'origin_long', 'origin_lat', 'dest_elevation_ft',
-       # 'dest_long', 'dest_lat', 'elevation_diff', 'lat_diff', 'long_diff']
-            self._output_feature_names = ["{}.{}".format(self.transformer_name, f) for f in
-                                          ['origin_elevation_ft', 'origin_long', 'origin_lat', 'dest_elevation_ft',
-                                           'dest_long', 'dest_lat', 'elevation_diff', 'lat_diff', 'long_diff',
-                                           'distance_km']]
-
-            self._feature_desc = ['Origin Elevation Ft.', 'Origin Longitude', 'Origin Latitude',
-                              'Destination Elevation', 'Destination Longitude', 'Destination Latitude',
-                              'Elevation difference between Origin and Destination',
-                              'Latitude difference between Origin and Destination',
-                              'Longitude difference between Origin and Destination',
-                              'Distance in km between Origin and Destination (Harvestine approx.)']
+            self._output_feature_names = self._output_feature_names + ["{}.{}".format(self.transformer_name, f) for f in
+                                          ['elevation_diff', 'lat_diff', 'long_diff', 'distance_km']]
+            self._feature_desc = self._feature_desc + [
+                                  'Elevation difference between Origin and Destination',
+                                  'Latitude difference between Origin and Destination',
+                                  'Longitude difference between Origin and Destination',
+                                  'Distance in km between Origin and Destination (Harvestine approx.)']
+        elif (isOrigin and not isDest):
+            all_dt = X_origin
+        elif (isDest and not isOrigin):
+            all_dt = X_dest
         else:
-            all_pd = np.zeros(X.shape[0])
+            all_dt = dt.Frame(np.zeros((X.shape[0], 1)), names = ["dummy"])
+            self._output_feature_names = ["dummy"]
+            self._feature_desc = ["dummy"]
 
-        return all_pd
+        return all_dt
 
-    def make_airportcode_data(self):
-                return dt.fread(
-                    """
+    @staticmethod
+    def make_airportcode_data():
+            return dt.fread(
+                """
 iata_code,elevation_ft,long,lat
 ALZ,,-154.248001099,56.8995018005
 APR,220,142.540138889,-4.67666666667
@@ -1885,4 +1894,4 @@ WUV,16,142.836666667,-1.73611111111
 ZEN,3200,146.61625,-6.9522222222200005
 ZNC,460,-159.994003296,60.9807014465
 
-                """)
+            """)
