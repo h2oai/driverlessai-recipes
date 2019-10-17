@@ -50,7 +50,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
  [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
-### Count: 115
+### Count: 116
 * [DATA](./data)
   * [airlines.py](./data/airlines.py) [Create airlines dataset]
   * [airlines_joined_data_flights_in_out.py](./data/airlines_joined_data_flights_in_out.py) [Create augmented airlines datasets]
@@ -74,6 +74,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [logistic_regression.py](./models/algorithms/logistic_regression.py) [Logistic Regression based upon sklearn.]
     * [nusvm.py](./models/algorithms/nusvm.py) [Nu-SVM implementation by sklearn. For small data.]
     * [random_forest.py](./models/algorithms/random_forest.py) [Random Forest (RandomForest) model from sklearn]
+    * [simple_logistic.py](./models/algorithms/simple_logistic.py) [Spyder EditorThis is a temporary script file.]
   * [CUSTOM_LOSS](./models/custom_loss)
     * [lightgbm_with_custom_loss.py](./models/custom_loss/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).]
     * [xgboost_with_custom_loss.py](./models/custom_loss/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).]
