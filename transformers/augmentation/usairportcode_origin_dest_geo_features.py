@@ -2,6 +2,7 @@
 from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 import datatable as dt
+from datatable import f
 import math
 import numpy as np
 
@@ -38,7 +39,7 @@ class AirportOriginDestDTTransformer(CustomTransformer):
 
         all_names = X.names
         X = dt.Frame(X)
-        X[:, {col: dt.str64(dt.f[col]) for col in X.names}]
+        X[:, {col: dt.str64(f[col]) for col in X.names}]
         codes_dt = AirportOriginDestDTTransformer.make_airportcode_data()
         codes_dt.key = "iata_code"
 
@@ -46,7 +47,7 @@ class AirportOriginDestDTTransformer(CustomTransformer):
         isOrigin = False
         if ("Origin" in all_names):
             isOrigin = True
-            origin_dt = X[:, "Origin"]
+            origin_dt = X["Origin"]
             origin_dt.names = ["iata_code"]
             X_origin = origin_dt[:, :, dt.join(codes_dt)]
             del X_origin[:, "iata_code"]
@@ -61,7 +62,7 @@ class AirportOriginDestDTTransformer(CustomTransformer):
         isDest = False
         if ("Dest" in all_names):
             isDest = True
-            dest_dt = X[:, "Dest"]
+            dest_dt = X["Dest"]
             dest_dt.names = ["iata_code"]
             X_dest = dest_dt[:, :, dt.join(codes_dt)]
             del X_dest[:, "iata_code"]
@@ -74,13 +75,13 @@ class AirportOriginDestDTTransformer(CustomTransformer):
             all_dt = dt.Frame()
             all_dt.cbind(X_origin, X_dest)
 
-            all_dt["elevation_diff"] = all_dt[:, dt.f["origin_elevation_ft"] - dt.f["dest_elevation_ft"]]
-            all_dt["lat_diff"] = all_dt[:, dt.f["origin_lat"] - dt.f["dest_lat"]]
-            all_dt["long_diff"] = all_dt[:, dt.f["origin_long"] - dt.f["dest_long"]]
+            all_dt["elevation_diff"] = all_dt[:, f["origin_elevation_ft"] - f["dest_elevation_ft"]]
+            all_dt["lat_diff"] = all_dt[:, f["origin_lat"] - f["dest_lat"]]
+            all_dt["long_diff"] = all_dt[:, f["origin_long"] - f["dest_long"]]
 
-            p = 0.017453292519943295  # Pi/180
-            a = 0.5 - dt.math.cos((dt.f["dest_lat"] - dt.f["origin_lat"]) * p) / 2 + \
-                    dt.math.cos(dt.f["origin_lat"] * p) * dt.math.cos(dt.f["dest_lat"] * p) * (1 - dt.math.cos((dt.f["dest_long"] - dt.f["origin_long"]) * p)) / 2
+            p = dt.math.pi / 180
+            a = 0.5 - dt.math.cos((f["dest_lat"] - f["origin_lat"]) * p) / 2 + \
+                    dt.math.cos(f["origin_lat"] * p) * dt.math.cos(f["dest_lat"] * p) * (1 - dt.math.cos((f["dest_long"] - f["origin_long"]) * p)) / 2
             b = 12742 * dt.math.arcsin(dt.math.sqrt(a))  # 2*R*asin...
             all_dt.cbind(all_dt[:, {"distance_km": b}])
 
