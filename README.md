@@ -50,7 +50,13 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
  [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
-### Count: 109
+### Count: 115
+* [DATA](./data)
+  * [airlines.py](./data/airlines.py) [Create airlines dataset]
+  * [airlines_joined_data_flights_in_out.py](./data/airlines_joined_data_flights_in_out.py) [Create augmented airlines datasets]
+  * [airlines_joined_data_flights_in_out_regression.py](./data/airlines_joined_data_flights_in_out_regression.py) [Create augmented airlines datasets for regression]
+  * [airlines_multiple.py](./data/airlines_multiple.py) [Create airlines dataset]
+  * [data_template.py](./data/data_template.py) [Template base class for a custom data recipe.]
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description]
 * [MODELS](./models)
@@ -118,6 +124,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [is_ramadan.py](./transformers/augmentation/is_ramadan.py) [Returns a flag for whether a date falls on Ramadan in Saudi Arabia]
     * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py) [Flag for whether a date falls on a public holiday in Singapore.]
     * [usairportcode_origin_dest.py](./transformers/augmentation/usairportcode_origin_dest.py) [Transformer to parse and augment US airport codes with geolocation info.]
+    * [usairportcode_origin_dest_geo_features.py](./transformers/augmentation/usairportcode_origin_dest_geo_features.py) [Transformer to augment US airport codes with geolocation info.]
     * [uszipcode_features_database.py](./transformers/augmentation/uszipcode_features_database.py) [Transformer to parse and augment US zipcodes with info from zipcode database.]
     * [uszipcode_features_light.py](./transformers/augmentation/uszipcode_features_light.py) [Lightweight transformer to parse and augment US zipcodes with info from zipcode database.]
   * [DATETIME](./transformers/datetime)
