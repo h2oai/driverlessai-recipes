@@ -3,11 +3,12 @@ Performs Zero Suppression
 
 The Zero Suppression algorithm is often used in Particle Physics to compress data produced by Particle Detectors.
 The data is usually composed of 2-dimensional slices of the detector. Each cell holds an energy charge that was
-measured in that particular part of the detector in a give time window. After a baseline analysis is applied to
-eliminate the residual charge accumulating over time due to radiation damage only cells which were actually hit store
-non zero values. Because particle detectors produce immense amounts of data storing and analyzing it in the
-raw (NZS-non zero suppressed) format is both inefficient and unnecessary. Only a very small sample of randomly selected
-raw data is kept for diagnostic purposes. The actual data is always stored in a compressed (ZS-zero suppressed).
+measured in that particular part of the detector in a given time window. After a baseline analysis is applied to
+eliminate the residual charge accumulated over time due to radiation damage. At this point only cells which were
+actually hit by particles store non zero values. Because particle detectors produce immense amounts of data storing
+and analyzing it in the raw (NZS-non zero suppressed) format is both inefficient and unnecessary. Only a very small
+sample of randomly selected NZS data is kept for diagnostic purposes. The actual data used for further processing
+is always stored in a compressed (ZS-zero suppressed) format.
 
      NZS DATA     ->        ZS DATA
      0   1   2              0   1   2
@@ -25,7 +26,7 @@ import pandas as pd
 import numpy as np
 
 
-class SumTransformer(CustomTransformer):
+class ZeroSuppressionTransformer(CustomTransformer):
     @staticmethod
     def get_default_properties():
         return dict(col_type="numeric", min_cols=1, max_cols="all", relative_importance=1)
