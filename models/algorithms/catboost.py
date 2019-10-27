@@ -100,6 +100,8 @@ class CatBoostModel(CustomModel):
             uses_gpus, n_gpus = self.get_uses_gpus(self.params)
             if uses_gpus:
                 self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 255)
+            else:
+                self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 65535)
 
     def mutate_params(self,
                       **kwargs):
@@ -121,6 +123,8 @@ class CatBoostModel(CustomModel):
             self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list)
             if uses_gpus:
                 self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 255)
+            else:
+                self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 65535)
 
         if not uses_gpus:
             self.params['sampling_frequency'] = MainModel.get_one(['PerTree', 'PerTreeLevel', 'PerTreeLevel', 'PerTreeLevel'])
@@ -484,6 +488,8 @@ class CatBoostModel(CustomModel):
                 params.pop('max_cat_to_onehot', None)
             if uses_gpus:
                 params['one_hot_max_size'] = min(params.get('one_hot_max_size', 255), 255)
+            else:
+                params['one_hot_max_size'] = min(params.get('one_hot_max_size', 65535), 65535)
 
         if 'one_hot_max_size' in params:
             params['one_hot_max_size'] = max(self._min_one_hot_max_size, params['one_hot_max_size'])
