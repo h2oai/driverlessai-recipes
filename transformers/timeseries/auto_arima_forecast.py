@@ -14,7 +14,7 @@ from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarn
 class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
     _binary = False
     _multiclass = False
-    _modules_needed_by_name = ['pmdarima']
+    _modules_needed_by_name = ['pmdarima==1.2']
     _included_model_classes = None
 
     @staticmethod
