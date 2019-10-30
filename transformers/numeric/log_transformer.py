@@ -1,5 +1,6 @@
 """Converts numbers to their Logarithm"""
 from h2oaicore.transformer_utils import CustomTransformer
+from h2oaicore.systemutils import dtype_global
 import datatable as dt
 import numpy as np
 
@@ -13,7 +14,10 @@ class MyLogTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        return X[:, [dt.log(dt.f[i]) for i in range(X.ncols)]]
+        if dtype_global() == np.float32:
+            return X[:, [dt.float32(dt.log(dt.f[i])) for i in range(X.ncols)]]
+        else:
+            return X[:, [dt.float64(dt.log(dt.f[i])) for i in range(X.ncols)]]
 
     # optional
     _mojo = True
@@ -23,7 +27,6 @@ class MyLogTransformer(CustomTransformer):
         from h2oaicore.mojo import MojoColumn, MojoFrame
         from h2oaicore.mojo_transformers import MjT_Log
         from h2oaicore.mojo_transformers_utils import AsType
-        from h2oaicore.systemutils import dtype_global
         xnew = iframe[self.input_feature_names]
         oframe = MojoFrame()
         for col in xnew:
