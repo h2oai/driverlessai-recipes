@@ -67,6 +67,9 @@ class LogisticRegressionModel(CustomModel):
     # these features do not help the score, but do make sense as plausible features to build
     _kaggle_features = False
 
+    # whether to use validation and train together (assumes test with sample_weight=0 already part of train+valid) for features
+    _kaggle_mode = False
+
     # numerical imputation for all columns (could be done per column chosen by mutations)
     _impute_num_type = 'sklearn'  # best for linear models
     # _impute_num_type = 'oob'  # risky for linear models, but can be used for testing
@@ -273,6 +276,16 @@ class LogisticRegressionModel(CustomModel):
                     self.params['penalty'] = penalty_list[0]  # just choose first
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+
+        if self._kaggle_mode and eval_set is not None:
+            new_X = dt.rbind([X, eval_set[0][0]])
+            new_sample_weight = np.concatenate([sample_weight, sample_weight_eval_set[0]])
+            new_sample_weight[X.shape[0]:X.shape[0] + eval_set[0][0].shape[0]] = 0
+            new_y = np.concatenate([y, eval_set[0][1]])
+            X = new_X
+            y = new_y
+            sample_weight = new_sample_weight
+
         orig_dir = os.getcwd()
         os.chdir(self.context.experiment_tmp_dir)  # for joblib
         os.makedirs(self.context.experiment_tmp_dir, exist_ok=True)  # another copy for DAI transformers
@@ -502,7 +515,9 @@ class LogisticRegressionModel(CustomModel):
             }
             grid_clf = GridSearchCV(model, param_grid, n_jobs=self.params['n_jobs'],
                                     cv=3, iid=True, refit=True, scoring=scorer)
-            grid_clf.fit(X, y)
+            fitkwargs = dict()
+            fitkwargs["%s__sample_weight" % estimator_name] = sample_weight
+            grid_clf.fit(X, y, **fitkwargs)
             model = grid_clf.best_estimator_
             # print("LR: best_index=%d best_score: %g best_params: %s" % (
             #    grid_clf.best_index_, grid_clf.best_score_, str(grid_clf.best_params_)))
@@ -515,11 +530,15 @@ class LogisticRegressionModel(CustomModel):
                 '%s__C' % estimator_name: [0.1, 0.5, 1.0],
             }
             grid_clf = GridSearchCV(model, param_grid, cv=10, iid=False)
-            grid_clf.fit(X, y)
+            fitkwargs = dict()
+            fitkwargs["%s__sample_weight" % estimator_name] = sample_weight
+            grid_clf.fit(X, y, **fitkwargs)
             model = grid_clf.best_estimator_
             # self.best_params = grid_clf.best_params_
         else:
-            model.fit(X, y)
+            fitkwargs = dict()
+            fitkwargs["%s__sample_weight" % estimator_name] = sample_weight
+            model.fit(X, y, **fitkwargs)
 
         # get actual LR model
         lr_model = model.named_steps[estimator_name]
