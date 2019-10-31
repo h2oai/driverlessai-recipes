@@ -51,6 +51,15 @@ class POSTagTransformer:
             pass
         remove(src)
 
+    def atomic_copy(self, src=None, dst=None):
+        import uuid
+        my_uuid = uuid.uuid4()
+        src_tmp = src + str(my_uuid)
+        shutil.copy(src, src_tmp)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        self.atomic_move(src_tmp, dst)
+        remove(src_tmp)
+
     @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
