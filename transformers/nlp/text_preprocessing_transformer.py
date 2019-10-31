@@ -39,7 +39,7 @@ class TextPreprocessingTransformer(CustomTransformer):
                 file1 = download("https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt.zip",
                                  dest_path=nltk_temp_path)
                 self.unzip_file(file1, tokenizer_path)
-                self.atomic_move(file1, tokenizer_path)
+                self.atomic_copy(file1, tokenizer_path)
                 self.stemmer = nltk.stem.porter.PorterStemmer()
                 self.stemmer.stem("test")
 
@@ -67,9 +67,9 @@ class TextPreprocessingTransformer(CustomTransformer):
                 self.unzip_file(file1, tagger_path)
                 self.unzip_file(file2, tagger_path)
                 self.unzip_file(file3, corpora_path)
-                self.atomic_move(file1, tagger_path)
-                self.atomic_move(file2, tagger_path)
-                self.atomic_move(file3, corpora_path)
+                self.atomic_copy(file1, tagger_path)
+                self.atomic_copy(file2, tagger_path)
+                self.atomic_copy(file3, corpora_path)
                 from nltk.corpus import wordnet
                 self.lemmatizer = nltk.stem.WordNetLemmatizer()
                 self.pos_tagger = nltk.pos_tag
@@ -93,7 +93,7 @@ class TextPreprocessingTransformer(CustomTransformer):
                 file1 = download("https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/stopwords.zip",
                                  dest_path=nltk_temp_path)
                 self.unzip_file(file1, corpora_path)
-                self.atomic_move(file1, corpora_path)
+                self.atomic_copy(file1, corpora_path)
                 self.stopwords = set(nltk.corpus.stopwords.words('english'))
 
     def unzip_file(self, src, dst_dir):
@@ -106,6 +106,15 @@ class TextPreprocessingTransformer(CustomTransformer):
         except shutil.Error:
             pass
         remove(src)
+
+    def atomic_copy(self, src=None, dst=None):
+        import uuid
+        my_uuid = uuid.uuid4()
+        src_tmp = src + str(my_uuid)
+        shutil.copy(src, src_tmp)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        self.atomic_move(src_tmp, dst)
+        remove(src_tmp)
 
     @staticmethod
     def get_default_properties():
