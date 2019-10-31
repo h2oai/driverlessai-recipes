@@ -35,8 +35,8 @@ class POSTagTransformer:
                              dest_path=nltk_temp_path)
             self.unzip_file(file1, tagger_path)
             self.unzip_file(file2, tagger_path)
-            self.atomic_move(file1, tagger_path)
-            self.atomic_move(file2, tagger_path)
+            self.atomic_copy(file1, tagger_path)
+            self.atomic_copy(file2, tagger_path)
             self.pos_tagger = nltk.pos_tag
             self.pos_tagger("test")
 
