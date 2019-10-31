@@ -23,7 +23,9 @@ class MyLogTransformer(CustomTransformer):
     _mojo = True
     from h2oaicore.mojo import MojoWriter, MojoFrame
 
-    def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame):
+    def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
+        group_uuid = str(uuid.uuid4())
+        group_name = self.__class__.__name__
         from h2oaicore.mojo import MojoColumn, MojoFrame
         from h2oaicore.mojo_transformers import MjT_Log
         from h2oaicore.mojo_transformers_utils import AsType
@@ -32,7 +34,8 @@ class MyLogTransformer(CustomTransformer):
         for col in xnew:
             ocol = MojoColumn(name=col.name, dtype=np.float64)
             ocol_frame = MojoFrame(columns=[ocol])
-            mojo += MjT_Log(iframe=MojoFrame(columns=[col]), oframe=ocol_frame)
+            mojo += MjT_Log(iframe=MojoFrame(columns=[col]), oframe=ocol_frame,
+                                          group_uuid=group_uuid, group_name=group_name)
             oframe += ocol
         oframe = AsType(dtype_global()).write_to_mojo(mojo, oframe)
         return oframe
