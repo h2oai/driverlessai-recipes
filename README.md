@@ -56,7 +56,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [airlines_joined_data_flights_in_out.py](./data/airlines_joined_data_flights_in_out.py) [Create augmented airlines datasets]
   * [airlines_joined_data_flights_in_out_regression.py](./data/airlines_joined_data_flights_in_out_regression.py) [Create augmented airlines datasets for regression]
   * [airlines_multiple.py](./data/airlines_multiple.py) [Create airlines dataset]
-  * [catchallenge.py](./data/catchallenge.py) [Create airlines dataset]
+  * [catchallenge.py](./data/catchallenge.py) [Create cat challenge dataset]
   * [data_template.py](./data/data_template.py) [Template base class for a custom data recipe.]
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description]
