@@ -136,6 +136,9 @@ def _setup_recipe():
     from h2oaicore.systemutils import config
     import shutil
 
+    if arch_type == "ppc64le":
+        raise RuntimeError("Cannot use daal on PPC")
+
     daal_is_installed_path = os.path.join(config.data_directory, config.contrib_env_relative_directory, "daal")
     daal_is_installed_file = os.path.join(daal_is_installed_path, "daal_is_installed")
     if not os.path.isfile(daal_is_installed_file):
