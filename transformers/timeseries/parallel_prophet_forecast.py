@@ -73,7 +73,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         if self.country_holidays is not None:
             name += "_Holiday_{}".format(self.country_holidays)
         if self.monthly_seasonality:
-            name += "_MonthlySeason"
+            name += "_Month"
         return name
 
     @staticmethod
@@ -90,6 +90,10 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
     @staticmethod
     def acceptance_test_timeout():
         return 10  # allow for 10 minutes to do acceptance test
+
+    @staticmethod
+    def do_acceptance_test():
+        return True
 
     @staticmethod
     def _fit_async(X_path, grp_hash, tmp_folder, params):
@@ -110,7 +114,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         # Import FB Prophet package
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
-        model = Prophet()
+        model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
 
         if params["country_holidays"] is not None:
             model.add_country_holidays(country_name=params["country_holidays"])
