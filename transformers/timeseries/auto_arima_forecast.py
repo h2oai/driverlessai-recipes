@@ -105,9 +105,22 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         else:
             XX_grp = [([None], XX)]
 
+        # Get the logger if it exists
+        logger = None
+        if self.context and self.context.experiment_id:
+            logger = make_experiment_logger(
+                experiment_id=self.context.experiment_id,
+                tmp_dir=self.context.tmp_dir,
+                experiment_tmp_dir=self.context.experiment_tmp_dir
+            )
+
         # Go over all groups
+        nb_groups = len(XX_grp)
         preds = []
         for _i_g, (key, X) in enumerate(XX_grp):
+            if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+                loggerinfo(logger, "Auto ARIMA : %d%% of groups transformed" % (100 * (_i_g + 1) // nb_groups))
+
             # Build unique group identifier to access the dedicated model
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
@@ -135,44 +148,6 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
             preds.append(XX)
 
         # Concatenate the frames to create the prediction series for all groups
-        XX = pd.concat(tuple(preds), axis=0).sort_index()
-
-        return XX
-
-        # Get the logger if it exists
-        logger = None
-        if self.context and self.context.experiment_id:
-            logger = make_experiment_logger(
-                experiment_id=self.context.experiment_id,
-                tmp_dir=self.context.tmp_dir,
-                experiment_tmp_dir=self.context.experiment_tmp_dir
-            )
-
-        nb_groups = len(XX_grp)
-        preds = []
-        for _i_g, (key, X) in enumerate(XX_grp):
-            # Just say where we are in the fitting process
-            if (_i_g + 1) % max(1, nb_groups // 20) == 0:
-                loggerinfo(logger, "Auto ARIMA : %d%% of groups transformed" % (100 * (_i_g + 1) // nb_groups))
-
-            key = key if isinstance(key, list) else [key]
-            grp_hash = '_'.join(map(str, key))
-            # print("auto arima - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
-            order = np.argsort(X[self.time_column])
-            if grp_hash in self.models:
-                model = self.models[grp_hash]
-                if model is not None:
-                    yhat = model.predict_in_sample() \
-                        if hasattr(self, 'is_train') else model.predict(n_periods=X.shape[0])
-                    yhat = yhat[order]
-                    XX = pd.DataFrame(yhat, columns=['yhat'])
-                else:
-                    XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # invalid model
-            else:
-                XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # unseen groups
-            XX.index = X.index
-            preds.append(XX)
-
         XX = pd.concat(tuple(preds), axis=0).sort_index()
 
         return XX
