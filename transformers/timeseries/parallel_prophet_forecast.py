@@ -62,7 +62,9 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
     def __init__(
             self,
             country_holidays=None,
-            monthly_seasonality=False,  **kwargs):
+            monthly_seasonality=False,
+            **kwargs
+    ):
         super().__init__(**kwargs)
         self.country_holidays = country_holidays
         self.monthly_seasonality = monthly_seasonality
@@ -73,7 +75,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         if self.country_holidays is not None:
             name += "_Holiday_{}".format(self.country_holidays)
         if self.monthly_seasonality:
-            name += "_MonthlySeason"
+            name += "_Month"
         return name
 
     @staticmethod
@@ -110,7 +112,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         # Import FB Prophet package
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
-        model = Prophet()
+        model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
 
         if params["country_holidays"] is not None:
             model.add_country_holidays(country_name=params["country_holidays"])
@@ -223,7 +225,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             out[res[0]] = res[1]
 
         pool_to_use = small_job_pool
-        loggerinfo(logger, "Prophet will use {} workers for fitting".format(n_jobs))
+        loggerinfo(logger, f"Prophet will use {n_jobs} workers for fitting.")
         loggerinfo(logger, "Prophet parameters holidays {} / monthly {}".format(self.country_holidays, self.monthly_seasonality))
         pool = pool_to_use(
             logger=None, processor=processor,

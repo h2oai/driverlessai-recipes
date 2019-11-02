@@ -62,7 +62,7 @@ class MySerialProphetTransformer(CustomTimeSeriesTransformer):
         for _i_g, (key, X) in enumerate(XX_grp):
             if (100 * (_i_g + 1) // nb_groups) % 5 == 0:
                 print("FB Prophet - ", 100 * (_i_g + 1) // nb_groups, "%% of Groups Fitted")
-            model = Prophet()
+            model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
             key = key if isinstance(key, list) else [key]
             grp_hash = '_'.join(map(str, key))
             # print("prophet - fitting on data of shape: %s for group: %s" % (str(X.shape), grp_hash))
