@@ -3,7 +3,6 @@ from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
 
-
 class PESectionCharacteristics(CustomTransformer):
     _modules_needed_by_name = ['lief==0.9.0']
     _regression = True
