@@ -275,6 +275,7 @@ class LogisticRegressionModel(CustomModel):
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         orig_dir = os.getcwd()
         os.chdir(self.context.experiment_tmp_dir)  # for joblib
+        os.makedirs(self.context.experiment_tmp_dir, exist_ok=True)  # another copy for DAI transformers
 
         orig_cols = list(X.names)
         if self.num_classes >= 2:
@@ -306,7 +307,7 @@ class LogisticRegressionModel(CustomModel):
         X_orig_cols_names = list(X.columns)
         if self._kaggle_features:
             self.features = make_features(cache=self._cache)
-            X = self.features.fit_transform(X, y)
+            X = self.features.fit_transform(X, y, **kwargs)
         else:
             self.features = None
         # print("LR: pandas dtypes: %s" % (str(list(X.dtypes))))
@@ -336,7 +337,7 @@ class LogisticRegressionModel(CustomModel):
             X = self.oob_imputer.fit_transform(X_dt)
             X = X.to_pandas()
             if self._kaggle_features:
-                X = self.features.fit_transform(X, y)
+                X = self.features.fit_transform(X, y, **kwargs)
         if self._kaggle_features:
             numerical_features = self.features.update_numerical_features(numerical_features)
 
@@ -769,10 +770,14 @@ class make_features(object):
         for k, v in src.__dict__.items():
             setattr(self, k, v)
 
-    def fit_transform(self, X: pd.DataFrame, y=None, transform=False):
+    def fit_transform(self, X: pd.DataFrame, y=None, transform=False, **kwargs):
         self.orig_cols = list(X.columns)
-        self.raw_names_dict = {Transformer.raw_feat_name(v): v for v in list(X.columns)}
-        self.raw_names_dict_reversed = {v: k for k, v in self.raw_names_dict.items()}
+        if 'IS_LEAKAGE' in kwargs or 'IS_SHIFT' in kwargs:
+            self.raw_names_dict = {v: v for v in list(X.columns)}
+            self.raw_names_dict_reversed = {v: k for k, v in self.raw_names_dict.items()}
+        else:
+            self.raw_names_dict = {Transformer.raw_feat_name(v): v for v in list(X.columns)}
+            self.raw_names_dict_reversed = {v: k for k, v in self.raw_names_dict.items()}
 
         file = "munged_%s_%s_%d_%d.csv" % (__name__, transform, X.shape[0], X.shape[1])
         file = file.replace("csv", "pkl")
