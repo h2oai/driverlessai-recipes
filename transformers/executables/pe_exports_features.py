@@ -3,8 +3,9 @@ from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
 
-class PENormalizedByteCount(CustomTransformer):
- 
+
+class PEExportsFeatures(CustomTransformer):
+    _modules_needed_by_name = ['lief==0.9.0']
     _regression = True
     _binary = True
     _multiclass = True
@@ -14,10 +15,7 @@ class PENormalizedByteCount(CustomTransformer):
     _can_use_multi_gpu = True  # if enabled, can get access to multiple GPUs for single transformer (experimental)
     _numeric_output = True
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-
+    
     @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
@@ -33,37 +31,52 @@ class PENormalizedByteCount(CustomTransformer):
 
     
     def load_pe(self, file_path):
-            with open(file_path, 'rb') as f:
-                bytez = bytearray(f.read())
-            return(bytez)
+        with open(file_path, 'rb') as f:
+            bytez = bytearray(f.read())
+        return(bytez)
     
+    
+    def exports_features(self, lief_binary):
+        from sklearn.feature_extraction import FeatureHasher
+
+        exports = sorted(lief_binary.exported_functions)
         
-    def get_norm_byte_count(self, file_path):
+        features_hashed = {}
+        if exports:
+            for i, x in enumerate(FeatureHasher(128, input_type='string').transform(exports).toarray()[0]):
+                features_hashed.update({f'Exports_functions_hash_{i}': x})
+        else:
+            for i in range(128):
+                features_hashed.update({f'Exports_functions_hash_{i}': 0})
+
+        return features_hashed
+    
+    
+    def get_exports_features(self, file_path):
+        import lief
         try:
-            pe_bytez = self.load_pe(file_path)
-            pe_int = np.frombuffer(pe_bytez, dtype=np.uint8)
-            # Calculate normalized byte counts
-            counts = np.bincount(pe_int, minlength=256)
-            X = counts / counts.sum()
+            pe_bytez = self.load_pe(file_path) 
+            lief_binary = lief.PE.parse(list(pe_bytez))
+            X = self.exports_features(lief_binary)
         
             return X
 
         except:
-            X = np.zeros(256, dtype=np.float32)
-
+            X = {f'Exports_functions_hash_{i}': 0 for i in range(128)}
             return X
     
 
     def transform(self, X: dt.Frame):
-        
         import pandas as pd
-        orig_col_name = X.names[0]
+
         ret_df = pd.DataFrame(
                 [
-                    self.get_norm_byte_count(x)
+                    self.get_exports_features(x)
                     for x in X.to_pandas().values[:,0]
                 ]
             )
-        self._output_feature_names = ['ByteNormCount_{}'.format(x) for x in range(ret_df.shape[1])]
-        self._feature_desc = [f'Normalized Count of Byte value {x} for {orig_col_name} column' for x in range(ret_df.shape[1])]
+        
+        self._output_feature_names = ret_df.columns.to_list()
+        self._feature_desc = self._output_feature_names
+
         return ret_df
