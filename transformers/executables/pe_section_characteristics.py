@@ -2,8 +2,7 @@
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
-#_global_modules_needed_by_name = ['lief==0.9.0']
-#import lief
+
 
 class PESectionCharacteristics(CustomTransformer):
     _modules_needed_by_name = ['lief==0.9.0']
@@ -80,7 +79,7 @@ class PESectionCharacteristics(CustomTransformer):
 
     
     def get_section_characteristics(self, file_path):
-#        import lief
+        import lief
         try:
             pe_bytez = self.load_pe(file_path) 
             lief_binary = lief.PE.parse(list(pe_bytez))
@@ -101,7 +100,6 @@ class PESectionCharacteristics(CustomTransformer):
         ret_df = pd.DataFrame(
                 [
                     self.get_section_characteristics(x)
-                    # for file in files
                     for x in X.to_pandas().values[:,0]
                 ]
             )
