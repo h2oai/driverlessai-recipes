@@ -19,6 +19,8 @@ class SeattleRainDataClean(CustomData):
                                                  dt.Frame, List[dt.Frame],
                                                  np.ndarray, List[np.ndarray],
                                                  pd.DataFrame, List[pd.DataFrame]]:
+        if X is None:
+            return []
         import os
         from h2oaicore.systemutils import config
 
