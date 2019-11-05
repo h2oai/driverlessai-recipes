@@ -41,7 +41,10 @@ class H2OBaseModel:
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
                            **kwargs):
-        self.params = dict(max_runtime_secs=accuracy * max(1, time_tolerance) * 5)  # Modify to your liking
+        max_runtime_secs = 600
+        if accuracy is not None and time_tolerance is not None:
+            max_runtime_secs = accuracy * (time_tolerance + 1) * 10 # customize here to your liking
+        self.params = dict(max_runtime_secs=max_runtime_secs)
 
     def get_iterations(self, model):
         return 0
@@ -148,6 +151,8 @@ class H2OBaseModel:
         preds_frame = None
 
         try:
+            if kwargs.get("pred_contribs"):
+                return model.predict_contributions(test_frame).as_data_frame(header=False).values
             preds_frame = model.predict(test_frame)
             preds = preds_frame.as_data_frame(header=False)
             if self.num_classes == 1:
@@ -182,6 +187,10 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
     _description = "H2O-3 Gradient Boosting Machine"
     _class = H2OGradientBoostingEstimator
 
+    @property
+    def has_pred_contribs(self):
+        return self.labels is None or len(self.labels) <= 2
+
     def get_iterations(self, model):
         return model.params['ntrees']['actual'] + 1
 
@@ -205,6 +214,10 @@ class H2ORFModel(H2OBaseModel, CustomModel):
     _display_name = "H2O RF"
     _description = "H2O-3 Random Forest"
     _class = H2ORandomForestEstimator
+
+    @property
+    def has_pred_contribs(self):
+        return self.labels is None or len(self.labels) <= 2
 
     def get_iterations(self, model):
         return model.params['ntrees']['actual'] + 1
