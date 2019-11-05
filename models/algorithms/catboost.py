@@ -63,6 +63,10 @@ class CatBoostModel(CustomModel):
     def do_acceptance_test():
         return True
 
+    @staticmethod
+    def acceptance_test_timeout():
+        return 20.0
+
     _modules_needed_by_name = ['catboost']
 
     def set_default_params(self,
@@ -91,6 +95,10 @@ class CatBoostModel(CustomModel):
                                            ensemble_level, train_shape,
                                            valid_shape)
 
+        for k in kwargs:
+            if k in self.params:
+                self.params[k] = kwargs[k]
+
         # self.params['has_time'] # should use this if TS problem
 
         if self._can_handle_categorical:
@@ -103,12 +111,16 @@ class CatBoostModel(CustomModel):
             else:
                 self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 65535)
 
-    def mutate_params(self,
-                      **kwargs):
+    def mutate_params(self, **kwargs):
         fake_lgbm_model = LightGBMModel(**self.input_dict)
-        fake_lgbm_model.params = self.params
+        fake_lgbm_model.params = self.params.copy()
+        fake_lgbm_model.params_base = self.params_base.copy()
+        fake_lgbm_model.params.update(fake_lgbm_model.params_base)
+        kwargs['train_shape'] = kwargs.get('train_shape', (10000, 500))
         fake_lgbm_model.mutate_params(**kwargs)
-        self.params = fake_lgbm_model.lightgbm_params
+        self.params.update(fake_lgbm_model.params)
+        fake_lgbm_model.transcribe_params(params=self.params)
+        self.params.update(fake_lgbm_model.lightgbm_params)
 
         # see what else can mutate, need to know things don't want to preserve
         uses_gpus, n_gpus = self.get_uses_gpus(self.params)
@@ -473,6 +485,7 @@ class CatBoostModel(CustomModel):
                 params['max_leaves'] = 2 ** params.get('max_depth', 6)
         else:
             params.pop('max_leaves', None)
+        if 'num_leaves' in params and 'max_leaves' in params:
             params.pop('num_leaves', None)
 
         params.update({'train_dir': config.data_directory,
@@ -535,6 +548,9 @@ class CatBoostModel(CustomModel):
 
         if params['bootstrap_type'] not in ['Bayesian']:
             params.pop('bagging_temperature', None)
+
+        if not (self.num_classes == 2 and params['objective'] == 'Logloss'):
+            params.pop('scale_pos_weight', None)
 
         # set system stuff here
         params['silent'] = self.params_base.get('silent', True)
