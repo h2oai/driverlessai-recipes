@@ -12,7 +12,7 @@ from h2o.estimators.deeplearning import H2OAutoEncoderEstimator
 class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.id = str(uuid.uuid4())[:10]
+        self.id = None
         self.raw_model_bytes = None
 
     @staticmethod
@@ -25,15 +25,17 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
         frame = h2o.H2OFrame(X.to_pandas())
         model_path = None
         try:
-            model.train(x=list(range(X.ncols)), training_frame=frame, model_id=self.id)
-            model_path = h2o.save_model(model=model, path=temporary_files_path)
+            model.train(x=list(range(X.ncols)), training_frame=frame)
+            self.id = model.model_id
+            model_path = os.path.join(temporary_files_path, "h2o_model." + str(uuid.uuid4()))
+            model_path = h2o.save_model(model=model, path=model_path)
             with open(model_path, "rb") as f:
                 self.raw_model_bytes = f.read()
             return model.anomaly(frame).as_data_frame(header=False)
         finally:
             if model_path is not None:
                 os.remove(model_path)
-            h2o.remove(self.id)
+            h2o.remove(model)
 
     def transform(self, X: dt.Frame):
         h2o.init(port=config.h2o_recipes_port)
