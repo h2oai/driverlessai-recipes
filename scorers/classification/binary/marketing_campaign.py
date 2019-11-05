@@ -50,4 +50,4 @@ class MarketingCampaign(CustomScorer):
         # print("net_income: %f" % net_income)
 
         # return mean profit per letter sent
-        return net_income / num_letters
+        return 0 if num_letters == 0 else net_income / num_letters
