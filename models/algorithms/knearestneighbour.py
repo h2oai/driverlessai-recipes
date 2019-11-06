@@ -73,7 +73,7 @@ class KNearestNeighbourModel(CustomModel):
             model = KNeighborsRegressor(n_neighbors=self.params['n_neighbors'], metric=self.params['metric'],
                                         weights=self.params['weights'], n_jobs=self.params['n_jobs'])
         self.means = dict()
-        self.scaler = StandardScaler()
+        self.standard_scaler = StandardScaler()
         for col in X.names:
             XX = X[:, col]
             self.means[col] = XX.mean1()
@@ -83,7 +83,7 @@ class KNearestNeighbourModel(CustomModel):
             X[:, col] = XX
             assert X[dt.isna(dt.f[col]), col].nrows == 0
         X = X.to_numpy()
-        X = self.scaler.fit_transform(X)
+        X = self.standard_scaler.fit_transform(X)
         feature_model.fit(X, y)
         model.fit(X, y)
         importances = np.array(abs(feature_model.coef_))
@@ -105,7 +105,7 @@ class KNearestNeighbourModel(CustomModel):
 
         model, _, _, _ = self.get_model_properties()
         X = X.to_numpy()
-        X = self.scaler.transform(X)
+        X = self.standard_scaler.transform(X)
         if not pred_contribs:
             if self.num_classes == 1:
                 preds = model.predict(X)
