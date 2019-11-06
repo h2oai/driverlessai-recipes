@@ -142,7 +142,7 @@ class LinearSVMModel(CustomModel):
             model = LinearSVR(epsilon=self.params["epsilon"], C=self.params["C"], loss=self.params["loss"],
                               dual=self.params["dual"], random_state=self.random_state)
         self.means = dict()
-        self.scaler = StandardScaler()
+        self.standard_scaler = StandardScaler()
         for col in X.names:
             XX = X[:, col]
             self.means[col] = XX.mean1()
@@ -152,7 +152,7 @@ class LinearSVMModel(CustomModel):
             X[:, col] = XX
             assert X[dt.isna(dt.f[col]), col].nrows == 0
         X = X.to_numpy()
-        X = self.scaler.fit_transform(X)
+        X = self.standard_scaler.fit_transform(X)
         model.fit(X, y, sample_weight=sample_weight)
         if self.num_classes >= 2:
             importances = np.array([0.0 for k in range(len(orig_cols))])
@@ -178,7 +178,7 @@ class LinearSVMModel(CustomModel):
 
         model, _, _, _ = self.get_model_properties()
         X = X.to_numpy()
-        X = self.scaler.transform(X)
+        X = self.standard_scaler.transform(X)
         if not pred_contribs:
             if self.num_classes == 1:
                 preds = model.predict(X)
