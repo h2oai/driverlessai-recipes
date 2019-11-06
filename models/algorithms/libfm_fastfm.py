@@ -103,7 +103,7 @@ class FastFMModel(CustomModel):
                                      l2_reg_V=self.params["l2_reg_V"], random_state=self.random_state)
 
         self.means = dict()
-        self.scaler = StandardScaler()
+        self.standard_scaler = StandardScaler()
         for col in X.names:
             XX = X[:, col]
             self.means[col] = XX.mean1()
@@ -113,7 +113,7 @@ class FastFMModel(CustomModel):
             X[:, col] = XX
             assert X[dt.isna(dt.f[col]), col].nrows == 0
         X = X.to_numpy()
-        X = self.scaler.fit_transform(X)
+        X = self.standard_scaler.fit_transform(X)
         X = csr_matrix(X)  # requires sparse matrix
         model.fit(X, y)
         importances = np.array(abs(model.w_))
@@ -136,7 +136,7 @@ class FastFMModel(CustomModel):
 
         model, _, _, _ = self.get_model_properties()
         X = X.to_numpy()
-        X = self.scaler.transform(X)
+        X = self.standard_scaler.transform(X)
         X = csr_matrix(X)  # requires sparse matrix
         if not pred_contribs:
             if self.num_classes == 1:
