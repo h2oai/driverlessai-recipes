@@ -333,7 +333,7 @@ class CatBoostModel(CustomModel):
                 elif 'Cat:' in col:
                     cattype = int
                 else:
-                    cattype = None
+                    cattype = str  # if was marked as non-numeric, must become string (e.g. for leakage/shift)
                 if cattype is not None:
                     X[col] = X[col].astype(cattype)
                     if eval_set is not None:
