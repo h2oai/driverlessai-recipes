@@ -8,7 +8,7 @@ from h2oaicore.transformer_utils import CustomTransformer
 
 class TextNamedEntityTransformer(CustomTransformer):
     """Transformer to extract the count of Named Entities"""
-    _modules_needed_by_name = ["spacy>=2.1.8"]
+    _modules_needed_by_name = ["spacy==2.1.8"]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
