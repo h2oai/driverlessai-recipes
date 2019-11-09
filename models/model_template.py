@@ -107,7 +107,7 @@ class CustomModel(BaseCustomModel):
         return config.acceptance_test_timeout
 
     @staticmethod
-    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0):
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, **kwargs):
         """
         Return whether the model can be used given the settings and parameters that are passed in.
 
