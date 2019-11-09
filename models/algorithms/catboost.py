@@ -209,9 +209,9 @@ class CatBoostModel(CustomModel):
                 valid_y = eval_set[0][1]
                 valid_y = lb.transform(valid_y)
                 eval_set = [(valid_X, valid_y)]
-            self.params.update({'eval_metric': 'AUC', 'objective': 'Logloss'})
+            self.params.update({'objective': 'Logloss'})
         if self.num_classes > 2:
-            self.params.update({'eval_metric': 'AUC', 'objective': 'MultiClass'})
+            self.params.update({'objective': 'MultiClass'})
 
         if isinstance(X, dt.Frame):
             orig_cols = list(X.names)
@@ -551,6 +551,32 @@ class CatBoostModel(CustomModel):
 
         if not (self.num_classes == 2 and params['objective'] == 'Logloss'):
             params.pop('scale_pos_weight', None)
+
+        # go back to some default eval_metric
+        if self.num_classes == 1:
+            if 'eval_metric' not in params or params['eval_metric'] not in ['MAE', 'MAPE', 'Poisson', 'Quantile',
+                                                                            'RMSE', 'LogLinQuantile', 'Lq',
+                                                                            'Huber', 'Expectile', 'FairLoss',
+                                                                            'NumErrors', 'SMAPE', 'R2', 'MSLE',
+                                                                            'MedianAbsoluteError']:
+                params['eval_metric'] = 'RMSE'
+        elif self.num_classes == 2:
+            if 'eval_metric' not in params or params['eval_metric'] not in ['Logloss', 'CrossEntropy', 'Precision',
+                                                                            'Recall', 'F1', 'BalancedAccuracy',
+                                                                            'BalancedErrorRate', 'MCC', 'Accuracy',
+                                                                            'CtrFactor', 'AUC',
+                                                                            'NormalizedGini', 'BrierScore', 'HingeLoss',
+                                                                            'HammingLoss', 'ZeroOneLoss',
+                                                                            'Kappa', 'WKappa',
+                                                                            'LogLikelihoodOfPrediction']:
+                params['eval_metric'] = 'Logloss'
+        else:
+            if 'eval_metric' not in params or params['eval_metric'] not in ['MultiClass', 'MultiClassOneVsAll',
+                                                                            'Precision', 'Recall', 'F1', 'TotalF1',
+                                                                            'MCC', 'Accuracy', 'HingeLoss',
+                                                                            'HammingLoss', 'ZeroOneLoss', 'Kappa',
+                                                                            'WKappa', 'AUC']:
+                params['eval_metric'] = 'MultiClass'
 
         # set system stuff here
         params['silent'] = self.params_base.get('silent', True)
