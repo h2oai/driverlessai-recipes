@@ -39,6 +39,10 @@ class AzureSpeechToText(CustomTransformer):
     def do_acceptance_test():
         return False
 
+    @staticmethod
+    def is_enabled():
+        return False
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         service_key, service_region = self.get_service_key(), self.get_service_region()
