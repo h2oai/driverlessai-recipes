@@ -518,7 +518,7 @@ class CatBoostModel(CustomModel):
             # https://catboost.ai/docs/features/training-on-gpu.html
             params['devices'] = "%d-%d" % (
             self.params_base.get('gpu_id', 0), self.params_base.get('gpu_id', 0) + n_gpus - 1)
-            params['gpu_ram_part'] = 0.90  # per-GPU, assumes GPU locking or no other experiments running
+            params['gpu_ram_part'] = 0.7  # per-GPU, assumes GPU locking or no other experiments running
 
         if self.num_classes > 2:
             params.pop("eval_metric", None)
