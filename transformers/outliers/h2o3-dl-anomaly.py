@@ -5,7 +5,7 @@ import numpy as np
 import os
 import h2o
 import uuid
-from h2oaicore.systemutils import temporary_files_path, config
+from h2oaicore.systemutils import temporary_files_path, config, remove
 from h2o.estimators.deeplearning import H2OAutoEncoderEstimator
 
 
@@ -34,7 +34,7 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
             return model.anomaly(frame).as_data_frame(header=False)
         finally:
             if model_path is not None:
-                os.remove(model_path)
+                remove(model_path)
             h2o.remove(model)
 
     def transform(self, X: dt.Frame):
@@ -43,7 +43,7 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
         with open(model_path, "wb") as f:
             f.write(self.raw_model_bytes)
         model = h2o.load_model(os.path.abspath(model_path))
-        os.remove(model_path)
+        remove(model_path)
         frame = h2o.H2OFrame(X.to_pandas())
         anomaly_frame = None
 

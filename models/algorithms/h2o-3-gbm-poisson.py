@@ -3,7 +3,7 @@
 from h2oaicore.models import CustomModel
 import datatable as dt
 import uuid
-from h2oaicore.systemutils import config, temporary_files_path
+from h2oaicore.systemutils import config, temporary_files_path, remove
 from h2o.estimators.gbm import H2OGradientBoostingEstimator
 
 import numpy as np
@@ -105,7 +105,7 @@ class H2OBaseModel:
 
         finally:
             if model_path is not None:
-                os.remove(model_path)
+                remove(model_path)
             for xx in [train_frame, train_X, train_y, model, valid_frame, valid_X, valid_y]:
                 if xx is not None:
                     h2o.remove(xx)
@@ -131,7 +131,7 @@ class H2OBaseModel:
         with open(model_path, "wb") as f:
             f.write(model)
         model = h2o.load_model(os.path.abspath(model_path))
-        os.remove(model_path)
+        remove(model_path)
         test_frame = h2o.H2OFrame(X.to_pandas(), column_types=self.col_types)
         preds_frame = None
 
