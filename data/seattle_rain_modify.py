@@ -19,6 +19,7 @@ class SeattleRainDataClean(CustomData):
                                                  dt.Frame, List[dt.Frame],
                                                  np.ndarray, List[np.ndarray],
                                                  pd.DataFrame, List[pd.DataFrame]]:
+        # exit gracefully if method is called as a data upload rather than data modify
         if X is None:
             return []
         import os
