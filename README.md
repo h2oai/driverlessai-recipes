@@ -51,7 +51,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
  [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
  [1.8.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.1)
-### Count: 119
+### Count: 120
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [airlines.py](./data/airlines.py) [Create airlines dataset]
@@ -154,6 +154,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [text_embedding_similarity_transformers.py](./transformers/nlp/text_embedding_similarity_transformers.py) [Row-by-row similarity between two text columns based on pretrained Deep Learning embedding space]
     * [text_lang_detect_transformer.py](./transformers/nlp/text_lang_detect_transformer.py) [Detect the language for a text value using Google's 'langdetect' package]
     * [text_meta_transformers.py](./transformers/nlp/text_meta_transformers.py) [Extract common meta features from text]
+    * [text_named_entities_transformer.py](./transformers/nlp/text_named_entities_transformer.py) [Extract the counts of different named entities in the text (e.g. Person, Organization, Location)]
     * [text_pos_tagging_transformer.py](./transformers/nlp/text_pos_tagging_transformer.py) [Extract the count of nouns, verbs, adjectives and adverbs in the text]
     * [text_preprocessing_transformer.py](./transformers/nlp/text_preprocessing_transformer.py) [Preprocess the text column by stemming, lemmatization and stop word removal]
     * [text_readability_transformers.py](./transformers/nlp/text_readability_transformers.py) [    Custom Recipe to extract Readability features from the text data    ## About Readability Features     ## References    - https://github.com/shivam5992/textstat    - http://www.readabilityformulas.com/free-readability-formula-tests.php]
