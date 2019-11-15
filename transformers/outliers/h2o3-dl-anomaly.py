@@ -42,10 +42,15 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
         model_path = os.path.join(temporary_files_path, self.id)
         with open(model_path, "wb") as f:
             f.write(self.raw_model_bytes)
-        model = h2o.load_model(model_path)
+        model = h2o.load_model(os.path.abspath(model_path))
         os.remove(model_path)
         frame = h2o.H2OFrame(X.to_pandas())
+        anomaly_frame = None
+
         try:
-            return model.anomaly(frame).as_data_frame(header=False)
+            anomaly_frame = model.anomaly(frame)
+            anomaly_frame_df = anomaly_frame.as_data_frame(header=False)
+            return anomaly_frame_df
         finally:
             h2o.remove(self.id)
+            h2o.remove(anomaly_frame)
