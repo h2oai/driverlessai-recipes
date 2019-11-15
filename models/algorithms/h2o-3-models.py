@@ -5,7 +5,7 @@ import copy
 from h2oaicore.models import CustomModel
 import datatable as dt
 import uuid
-from h2oaicore.systemutils import config, temporary_files_path
+from h2oaicore.systemutils import config, temporary_files_path, remove
 import numpy as np
 
 _global_modules_needed_by_name = ['h2o==3.26.0.1']
@@ -117,7 +117,7 @@ class H2OBaseModel:
 
         finally:
             if model_path is not None:
-                os.remove(model_path)
+                remove(model_path)
             for xx in [train_frame, train_X, train_y, model, valid_frame, valid_X, valid_y]:
                 if xx is not None:
                     if isinstance(xx, H2OAutoML):
@@ -146,7 +146,7 @@ class H2OBaseModel:
         with open(model_path, "wb") as f:
             f.write(model)
         model = h2o.load_model(os.path.abspath(model_path))
-        os.remove(model_path)
+        remove(model_path)
         test_frame = h2o.H2OFrame(X.to_pandas(), column_types=self.col_types)
         preds_frame = None
 
@@ -266,7 +266,7 @@ class H2OGLMModel(H2OBaseModel, CustomModel):
     _description = "H2O-3 Generalized Linear Model"
     _class = H2OGeneralizedLinearEstimator
 
-    def make_instance(self):
+    def make_instance(self, **kwargs):
         if self.num_classes == 1:
             return self.__class__._class(seed=self.random_state, family='gaussian')  # tweedie/poisson/tweedie/gamma
         elif self.num_classes == 2:

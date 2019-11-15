@@ -62,7 +62,9 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
     def __init__(
             self,
             country_holidays=None,
-            monthly_seasonality=False,  **kwargs):
+            monthly_seasonality=False,
+            **kwargs
+    ):
         super().__init__(**kwargs)
         self.country_holidays = country_holidays
         self.monthly_seasonality = monthly_seasonality
@@ -89,7 +91,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
     @staticmethod
     def acceptance_test_timeout():
-        return 10  # allow for 10 minutes to do acceptance test
+        return 20  # allow for 20 minutes to do acceptance test
 
     @staticmethod
     def do_acceptance_test():
@@ -227,7 +229,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             out[res[0]] = res[1]
 
         pool_to_use = small_job_pool
-        loggerinfo(logger, "Prophet will use {} workers for fitting".format(n_jobs))
+        loggerinfo(logger, f"Prophet will use {n_jobs} workers for fitting.")
         loggerinfo(logger, "Prophet parameters holidays {} / monthly {}".format(self.country_holidays, self.monthly_seasonality))
         pool = pool_to_use(
             logger=None, processor=processor,

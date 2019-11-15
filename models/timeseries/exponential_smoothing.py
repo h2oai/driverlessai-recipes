@@ -14,7 +14,7 @@ class ExponentialSmoothingModel(BaseCustomModel, GLMModel):
     _included_transformers = ["EwmaLagsTransformer"]
 
     @staticmethod
-    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0):
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, **kwargs):
         return True  # i.e. ignore GLM's restrictions on interpretability and accuracy
 
     @staticmethod
