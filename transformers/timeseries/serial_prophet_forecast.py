@@ -43,6 +43,10 @@ class MySerialProphetTransformer(CustomTimeSeriesTransformer):
     def get_default_properties():
         return dict(col_type="time_column", min_cols=1, max_cols=1, relative_importance=1)
 
+    @staticmethod
+    def acceptance_test_timeout():
+        return 20.0
+
     def fit(self, X: dt.Frame, y: np.array = None):
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
