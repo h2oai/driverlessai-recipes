@@ -94,10 +94,6 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         return 20  # allow for 20 minutes to do acceptance test
 
     @staticmethod
-    def do_acceptance_test():
-        return True
-
-    @staticmethod
     def _fit_async(X_path, grp_hash, tmp_folder, params):
         """
         Fits a FB Prophet model for a particular time group
