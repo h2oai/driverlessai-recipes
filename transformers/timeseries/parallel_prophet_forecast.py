@@ -91,7 +91,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
     @staticmethod
     def acceptance_test_timeout():
-        return 10  # allow for 10 minutes to do acceptance test
+        return 20  # allow for 20 minutes to do acceptance test
 
     @staticmethod
     def _fit_async(X_path, grp_hash, tmp_folder, params):
