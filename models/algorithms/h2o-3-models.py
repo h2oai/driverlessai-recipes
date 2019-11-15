@@ -266,7 +266,7 @@ class H2OGLMModel(H2OBaseModel, CustomModel):
     _description = "H2O-3 Generalized Linear Model"
     _class = H2OGeneralizedLinearEstimator
 
-    def make_instance(self):
+    def make_instance(self, **kwargs):
         if self.num_classes == 1:
             return self.__class__._class(seed=self.random_state, family='gaussian')  # tweedie/poisson/tweedie/gamma
         elif self.num_classes == 2:
