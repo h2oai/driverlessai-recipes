@@ -2,8 +2,12 @@
 
 import datatable as dt
 import numpy as np
+import os
 
 from h2oaicore.transformer_utils import CustomTransformer
+from h2oaicore.utils import ContribLoader
+from h2oaicore.systemutils import remove
+import filelock
 
 
 class TextNamedEntityTransformer(CustomTransformer):
@@ -12,14 +16,16 @@ class TextNamedEntityTransformer(CustomTransformer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
         import spacy
+        env_dir = ContribLoader._env_dir.resolve()
+        lock_file = os.path.join(env_dir, "spacy.lock")
         try:
-            self.nlp = spacy.load('en_core_web_sm')
-        except IOError:
-            from spacy.cli import download
-            download('en_core_web_sm')
-            self.nlp = spacy.load('en_core_web_sm')
+            with filelock.FileLock(lock_file):
+                from spacy.cli import download
+                download('en_core_web_sm', False, "--install-option=--prefix=%s" % ContribLoader._env_dir.resolve())
+                self.nlp = spacy.load('en_core_web_sm')
+        finally:
+            remove(lock_file)
         self.ne_types = {"PERSON", "ORG", "GPE", "LOC", "PRODUCT", "EVENT", "DATE"}
 
     @staticmethod
