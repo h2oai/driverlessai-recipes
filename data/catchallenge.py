@@ -11,12 +11,13 @@ import os
 class CatChallenge(CustomData):
     @staticmethod
     def create_data(X: dt.Frame = None):
-
         # to be used with models.algorithms.logistic_regression.py with
         # _kaggle = True
         # _kaggle_features = True
         # _kaggle_mode = True
         path = "/home/jon/kaggle/cat/inputs/"
+        if not os.path.exists(path):
+            return []
 
         train = dt.fread(os.path.join(path, "train.csv.zip"))
         train_orig = dt.Frame(train)
