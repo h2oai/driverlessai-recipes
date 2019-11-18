@@ -14,7 +14,7 @@ class CountMissingPerRowTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         if X.ncols == 0:
-            return np.zeros(X.nrows)
+            return np.zeros((X.nrows, 1))
         return X[:, dt.sum([dt.isna(dt.f[x]) for x in range(X.ncols)])]
 
 

@@ -45,7 +45,7 @@ class NormalizedMACDTransformer(CustomTimeSeriesTransformer):
         X = X[:, [int, float, bool]]
         # If after the filtering there are no features left then just return a zero valued features
         if X.ncols == 0:
-            return np.zeros(X.nrows)
+            return np.zeros((X.nrows, 1))
 
         # Move to pandas to use the apply method
         X = X.to_pandas()
@@ -66,9 +66,12 @@ class NormalizedMACDTransformer(CustomTimeSeriesTransformer):
             try:
                 res = X.groupby(group_cols)[col].apply(self.normalized_macd)
             except KeyError:
-                return np.zeros(X.nrows)
+                return np.zeros((X.nrows, 1))
 
             res.index = X.index
-            return res
+            if res.shape[1] == 0:
+                return np.zeros((X.nrows, 1))
+            else:
+                return res
         else:
-            return np.zeros(X.nrows)
+            return np.zeros((X.nrows, 1))
