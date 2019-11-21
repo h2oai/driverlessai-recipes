@@ -36,8 +36,9 @@ class MyLogTransformer(CustomTransformer):
             ocol = MojoColumn(name=col.name, dtype=np.float64)
             ocol_frame = MojoFrame(columns=[ocol])
             mojo += MjT_Log(iframe=MojoFrame(columns=[col]), oframe=ocol_frame,
-                                          group_uuid=group_uuid, group_name=group_name)
+                            group_uuid=group_uuid, group_name=group_name)
             oframe += ocol
         oframe = AsType(dtype_global()).write_to_mojo(mojo, oframe,
-                                          group_uuid=group_uuid, group_name=group_name)
+                                                      group_uuid=group_uuid,
+                                                      group_name=group_name)
         return oframe
