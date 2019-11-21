@@ -240,7 +240,7 @@ class CustomTransformer(DataTableTransformer):
         """
         raise NotImplementedError("Please implement the transform method.")
 
-    def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame):  # -> MojoFrame:
+    def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):  # -> MojoFrame:
         """
         Optional method to implement MOJO writing - expert mode
         """
