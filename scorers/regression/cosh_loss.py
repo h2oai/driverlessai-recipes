@@ -2,7 +2,6 @@
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
-import sklearn
 
 
 class CoshLossScorer(CustomScorer):
@@ -19,6 +18,7 @@ class CoshLossScorer(CustomScorer):
               labels: typing.Optional[np.array] = None) -> float:
         if sample_weight is None:
             sample_weight = np.ones(actual.shape[0])
+        predicted = predicted.ravel()
         good_rows = predicted >= 0
         if not good_rows.any():
             return 30
