@@ -114,13 +114,16 @@ class GermanyLandersHolidayTransformer2(CustomTimeSeriesTransformer):
 
         return X
                 
-    def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame):
+    def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
+        import uuid
+        group_uuid = str(uuid.uuid4())
+        group_name = self.__class__.__name__
 
         iframe = iframe[self.time_column]
         icol = iframe.get_column(0)
         if icol.type != MojoType.STR:
-            iframe = AsType("int").write_to_mojo(mojo, iframe)
-            iframe = AsType("str").write_to_mojo(mojo, iframe)
+            iframe = AsType("int").write_to_mojo(mojo, iframe, group_uuid=group_uuid, group_name=group_name)
+            iframe = AsType("str").write_to_mojo(mojo, iframe, group_uuid=group_uuid, group_name=group_name)
             icol = iframe.get_column(0)
 
         # We have to add each holiday to the MOJO
@@ -128,33 +131,46 @@ class GermanyLandersHolidayTransformer2(CustomTimeSeriesTransformer):
         for prov in ['country', 'BW', 'BY', 'BE', 'BB', 'HB', 'HH', 'HE', 'MV',
                      'NI', 'NW', 'RP', 'SL', 'SN', 'ST', 'SH', 'TH']:
             tmpframe = iframe.duplicate()
-            mojo += MjT_Replace(iframe=iframe, oframe=tmpframe, map=[('None', None), ('', None)])
+            mojo += MjT_Replace(iframe=iframe, oframe=tmpframe,
+                                group_uuid=group_uuid, group_name=group_name,
+                                map=[('None', None), ('', None)])
             tcol = tmpframe.get_column(0)
             datetime_format = self.datetime_formats[self.time_column]
             if datetime_format is not None:
                 mojo.set_datetime_format_str(tcol, datetime_format)
             iframe = tmpframe
-            tframe = AsType("datetime64").write_to_mojo(mojo, iframe)
+            tframe = AsType("datetime64").write_to_mojo(mojo, iframe,
+                                                        group_uuid=group_uuid,
+                                                        group_name=group_name)
             year_col = MojoColumn(name="year", dtype="int")
             doy_col = MojoColumn(name="doy", dtype="int")
-            mojo += MjT_Datepart(iframe=tframe, oframe=MojoFrame(columns=[year_col]), fn="year")
-            mojo += MjT_Datepart(iframe=tframe, oframe=MojoFrame(columns=[doy_col]), fn="dayofyear")
+            mojo += MjT_Datepart(iframe=tframe, oframe=MojoFrame(columns=[year_col]),
+                                 group_uuid=group_uuid, group_name=group_name,
+                                 fn="year")
+            mojo += MjT_Datepart(iframe=tframe, oframe=MojoFrame(columns=[doy_col]),
+                                 group_uuid=group_uuid, group_name=group_name,
+                                 fn="dayofyear")
             dates_frame = MojoFrame(columns=[year_col, doy_col])
             feat = f'is_DE_holiday_{prov}'
             holi_df = self.memos[prov]
             holi_df[feat] = 1
             mout = MergeTransformer.from_frame(
-                holi_df, ['year', 'doy']).write_to_mojo(mojo, dates_frame)
+                holi_df, ['year', 'doy']).write_to_mojo(mojo, dates_frame,
+                                                        group_uuid=group_uuid,
+                                                        group_name=group_name)
             holi_df.drop(feat, axis=1, inplace=True)
 
             mlag = mout[feat]
             mlag.names = [feat]
             olag = mlag.get_column(0).duplicate()
             mojo += MjT_FillNa(iframe=mlag, oframe=MojoFrame(columns=[olag]),
+                               group_uuid=group_uuid, group_name=group_name,
                                repl=olag.pytype(0))
             oframe += olag
 
         # print(oframe.names)
-        oframe = AsType("int").write_to_mojo(mojo, oframe)
+        oframe = AsType("int").write_to_mojo(mojo, oframe,
+                                             group_uuid=group_uuid,
+                                             group_name=group_name)
         # print(oframe.names)
         return oframe
