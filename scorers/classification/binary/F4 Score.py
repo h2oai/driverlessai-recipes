@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
