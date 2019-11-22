@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
@@ -9,12 +6,12 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 
 class fbeta(CustomScorer):
-    _description = "Fbeta(4))`"
+    _description = "Fbeta(3))`"
     _binary = True
     _multiclass = True
     _maximize = True
     _perfect_score = 1
-    _display_name = "F4 Score"
+    _display_name = "F3 Score"
     _threshold = 0.5  
 
     def score(self,
@@ -35,10 +32,10 @@ class fbeta(CustomScorer):
         recall = recall_score(actual, predicted, labels=labels, average=method, sample_weight=sample_weight)
     
         numerator = precision*recall
-        denominator = (16)*precision + recall
-        f4_score =  (17)*numerator/denominator                           
+        denominator = (9)*precision + recall
+        f3_score =  (10)*numerator/denominator                           
                                     
-        return f4_score
+        return f3_score
     
 
 
