@@ -2,11 +2,10 @@ import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import precision_score
-from sklearn.metrics import recall_score
+from sklearn.metrics import fbeta_score
 
 class fbeta(CustomScorer):
-    _description = "Fbeta(3))`"
+    _description = "Fbeta(3))"
     _binary = True
     _multiclass = True
     _maximize = True
@@ -28,18 +27,9 @@ class fbeta(CustomScorer):
             method = "micro"
         else:
             predicted = (predicted > self._threshold)
-        precision =  precision_score(actual, predicted, labels=labels, average=method, sample_weight=sample_weight)
-        recall = recall_score(actual, predicted, labels=labels, average=method, sample_weight=sample_weight)
-    
-        numerator = precision*recall
-        denominator = (9)*precision + recall
-        f3_score =  (10)*numerator/denominator                           
+            
+        f3_score =fbeta_score(actual, predicted, labels=labels, average=method, sample_weight=sample_weight, beta= 3)    
+                                 
                                     
         return f3_score
     
-
-
-
-
-
-
