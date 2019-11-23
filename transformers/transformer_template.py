@@ -38,6 +38,13 @@ class CustomTransformer(DataTableTransformer):
     """Optional name to show for this transformer during experiment and in results"""
     _display_name = NotImplemented  # str
 
+    """Optional flag to enable custom naming of output features.
+    If enabled, set feature names and descriptions like this during call of fit_transform() method:
+       self._output_feature_names = ["feature_1", "feature_2", ...]
+       self._feature_desc = ["this is magic feature 1", "this is magic feature 2", ...]
+    """
+    _allow_transform_to_modify_output_feature_names = False
+
     """Expert settings for optimal hardware usage"""
     _parallel_task = True  # if enabled, fit_transform and transform will be given self.n_jobs and kwargs['n_jobs']
     # n_jobs will be  >= 1 (adaptive to system resources and tasks), otherwise 1 if _parallel_task = False
