@@ -51,7 +51,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
  [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
  [1.8.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.1)
-### Count: 120
+### Count: 122
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [airlines.py](./data/airlines.py) [Create airlines dataset]
@@ -96,6 +96,8 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [huber_loss.py](./scorers/huber_loss.py) [Huber Loss for Regression or Binary Classification. Robust loss, combination of quadratic loss and linear loss.]
   * [scorer_template.py](./scorers/scorer_template.py) [Template base class for a custom scorer recipe.]
   * [CLASSIFICATION](./scorers/classification)
+    * [f3_score.py](./scorers/classification/f3_score.py) [F3 Score]
+    * [f4_score.py](./scorers/classification/f4_score.py) [F4 Score]
     * [precision.py](./scorers/classification/precision.py) [Precision: `TP / (TP + FP)`. Binary uses threshold of 0.5 (please adjust), multiclass uses argmax to assign labels.]
     * [recall.py](./scorers/classification/recall.py) [Recall: `TP / (TP + FN)`. Binary uses threshold of 0.5 (please adjust), multiclass uses argmax to assign labels.]
     * [BINARY](./scorers/classification/binary)
