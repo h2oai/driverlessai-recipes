@@ -1,17 +1,19 @@
+"""F4 Score"""
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import fbeta_score
 
+
 class fbeta(CustomScorer):
-    _description = "Fbeta(3))"
+    _description = "Fbeta(4))"
     _binary = True
     _multiclass = True
     _maximize = True
     _perfect_score = 1
-    _display_name = "F3 Score"
-    _threshold = 0.5  
+    _display_name = "F4 Score"
+    _threshold = 0.5  # Example only, should be adjusted based on domain knowledge and other experiments
 
     def score(self,
               actual: np.array,
@@ -27,9 +29,5 @@ class fbeta(CustomScorer):
             method = "micro"
         else:
             predicted = (predicted > self._threshold)
-            
-        f3_score =fbeta_score(actual, predicted, labels=labels, average=method, sample_weight=sample_weight, beta= 3)    
-                                 
-                                    
-        return f3_score
-    
+        f4_score = fbeta_score(actual, predicted, labels=labels, average=method, sample_weight=sample_weight, beta=4)
+        return f4_score
