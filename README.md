@@ -51,7 +51,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
  [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
  [1.8.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.1)
-### Count: 122
+### Count: 123
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [airlines.py](./data/airlines.py) [Create airlines dataset]
@@ -153,6 +153,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [image_url_transformer.py](./transformers/image/image_url_transformer.py) [Convert a path to an image (JPG/JPEG/PNG) to a vector of class probabilities created by a pretrained ImageNet deeplearning model (Keras, TensorFlow).]
   * [NLP](./transformers/nlp)
     * [fuzzy_text_similarity_transformers.py](./transformers/nlp/fuzzy_text_similarity_transformers.py) [Row-by-row similarity between two text columns based on FuzzyWuzzy]
+    * [text_char_tfidf_count_transformers.py](./transformers/nlp/text_char_tfidf_count_transformers.py) [Character level TFIDF and Count followed by Truncated SVD on text columns]
     * [text_embedding_similarity_transformers.py](./transformers/nlp/text_embedding_similarity_transformers.py) [Row-by-row similarity between two text columns based on pretrained Deep Learning embedding space]
     * [text_lang_detect_transformer.py](./transformers/nlp/text_lang_detect_transformer.py) [Detect the language for a text value using Google's 'langdetect' package]
     * [text_meta_transformers.py](./transformers/nlp/text_meta_transformers.py) [Extract common meta features from text]
