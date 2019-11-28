@@ -51,7 +51,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
  [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
  [1.8.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.1)
-### Count: 123
+### Count: 132
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [airlines.py](./data/airlines.py) [Create airlines dataset]
@@ -70,7 +70,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.]
     * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL]
     * [extra_trees.py](./models/algorithms/extra_trees.py) [Extremely Randomized Trees (ExtraTrees) model from sklearn]
-    * [h2o-3-gbm-poisson.py](./models/algorithms/h2o-3-gbm-poisson.py) [H2O-3 Distributed Scalable Machine Learning Models: Poisson GLM]
+    * [h2o-3-gbm-poisson.py](./models/algorithms/h2o-3-gbm-poisson.py) [H2O-3 Distributed Scalable Machine Learning Models: Poisson GBM]
     * [h2o-3-models.py](./models/algorithms/h2o-3-models.py) [H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB/AutoML)]
     * [h2o-glm-poisson.py](./models/algorithms/h2o-glm-poisson.py) [H2O-3 Distributed Scalable Machine Learning Models: Poisson GLM]
     * [knearestneighbour.py](./models/algorithms/knearestneighbour.py) [K-Nearest Neighbor implementation by sklearn. For small data (< 200k rows).]
@@ -138,6 +138,15 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [datetime_diff_transformer.py](./transformers/datetime/datetime_diff_transformer.py) [Difference in time between two datetime columns]
     * [datetime_encoder_transformer.py](./transformers/datetime/datetime_encoder_transformer.py) [Converts datetime column into an integer (milliseconds since 1970)]
     * [days_until_dec2020.py](./transformers/datetime/days_until_dec2020.py) [Creates new feature for any date columns, by computing the difference in days between the date value and 31st Dec 2020]
+  * [EXECUTABLES](./transformers/executables)
+    * [pe_data_directory_features.py](./transformers/executables/pe_data_directory_features.py) [Extract LIEF features from PE files]
+    * [pe_exports_features.py](./transformers/executables/pe_exports_features.py) [Extract LIEF features from PE files]
+    * [pe_general_features.py](./transformers/executables/pe_general_features.py) [Extract LIEF features from PE files]
+    * [pe_header_features.py](./transformers/executables/pe_header_features.py) [Extract LIEF features from PE files]
+    * [pe_imports_features.py](./transformers/executables/pe_imports_features.py) [Extract LIEF features from PE files]
+    * [pe_normalized_byte_count.py](./transformers/executables/pe_normalized_byte_count.py) [Extract LIEF features from PE files]
+    * [pe_section_characteristics.py](./transformers/executables/pe_section_characteristics.py) [Extract LIEF features from PE files]
+    * [DATA](./transformers/executables/data)
   * [GENERIC](./transformers/generic)
     * [count_missing_values_transformer.py](./transformers/generic/count_missing_values_transformer.py) [Count of missing values per row]
     * [missing_flag_transformer.py](./transformers/generic/missing_flag_transformer.py) [Returns 1 if a value is missing, or 0 otherwise]
@@ -191,8 +200,10 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [audio_MFCC_transformer.py](./transformers/speech/audio_MFCC_transformer.py) [Extract MFCC and spectrogram features from audio files]
     * [azure_speech_to_text.py](./transformers/speech/azure_speech_to_text.py) [An example of integration with Azure Speech Recognition Service]
   * [STRING](./transformers/string)
+    * [simple_grok_parser.py](./transformers/string/simple_grok_parser.py) [Extract column data using grok patterns]
     * [strlen_transformer.py](./transformers/string/strlen_transformer.py) [Returns the string length of categorical values]
     * [to_string_transformer.py](./transformers/string/to_string_transformer.py) [Converts numbers to strings]
+    * [user_agent_transformer.py](./transformers/string/user_agent_transformer.py) [A best effort transformer to determine browser device characteristics from a user-agent string]
   * [TARGETENCODING](./transformers/targetencoding)
     * [ExpandingMean.py](./transformers/targetencoding/ExpandingMean.py) [CatBoost-style target encoding. See https://youtu.be/d6UMEmeXB6o?t=818 for short explanation]
     * [leaky_mean_target_encoder.py](./transformers/targetencoding/leaky_mean_target_encoder.py) [Example implementation of a out-of-fold target encoder (leaky, not recommended)]
