@@ -22,11 +22,11 @@ class CustomModel(BaseCustomModel):
     during feature creation for this model."""
     _can_handle_categorical = False
 
-    """Specify whether the model is expected to create reproducible results. If disabled, model might be 
+    """Specify whether the model is expected to create reproducible results. If disabled, model might be
     skipped for experiments run in reproducible mode."""
     _is_reproducible = True
 
-    """Optional list of included/excluded transformers that are allowed to feed data into this model, 
+    """Optional list of included/excluded transformers that are allowed to feed data into this model,
     specified by their class name (e.g., _included_transformers = ["NumToCatWoETransformer"])"""
     _included_transformers = None  # List[str]
     _excluded_transformers = None  # List[str]
@@ -52,7 +52,7 @@ class CustomModel(BaseCustomModel):
         If _predict_by_iteration=True, use of set_model_properties(iterations=<iterations>) should have <iterations> match value
         that would be used later for predictions that could be passed into predict as kwarg _predict_iteration_name,
         if so predict can use specific model state to avoid overfitting across folds/splits/repeats.
-        If _predict_by_iteration=False, _fit_iteration_name will be kwarg passed to fit to re-fit as required to 
+        If _predict_by_iteration=False, _fit_iteration_name will be kwarg passed to fit to re-fit as required to
         avoid overfitting when there are multiple folds/splits/repeats.
         If _fit_by_iteration=False, then no overfit avoidance will be attempted by DAI.
     """
