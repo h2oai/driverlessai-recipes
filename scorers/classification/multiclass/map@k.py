@@ -2,6 +2,13 @@
 Mean Average Precision @ k (MAP@k)
 https://www.kaggle.com/c/expedia-hotel-recommendations/overview/evaluation
 """
+
+"""
+Add value of k in recipe_dict in config
+eg1: recipe_dict = "{'k_for_map': 5}"
+eg2: recipe_dict = "{'k_for_map': 10}"
+"""
+
 import typing
 import numpy as np
 import pandas as pd
@@ -29,7 +36,7 @@ class MAPatk(CustomScorer):
 
 def mapkeval(predicted, actual, n_classes, k):
     metric = 0.
-    if n_classes > k-1:
+    if n_classes >= k:
         for i in range(k):
             pred = pd.Series.tolist(predicted.iloc[:, i])
             metric += np.sum(actual == pred) / (i + 1)
