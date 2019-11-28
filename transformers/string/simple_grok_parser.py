@@ -42,7 +42,7 @@ class TextGrokParser(CustomTransformer):
 
     @staticmethod
     def do_acceptance_test():
-        return
+        return False
 
     # noinspection PyBroadException
     def parse_text(self, text):
