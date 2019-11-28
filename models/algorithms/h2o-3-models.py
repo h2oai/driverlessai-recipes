@@ -54,6 +54,7 @@ class H2OBaseModel:
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         X = dt.Frame(X)
+
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = None
 
@@ -64,7 +65,6 @@ class H2OBaseModel:
             if sample_weight_eval_set is not None:
                 sample_weight_eval_set = [(sample_weight_eval_set[0] != 0).astype(int)]
 
-        orig_cols = list(X.names)
         train_X = h2o.H2OFrame(X.to_pandas())
         self.col_types = train_X.types
         train_y = h2o.H2OFrame(y,
@@ -106,7 +106,25 @@ class H2OBaseModel:
             if sample_weight is not None:
                 train_kwargs['weights_column'] = self.weight
             model = self.make_instance(**params)
-            model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
+            
+            # Don't ever use the offset column as a feature
+            offset_col = None  # if no column is called offset we will pass "None" and not use this feature
+            cols_to_train = []  # list of all non-offset columns
+
+            for col in list(train_X.names):
+                if not col.lower() == "offset":
+                    cols_to_train.append(col)
+                else:
+                    offset_col = col
+
+            orig_cols = cols_to_train  # not training on offset
+
+            # Models that can use an offset column
+            if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
+                model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col, **train_kwargs)
+            else:
+                model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
+
             if isinstance(model, H2OAutoML):
                 model = model.leader
             self.id = model.model_id
@@ -130,7 +148,7 @@ class H2OBaseModel:
             varimp = np.ones(len(orig_cols))
         else:
             df_varimp.index = df_varimp['variable']
-            df_varimp = df_varimp.iloc[:, 1]  # relative importance
+            df_varimp = df_varimp.iloc[:, 7]  # relative importance
             varimp = df_varimp[orig_cols].values  # order by fitted features
 
         self.set_model_properties(model=raw_model_bytes,
