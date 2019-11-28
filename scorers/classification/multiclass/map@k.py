@@ -1,12 +1,13 @@
 """
 Mean Average Precision @ k (MAP@k)
-https://www.kaggle.com/c/expedia-hotel-recommendations/overview/evaluation
 """
 
 """
-Add value of k in recipe_dict in config
-eg1: recipe_dict = "{'k_for_map': 5}"
-eg2: recipe_dict = "{'k_for_map': 10}"
+Add value of k in recipe_dict in config or scorer will use default value of 10
+
+Sample Datasets
+# Expedia - https://www.kaggle.com/c/expedia-hotel-recommendations/overview/evaluation
+recipe_dict = "{'k_for_map': 5}"
 """
 
 import typing
@@ -26,7 +27,7 @@ class MAPatk(CustomScorer):
 
     def score(self, actual: np.array, predicted: np.array, sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-        k = config.recipe_dict['k_for_map'] if 'k_for_map' in config.recipe_dict else 5
+        k = config.recipe_dict['k_for_map'] if 'k_for_map' in config.recipe_dict else 10
         predictedk = [preds.argsort()[-k:][::-1] for preds in predicted]
         predicted_labels = [[labels[x] for x in preds] for preds in predictedk]
         df = pd.DataFrame.from_records(predicted_labels)
