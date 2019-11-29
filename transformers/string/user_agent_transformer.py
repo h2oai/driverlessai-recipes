@@ -7,12 +7,6 @@
 import datatable as dt
 import numpy as np
 from h2oaicore.transformer_utils import CustomTransformer
-from user_agents import parse
-
-
-def get_ua_info(ua_string):
-    ua = parse(ua_string)
-    return ua.browser.family, ua.os.family, ua.device.family, ua.is_mobile, ua.is_tablet
 
 
 class UserAgent(CustomTransformer):
@@ -31,6 +25,11 @@ class UserAgent(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
+        def get_ua_info(ua_string):
+            from user_agents import parse
+            ua = parse(ua_string)
+            return ua.browser.family, ua.os.family, ua.device.family, ua.is_mobile, ua.is_tablet
+
         ua_column_names = ['ua', 'user-agent', 'user_agent', 'useragent']
         col_name = X.names[0]
         if col_name in ua_column_names:
