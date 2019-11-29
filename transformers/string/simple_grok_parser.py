@@ -3,7 +3,6 @@
 import datatable as dt
 import numpy as np
 from h2oaicore.transformer_utils import CustomTransformer
-from pygrok import Grok
 
 #
 # Extract data from a composite column record using grok mapping a la logstash
@@ -32,6 +31,7 @@ class TextGrokParser(CustomTransformer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        from pygrok import Grok
         self.grok = Grok(_PATTERN)
         self.columns = list(self.grok.regex_obj.groupindex.keys())
         self.column_to_parse = _COLUMN_TO_PARSE
