@@ -48,14 +48,14 @@ class suppress_stdout_stderr(object):
 # Global methods support this feature
 # We use global methods as a wrapper for member methods of the transformer
 def MyParallelProphetTransformer_fit_async(*args, **kwargs):
-    return MyFasterProphetTransformer._fit_async(*args, **kwargs)
+    return MyParallelProphetTransformer._fit_async(*args, **kwargs)
 
 
 def MyParallelProphetTransformer_transform_async(*args, **kwargs):
-    return MyFasterProphetTransformer._transform_async(*args, **kwargs)
+    return MyParallelProphetTransformer._transform_async(*args, **kwargs)
 
 
-class MyFasterProphetTransformer(CustomTimeSeriesTransformer):
+class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
     """Implementation of the FB Prophet transformer using a pool of processes to fit models in parallel"""
     _is_reproducible = True
     _binary = False
