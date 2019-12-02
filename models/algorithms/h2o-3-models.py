@@ -148,7 +148,7 @@ class H2OBaseModel:
             varimp = np.ones(len(orig_cols))
         else:
             df_varimp.index = df_varimp['variable']
-            df_varimp = df_varimp.iloc[:, 7]  # relative importance
+            df_varimp = df_varimp.iloc[:, 1]  # relative importance
             varimp = df_varimp[orig_cols].values  # order by fitted features
 
         self.set_model_properties(model=raw_model_bytes,
