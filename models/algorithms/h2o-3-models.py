@@ -196,6 +196,10 @@ class H2ONBModel(H2OBaseModel, CustomModel):
     _description = "H2O-3 Naive Bayes"
     _class = H2ONaiveBayesEstimator
 
+    def predict(self, X, **kwargs):
+        preds = super().predict(X, **kwargs)
+        return np.nan_to_num(preds, copy=False)  # get rid of infs
+
 
 from h2o.estimators.gbm import H2OGradientBoostingEstimator
 
