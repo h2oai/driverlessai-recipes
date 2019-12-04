@@ -12,6 +12,7 @@ import pandas as pd
 import shutil
 import random
 import uuid
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
 
 class suppress_stdout_stderr(object):
@@ -250,6 +251,18 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         remove(X_path)  # remove to indicate success
         return grp_hash, model_path
 
+    def get_hash(self, key):
+        # Create dict key to store the min max scaler
+        if isinstance(key, tuple):
+            key = list(key)
+        elif isinstance(key, list):
+            pass
+        else:
+            # Not tuple, not list
+            key = [key]
+        grp_hash = '_'.join(map(str, key))
+        return grp_hash
+
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
 
         # Get TGC and time column
@@ -270,69 +283,222 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
                 tmp_dir=self.context.tmp_dir,
                 experiment_tmp_dir=self.context.experiment_tmp_dir
             )
+
         loggerinfo(logger, "Start Fitting Prophet Model with params : {}".format(self.params))
+
+        try:
+            # Add value of prophet_top_n in recipe_dict variable inside of config.toml file
+            # eg1: recipe_dict="{'prophet_top_n': 200}"
+            # eg2: recipe_dict="{'prophet_top_n':10}"
+            self.top_n = config.recipe_dict['prophet_top_n']
+        except KeyError:
+            self.top_n = 50
+
+        loggerinfo(logger, f"Prophet will use {self.top_n} groups as well as average target data.")
 
         # Get temporary folders for multi process communication
         tmp_folder = self._create_tmp_folder(logger)
 
         n_jobs = self._get_n_jobs(logger, **kwargs)
 
-        # Convert to pandas
-        XX = X[:, self.tgc].to_pandas()
-        XX = XX.replace([None, np.nan], 0)
-        XX.rename(columns={self.time_column: "ds"}, inplace=True)
-        # Make target available in the Frame
-        XX['y'] = np.array(y)
-        # Set target prior
-        self.nan_value = np.mean(y)
-
-        # Group the input by TGC (Time group column) excluding the time column itself
+        # Reduce X to TGC
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
+        X = X[:, self.tgc].to_pandas()
+
+        # Fill NaNs or None
+        X = X.replace([None, np.nan], 0)
+
+        # Add target, Label encoder is only used for Classif. which we don't support...
+        if self.labels is not None:
+            y = LabelEncoder().fit(self.labels).transform(y)
+        X['y'] = np.array(y)
+
+        self.nan_value = X['y'].mean()
+
+        # Change date feature name to match Prophet requirements
+        X.rename(columns={self.time_column: "ds"}, inplace=True)
+
+        # Create a general scale now that will be used for unknown groups at prediction time
+        # Can we do smarter than that ?
+        general_scaler = MinMaxScaler().fit(X[['y', 'ds']].groupby('ds').median().values)
+
+        # Go through groups and standard scale them
         if len(tgc_wo_time) > 0:
-            XX_grp = XX.groupby(tgc_wo_time)
+            X_groups = X.groupby(tgc_wo_time)
         else:
-            XX_grp = [([None], XX)]
+            X_groups = [([None], X)]
 
-        self.models = {}
-        self.priors = {}
+        scalers = {}
+        scaled_ys = []
+        print('Number of groups : ', len(X_groups))
+        for g in tgc_wo_time:
+            print(f'Number of groups in {g} groups : {X[g].unique().shape}')
 
-        # Prepare for multi processing
-        num_tasks = len(XX_grp)
+        for key, X_grp in X_groups:
+            # Create dict key to store the min max scaler
+            grp_hash = self.get_hash(key)
+            # Scale target for current group
+            scalers[grp_hash] = MinMaxScaler()
+            y_skl = scalers[grp_hash].fit_transform(X_grp[['y']].values)
+            # Put back in a DataFrame to keep track of original index
+            y_skl_df = pd.DataFrame(y_skl, columns=['y'])
+            # (0, 'A') (1, 4) (100, 1) (100, 1)
+            # print(grp_hash, X_grp.shape, y_skl.shape, y_skl_df.shape)
 
-        def processor(out, res):
-            out[res[0]] = res[1]
+            y_skl_df.index = X_grp.index
+            scaled_ys.append(y_skl_df)
 
-        pool_to_use = small_job_pool
-        loggerdebug(logger, "Prophet will use {} workers for fitting".format(n_jobs))
-        pool = pool_to_use(
-            logger=None, processor=processor,
-            num_tasks=num_tasks, max_workers=n_jobs
-        )
+        # Set target back in original frame but keep original
+        X['y_orig'] = X['y']
+        X['y'] = pd.concat(tuple(scaled_ys), axis=0)
 
-        # Fit 1 FB Prophet model per time group columns
-        nb_groups = len(XX_grp)
-        for _i_g, (key, X) in enumerate(XX_grp):
-            # Just log where we are in the fitting process
-            if (_i_g + 1) % max(1, nb_groups // 20) == 0:
-                loggerinfo(logger, "FB Prophet : %d%% of groups fitted" % (100 * (_i_g + 1) // nb_groups))
+        # Now Average groups
+        X_avg = X[['ds', 'y']].groupby('ds').mean().reset_index()
 
-            X_path = os.path.join(tmp_folder, "fbprophet_X" + str(uuid.uuid4()))
-            X = X.reset_index(drop=True)
-            save_obj(X, X_path)
-            key = key if isinstance(key, list) else [key]
-            grp_hash = '_'.join(map(str, key))
+        # Send that to Prophet
+        mod = importlib.import_module('fbprophet')
+        Prophet = getattr(mod, "Prophet")
+        model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
 
-            self.priors[grp_hash] = X['y'].mean()
+        if self.params["country_holidays"] is not None:
+            model.add_country_holidays(country_name=self.params["country_holidays"])
+        if self.params["monthly_seasonality"]:
+            model.add_seasonality(name='monthly', period=30.5, fourier_order=self.params["monthly_seasonality"])
+        if self.params["quarterly_seasonality"]:
+            model.add_seasonality(name='quarterly', period=92, fourier_order=self.params["quarterly_seasonality"])
 
-            args = (X_path, grp_hash, tmp_folder, self.params, self.cap)
-            kwargs = {}
-            pool.submit_tryget(None, MyParallelProphetTransformer_fit_async, args=args, kwargs=kwargs, out=self.models)
-        pool.finish()
-        for k, v in self.models.items():
-            self.models[k] = load_obj(v) if v is not None else None
-            remove(v)
+        with suppress_stdout_stderr():
+            model.fit(X[['ds', 'y']])
+
+        top_groups = None
+        if len(tgc_wo_time) > 0:
+            if self.top_n > 0:
+                top_n_grp = X.groupby(tgc_wo_time).size().sort_values().reset_index()[tgc_wo_time].iloc[
+                            -self.top_n:].values
+                top_groups = [
+                    '_'.join(map(str, key))
+                    for key in top_n_grp
+                ]
+
+        grp_models = {}
+        priors = {}
+        if top_groups:
+            # Prepare for multi processing
+            num_tasks = len(top_groups)
+
+            def processor(out, res):
+                out[res[0]] = res[1]
+
+            pool_to_use = small_job_pool
+            loggerinfo(logger, f"Prophet will use {n_jobs} workers for fitting.")
+
+            pool = pool_to_use(
+                logger=None, processor=processor,
+                num_tasks=num_tasks, max_workers=n_jobs
+            )
+            #
+            # Fit 1 FB Prophet model per time group columns
+            nb_groups = len(X_groups)
+
+            # Put y back to its unscaled value for top groups
+            X['y'] = X['y_orig']
+
+            for _i_g, (key, X) in enumerate(X_groups):
+                # Just log where we are in the fitting process
+                if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+                    loggerinfo(logger, "FB Prophet : %d%% of groups fitted" % (100 * (_i_g + 1) // nb_groups))
+
+                X_path = os.path.join(tmp_folder, "fbprophet_X" + str(uuid.uuid4()))
+                X = X.reset_index(drop=True)
+                save_obj(X, X_path)
+
+                grp_hash = self.get_hash(key)
+
+                if grp_hash not in top_groups:
+                    continue
+
+                priors[grp_hash] = X['y'].mean()
+
+                args = (X_path, grp_hash, tmp_folder, self.params, self.cap)
+                kwargs = {}
+                pool.submit_tryget(None, MyParallelProphetTransformer_fit_async,
+                                   args=args, kwargs=kwargs, out=grp_models)
+            pool.finish()
+
+            for k, v in grp_models.items():
+                grp_models[k] = load_obj(v) if v is not None else None
+                remove(v)
 
         self._clean_tmp_folder(logger, tmp_folder)
+
+        # # Convert to pandas
+        # XX = X[:, self.tgc].to_pandas()
+        # XX = XX.replace([None, np.nan], 0)
+        # XX.rename(columns={self.time_column: "ds"}, inplace=True)
+        # # Make target available in the Frame
+        # XX['y'] = np.array(y)
+        # # Set target prior
+        # self.nan_value = np.mean(y)
+        #
+        # # Group the input by TGC (Time group column) excluding the time column itself
+        # tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
+        # if len(tgc_wo_time) > 0:
+        #     XX_grp = XX.groupby(tgc_wo_time)
+        # else:
+        #     XX_grp = [([None], XX)]
+        #
+        # models = {}
+        # self.priors = {}
+        #
+        # # Prepare for multi processing
+        # num_tasks = len(XX_grp)
+        #
+        # def processor(out, res):
+        #     out[res[0]] = res[1]
+        #
+        # pool_to_use = small_job_pool
+        # loggerdebug(logger, "Prophet will use {} workers for fitting".format(n_jobs))
+        # pool = pool_to_use(
+        #     logger=None, processor=processor,
+        #     num_tasks=num_tasks, max_workers=n_jobs
+        # )
+        #
+        # # Fit 1 FB Prophet model per time group columns
+        # nb_groups = len(XX_grp)
+        # for _i_g, (key, X) in enumerate(XX_grp):
+        #     # Just log where we are in the fitting process
+        #     if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+        #         loggerinfo(logger, "FB Prophet : %d%% of groups fitted" % (100 * (_i_g + 1) // nb_groups))
+        #
+        #     X_path = os.path.join(tmp_folder, "fbprophet_X" + str(uuid.uuid4()))
+        #     X = X.reset_index(drop=True)
+        #     save_obj(X, X_path)
+        #     key = key if isinstance(key, list) else [key]
+        #     grp_hash = '_'.join(map(str, key))
+        #
+        #     self.priors[grp_hash] = X['y'].mean()
+        #
+        #     args = (X_path, grp_hash, tmp_folder, self.params, self.cap)
+        #     kwargs = {}
+        #     pool.submit_tryget(None, MyParallelProphetTransformer_fit_async, args=args, kwargs=kwargs, out=models)
+        # pool.finish()
+        # for k, v in models.items():
+        #     models[k] = load_obj(v) if v is not None else None
+        #     remove(v)
+
+        self.set_model_properties(
+            model={
+                'avg': model,
+                'group': grp_models,
+                'priors': priors,
+                'topgroups': top_groups,
+                'skl': scalers,
+                'gen_scaler': general_scaler
+            },
+            features=self.tgc,  # Prophet uses time and timegroups
+            importances=np.ones(len(self.tgc)),
+            iterations=-1  # Does not have iterations
+        )
 
         return None
 
@@ -385,66 +551,200 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
             loggerdebug(logger, "Return 0 predictions")
             return np.ones(X.shape[0]) * self.nan_value
 
+        models, _, _, _ = self.get_model_properties()
+
+        model = models['avg']
+        grp_models = models['group']
+        priors = models['priors']
+        top_groups = models['topgroups']
+        scalers = models['skl']
+        general_scaler = models['gen_scaler']
+
         tmp_folder = self._create_tmp_folder(logger)
 
         n_jobs = self._get_n_jobs(logger, **kwargs)
 
-        XX = X[:, self.tgc].to_pandas()
-        XX = XX.replace([None, np.nan], 0)
-        XX.rename(columns={self.time_column: "ds"}, inplace=True)
+        # Reduce X to TGC
+        tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
+        X = X[:, self.tgc].to_pandas()
+
+        # Fill NaNs or None
+        X = X.replace([None, np.nan], 0)
+
+        # Change date feature name to match Prophet requirements
+        X.rename(columns={self.time_column: "ds"}, inplace=True)
 
         if self.params["growth"] == "logistic":
-            XX["cap"] = self.cap
+            X["cap"] = self.cap
 
-        tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
+        # Predict y using unique dates
+        X_time = X[['ds']].groupby('ds').first().reset_index()
+        with suppress_stdout_stderr():
+            y_avg = model.predict(X_time)[['ds', 'yhat']]
+
+        # Prophet transforms the date column to datetime so we need to transfrom that to merge back
+        X_time.sort_values('ds', inplace=True)
+        X_time['yhat'] = y_avg['yhat']
+        X_time.sort_index(inplace=True)
+
+        # Merge back into original frame on 'ds'
+        # pd.merge wipes the index ... so keep it to provide it again
+        indices = X.index
+        X = pd.merge(
+            left=X,
+            right=X_time[['ds', 'yhat']],
+            on='ds',
+            how='left'
+        )
+        X.index = indices
+
+        # Go through groups and recover the scaled target for knowed groups
         if len(tgc_wo_time) > 0:
-            XX_grp = XX.groupby(tgc_wo_time)
+            X_groups = X.groupby(tgc_wo_time)
         else:
-            XX_grp = [([None], XX)]
-        assert len(XX_grp) > 0
-        num_tasks = len(XX_grp)
+            X_groups = [([None], X)]
 
-        def processor(out, res):
-            out.append(res)
+        inverted_ys = []
+        for key, X_grp in X_groups:
+            grp_hash = self.get_hash(key)
 
-        pool_to_use = small_job_pool
-        loggerdebug(logger, "Prophet will use {} workers for transform".format(n_jobs))
-        pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks, max_workers=n_jobs)
-        XX_paths = []
-        model_paths = []
-        nb_groups = len(XX_grp)
-        print("Nb Groups = ", nb_groups)
-        for _i_g, (key, X) in enumerate(XX_grp):
-            # Log where we are in the transformation of the dataset
-            if (_i_g + 1) % max(1, nb_groups // 20) == 0:
-                loggerinfo(logger, "FB Prophet : %d%% of groups transformed" % (100 * (_i_g + 1) // nb_groups))
+            # Scale target for current group
+            if grp_hash in scalers.keys():
+                inverted_y = scalers[grp_hash].inverse_transform(X_grp[['yhat']])
+            else:
+                inverted_y = general_scaler.inverse_transform(X_grp[['yhat']])
 
-            key = key if isinstance(key, list) else [key]
-            grp_hash = '_'.join(map(str, key))
-            X_path = os.path.join(tmp_folder, "fbprophet_Xt" + str(uuid.uuid4()))
-            # Commented for performance, uncomment for debug
-            # print("prophet - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
-            if grp_hash in self.models:
-                model = self.models[grp_hash]
+            # Put back in a DataFrame to keep track of original index
+            inverted_df = pd.DataFrame(inverted_y, columns=['yhat'])
+            inverted_df.index = X_grp.index
+            inverted_ys.append(inverted_df)
+
+        XX_general = pd.concat(tuple(inverted_ys), axis=0).sort_index()
+
+        if top_groups:
+            # Go though the groups and predict only top
+            XX_paths = []
+            model_paths = []
+
+            def processor(out, res):
+                out.append(res)
+            num_tasks = len(top_groups)
+            pool_to_use = small_job_pool
+            pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks, max_workers=n_jobs)
+
+            nb_groups = len(X_groups)
+            for _i_g, (key, X_grp) in enumerate(X_groups):
+
+                # Just log where we are in the fitting process
+                if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+                    loggerinfo(logger, "FB Prophet : %d%% of groups predicted" % (100 * (_i_g + 1) // nb_groups))
+
+                # Create dict key to store the min max scaler
+                grp_hash = self.get_hash(key)
+                X_path = os.path.join(tmp_folder, "fbprophet_Xt" + str(uuid.uuid4()))
+
+                if grp_hash not in top_groups:
+                    XX = pd.DataFrame(np.full((X_grp.shape[0], 1), np.nan), columns=['yhat'])  # unseen groups
+                    XX.index = X_grp.index
+                    save_obj(XX, X_path)
+                    XX_paths.append(X_path)
+                    continue
+
+                if grp_models[grp_hash] is None:
+                    XX = pd.DataFrame(np.full((X_grp.shape[0], 1), np.nan), columns=['yhat'])  # unseen groups
+                    XX.index = X_grp.index
+                    save_obj(XX, X_path)
+                    XX_paths.append(X_path)
+                    continue
+
+                model = grp_models[grp_hash]
                 model_path = os.path.join(tmp_folder, "fbprophet_modelt" + str(uuid.uuid4()))
                 save_obj(model, model_path)
-                save_obj(X, X_path)
+                save_obj(X_grp, X_path)
                 model_paths.append(model_path)
 
-                args = (model_path, X_path, self.priors[grp_hash], tmp_folder)
+                args = (model_path, X_path, priors[grp_hash], tmp_folder)
                 kwargs = {}
                 pool.submit_tryget(None, MyParallelProphetTransformer_transform_async, args=args, kwargs=kwargs,
                                    out=XX_paths)
-            else:
-                XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # unseen groups
-                XX.index = X.index
-                save_obj(XX, X_path)
-                XX_paths.append(X_path)
-        pool.finish()
-        XX = pd.concat((load_obj(XX_path) for XX_path in XX_paths), axis=0).sort_index()
-        for p in XX_paths + model_paths:
-            remove(p)
+
+            pool.finish()
+            XX_top_groups = pd.concat((load_obj(XX_path) for XX_path in XX_paths), axis=0).sort_index()
+            for p in XX_paths + model_paths:
+                remove(p)
 
         self._clean_tmp_folder(logger, tmp_folder)
 
-        return XX['yhat'].values
+        features_df = pd.DataFrame()
+        features_df['GrpAvg'] = XX_general['yhat']
+
+        if top_groups:
+            features_df[f'_Top{self.top_n}Grp'] = XX_top_groups['yhat']
+            features_df.loc[
+                features_df[f'_Top{self.top_n}Grp'].notnull(), 'GrpAvg'
+            ] = features_df.loc[
+                features_df[f'_Top{self.top_n}Grp'].notnull(), f'_Top{self.top_n}Grp'
+            ]
+
+        # Models have to return a numpy array
+        return features_df['GrpAvg'].values
+
+        # XX = X[:, self.tgc].to_pandas()
+        # XX = XX.replace([None, np.nan], 0)
+        # XX.rename(columns={self.time_column: "ds"}, inplace=True)
+        #
+        # if self.params["growth"] == "logistic":
+        #     XX["cap"] = self.cap
+        #
+        # tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
+        # if len(tgc_wo_time) > 0:
+        #     XX_grp = XX.groupby(tgc_wo_time)
+        # else:
+        #     XX_grp = [([None], XX)]
+        # assert len(XX_grp) > 0
+        # num_tasks = len(XX_grp)
+        #
+        # def processor(out, res):
+        #     out.append(res)
+        #
+        # pool_to_use = small_job_pool
+        # loggerdebug(logger, "Prophet will use {} workers for transform".format(n_jobs))
+        # pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks, max_workers=n_jobs)
+        # XX_paths = []
+        # model_paths = []
+        # nb_groups = len(XX_grp)
+        # print("Nb Groups = ", nb_groups)
+        # for _i_g, (key, X) in enumerate(XX_grp):
+        #     # Log where we are in the transformation of the dataset
+        #     if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+        #         loggerinfo(logger, "FB Prophet : %d%% of groups transformed" % (100 * (_i_g + 1) // nb_groups))
+        #
+        #     key = key if isinstance(key, list) else [key]
+        #     grp_hash = '_'.join(map(str, key))
+        #     X_path = os.path.join(tmp_folder, "fbprophet_Xt" + str(uuid.uuid4()))
+        #     # Commented for performance, uncomment for debug
+        #     # print("prophet - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
+        #     if grp_hash in models:
+        #         model = models[grp_hash]
+        #         model_path = os.path.join(tmp_folder, "fbprophet_modelt" + str(uuid.uuid4()))
+        #         save_obj(model, model_path)
+        #         save_obj(X, X_path)
+        #         model_paths.append(model_path)
+        #
+        #         args = (model_path, X_path, self.priors[grp_hash], tmp_folder)
+        #         kwargs = {}
+        #         pool.submit_tryget(None, MyParallelProphetTransformer_transform_async, args=args, kwargs=kwargs,
+        #                            out=XX_paths)
+        #     else:
+        #         XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # unseen groups
+        #         XX.index = X.index
+        #         save_obj(XX, X_path)
+        #         XX_paths.append(X_path)
+        # pool.finish()
+        # XX = pd.concat((load_obj(XX_path) for XX_path in XX_paths), axis=0).sort_index()
+        # for p in XX_paths + model_paths:
+        #     remove(p)
+        #
+        # self._clean_tmp_folder(logger, tmp_folder)
+
+        # return XX['yhat'].values
