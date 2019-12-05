@@ -16,7 +16,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.metrics import roc_auc_score, make_scorer
 
 from h2oaicore.models import CustomModel
-from h2oaicore.systemutils import config, physical_cores_count, save_obj, load_obj, DefaultOrderedDict
+from h2oaicore.systemutils import config, physical_cores_count, save_obj_atomically, load_obj, DefaultOrderedDict
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.transformers import CatOriginalTransformer, FrequentTransformer, CVTargetEncodeTransformer
 from h2oaicore.transformer_utils import Transformer
@@ -96,8 +96,9 @@ class LogisticRegressionModel(CustomModel):
     _num_as_cat = False or _kaggle  # treating numeric as categorical best handled per column, but can force all numerics as cats
     _num_as_num = False
 
-    _mutate_all = True  # tell DAI we fully controls mutation
+    _mutate_all = True  # tell DAI we fully control mutation
     _mutate_by_one = False  # tell our recipe only changes one key at a time, can limit exploration if set as True
+    _mutate_by_one_sometimes = True
     _always_defaults = False
     _randomized_random_state = False
     _overfit_limit_iteration_step = 10
@@ -110,7 +111,7 @@ class LogisticRegressionModel(CustomModel):
     _regression = False
     _binary = True
     _multiclass = True
-    _parallel_task = True  # set to False may lead to faster performance if not doing grid search or cv search
+    _parallel_task = True  # set to False may lead to faster performance if not doing grid search or cv search (should also set expert batch_cpu_tuning_max_workers to number of cores)
     _fit_by_iteration = True
     _fit_iteration_name = 'max_iter'
     _display_name = "LR"
@@ -201,7 +202,7 @@ class LogisticRegressionModel(CustomModel):
         self.params["solver"] = str(np.random.choice(solver_list)) if not get_default else 'lbfgs'
 
         if self._kaggle:
-            max_iter_list = [300, 350, 400, 450, 500, 700, 800, 900, 1000]
+            max_iter_list = [300, 350, 400, 450, 500, 700, 800, 900, 1000, 1500]
         else:
             max_iter_list = [150, 175, 200, 225, 250, 300]
         self.params["max_iter"] = int(np.random.choice(max_iter_list)) if not get_default else 700
@@ -258,7 +259,15 @@ class LogisticRegressionModel(CustomModel):
         # cv search for hyper parameters, can be used in conjunction with _grid_search_by_iterations = True or False
         self.params['cv_search'] = accuracy >= 9
 
-        if self._mutate_by_one and not get_default and params_orig:
+        if self._mutate_by_one_sometimes:
+            if np.random.random() > 0.5:
+                do_mutate_by_one = True
+            else:
+                do_mutate_by_one = False
+        else:
+            do_mutate_by_one = self._mutate_by_one
+
+        if do_mutate_by_one and not get_default and params_orig:
             pick_key = str(np.random.choice(list(self.params.keys()), size=1)[0])
             value = self.params[pick_key]
             self.params = copy.deepcopy(params_orig)
@@ -790,13 +799,14 @@ class make_features(object):
             setattr(self, k, v)
 
     def fit_transform(self, X: pd.DataFrame, y=None, transform=False, **kwargs):
-        self.orig_cols = list(X.columns)
-        if 'IS_LEAKAGE' in kwargs or 'IS_SHIFT' in kwargs:
-            self.raw_names_dict = {v: v for v in list(X.columns)}
-            self.raw_names_dict_reversed = {v: k for k, v in self.raw_names_dict.items()}
-        else:
-            self.raw_names_dict = {Transformer.raw_feat_name(v): v for v in list(X.columns)}
-            self.raw_names_dict_reversed = {v: k for k, v in self.raw_names_dict.items()}
+        if not transform:
+            self.orig_cols = list(X.columns)
+            if 'IS_LEAKAGE' in kwargs or 'IS_SHIFT' in kwargs:
+                self.raw_names_dict = {v: v for v in list(X.columns)}
+                self.raw_names_dict_reversed = {v: k for k, v in self.raw_names_dict.items()}
+            else:
+                self.raw_names_dict = {Transformer.raw_feat_name(v): v for v in list(X.columns)}
+                self.raw_names_dict_reversed = {v: k for k, v in self.raw_names_dict.items()}
 
         file = "munged_%s_%s_%d_%d.csv" % (__name__, transform, X.shape[0], X.shape[1])
         file = file.replace("csv", "pkl")
@@ -1173,9 +1183,9 @@ class make_features(object):
             if not transform:
                 Xy.loc[:, 'target'] = y
             #Xy.to_csv(file, index=False)
-            save_obj(Xy, file)
+            save_obj_atomically(Xy, file)
             if not transform:
-                save_obj(copy.deepcopy(self), file2)
+                save_obj_atomically(copy.deepcopy(self), file2)
         return X
 
     def transform(self, X: pd.DataFrame):
