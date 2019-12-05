@@ -32,6 +32,7 @@ class CatBoostModel(CustomModel):
     _predict_by_iteration = True
     _predict_iteration_name = 'ntree_end'
     _save_by_pickle = True  # if False, use catboost save/load model as intermediate binary file
+    # Increase gpu_ram_part if know system is isolated
 
     _make_logger = True  # set to True to make logger
     _show_logger_test = False  # set to True to see how to send information to experiment logger
@@ -518,7 +519,7 @@ class CatBoostModel(CustomModel):
             # https://catboost.ai/docs/features/training-on-gpu.html
             params['devices'] = "%d-%d" % (
             self.params_base.get('gpu_id', 0), self.params_base.get('gpu_id', 0) + n_gpus - 1)
-            params['gpu_ram_part'] = 0.7  # per-GPU, assumes GPU locking or no other experiments running
+            params['gpu_ram_part'] = 0.3  # per-GPU, assumes GPU locking or no other experiments running
 
         if self.num_classes > 2:
             params.pop("eval_metric", None)
