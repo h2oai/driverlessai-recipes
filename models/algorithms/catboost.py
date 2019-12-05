@@ -532,6 +532,7 @@ class CatBoostModel(CustomModel):
         assert 'learning_rate' in params
         params['n_estimators'] = self.params_base.get('n_estimators', 100)
         params['learning_rate'] = self.params_base.get('learning_rate', config.min_learning_rate)
+        params['learning_rate'] = min(params['learning_rate'], 0.5)  # 1.0 leads to illegal access on GPUs
         if 'early_stopping_rounds' not in params and has_eval_set:
             params['early_stopping_rounds'] = 150  # temp fix
             # assert 'early_stopping_rounds' in params
