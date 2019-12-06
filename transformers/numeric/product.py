@@ -16,7 +16,7 @@ class ProductTransformer(CustomTransformer):
 
     @staticmethod
     def get_default_properties():
-        return dict(col_type="numeric", min_cols=3, max_cols="all", relative_importance=1)
+        return dict(col_type="numeric", min_cols=3, max_cols=4, relative_importance=1)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         return self.transform(X)
