@@ -1,4 +1,4 @@
-"""Template base class for a custom data recipe."""
+"""Custom data recipe base class"""
 
 import datatable as dt
 import numpy as np
@@ -7,7 +7,6 @@ from typing import Union, List
 from h2oaicore.data import BaseData
 
 _global_modules_needed_by_name = []  # Optional global package requirements, for multiple custom recipes in a file
-
 
 class CustomData(BaseData):
     """Base class for a custom data creation recipe that can be specified externally to Driverless AI.
@@ -39,5 +38,16 @@ class CustomData(BaseData):
         Otherwise, have to create the data from scratch.
         """
         return X
+
+"""Example custom data recipe."""
+
+from h2oaicore.data import CustomData
+import datatable as dt
+import numpy as np
+
+class ExampleCustomData(CustomData):
+    @staticmethod
+    def create_data():
+        return dt.Frame(np.array([1,2,3],[4,5,6]))
 
 
