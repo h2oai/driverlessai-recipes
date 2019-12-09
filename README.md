@@ -51,7 +51,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
  [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
  [1.8.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.1)
-### Count: 132
+### Count: 131
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [airlines.py](./data/airlines.py) [Create airlines dataset]
@@ -210,7 +210,6 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [TIMESERIES](./transformers/timeseries)
     * [auto_arima_forecast.py](./transformers/timeseries/auto_arima_forecast.py) [Auto ARIMA transformer is a time series transformer that predicts target using ARIMA models]
     * [general_time_series_transformer.py](./transformers/timeseries/general_time_series_transformer.py) [Demonstrates the API for custom time-series transformers.]
-    * [normalized_macd.py](./transformers/timeseries/normalized_macd.py) [please add description]
     * [parallel_auto_arima_forecast.py](./transformers/timeseries/parallel_auto_arima_forecast.py) [Parallel Auto ARIMA transformer is a time series transformer that predicts target using ARIMA models.In this implementation, Time Group Models are fitted in parallel]
     * [parallel_prophet_forecast.py](./transformers/timeseries/parallel_prophet_forecast.py) [Parallel FB Prophet transformer is a time series transformer that predicts target using FBProphet models.]
     * [serial_prophet_forecast.py](./transformers/timeseries/serial_prophet_forecast.py) [Transformer that uses FB Prophet for time series prediction.Please see the parallel implementation for more information]
