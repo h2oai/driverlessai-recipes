@@ -69,6 +69,8 @@ class PCTDaysTransformer(CustomTransformer):
         cols_agg_y = cols_agg.copy()
         cols_agg_y.append('col_target_bin')
 
+        # Move to pandas
+        # Pandas index is no 0 to len X - 1
         X = X.to_pandas()
 
         # Make a 0/1 column for if the event happened or not
@@ -77,15 +79,30 @@ class PCTDaysTransformer(CustomTransformer):
         # Make sure time is time
         X[self.col_date] = pd.to_datetime(X[self.col_date])
 
+        # Make sure we don't use target values at current row
+        X = X.sort_values(self.col_date)
+        X['col_target_bin'] = X.groupby(self.col_group)['col_target_bin'].shift(-1).fillna(0)
+        # Go back to original index
+        X.sort_index(inplace=True)
+
         # Create a feature for each of the requested days
+        # Initialize the feature result with index set, this way features are added in correct row order even
+        # if feature comes out with an unordered index
+        feats_df = pd.DataFrame(index=X.index)
         for t in self.timespans:
-
+            # Create feature name
             t_days = str(t) + "d"
-            feat = X[cols_agg_y].groupby(self.col_group).apply(
-                lambda x: x.set_index(self.col_date)['col_target_bin'].shift(1).fillna(0).rolling(t_days, min_periods=1).mean()
-            ).reset_index()
+            # Create the groups
+            groups = X[cols_agg_y].groupby(self.col_group)
+            # Run through groups
+            feat_list = []
+            for _key, _df in groups:
+                res = _df.set_index(self.col_date)['col_target_bin'].rolling(t_days, min_periods=1).mean()
+                res.index = _df.index
+                feat_list.append(res)
 
-            features.append(feat['col_target_bin'])
+            feats_df[t_days] = pd.concat(tuple(feat_list), axis=0)
+
             self._output_feature_names.append("Y%: " + t_days)
             self._feature_desc.append("Percent of Target with Event in Last " + str(t) + " Days")
 
@@ -96,7 +113,7 @@ class PCTDaysTransformer(CustomTransformer):
         self.lookup_df = X.loc[time_filter].sort_values(self.col_date)
 
         # :/
-        return pd.DataFrame(features).transpose()
+        return feats_df
 
     # This function runs during scoring - it will look to what happened in the training data, so may get stale fast
     # If we see a new customer we return 0 for the features, as there are no key events in their past
