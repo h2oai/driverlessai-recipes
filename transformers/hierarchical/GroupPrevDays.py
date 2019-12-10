@@ -53,7 +53,6 @@ class PCTDaysTransformer(CustomTransformer):
         self.timespans = [30, 60, 90]
 
     # This function runs during training
-    # TODO: don't assume rows are ordered correctly
     def fit_transform(self, X: dt.Frame, y: np.array = None):
 
         # values we need to accessible in other parts of DAI
@@ -80,8 +79,9 @@ class PCTDaysTransformer(CustomTransformer):
         X[self.col_date] = pd.to_datetime(X[self.col_date])
 
         # Make sure we don't use target values at current row
+        # We need to sort by date then groupby customer_id and finally shift 1 event
         X = X.sort_values(self.col_date)
-        X['col_target_bin'] = X.groupby(self.col_group)['col_target_bin'].shift(-1).fillna(0)
+        X['col_target_bin'] = X.groupby(self.col_group)['col_target_bin'].shift(1).fillna(0)
         # Go back to original index
         X.sort_index(inplace=True)
 
@@ -97,12 +97,22 @@ class PCTDaysTransformer(CustomTransformer):
             # Run through groups
             feat_list = []
             for _key, _df in groups:
+                # Sort the group by date, this is required for the rolling per time interval to work
+                _df = _df.sort_values(self.col_date)
+                # Apply rolling window
                 res = _df.set_index(self.col_date)['col_target_bin'].rolling(t_days, min_periods=1).mean()
+                # It is not an apply and index may not be the original one
+                # Therefore make sure the index is the original one
                 res.index = _df.index
+                # Append current result to the list
                 feat_list.append(res)
 
+            # Concat group results and assign to result dataframe
+            # Since dataframe is indexed, feature is inluded in the appropriate row_order
+            # i.e. pandas make sure index on both sides agree
             feats_df[t_days] = pd.concat(tuple(feat_list), axis=0)
 
+            # Set the column names and descriptions
             self._output_feature_names.append("Y%: " + t_days)
             self._feature_desc.append("Percent of Target with Event in Last " + str(t) + " Days")
 
@@ -110,9 +120,10 @@ class PCTDaysTransformer(CustomTransformer):
         time_filter = (
             X[cols_agg].groupby(self.col_group)[self.col_date].transform('max') - X[self.col_date]
         ) <= timedelta(days=max(self.timespans))
+
         self.lookup_df = X.loc[time_filter].sort_values(self.col_date)
 
-        # :/
+        # :/ return the features
         return feats_df
 
     # This function runs during scoring - it will look to what happened in the training data, so may get stale fast
@@ -136,26 +147,44 @@ class PCTDaysTransformer(CustomTransformer):
         X[self.col_date] = pd.to_datetime(X[self.col_date])
 
         # combine rows from training and new rows, col_target_bin will be null in new data
-        lkup_and_test = pd.concat([self.lookup_df, X], axis=0, sort=False)
+        lkup_and_test = pd.concat([self.lookup_df, X], axis=0, sort=False).reset_index()
 
+        # for t in self.timespans:
+        #
+        #     t_days = str(t) + "d"
+        #     # for each transaction get % in last 30d
+        #     # note we cannot use the "known" values from X as we wouldn't know these at prediction time
+        #     tst_result = lkup_and_test[cols_agg_y].groupby(self.col_group).apply(
+        #         lambda x: x.set_index(self.col_date)['col_target_bin'].shift(1).fillna(0).rolling(t_days, min_periods=1).mean()
+        #     ).reset_index()
+        #
+        #     # return only the rows from X
+        #     feat = pd.merge(
+        #         left=X,
+        #         right=tst_result,
+        #         on=[cols_agg],
+        #         how='left'
+        #     )['col_target_bin']
+        #
+        #     features.append(feat)
+
+        feats_df = pd.DataFrame(index=lkup_and_test.index)
         for t in self.timespans:
-
+            # Create feature name
             t_days = str(t) + "d"
+            # Create the groups
+            groups = lkup_and_test[cols_agg_y].groupby(self.col_group)
+            # Run through groups
+            feat_list = []
+            for _key, _df in groups:
+                res = _df.set_index(self.col_date)['col_target_bin'].fillna(0).rolling(t_days, min_periods=1).mean()
+                res.index = _df.index
+                feat_list.append(res)
 
-            # for each transaction get % in last 30d
-            # note we cannot use the "known" values from X as we wouldn't know these at prediction time
-            tst_result = lkup_and_test[cols_agg_y].groupby(self.col_group).apply(
-                lambda x: x.set_index(self.col_date)['col_target_bin'].shift(1).fillna(0).rolling(t_days, min_periods=1).mean()
-            ).reset_index()
+            feats_df[t_days] = pd.concat(tuple(feat_list), axis=0)
 
-            # return only the rows from X
-            feat = pd.merge(
-                left=X,
-                right=tst_result,
-                on=[cols_agg],
-                how='left'
-            )['col_target_bin']
+            self._output_feature_names.append("Y%: " + t_days)
+            self._feature_desc.append("Percent of Target with Event in Last " + str(t) + " Days")
 
-            features.append(feat)
 
         return pd.DataFrame(features).transpose()
