@@ -180,9 +180,6 @@ class PCTDaysTransformer(CustomTransformer):
             # i.e. pandas make sure index on both sides agree
             feats_df[t_days] = pd.concat(tuple(feat_list), axis=0)
 
-            # Set the column names and descriptions
-            self._output_feature_names.append("Y%: " + t_days)
-            self._feature_desc.append("Percent of Target with Event in Last " + str(t) + " Days")
 
         # Only return rows whose index is below self.lookup_df size
         feats_df = feats_df.loc[self.lookup_df.shape[0]:]
