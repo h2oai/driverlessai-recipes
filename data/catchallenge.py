@@ -24,7 +24,7 @@ class CatChallenge(CustomData):
         train['sample_weight'] = dt.Frame(np.array([1.0] * train.shape[0]))
         test = dt.fread(os.path.join(path, "test.csv.zip"))
         test_orig = dt.Frame(test)
-        test['sample_weight'] = dt.Frame(np.array([1.0] * test.shape[0]))
+        test['sample_weight'] = dt.Frame(np.array([0.0] * test.shape[0]))
         test['target'] = dt.Frame(np.array([0] * test.shape[0], dtype=int))
         final = dt.rbind([train, test])
 
