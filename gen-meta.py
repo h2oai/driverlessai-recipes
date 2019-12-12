@@ -2,7 +2,7 @@
 
 import os
 
-exclude = ['.', '.idea', 'pycache', '.git', 'data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py', '.pytest_cache', 'www']
+exclude = ['.', '.idea', 'pycache', '.git', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py', '.pytest_cache', 'www']
 
 def get_module_docstring(filepath):
     co = compile(open(filepath).read(), filepath, 'exec')
@@ -44,6 +44,7 @@ def main():
     gen_meta_yaml("models")
     gen_meta_yaml("scorers")
     gen_meta_yaml("transformers")
+    gen_meta_yaml("data")
 
 if __name__ == '__main__':
     main()
