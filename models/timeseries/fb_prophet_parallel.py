@@ -222,7 +222,6 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         # Commented for performance, uncomment for debug
         # print("prophet - fitting on data of shape: %s for group: %s" % (str(X.shape), grp_hash))
         if X.shape[0] < 20:
-            print("prophet - small data work-around for group: %s" % grp_hash)
             return grp_hash, None
 
         # Import FB Prophet package
@@ -330,9 +329,6 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
 
         scalers = {}
         scaled_ys = []
-        print('Number of groups : ', len(X_groups))
-        for g in tgc_wo_time:
-            print(f'Number of groups in {g} groups : {X[g].unique().shape}')
 
         for key, X_grp in X_groups:
             # Create dict key to store the min max scaler
@@ -342,8 +338,6 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
             y_skl = scalers[grp_hash].fit_transform(X_grp[['y']].values)
             # Put back in a DataFrame to keep track of original index
             y_skl_df = pd.DataFrame(y_skl, columns=['y'])
-            # (0, 'A') (1, 4) (100, 1) (100, 1)
-            # print(grp_hash, X_grp.shape, y_skl.shape, y_skl_df.shape)
 
             y_skl_df.index = X_grp.index
             scaled_ys.append(y_skl_df)
@@ -430,61 +424,6 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
                 remove(v)
 
         self._clean_tmp_folder(logger, tmp_folder)
-
-        # # Convert to pandas
-        # XX = X[:, self.tgc].to_pandas()
-        # XX = XX.replace([None, np.nan], 0)
-        # XX.rename(columns={self.time_column: "ds"}, inplace=True)
-        # # Make target available in the Frame
-        # XX['y'] = np.array(y)
-        # # Set target prior
-        # self.nan_value = np.mean(y)
-        #
-        # # Group the input by TGC (Time group column) excluding the time column itself
-        # tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
-        # if len(tgc_wo_time) > 0:
-        #     XX_grp = XX.groupby(tgc_wo_time)
-        # else:
-        #     XX_grp = [([None], XX)]
-        #
-        # models = {}
-        # self.priors = {}
-        #
-        # # Prepare for multi processing
-        # num_tasks = len(XX_grp)
-        #
-        # def processor(out, res):
-        #     out[res[0]] = res[1]
-        #
-        # pool_to_use = small_job_pool
-        # loggerdebug(logger, "Prophet will use {} workers for fitting".format(n_jobs))
-        # pool = pool_to_use(
-        #     logger=None, processor=processor,
-        #     num_tasks=num_tasks, max_workers=n_jobs
-        # )
-        #
-        # # Fit 1 FB Prophet model per time group columns
-        # nb_groups = len(XX_grp)
-        # for _i_g, (key, X) in enumerate(XX_grp):
-        #     # Just log where we are in the fitting process
-        #     if (_i_g + 1) % max(1, nb_groups // 20) == 0:
-        #         loggerinfo(logger, "FB Prophet : %d%% of groups fitted" % (100 * (_i_g + 1) // nb_groups))
-        #
-        #     X_path = os.path.join(tmp_folder, "fbprophet_X" + str(uuid.uuid4()))
-        #     X = X.reset_index(drop=True)
-        #     save_obj(X, X_path)
-        #     key = key if isinstance(key, list) else [key]
-        #     grp_hash = '_'.join(map(str, key))
-        #
-        #     self.priors[grp_hash] = X['y'].mean()
-        #
-        #     args = (X_path, grp_hash, tmp_folder, self.params, self.cap)
-        #     kwargs = {}
-        #     pool.submit_tryget(None, MyParallelProphetTransformer_fit_async, args=args, kwargs=kwargs, out=models)
-        # pool.finish()
-        # for k, v in models.items():
-        #     models[k] = load_obj(v) if v is not None else None
-        #     remove(v)
 
         self.set_model_properties(
             model={
@@ -688,63 +627,3 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
 
         # Models have to return a numpy array
         return features_df['GrpAvg'].values
-
-        # XX = X[:, self.tgc].to_pandas()
-        # XX = XX.replace([None, np.nan], 0)
-        # XX.rename(columns={self.time_column: "ds"}, inplace=True)
-        #
-        # if self.params["growth"] == "logistic":
-        #     XX["cap"] = self.cap
-        #
-        # tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
-        # if len(tgc_wo_time) > 0:
-        #     XX_grp = XX.groupby(tgc_wo_time)
-        # else:
-        #     XX_grp = [([None], XX)]
-        # assert len(XX_grp) > 0
-        # num_tasks = len(XX_grp)
-        #
-        # def processor(out, res):
-        #     out.append(res)
-        #
-        # pool_to_use = small_job_pool
-        # loggerdebug(logger, "Prophet will use {} workers for transform".format(n_jobs))
-        # pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks, max_workers=n_jobs)
-        # XX_paths = []
-        # model_paths = []
-        # nb_groups = len(XX_grp)
-        # print("Nb Groups = ", nb_groups)
-        # for _i_g, (key, X) in enumerate(XX_grp):
-        #     # Log where we are in the transformation of the dataset
-        #     if (_i_g + 1) % max(1, nb_groups // 20) == 0:
-        #         loggerinfo(logger, "FB Prophet : %d%% of groups transformed" % (100 * (_i_g + 1) // nb_groups))
-        #
-        #     key = key if isinstance(key, list) else [key]
-        #     grp_hash = '_'.join(map(str, key))
-        #     X_path = os.path.join(tmp_folder, "fbprophet_Xt" + str(uuid.uuid4()))
-        #     # Commented for performance, uncomment for debug
-        #     # print("prophet - transforming data of shape: %s for group: %s" % (str(X.shape), grp_hash))
-        #     if grp_hash in models:
-        #         model = models[grp_hash]
-        #         model_path = os.path.join(tmp_folder, "fbprophet_modelt" + str(uuid.uuid4()))
-        #         save_obj(model, model_path)
-        #         save_obj(X, X_path)
-        #         model_paths.append(model_path)
-        #
-        #         args = (model_path, X_path, self.priors[grp_hash], tmp_folder)
-        #         kwargs = {}
-        #         pool.submit_tryget(None, MyParallelProphetTransformer_transform_async, args=args, kwargs=kwargs,
-        #                            out=XX_paths)
-        #     else:
-        #         XX = pd.DataFrame(np.full((X.shape[0], 1), self.nan_value), columns=['yhat'])  # unseen groups
-        #         XX.index = X.index
-        #         save_obj(XX, X_path)
-        #         XX_paths.append(X_path)
-        # pool.finish()
-        # XX = pd.concat((load_obj(XX_path) for XX_path in XX_paths), axis=0).sort_index()
-        # for p in XX_paths + model_paths:
-        #     remove(p)
-        #
-        # self._clean_tmp_folder(logger, tmp_folder)
-
-        # return XX['yhat'].values

@@ -1,4 +1,7 @@
-"""Prophet by Facebook for TimeSeries with an example of parameter mutation."""
+"""Prophet by Facebook for TimeSeries with an example of parameter mutation.
+This recipe is disabled, please use the multi-task version named fb_prophet_parallel.py
+that is faster
+"""
 import importlib
 import datatable as dt
 import numpy as np
@@ -34,7 +37,8 @@ class FBProphetModel(CustomTimeSeriesModel):
 
     @staticmethod
     def is_enabled():
-        return not (arch_type == "ppc64le")
+        # Please use Prophet recipe in parallel mode : fb_prophet_parallel.py
+        return False
 
     @staticmethod
     def do_acceptance_test():
@@ -128,9 +132,9 @@ class FBProphetModel(CustomTimeSeriesModel):
         # Get TGC and time column
         self.tgc = self.params_base.get('tgc')
         self.time_column = self.params_base.get('time_column')
-        self.nan_value = np.mean(y)
-        self.cap = np.max(y) * 1.5  # TODO Don't like this we should compute a cap from average yearly growth
-        self.prior = np.mean(y)
+        nan_value = np.mean(y)
+        cap = np.max(y) * 1.5  # TODO Don't like this we should compute a cap from average yearly growth
+        prior = np.mean(y)
 
         if self.time_column is None:
             self.time_column = self.tgc[0]
@@ -164,8 +168,8 @@ class FBProphetModel(CustomTimeSeriesModel):
             XX_grp = [([None], XX)]
 
         # Go Through groups
-        self.priors = {}
-        self.models = {}
+        priors = {}
+        models = {}
 
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
@@ -195,15 +199,34 @@ class FBProphetModel(CustomTimeSeriesModel):
                     model = None
                 else:
                     if self.params["growth"] == "logistic":
-                        X["cap"] = self.cap
+                        X["cap"] = cap
                         model.fit(X[['ds', 'y', 'cap']])
                     else:
                         model.fit(X[['ds', 'y']])
 
-            self.models[grp_hash] = model
-            self.priors[grp_hash] = X['y'].mean()
+            models[grp_hash] = model
+            priors[grp_hash] = X['y'].mean()
+
+        self.set_model_properties(
+            model={
+                'models': models,
+                'cap': cap,
+                'priors': priors,
+                'prior': prior
+            },
+            features=self.tgc,  # Prophet uses time and timegroups
+            importances=np.ones(len(self.tgc)),
+            iterations=-1  # Does not have iterations
+        )
 
     def predict(self, X, **kwargs):
+
+        model_config, _, _, _ = self.get_model_properties()
+
+        models = model_config['models']
+        cap = model_config['cap']
+        priors = model_config['priors']
+        prior = model_config['prior']
 
         if self.tgc is None or not all([x in X.names for x in self.tgc]):
             return np.ones(X.shape[0]) * self.nan_value
@@ -225,7 +248,7 @@ class FBProphetModel(CustomTimeSeriesModel):
         XX.rename(columns={self.time_column: "ds"}, inplace=True)
 
         if self.params["growth"] == "logistic":
-            XX["cap"] = self.cap
+            XX["cap"] = cap
 
         # Compute groups
         # Group the input by TGC (Time group column) excluding the time column itself
@@ -252,24 +275,22 @@ class FBProphetModel(CustomTimeSeriesModel):
             # predictions are ordered the same as the imput frame
             # Keep track of the order
             order = np.argsort(pd.to_datetime(X["ds"]))
-            if grp_hash in self.models.keys():
-                model = self.models[grp_hash]
+            if grp_hash in models.keys():
+                model = models[grp_hash]
                 if model is not None:
                     # Run prophet
                     yhat = model.predict(X)
-                    # print("Model Output")
-                    # print(yhat.head(20), flush=True)
                     XX = yhat
                 else:
-                    if grp_hash in self.priors.keys():
-                        XX = pd.DataFrame(np.full((X.shape[0], 1), self.priors[grp_hash]), columns=['yhat'])
+                    if grp_hash in priors.keys():
+                        XX = pd.DataFrame(np.full((X.shape[0], 1), priors[grp_hash]), columns=['yhat'])
                     else:
                         # This should not happen
                         loggerinfo(logger, "Group in models but not in priors")
-                        XX = pd.DataFrame(np.full((X.shape[0], 1), self.prior), columns=['yhat'])
+                        XX = pd.DataFrame(np.full((X.shape[0], 1), prior), columns=['yhat'])
             else:
                 # print("No Group")
-                XX = pd.DataFrame(np.full((X.shape[0], 1), self.prior), columns=['yhat'])  # unseen groups
+                XX = pd.DataFrame(np.full((X.shape[0], 1), prior), columns=['yhat'])  # unseen groups
 
             # Reorder the index like prophet re-ordered the predictions
             XX.index = X.index[order]
