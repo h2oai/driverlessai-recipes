@@ -74,7 +74,7 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
     _binary = False
     _multiclass = False
     # some package dependencies are best sequential to overcome known issues
-    _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.5']
+    _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.4.post2']
     _included_model_classes = None  # ["gblinear"] for strong trends - can extrapolate
 
     def __init__(
