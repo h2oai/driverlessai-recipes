@@ -74,7 +74,7 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
     _binary = False
     _multiclass = False
     # some package dependencies are best sequential to overcome known issues
-    _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.4.post2']
+    _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.5']
     _included_model_classes = None  # ["gblinear"] for strong trends - can extrapolate
 
     def __init__(
@@ -142,7 +142,7 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
     @staticmethod
     def _get_n_jobs(logger, **kwargs):
         try:
-            if config.fixed_num_folds == 0:
+            if config.fixed_num_folds <= 0:
                 n_jobs = max(1, int(int(max_threads() / min(config.num_folds, kwargs['max_workers']))))
             else:
                 n_jobs = max(1, int(
