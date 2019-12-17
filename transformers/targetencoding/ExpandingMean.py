@@ -25,7 +25,7 @@ class ExpandingMean(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         transformed_X = X[:, :, dt.join(self._group_means)][:, -1]
-        return dt.DataTable(transformed_X.to_pandas().fillna(self.dataset_mean))
+        return dt.Frame(transformed_X.to_pandas().fillna(self.dataset_mean))
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         target = '__target__'
@@ -52,4 +52,4 @@ class ExpandingMean(CustomTransformer):
         X_shuffled["encoded"] = X_shuffled["cumsum"] / X_shuffled["cumcnt"]
         X_shuffled["encoded"] = X_shuffled["encoded"].fillna(self.dataset_mean)
         X_transformed = X_shuffled.sort_values("index")["encoded"].values
-        return dt.DataTable(X_transformed)
+        return dt.Frame(X_transformed)
