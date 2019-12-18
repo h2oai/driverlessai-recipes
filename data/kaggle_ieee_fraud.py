@@ -13,7 +13,7 @@ Settings for Driverless AI:
 
 5. Go to expert settings and click on 'LOAD CUSTOM RECIPE FROM URL', enter https://raw.githubusercontent.com/h2oai/driverlessai-recipes/rel-1.8.1/models/algorithms/catboost.py to upload CatBoost model recipe
 
-6. On same page, switch from AUTO to KAGGLE und 'PIPELINE BUILDING RECIPE'
+6. On same page, switch from 'AUTO' to 'KAGGLE' under 'PIPELINE BUILDING RECIPE'
 
 7. Go the 'FEATURES' tab in expert settings, enter "Trans_D1_start", "addr1", "card1" under 'Features to group by'
 
