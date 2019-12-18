@@ -1,4 +1,6 @@
-"""Parallel FB Prophet transformer is a time series transformer that predicts target using FBProphet models.
+"""Parallel FB Prophet transformer is a time series transformer that predicts target using FBProphet models."""
+
+"""
 In this implementation, Time Group Models are fitted in parallel
 
 The recipe outputs following predictors:

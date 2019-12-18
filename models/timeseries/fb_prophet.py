@@ -1,4 +1,6 @@
-"""Prophet by Facebook for TimeSeries with an example of parameter mutation.
+"""Prophet by Facebook for TimeSeries with an example of parameter mutation."""
+
+"""
 This recipe is disabled, please use the multi-task version named fb_prophet_parallel.py
 that is faster
 """
