@@ -21,7 +21,9 @@ Settings for Driverless AI:
 
 9. Set experiment dials to 7/10/1
 
-10. Start experiment
+10. Set scorer to 'AUC'
+
+11. Start experiment
 """
 
 import datetime
