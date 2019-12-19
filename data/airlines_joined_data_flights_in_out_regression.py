@@ -23,7 +23,7 @@ class AirlinesData(CustomData):
             data = zipfile.read()
             open(output_file, 'wb').write(data)
 
-        temp_path = os.path.join(config.data_directory, config.contrib_relative_directory, "airlines")
+        temp_path = os.path.join(config.data_directory, "recipe_tmp", "airlines")
         os.makedirs(temp_path, exist_ok=True)
 
         # specify which years are used for training and testing
