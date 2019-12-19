@@ -51,6 +51,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
  [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
  [1.8.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.1)
+ [1.8.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.2)
 ### Count: 133
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
