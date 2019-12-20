@@ -29,18 +29,28 @@ Settings for Driverless AI:
 import datetime
 import datatable as dt
 import numpy as np
+import os
 
 from h2oaicore.data import CustomData
+
 
 class MyData(CustomData):
     @staticmethod
     def create_data():
-        folder_path = '~/kaggle/ieee/input/'  # Modify as needed
+        folder_path = '/home/jon/kaggle/ieee/input'  # Modify as needed
 
-        train_identity = dt.fread(f'{folder_path}train_identity.csv')
-        test_identity = dt.fread(f'{folder_path}test_identity.csv')
-        train_transaction = dt.fread(f'{folder_path}train_transaction.csv')
-        test_transaction = dt.fread(f'{folder_path}test_transaction.csv')
+        train_identity_file = os.path.join(folder_path, 'train_identity.csv')
+        test_identity_file = os.path.join(folder_path, 'test_identity.csv')
+        train_transaction_file = os.path.join(folder_path, 'train_transaction.csv')
+        test_transaction_file = os.path.join(folder_path, 'test_transaction.csv')
+        if not (os.path.isfile(train_identity_file and os.path.isfile(test_identity_file and os.path.isfile(
+                    train_transaction_file and os.path.isfile(test_transaction_file))))):
+            return []
+
+        train_identity = dt.fread(train_identity_file)
+        test_identity = dt.fread(test_identity_file)
+        train_transaction = dt.fread(train_transaction_file)
+        test_transaction = dt.fread(test_transaction_file)
 
         target = 'isFraud'
         train_identity.key = 'TransactionID'
@@ -62,14 +72,17 @@ class MyData(CustomData):
             lambda x: datetime.datetime.strftime(x, "%Y-%m-%d %H:%M:%S"))
         )
         # Month - to be used as fold column (that way get cross-validation without shuffling future/past too much, minimize overlap between folds)
-        X[:, 'fold_column'] = dt.Frame(pd_time.dt.month + (pd_time.dt.year - 2017) * 12)
+        fold_column = 'fold_column'
+        X[:, fold_column] = dt.Frame(pd_time.dt.month + (pd_time.dt.year - 2017) * 12)
 
         # Create start times (in secs) for Dx features (which are growing linearly over time)
         for i in range(1, 16):
-            X[:, 'Trans_D%d_start' % i] = dt.Frame(np.floor(X[:, 'TransactionDT'].to_numpy().ravel() / (24 * 60 * 60)) - X[:, 'D%d' % i].to_numpy().ravel())
+            X[:, 'Trans_D%d_start' % i] = dt.Frame(
+                np.floor(X[:, 'TransactionDT'].to_numpy().ravel() / (24 * 60 * 60)) - X[:,
+                                                                                      'D%d' % i].to_numpy().ravel())
 
         # re-order names
-        first_names = ['isFraud', 'fold_column']
+        first_names = [target, fold_column]
         names = first_names + [x for x in X.names if x not in first_names]
         X = X[:, names]
 
