@@ -1,6 +1,4 @@
-"""
-Mean Average Precision @ k (MAP@k)
-"""
+"""Mean Average Precision @ k (MAP@k)"""
 
 """
 Add value of k in recipe_dict in config or scorer will use default value of 10
@@ -46,3 +44,4 @@ def mapkeval(predicted, actual, n_classes, k):
         metric += np.sum(actual == pred) / (i + 1)
     metric /= actual.shape[0]
     return metric
+
