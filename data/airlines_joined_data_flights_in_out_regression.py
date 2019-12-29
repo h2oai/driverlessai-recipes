@@ -8,6 +8,9 @@ import pandas as pd
 
 
 class AirlinesData(CustomData):
+    # base_url = "http://stat-computing.org/dataexpo/2009/"  # used to work, but 404 now
+    base_url = "http://www.rdatasciencecases.org/Data/Airline/"
+
     @staticmethod
     def create_data(X: dt.Frame = None) -> Union[str, List[str],
                                                  dt.Frame, List[dt.Frame],
@@ -33,7 +36,7 @@ class AirlinesData(CustomData):
         # download and unzip files
         files = []
         for f in ["%d.csv.bz2" % year for year in training + testing]:
-            link = "http://stat-computing.org/dataexpo/2009/%s" % f
+            link = AirlinesData.base_url + "%s" % f
             file = download(link, dest_path=temp_path)
             output_file = file.replace(".bz2", "")
             extract_bz2(file, output_file)
