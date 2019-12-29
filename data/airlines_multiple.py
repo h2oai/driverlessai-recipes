@@ -8,6 +8,9 @@ import pandas as pd
 
 
 class AirlinesData(CustomData):
+    # base_url = "http://stat-computing.org/dataexpo/2009/"  # used to work, but 404 now
+    base_url = "http://www.rdatasciencecases.org/Data/Airline/"
+
     @staticmethod
     def create_data(X: dt.Frame = None) -> Union[str, List[str],
                                                  dt.Frame, List[dt.Frame],
@@ -26,13 +29,13 @@ class AirlinesData(CustomData):
         temp_path = os.path.join(config.data_directory, config.contrib_relative_directory, "airlines")
         os.makedirs(temp_path, exist_ok=True)
 
-        link = "http://stat-computing.org/dataexpo/2009/1990.csv.bz2"
+        link = AirlinesData.base_url + "1990.csv.bz2"
         file = download(link, dest_path=temp_path)
         output_file1 = file.replace(".bz2", "")
         print("%s %s" % (file, output_file1))
         extract_bz2(file, output_file1)
 
-        link = "http://stat-computing.org/dataexpo/2009/1991.csv.bz2"
+        link = AirlinesData.base_url + "1991.csv.bz2"
         file = download(link, dest_path=temp_path)
         output_file2 = file.replace(".bz2", "")
         print("%s %s" % (file, output_file2))
