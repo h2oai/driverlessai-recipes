@@ -60,12 +60,20 @@ def MyProphetOnSingleGroupsTransformer_transform_async(*args, **kwargs):
 
 
 def fit_prophet_model(Prophet, X_avg, params):
-    avg_model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
+    n_changepoints = min(25, int(X_avg.shape[0] * 4/5 - 1))  # Prophet default value
+
+    avg_model = Prophet(
+        yearly_seasonality=True,
+        weekly_seasonality=True,
+        daily_seasonality=True,
+        n_changepoints=n_changepoints
+    )
     if params["country_holidays"] is not None:
         avg_model.add_country_holidays(country_name=params["country_holidays"])
     if params["monthly_seasonality"]:
         avg_model.add_seasonality(name='monthly', period=30.5, fourier_order=5)
     with suppress_stdout_stderr():
+        X_avg['y'] = X_avg['y'].fillna(0)
         avg_model.fit(X_avg[['ds', 'y']])
     return avg_model
 
@@ -130,8 +138,8 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
         random.seed(1234)
         X = load_obj(data_path)
 
-        if X.shape[0] < 20:
-            return grp_hash, None
+        # if X.shape[0] < 20:
+        #     return grp_hash, None
         # Import FB Prophet package
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
