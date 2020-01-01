@@ -59,7 +59,12 @@ def MyProphetOnSingleGroupsTransformer_transform_async(*args, **kwargs):
     return MyProphetOnSingleGroupsTransformer._transform_async(*args, **kwargs)
 
 
-def fit_prophet_model(Prophet, X_avg, params):
+def fit_prophet_model(Prophet, X_avg, params, force=False):
+    if (X_avg.shape[0] <= 20) & (force is False):
+        return None
+
+    # Set n_changepoints when default is too high compared to number of available data points
+    # Having n_changepoints too high seems to raise exceptions on CentOS
     n_changepoints = min(25, int(X_avg.shape[0] * 4/5 - 1))  # Prophet default value
 
     avg_model = Prophet(
@@ -259,8 +264,8 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
 
             for _i_g, (key, X_grp) in enumerate(X_groups):
                 # Just log where we are in the fitting process
-                if (_i_g + 1) % max(1, nb_groups // 20) == 0:
-                    loggerinfo(logger, "FB Prophet : %d%% of groups fitted" % (100 * (_i_g + 1) // nb_groups))
+                # if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+                #     loggerinfo(logger, "FB Prophet : %d%% of groups fitted" % (100 * (_i_g + 1) // nb_groups))
 
                 X_path = os.path.join(tmp_folder, "fbprophet_X" + str(uuid.uuid4()))
 
@@ -303,7 +308,7 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
         }
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
-        avg_model = fit_prophet_model(Prophet, X_avg, params)
+        avg_model = fit_prophet_model(Prophet, X_avg, params, force=True)
 
         return avg_model
 
@@ -431,8 +436,8 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
             for _i_g, (key, X_grp) in enumerate(X_groups):
 
                 # Just log where we are in the fitting process
-                if (_i_g + 1) % max(1, num_tasks // 20) == 0:
-                    loggerinfo(logger, "FB Prophet : %d%% of groups predicted" % (100 * (_i_g + 1) // num_tasks))
+                # if (_i_g + 1) % max(1, num_tasks // 20) == 0:
+                #     loggerinfo(logger, "FB Prophet : %d%% of groups predicted" % (100 * (_i_g + 1) // num_tasks))
 
                 # Create dict key to store the min max scaler
                 grp_hash = self.get_hash(key)
