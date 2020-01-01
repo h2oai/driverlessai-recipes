@@ -264,8 +264,8 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
 
             for _i_g, (key, X_grp) in enumerate(X_groups):
                 # Just log where we are in the fitting process
-                # if (_i_g + 1) % max(1, nb_groups // 20) == 0:
-                #     loggerinfo(logger, "FB Prophet : %d%% of groups fitted" % (100 * (_i_g + 1) // nb_groups))
+                if (_i_g + 1) % max(1, nb_groups // 20) == 0:
+                    loggerinfo(logger, "FB Prophet : %d%% of groups fitted" % (100 * (_i_g + 1) // nb_groups))
 
                 X_path = os.path.join(tmp_folder, "fbprophet_X" + str(uuid.uuid4()))
 
@@ -436,8 +436,8 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
             for _i_g, (key, X_grp) in enumerate(X_groups):
 
                 # Just log where we are in the fitting process
-                # if (_i_g + 1) % max(1, num_tasks // 20) == 0:
-                #     loggerinfo(logger, "FB Prophet : %d%% of groups predicted" % (100 * (_i_g + 1) // num_tasks))
+                if (_i_g + 1) % max(1, num_tasks // 20) == 0:
+                    loggerinfo(logger, "FB Prophet : %d%% of groups predicted" % (100 * (_i_g + 1) // num_tasks))
 
                 # Create dict key to store the min max scaler
                 grp_hash = self.get_hash(key)
