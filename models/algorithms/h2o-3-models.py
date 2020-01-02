@@ -265,6 +265,10 @@ class H2ODLModel(H2OBaseModel, CustomModel):
     _description = "H2O-3 DeepLearning"
     _class = H2ODeepLearningEstimator
 
+    @staticmethod
+    def do_acceptance_test():
+        return False  # Turn off to save time
+
     def mutate_params(self,
                       accuracy=10, time_tolerance=10,
                       **kwargs):
