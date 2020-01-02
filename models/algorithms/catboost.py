@@ -301,7 +301,7 @@ class CatBoostModel(CustomModel):
         if model.get_best_iteration() is not None:
             iterations = model.get_best_iteration() + 1
         else:
-            iterations = self.params['n_estimators'] + 1
+            iterations = self.params['n_estimators']
         # must always set best_iterations
         self.model_path = None
         importances = copy.deepcopy(model.feature_importances_)
