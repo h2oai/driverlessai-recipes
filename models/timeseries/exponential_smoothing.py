@@ -9,6 +9,7 @@ class ExponentialSmoothingModel(BaseCustomModel, GLMModel):
     _binary = False
     _multiclass = False
     _time_series_only = True
+    _booster_str = "gblinear"
     _display_name = "EWMA_GLM"
     _description = "GLM with EWMA Lags"
     _included_transformers = ["EwmaLagsTransformer"]
