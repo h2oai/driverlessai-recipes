@@ -189,6 +189,7 @@ ll
         :param context: Helper class to provide information about the experiment.
         :param unfitted_pipeline_path: Path to pickled pipeline that creates the feature transformations
         :param transformed_features: Column names of the data out of the feature engineering pipeline into the model
+               Treated as expected set for pred_contribs=True during predict, even if model was fit on different set.
         :param original_user_cols: Column names of original data that went into the feature engineering pipeline
         :param date_format_strings: Date/Datetime format strings for columns of type 'time'
         :param kwargs: Additional internal arguments
