@@ -10,7 +10,7 @@ class MyAverageMCCScorer(CustomScorer):
     _description = "Average MCC over several thresholds"
     _binary = True
     _maximize = True
-    _perfect_score = 0
+    _perfect_score = 1
     _display_name = "AVGMCC"
 
     def score(self,
