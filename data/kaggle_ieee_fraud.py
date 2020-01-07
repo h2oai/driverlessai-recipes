@@ -43,8 +43,8 @@ class MyData(CustomData):
         test_identity_file = os.path.join(folder_path, 'test_identity.csv')
         train_transaction_file = os.path.join(folder_path, 'train_transaction.csv')
         test_transaction_file = os.path.join(folder_path, 'test_transaction.csv')
-        if not os.path.isfile(train_identity_file) and os.path.isfile(test_identity_file) and os.path.isfile(
-                train_transaction_file) and os.path.isfile(test_transaction_file):
+        if not (os.path.isfile(train_identity_file) and os.path.isfile(test_identity_file) and os.path.isfile(
+            train_transaction_file) and os.path.isfile(test_transaction_file)):
             return []
 
         train_identity = dt.fread(train_identity_file)
