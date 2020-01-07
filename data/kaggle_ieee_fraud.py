@@ -37,14 +37,14 @@ from h2oaicore.data import CustomData
 class MyData(CustomData):
     @staticmethod
     def create_data():
-        folder_path = '/home/jon/kaggle/ieee/input'  # Modify as needed
+        folder_path = '/home/arno/kaggle/ieee/input'  # Modify as needed
 
         train_identity_file = os.path.join(folder_path, 'train_identity.csv')
         test_identity_file = os.path.join(folder_path, 'test_identity.csv')
         train_transaction_file = os.path.join(folder_path, 'train_transaction.csv')
         test_transaction_file = os.path.join(folder_path, 'test_transaction.csv')
-        if not (os.path.isfile(train_identity_file and os.path.isfile(test_identity_file and os.path.isfile(
-                    train_transaction_file and os.path.isfile(test_transaction_file))))):
+        if not os.path.isfile(train_identity_file) and os.path.isfile(test_identity_file) and os.path.isfile(
+                train_transaction_file) and os.path.isfile(test_transaction_file):
             return []
 
         train_identity = dt.fread(train_identity_file)
