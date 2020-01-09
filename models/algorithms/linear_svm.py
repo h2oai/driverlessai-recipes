@@ -154,12 +154,12 @@ class LinearSVMModel(CustomModel):
         X = X.to_numpy()
         X = self.standard_scaler.fit_transform(X)
         model.fit(X, y, sample_weight=sample_weight)
+        importances = np.array([0.0 for k in range(len(orig_cols))])
         if self.num_classes >= 2:
-            importances = np.array([0.0 for k in range(len(orig_cols))])
             for classifier in model.calibrated_classifiers_:
                 importances += np.array(abs(classifier.base_estimator.get_coeff()))
         else:
-            importances = np.array(abs(model.coef_[0]))
+            importances += np.array(abs(model.coef_[0]))
 
         self.set_model_properties(model=model,
                                   features=orig_cols,
