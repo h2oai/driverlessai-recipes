@@ -1,5 +1,5 @@
 """ 
-Data Recipe to perform KMeans Clustering on a dataset (only numerical columns). 
+Data Recipe to perform KMeans Clustering on a dataset. 
 
 __version__ = 0.1
 
@@ -158,7 +158,11 @@ class KMeansClustering(CustomData):
 		ignore_ = [] 
 		X_df = X.to_pandas()
 		for col in features:
-			if X_df[col].dtype == "object": # ignore categorical columns
+			# label encode categorical columns
+			# refer - https://github.com/h2oai/driverlessai-recipes/pull/68#discussion_r365133392
+			
+			if X_df[col].dtype == "object": 
+				X_df[f"{col}_enc"] = LabelEncoder().fit_transform(X_df[col].to_numpy())
 				ignore_.append(col)
 
 			miss_percent = X_df[col].isna().sum() / X_df.shape[0]
@@ -168,6 +172,7 @@ class KMeansClustering(CustomData):
 				X_df[col] = X_df[col].fillna(X_df[col].mean())
 
 		features = [f for f in features if f not in ignore_]
+		features += [_f for _f in X_df.columns if "_enc" in _f]
 		if len(features) == 0:
 			raise ValueError("Unable to cluster: No useful features available")
 
@@ -183,8 +188,7 @@ class KMeansClustering(CustomData):
 
 		## if number of clusters is pre-defined by user, then dont find the optimal
 		if num_clusters > 1:
-			n_clusters = num_clusters
-			model = KMeans(n_clusters=n_clusters, n_jobs=NUM_JOBS).fit(X_clust)
+			model = KMeans(n_clusters=num_clusters, n_jobs=NUM_JOBS).fit(X_clust)
 			clust_ids = model.predict(X_clust)
 			score = my_davies_bouldin_score(
 				X_clust,
