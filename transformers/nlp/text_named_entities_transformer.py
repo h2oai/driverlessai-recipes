@@ -2,6 +2,7 @@
 
 import datatable as dt
 import numpy as np
+import os
 
 from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.utils import ContribLoader
@@ -9,14 +10,11 @@ from h2oaicore.utils import ContribLoader
 
 class TextNamedEntityTransformer(CustomTransformer):
     """Transformer to extract the count of Named Entities"""
-    _modules_needed_by_name = ["spacy==2.1.8"]
+    _modules_needed_by_name = ["spacy==2.2.3", "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.5/en_core_web_sm-2.2.5.tar.gz#egg=en_core_web_sm==2.2.5"]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         import spacy
-        from spacy.cli import download
-        env_dir = ContribLoader._env_dir.resolve()
-        download('en_core_web_sm', False, "--install-option=--prefix=%s" % env_dir)
         import en_core_web_sm
         self.nlp = en_core_web_sm.load()
         self.ne_types = {"PERSON", "ORG", "GPE", "LOC", "PRODUCT", "EVENT", "DATE"}
