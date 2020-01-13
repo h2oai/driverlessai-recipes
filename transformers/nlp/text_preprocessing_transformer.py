@@ -4,6 +4,8 @@ import numpy as np
 import shutil
 import os
 from zipfile import ZipFile
+
+import filelock
 from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.systemutils import config, remove, temporary_files_path
 from h2oaicore.systemutils_more import download
@@ -25,6 +27,14 @@ class TextPreprocessingTransformer(CustomTransformer):
         nltk_data_path = os.path.join(config.data_directory, config.contrib_env_relative_directory, "nltk_data")
         nltk_temp_path = os.path.join(temporary_files_path, "nltk_data")
         nltk.data.path.append(nltk_data_path)
+        os.makedirs(nltk_data_path, exist_ok=True)
+        nltk_download_lock_file = os.path.join(nltk_data_path, "nltk.lock")
+        with filelock.FileLock(nltk_download_lock_file):
+            nltk.download('stopwords', download_dir=nltk_data_path)
+            nltk.download('punkt', download_dir=nltk_data_path)
+            nltk.download('averaged_perceptron_tagger', download_dir=nltk_data_path)
+            nltk.download('maxent_treebank_pos_tagger', download_dir=nltk_data_path)
+            nltk.download('wordnet', download_dir=nltk_data_path)
 
         # download resources for stemming if needed
         if self.do_stemming:
