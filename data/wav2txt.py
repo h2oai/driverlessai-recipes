@@ -43,10 +43,12 @@ class AzureWav2Txt(BaseData):
             result = speech_recognizer.recognize_once()
             return result.text if result.reason == speechsdk.ResultReason.RecognizedSpeech else None
         
-        speech_config = speechsdk.SpeechConfig(subscription=AZURE_SERVICE_KEY, region=AZURE_SERVICE_REGION)
         X = X.to_pandas()
-        X[WAV_COLNAME] = X[WAV_COLNAME].astype(str)
-        X[WAV_COLNAME+"_txt"] = X[WAV_COLNAME].apply(lambda s: _wav_to_str(s, speech_config))        
-        return X
+        if WAV_COLNAME in X.columns:
+            speech_config = speechsdk.SpeechConfig(subscription=AZURE_SERVICE_KEY, region=AZURE_SERVICE_REGION)
+            X[WAV_COLNAME] = X[WAV_COLNAME].astype(str)
+            X[WAV_COLNAME+"_txt"] = X[WAV_COLNAME].apply(lambda s: _wav_to_str(s, speech_config))  
+        
+        return dt.Frame(X)
     
     
