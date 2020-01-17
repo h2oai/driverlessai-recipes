@@ -35,6 +35,7 @@ class TextPreprocessingTransformer(CustomTransformer):
             nltk.download('averaged_perceptron_tagger', download_dir=nltk_data_path)
             nltk.download('maxent_treebank_pos_tagger', download_dir=nltk_data_path)
             nltk.download('wordnet', download_dir=nltk_data_path)
+            nltk.download('sonoritysequencing', download_dir=nltk_data_path)
 
         # download resources for stemming if needed
         if self.do_stemming:
