@@ -52,7 +52,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
  [1.8.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.1)
  [1.8.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.2)
-### Count: 136
+### Count: 137
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [ Data Recipe to perform KMeans Clustering on a dataset. authored by @goldentom42 (Olivier Grellier)modified by @shivam5992  (Shivam Bansal)__version__ = 0.1Note:1. This recipe can be applied on any dataset, applies Kmeans clustering and creates    and extra column in the dataset which is the cluster_id of each row in the dataset.2. Currently it only uses numeric columns and ignores the categorical/text columns.3. Users can define user inputs (global variables) for this recipe. They are following:    number of clusters, columns to ignore, columns to include. (see section : Optional User Inputs)]
@@ -64,6 +64,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [data_template.py](./data/data_template.py) [Custom data recipe base class]
   * [ieee_data_puddle.py](./data/ieee_data_puddle.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection]
   * [kaggle_ieee_fraud.py](./data/kaggle_ieee_fraud.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection]
+  * [mozilla_deepspeech_wav2txt.py](./data/mozilla_deepspeech_wav2txt.py) [Speech to text using Mozilla's DeepSpeechSettings for this recipe:Assing MODEL_PATH global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.General requirements to .wav's:1 channel (mono)16 bit16000 frequency]
   * [seattle_rain_modify.py](./data/seattle_rain_modify.py) [Transpose the Monthly Seattle Rain Inches data set for Time Series use cases]
   * [seattle_rain_upload.py](./data/seattle_rain_upload.py) [Upload Monthly Seattle Rain Inches data set from data provided by the City of Seattle]
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
