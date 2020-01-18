@@ -52,7 +52,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
  [1.8.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.1)
  [1.8.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.2)
-### Count: 138
+### Count: 139
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [ Data Recipe to perform KMeans Clustering on a dataset. authored by @goldentom42 (Olivier Grellier)modified by @shivam5992  (Shivam Bansal)__version__ = 0.1Note:1. This recipe can be applied on any dataset, applies Kmeans clustering and creates    and extra column in the dataset which is the cluster_id of each row in the dataset.2. Currently it only uses numeric columns and ignores the categorical/text columns.3. Users can define user inputs (global variables) for this recipe. They are following:    number of clusters, columns to ignore, columns to include. (see section : Optional User Inputs)]
@@ -116,6 +116,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
       * [profit.py](./scorers/classification/binary/profit.py) [Uses domain information about user behavior to calculate the profit or loss of a model.]
     * [MULTICLASS](./scorers/classification/multiclass)
       * [hamming_loss.py](./scorers/classification/multiclass/hamming_loss.py) [Hamming Loss - Misclassification Rate (1 - Accuracy)]
+      * [map@k.py](./scorers/classification/multiclass/map@k.py) [Mean Average Precision @ k (MAP@k)]
       * [quadratic_weighted_kappa.py](./scorers/classification/multiclass/quadratic_weighted_kappa.py) [Qudratic Weighted Kappa]
   * [REGRESSION](./scorers/regression)
     * [WAPE_scorer.py](./scorers/regression/WAPE_scorer.py) [Weighted Absoluted Percent Error]
@@ -128,7 +129,6 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [median_absolute_error.py](./scorers/regression/median_absolute_error.py) [Median Absolute Error for regression]
     * [pearson_correlation.py](./scorers/regression/pearson_correlation.py) [Pearson Correlation Coefficient for regression]
     * [top_decile.py](./scorers/regression/top_decile.py) [Median Absolute Error for predictions in the top decile]
-* [TMP](./tmp)
 * [TRANSFORMERS](./transformers)
   * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [Example how to debug a transformer outside of Driverless AI (optional)]
   * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [Testing a BYOR Transformer the PyClient - works on 1.7.0 & 1.7.1-17]
