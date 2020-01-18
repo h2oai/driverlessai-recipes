@@ -146,11 +146,11 @@ class KMeansClustering(CustomData):
                 if _ not in list(X.names):
                     raise ValueError(str(_) + " is not present in the dataset")
 
-            features = [_ for _ in include_columns if _ in list(X.names)]:
+            features = [_ for _ in include_columns if _ in list(X.names)]
         else:
             features = [_f for _f in X.names if _f not in ignore_columns]
 
-        if len(features) = 0:
+        if len(features) == 0:
             raise ValueError("Unable to cluster: No Features Selected")
 
         # Restrict features to numerical for now
