@@ -1,3 +1,8 @@
+""" Extreme Classifier Model: To speed up train of multiclass model (100s of classes) for lightGBM.
+    Caution: can only be used for AUC (or GINI) and accuracy metrics.
+    Based on: Extreme Classification in Log Memory using Count-Min Sketch: https://arxiv.org/abs/1910.13830
+"""
+
 import copy
 import datatable as dt
 from h2oaicore.systemutils import config
@@ -60,12 +65,6 @@ class HashLabel():
         return softmax(resulting_preds, axis=1)
     
 class ExtremeClassifierModel:
-    """
-    Extreme Classifier Model: To speed up train of multiclass model (100s of classes) for lightGBM.
-    Caution: can only be used for AUC (or GINI) and accuracy metrics.
-    Based on: Extreme Classification in Log Memory using Count-Min Sketch
-    https://arxiv.org/abs/1910.13830
-    """
     _regression = False
     _binary = False
     _multiclass = True
