@@ -52,9 +52,10 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
  [1.8.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.1)
  [1.8.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.2)
-### Count: 136
+### Count: 139
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
+  * [KMeansClustering.py](./data/KMeansClustering.py) [ Data Recipe to perform KMeans Clustering on a dataset. __version__ = 0.1authored by @goldentom42 (Olivier Grellier)modified by @shivam5992  (Shivam Bansal)Note:Users can define (optional) user inputs: number of clusters, columns to ignore, columns to include. (see section : Optional User Inputs)]
   * [airlines.py](./data/airlines.py) [Create airlines dataset]
   * [airlines_joined_data_flights_in_out.py](./data/airlines_joined_data_flights_in_out.py) [Create augmented airlines datasets]
   * [airlines_joined_data_flights_in_out_regression.py](./data/airlines_joined_data_flights_in_out_regression.py) [Create augmented airlines datasets for regression]
@@ -63,8 +64,10 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [data_template.py](./data/data_template.py) [Custom data recipe base class]
   * [ieee_data_puddle.py](./data/ieee_data_puddle.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection]
   * [kaggle_ieee_fraud.py](./data/kaggle_ieee_fraud.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection]
+  * [mozilla_deepspeech_wav2txt.py](./data/mozilla_deepspeech_wav2txt.py) [Speech to text using Mozilla's DeepSpeechSettings for this recipe:Assing MODEL_PATH global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.General requirements to .wav's:1 channel (mono)16 bit16000 frequency]
   * [seattle_rain_modify.py](./data/seattle_rain_modify.py) [Transpose the Monthly Seattle Rain Inches data set for Time Series use cases]
   * [seattle_rain_upload.py](./data/seattle_rain_upload.py) [Upload Monthly Seattle Rain Inches data set from data provided by the City of Seattle]
+  * [wav2txt.py](./data/wav2txt.py) [Speech to text using Azure Cognitive ServicesSettings for this recipe:Assing AZURE_SERVICE_KEY and AZURE_SERVICE_REGION global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.]
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description]
 * [MODELS](./models)
@@ -73,7 +76,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.]
     * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL]
     * [extra_trees.py](./models/algorithms/extra_trees.py) [Extremely Randomized Trees (ExtraTrees) model from sklearn]
-    * [extremeClassifier.py](./models/algorithms/extremeClassifier.py) [please add description]
+    * [extremeClassifier.py](./models/algorithms/extremeClassifier.py) [ Extreme Classifier Model: To speed up train of multiclass model (100s of classes) for lightGBM.    Caution: can only be used for AUC (or GINI) and accuracy metrics.    Based on: Extreme Classification in Log Memory using Count-Min Sketch: https://arxiv.org/abs/1910.13830]
     * [h2o-3-gbm-poisson.py](./models/algorithms/h2o-3-gbm-poisson.py) [H2O-3 Distributed Scalable Machine Learning Models: Poisson GBM]
     * [h2o-3-models.py](./models/algorithms/h2o-3-models.py) [H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB/AutoML)]
     * [h2o-glm-poisson.py](./models/algorithms/h2o-glm-poisson.py) [H2O-3 Distributed Scalable Machine Learning Models: Poisson GLM]
@@ -126,6 +129,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [median_absolute_error.py](./scorers/regression/median_absolute_error.py) [Median Absolute Error for regression]
     * [pearson_correlation.py](./scorers/regression/pearson_correlation.py) [Pearson Correlation Coefficient for regression]
     * [top_decile.py](./scorers/regression/top_decile.py) [Median Absolute Error for predictions in the top decile]
+* [TMP](./tmp)
 * [TRANSFORMERS](./transformers)
   * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [Example how to debug a transformer outside of Driverless AI (optional)]
   * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [Testing a BYOR Transformer the PyClient - works on 1.7.0 & 1.7.1-17]
