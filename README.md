@@ -52,7 +52,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
  [1.8.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.1)
  [1.8.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.2)
-### Count: 137
+### Count: 138
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [ Data Recipe to perform KMeans Clustering on a dataset. authored by @goldentom42 (Olivier Grellier)modified by @shivam5992  (Shivam Bansal)__version__ = 0.1Note:1. This recipe can be applied on any dataset, applies Kmeans clustering and creates    and extra column in the dataset which is the cluster_id of each row in the dataset.2. Currently it only uses numeric columns and ignores the categorical/text columns.3. Users can define user inputs (global variables) for this recipe. They are following:    number of clusters, columns to ignore, columns to include. (see section : Optional User Inputs)]
@@ -67,6 +67,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [mozilla_deepspeech_wav2txt.py](./data/mozilla_deepspeech_wav2txt.py) [Speech to text using Mozilla's DeepSpeechSettings for this recipe:Assing MODEL_PATH global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.General requirements to .wav's:1 channel (mono)16 bit16000 frequency]
   * [seattle_rain_modify.py](./data/seattle_rain_modify.py) [Transpose the Monthly Seattle Rain Inches data set for Time Series use cases]
   * [seattle_rain_upload.py](./data/seattle_rain_upload.py) [Upload Monthly Seattle Rain Inches data set from data provided by the City of Seattle]
+  * [wav2txt.py](./data/wav2txt.py) [Speech to text using Azure Cognitive ServicesSettings for this recipe:Assing AZURE_SERVICE_KEY and AZURE_SERVICE_REGION global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.]
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description]
 * [MODELS](./models)
