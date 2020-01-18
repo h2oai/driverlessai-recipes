@@ -330,6 +330,11 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         scalers = {}
         scaled_ys = []
 
+        print('Number of groups : ', len(X_groups))
+        for g in tgc_wo_time:
+            print(f'Number of groups in {g} groups : {X[g].unique().shape}')
+
+
         for key, X_grp in X_groups:
             # Create dict key to store the min max scaler
             grp_hash = self.get_hash(key)
