@@ -14,7 +14,7 @@ from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarn
 class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
     _binary = False
     _multiclass = False
-    _modules_needed_by_name = ['pmdarima==1.3.0']
+    _modules_needed_by_name = ['pmdarima==1.3']
     _included_model_classes = None
 
     @staticmethod
@@ -45,13 +45,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         self.ntrain = X.shape[0]
 
         # Get the logger if it exists
-        logger = None
-        if self.context and self.context.experiment_id:
-            logger = make_experiment_logger(
-                experiment_id=self.context.experiment_id,
-                tmp_dir=self.context.tmp_dir,
-                experiment_tmp_dir=self.context.experiment_tmp_dir
-            )
+        logger = self._get_logger()
 
         # Group the input by TGC (Time group column) excluding the time column itself
         # What we want is being able to access the time series related to each group
@@ -91,6 +85,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         :param X: Datatable Frame containing the features
         :return: ARIMA predictions
         """
+
         # Convert to pandas
         X = X.to_pandas()
         # Keep the Time Group Columns
@@ -105,14 +100,8 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         else:
             XX_grp = [([None], XX)]
 
-        # Get the logger if it exists
-        logger = None
-        if self.context and self.context.experiment_id:
-            logger = make_experiment_logger(
-                experiment_id=self.context.experiment_id,
-                tmp_dir=self.context.tmp_dir,
-                experiment_tmp_dir=self.context.experiment_tmp_dir
-            )
+        # Get logger if exists
+        logger = self._get_logger()
 
         # Go over all groups
         nb_groups = len(XX_grp)
@@ -130,10 +119,13 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
                 # Access the model
                 model = self.models[grp_hash]
                 if model is not None:
-                    # Get predictions from ARIMA model
-                    yhat = model.predict(n_periods=X.shape[0])
-                    # Assign predictions the same order the dates had
-                    yhat = yhat[order]
+                    # Get predictions from ARIMA model, make sure we include prediction gaps
+                    if hasattr(self, 'is_train'):
+                        yhat = model.predict_in_sample()
+                    else:
+                        yhat = model.predict(n_periods=self.pred_gap + X.shape[0])
+                        # Assign predictions the same order the dates had
+                        yhat = yhat[self.pred_gap:][order]
                     # Create a DataFrame
                     XX = pd.DataFrame(yhat, columns=['yhat'])
                 else:
@@ -159,6 +151,10 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         :param y: Target to be used to fit the ARIMA model and perdict in-sample
         :return: in-sample ARIMA predictions
         """
+
+        # Get logger if exists
+        logger = self._get_logger()
+
         # Flag the fact we are doing in-sample predictions
         self.is_train = True
         ret = self.fit(X, y).transform(X)
@@ -192,3 +188,15 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
                 if model is not None:
                     model.update(X['y'].values[order])
         return self
+
+    def _get_logger(self):
+        # Get the logger if it exists
+        logger = None
+        if self.context and self.context.experiment_id:
+            logger = make_experiment_logger(
+                experiment_id=self.context.experiment_id,
+                tmp_dir=self.context.tmp_dir,
+                experiment_tmp_dir=self.context.experiment_tmp_dir
+            )
+
+        return logger
