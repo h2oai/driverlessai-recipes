@@ -55,7 +55,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 ### Count: 139
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
-  * [KMeansClustering.py](./data/KMeansClustering.py) [ Data Recipe to perform KMeans Clustering on a dataset. authored by @goldentom42 (Olivier Grellier)modified by @shivam5992  (Shivam Bansal)__version__ = 0.1Note:1. This recipe can be applied on any dataset, applies Kmeans clustering and creates    and extra column in the dataset which is the cluster_id of each row in the dataset.2. Currently it only uses numeric columns and ignores the categorical/text columns.3. Users can define user inputs (global variables) for this recipe. They are following:    number of clusters, columns to ignore, columns to include. (see section : Optional User Inputs)]
+  * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset and create an extra column - cluster_id of each row in the dataset]
   * [airlines.py](./data/airlines.py) [Create airlines dataset]
   * [airlines_joined_data_flights_in_out.py](./data/airlines_joined_data_flights_in_out.py) [Create augmented airlines datasets]
   * [airlines_joined_data_flights_in_out_regression.py](./data/airlines_joined_data_flights_in_out_regression.py) [Create augmented airlines datasets for regression]
