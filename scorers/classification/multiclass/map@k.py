@@ -30,18 +30,10 @@ class MAPatk(CustomScorer):
         num_classes = len(labels)
         default_k = 10 if num_classes > 10 else num_classes
         k = config.recipe_dict['k_for_map'] if 'k_for_map' in config.recipe_dict else default_k
-        predictedk = [preds.argsort()[-k:][::-1] for preds in predicted]
-        predicted_labels = [[labels[x] for x in preds] for preds in predictedk]
-        df = pd.DataFrame.from_records(predicted_labels)
-        mapk = mapkeval(df, actual, num_classes, k)
+        best_k = np.argsort(predicted, axis=1)[:,-k:][:,::-1]
+        mapk = 0.
+        for i in range(k):
+            mapk += ((best_k[:, i] - actual) == 0).mean() / (i + 1)
         return mapk
 
-
-def mapkeval(predicted, actual, n_classes, k):
-    metric = 0.
-    for i in range(k):
-        pred = pd.Series.tolist(predicted.iloc[:, i])
-        metric += np.sum(actual == pred) / (i + 1)
-    metric /= actual.shape[0]
-    return metric
 
