@@ -7,6 +7,11 @@ The recipe outputs 2 predictors:
  - The first one is trained on the average of the target over the time column
  - The second one is trained on TopN groups, where TopN is defined by recipe_dict in config.toml.
    These groups are those with the highest number of data points.
+   
+If TopN is not defined in config.toml set using the toml override in the expert settings,
+ TopN group defaults to 1. Setting TopN is done with recipe_dict="{'prophet_top_n': 200}"
+ 
+You may also want to modify the parameters explored line 99 to 103 to fit your needs. 
 """
 import importlib
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
@@ -23,6 +28,7 @@ import importlib
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
+from datetime import datetime
 
 # For more information about FB prophet please visit :
 
@@ -92,8 +98,8 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
     @staticmethod
     def get_parameter_choices():
         return {
-            "country_holidays": [None, "US"],
-            "monthly_seasonality": [False, True],
+            "country_holidays": [None],  # , "US"],
+            "monthly_seasonality": [False]  # , True],
         }
 
     @staticmethod
@@ -207,7 +213,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             # eg2: recipe_dict="{'prophet_top_n':10}"
             self.top_n = config.recipe_dict['prophet_top_n']
         except KeyError:
-            self.top_n = 50
+            self.top_n = 1
 
         loggerinfo(logger, f"Prophet will use {self.top_n} groups as well as average target data.")
 
@@ -244,9 +250,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
         self.scalers = {}
         scaled_ys = []
-        print('Number of groups : ', len(X_groups))
-        for g in tgc_wo_time:
-            print(f'Number of groups in {g} groups : {X[g].unique().shape}')
+        print(f'{datetime.now()} Start of group scaling')
 
         for key, X_grp in X_groups:
             # Create dict key to store the min max scaler
@@ -262,6 +266,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             y_skl_df.index = X_grp.index
             scaled_ys.append(y_skl_df)
 
+        print(f'{datetime.now()} End of group scaling')
         # Set target back in original frame but keep original
         X['y_orig'] = X['y']
         X['y'] = pd.concat(tuple(scaled_ys), axis=0)
@@ -285,6 +290,8 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
         with suppress_stdout_stderr():
             self.model.fit(X[['ds', 'y']])
+
+        print(f'{datetime.now()} General Model Fitted')
 
         self.top_groups = None
         if len(tgc_wo_time) > 0:
