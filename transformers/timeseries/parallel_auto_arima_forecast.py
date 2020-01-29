@@ -219,7 +219,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         return self
 
     @staticmethod
-    def _transform_async(model_path, X_path, nan_value, has_is_train_attr, time_column, tmp_folder):
+    def _transform_async(model_path, X_path, nan_value, has_is_train_attr, time_column, pred_gap, tmp_folder):
         """
         Predicts target for a particular time group
         :param model_path: path to the stored model
@@ -239,9 +239,11 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
 
         order = np.argsort(X[time_column])
         if model is not None:
-            yhat = model.predict_in_sample() \
-                if has_is_train_attr else model.predict(n_periods=X.shape[0])
-            yhat = yhat[order]
+            if has_is_train_attr:
+                yhat = model.predict_in_sample()
+            else:
+                yhat = model.predict(n_periods=pred_gap + X.shape[0])
+                yhat = yhat[pred_gap:]
             XX = pd.DataFrame(yhat, columns=['yhat'])
 
         else:
@@ -317,7 +319,11 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
                 save_obj(X, X_path)
                 model_paths.append(model_path)
 
-                args = (model_path, X_path, self.nan_value, hasattr(self, 'is_train'), self.time_column, tmp_folder)
+                args = (
+                    model_path, X_path,
+                    self.nan_value, hasattr(self, 'is_train'),
+                    self.time_column, self.pred_gap, tmp_folder
+                )
                 kwargs = {}
                 pool.submit_tryget(None, MyParallelAutoArimaTransformer_transform_async, args=args, kwargs=kwargs,
                                    out=XX_paths)
