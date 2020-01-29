@@ -1,4 +1,7 @@
-"""Parallel FB Prophet transformer is a time series transformer that predicts target using FBProphet models."""
+"""Parallel FB Prophet transformer is a time series transformer that predicts target using FBProphet models.
+This transformer fits one FBProphet model per time group and therefore may take time. Before using this transformer
+we suggest you check FBProphet prediction significance by running an experiment with
+parallel_prophet_forecast_using_individual_groups. Then enable parallel prophet forecast to get even better predictions."""
 
 """
 In this implementation, Time Group Models are fitted in parallel
@@ -98,13 +101,17 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
     @staticmethod
     def get_parameter_choices():
         return {
-            "country_holidays": [None],  # , "US"],
-            "monthly_seasonality": [False]  # , True],
+            "country_holidays": [None, "US"],
+            "monthly_seasonality": [False, True],
         }
 
     @staticmethod
     def acceptance_test_timeout():
-        return 20  # allow for 20 minutes to do acceptance test
+        return 30  # allow for 20 minutes to do acceptance test
+
+    @staticmethod
+    def is_enabled():
+        return False
 
     @staticmethod
     def _fit_async(X_path, grp_hash, tmp_folder, params):
@@ -141,7 +148,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
     def _get_n_jobs(self, logger, **kwargs):
         try:
-            if config.fixed_num_folds == 0:
+            if config.fixed_num_folds <= 0:
                 n_jobs = max(1, int(int(max_threads() / min(config.num_folds, kwargs['max_workers']))))
             else:
                 n_jobs = max(1, int(
@@ -213,7 +220,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             # eg2: recipe_dict="{'prophet_top_n':10}"
             self.top_n = config.recipe_dict['prophet_top_n']
         except KeyError:
-            self.top_n = 1
+            self.top_n = 50
 
         loggerinfo(logger, f"Prophet will use {self.top_n} groups as well as average target data.")
 
