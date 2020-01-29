@@ -59,6 +59,11 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
     def get_default_properties():
         return dict(col_type="time_column", min_cols=1, max_cols=1, relative_importance=1)
 
+    # Disable parallel AutoArima since current implementation is not faster than auto_arima_forecast.py
+    @staticmethod
+    def is_enabled():
+        return False
+
     @staticmethod
     def _fit_async(X_path, grp_hash, time_column, tmp_folder):
         """
@@ -86,7 +91,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
 
     def _get_n_jobs(self, logger, **kwargs):
         try:
-            if config.fixed_num_folds == 0:
+            if config.fixed_num_folds <= 0:
                 n_jobs = max(1, int(int(max_threads() / min(config.num_folds, kwargs['max_workers']))))
             else:
                 n_jobs = max(1, int(
