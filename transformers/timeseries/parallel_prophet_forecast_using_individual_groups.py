@@ -1,4 +1,6 @@
-"""Parallel FB Prophet transformer is a time series transformer that predicts target using FBProphet models."""
+"""Parallel FB Prophet transformer is a time series transformer that predicts target using FBProphet models.
+This transformer fits one model for each time group column values and is significantly faster
+than the implementation available in parallel_prophet_forecast.py."""
 
 """
 In this implementation, Time Group Models are fitted in parallel
@@ -129,7 +131,7 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
 
     @staticmethod
     def acceptance_test_timeout():
-        return 20  # allow for 20 minutes to do acceptance test
+        return 30  # allow for 20 minutes to do acceptance test
 
     @staticmethod
     def _fit_async(data_path, grp_hash, tmp_folder, params):
