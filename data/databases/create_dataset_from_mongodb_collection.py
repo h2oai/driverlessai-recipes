@@ -1,5 +1,9 @@
 """Create dataset from MonogDB"""
 
+# Author: Nicholas Png
+# Created: 31/01/2020
+# Last Updated: 31/01/2020
+
 import datatable as dt
 import pandas as pd
 from h2oaicore.data import CustomData
