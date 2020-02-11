@@ -146,14 +146,20 @@ def _setup_recipe():
         daal_temp_path = os.path.join(config.data_directory, config.contrib_relative_directory, "daal")
         os.makedirs(daal_temp_path, exist_ok=True)
         prefix = "https://anaconda.org/intel"
-        file1 = download("%s/daal4py/2019.4/download/linux-64/daal4py-2019.4-py36h7b7c402_6.tar.bz2" % prefix,
-                         dest_path=daal_temp_path)
-        file2 = download("%s/impi_rt/2019.4/download/linux-64/impi_rt-2019.4-intel_243.tar.bz2" % prefix,
-                         dest_path=daal_temp_path)
-        file3 = download("%s/daal/2019.4/download/linux-64/daal-2019.4-intel_243.tar.bz2" % prefix,
-                         dest_path=daal_temp_path)
-        file4 = download("https://github.com/intel/daal/releases/download/2019_u4/l_daal_oss_p_2019.4.007.tgz",
-                         dest_path=daal_temp_path)
+        try:
+            file1 = download("%s/daal4py/2019.4/download/linux-64/daal4py-2019.4-py36h7b7c402_6.tar.bz2" % prefix,
+                             dest_path=daal_temp_path)
+            file2 = download("%s/impi_rt/2019.4/download/linux-64/impi_rt-2019.4-intel_243.tar.bz2" % prefix,
+                             dest_path=daal_temp_path)
+            file3 = download("%s/daal/2019.4/download/linux-64/daal-2019.4-intel_243.tar.bz2" % prefix,
+                             dest_path=daal_temp_path)
+            file4 = download("https://github.com/intel/daal/releases/download/2019_u4/l_daal_oss_p_2019.4.007.tgz",
+                             dest_path=daal_temp_path)
+        except:
+            file1 = download("https://0xdata-public.s3.amazonaws.com/daal4py-2019.4-py36h7b7c402_6.tar.bz2", dest_path=daal_temp_path)
+            file2 = download("https://0xdata-public.s3.amazonaws.com/impi_rt-2019.4-intel_243.tar.bz2", dest_path=daal_temp_path)
+            file3 = download("https://0xdata-public.s3.amazonaws.com/daal-2019.4-intel_243.tar.bz2", dest_path=daal_temp_path)
+            file4 = download("https://0xdata-public.s3.amazonaws.com/l_daal_oss_p_2019.4.007.tgz", dest_path=daal_temp_path)
         temp_path = os.path.join(config.data_directory, config.contrib_env_relative_directory, "info")
         os.makedirs(temp_path, exist_ok=True)
         python_site_packages_path = os.path.join(config.data_directory, config.contrib_env_relative_directory)
