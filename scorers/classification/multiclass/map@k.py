@@ -11,8 +11,8 @@ recipe_dict = "{'k_for_map': 5}"
 
 import typing
 import numpy as np
-import pandas as pd
 
+from sklearn.preprocessing import LabelEncoder
 from h2oaicore.metrics import CustomScorer
 from h2oaicore.systemutils import config
 
@@ -28,9 +28,12 @@ class MAPatk(CustomScorer):
     def score(self, actual: np.array, predicted: np.array, sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
         num_classes = len(labels)
+        lb = LabelEncoder()
+        labels = lb.fit_transform(labels)
+        actual = lb.transform(actual)
         default_k = 10 if num_classes > 10 else num_classes
         k = config.recipe_dict['k_for_map'] if 'k_for_map' in config.recipe_dict else default_k
-        best_k = np.argsort(predicted, axis=1)[:,-k:][:,::-1]
+        best_k = np.argsort(predicted, axis=1)[:, -k:][:, ::-1]
         mapk = 0.
         for i in range(k):
             mapk += ((best_k[:, i] - actual) == 0).mean() / (i + 1)
