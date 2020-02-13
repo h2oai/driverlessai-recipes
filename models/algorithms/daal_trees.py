@@ -133,7 +133,7 @@ def _setup_recipe():
     # in DAI >=1.7.1, this function will be run by DAI itself
     import os
     from h2oaicore.systemutils_more import extract, download
-    from h2oaicore.systemutils import config
+    from h2oaicore.systemutils import config, remove
     import shutil
 
     from h2oaicore.systemutils import arch_type
@@ -186,4 +186,8 @@ def _setup_recipe():
         os.makedirs(daal_is_installed_path, exist_ok=True)
         with open(daal_is_installed_file, "wt") as f:
             f.write("DONE")
+        remove(file1)
+        remove(file2)
+        remove(file3)
+        remove(file4)
         return True
