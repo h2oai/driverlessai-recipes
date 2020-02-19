@@ -8,6 +8,8 @@ import datatable as dt
 import pandas as pd
 from h2oaicore.data import CustomData
 
+
+_global_modules_needed_by_name = ["pymongo"]
 # Please fill before usage
 # Note that this information is logged in Driverless AI logs.
 MONGO_HOST_IP = "127.0.0.1"
