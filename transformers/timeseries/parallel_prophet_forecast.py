@@ -1,4 +1,6 @@
-"""Parallel FB Prophet transformer is a time series transformer that predicts target using FBProphet models.
+"""Parallel FB Prophet transformer is a time series transformer that predicts target using FBProphet models."""
+
+"""
 This transformer fits one FBProphet model per time group and therefore may take time. Before using this transformer
 we suggest you check FBProphet prediction significance by running an experiment with
 parallel_prophet_forecast_using_individual_groups. Then enable parallel prophet forecast to get even better predictions."""
