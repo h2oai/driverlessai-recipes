@@ -1,5 +1,6 @@
-""" 
-Data Recipe to fill missing values in TS data and then create new data sets from TS Clustering
+"""Data Recipe to fill missing values in TS data and then create new data sets from TS Clustering"""
+
+"""
 Date should be pre-loaded in Driverless AI
 
 __version__ = 0.1
