@@ -1,6 +1,6 @@
-""" 
-Data Recipe to perform KMeans Clustering on a dataset. 
+"""Data Recipe to perform KMeans Clustering on a dataset."""
 
+"""
 __version__ = 0.1
 
 authored by @goldentom42 (Olivier Grellier)
