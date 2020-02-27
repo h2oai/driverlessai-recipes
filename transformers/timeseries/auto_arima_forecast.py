@@ -85,6 +85,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
         :param X: Datatable Frame containing the features
         :return: ARIMA predictions
         """
+
         # Convert to pandas
         X = X.to_pandas()
         # Keep the Time Group Columns
