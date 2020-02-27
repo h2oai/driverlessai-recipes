@@ -35,7 +35,7 @@ make_features_from_scratch = False
 window_length_days = [3, 5, 7, 10, 14]
 operators = ["mean", "max", "sum"]
 shuffle = True
-leaky_choices = [True, False]  # True creates leaky features and data splits - for instructinoal purposes only!
+leaky_choices = [True, False]  # True creates leaky features - for instructional purposes only!
 
 
 class TransactionalToIID(CustomData):
