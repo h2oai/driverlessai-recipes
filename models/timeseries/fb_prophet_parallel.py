@@ -222,7 +222,6 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         # Commented for performance, uncomment for debug
         # print("prophet - fitting on data of shape: %s for group: %s" % (str(X.shape), grp_hash))
         if X.shape[0] < 20:
-            print("prophet - small data work-around for group: %s" % grp_hash)
             return grp_hash, None
 
         # Import FB Prophet package
@@ -330,9 +329,11 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
 
         scalers = {}
         scaled_ys = []
+
         print('Number of groups : ', len(X_groups))
         for g in tgc_wo_time:
             print(f'Number of groups in {g} groups : {X[g].unique().shape}')
+
 
         for key, X_grp in X_groups:
             # Create dict key to store the min max scaler
@@ -342,8 +343,6 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
             y_skl = scalers[grp_hash].fit_transform(X_grp[['y']].values)
             # Put back in a DataFrame to keep track of original index
             y_skl_df = pd.DataFrame(y_skl, columns=['y'])
-            # (0, 'A') (1, 4) (100, 1) (100, 1)
-            # print(grp_hash, X_grp.shape, y_skl.shape, y_skl_df.shape)
 
             y_skl_df.index = X_grp.index
             scaled_ys.append(y_skl_df)
