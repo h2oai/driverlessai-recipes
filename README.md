@@ -54,7 +54,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.2)
  [1.8.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.3)
  [1.8.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.4)
-### Count: 142
+### Count: 141
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.]
@@ -78,7 +78,6 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
   * [ALGORITHMS](./models/algorithms)
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.]
-    * [constant_preds.py](./models/algorithms/constant_preds.py) [Constant Predictions Baseline Model]
     * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL]
     * [extra_trees.py](./models/algorithms/extra_trees.py) [Extremely Randomized Trees (ExtraTrees) model from sklearn]
     * [extremeClassifier.py](./models/algorithms/extremeClassifier.py) [ Extreme Classifier Model: To speed up train of multiclass model (100s of classes) for lightGBM.    Caution: can only be used for AUC (or GINI) and accuracy metrics.    Based on: Extreme Classification in Log Memory using Count-Min Sketch: https://arxiv.org/abs/1910.13830]
