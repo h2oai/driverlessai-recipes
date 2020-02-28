@@ -120,7 +120,7 @@ class TransactionalToIID(CustomData):
                     for _, df in groups:
                         df = df.sort_values(col_date)
                         time_window = df.set_index(col_date)[y_enc].shift(shift_amount). \
-                            fillna(0).rolling(t_days, min_periods=1)  # get time window. if leaky, includes self
+                            dropna().rolling(t_days, min_periods=1)  # get time window. if leaky, includes self
                         res = getattr(time_window, op)()  # apply operator on time window
                         res.index = df.index
                         lag_feature.append(res)
