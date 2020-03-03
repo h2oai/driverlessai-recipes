@@ -77,6 +77,9 @@ class MozillaDeepSpeechWav2Txt(BaseData):
         except:
             logger = False
         
+        if X is None:
+            return []
+
         X = X.to_pandas()
         if WAV_COLNAME in X.columns:
             model = os.path.join(MODEL_PATH,"output_graph.pbmm")

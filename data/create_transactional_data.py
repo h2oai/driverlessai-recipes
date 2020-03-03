@@ -94,6 +94,9 @@ class TransactionalToIID(CustomData):
             if not make_features_from_scratch:
                 return {'raw_transactions_non_iid': X}
 
+        if X is None:
+            return []
+
         X_pd = X[:, [col_date, col_group, target]].to_pandas()  # faster, since only working on a few cols
         X_pd[col_row_id] = np.arange(X_pd.shape[0])
 
