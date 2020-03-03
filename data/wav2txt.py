@@ -42,7 +42,10 @@ class AzureWav2Txt(BaseData):
             speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_config)
             result = speech_recognizer.recognize_once()
             return result.text if result.reason == speechsdk.ResultReason.RecognizedSpeech else None
-        
+
+        if X is None:
+            return []
+
         X = X.to_pandas()
         if WAV_COLNAME in X.columns:
             speech_config = speechsdk.SpeechConfig(subscription=AZURE_SERVICE_KEY, region=AZURE_SERVICE_REGION)
