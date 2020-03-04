@@ -35,16 +35,16 @@ class AzureWav2Txt(BaseData):
 
     @staticmethod
     def create_data(X: dt.Frame = None) -> dt.Frame:
+        if X is None:
+            return []
+
         import azure.cognitiveservices.speech as speechsdk
-        
+
         def _wav_to_str(filename: str, cfg) -> typing.Optional[str]:
             audio_config = speechsdk.audio.AudioConfig(filename=filename)
             speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_config)
             result = speech_recognizer.recognize_once()
             return result.text if result.reason == speechsdk.ResultReason.RecognizedSpeech else None
-
-        if X is None:
-            return []
 
         X = X.to_pandas()
         if WAV_COLNAME in X.columns:
@@ -53,5 +53,4 @@ class AzureWav2Txt(BaseData):
             X[WAV_COLNAME+"_txt"] = X[WAV_COLNAME].apply(lambda s: _wav_to_str(s, speech_config))  
         
         return dt.Frame(X)
-    
     
