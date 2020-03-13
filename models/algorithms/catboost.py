@@ -87,10 +87,11 @@ class CatBoostModel(CustomModel):
                        'max_depth': 8
                       }
 
+        dummy = kwargs.get('dummy', False)
         ensemble_level = kwargs.get('ensemble_level', 0)
         train_shape = kwargs.get('train_shape', (1, 1))
         valid_shape = kwargs.get('valid_shape', (1, 1))
-        self.get_gbm_main_params_evolution(self.params, accuracy,
+        self.get_gbm_main_params_evolution(self.params, dummy, accuracy,
                                            self.num_classes,
                                            ensemble_level, train_shape,
                                            valid_shape)
