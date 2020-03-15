@@ -16,8 +16,6 @@ import pandas as pd
 from h2oaicore.data import BaseData
 import typing
 
-_global_modules_needed_by_name = ["azure-cognitiveservices-speech==1.6.0"]   
-
 #Please fill up before usage
 AZURE_SERVICE_KEY = ''
 AZURE_SERVICE_REGION = ''

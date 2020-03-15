@@ -65,6 +65,9 @@ class MozillaDeepSpeechWav2Txt(BaseData):
 
     @staticmethod
     def create_data(X: dt.Frame = None) -> dt.Frame:
+        if X is None:
+            return []
+
         from deepspeech import Model
         
         try:
@@ -77,9 +80,6 @@ class MozillaDeepSpeechWav2Txt(BaseData):
         except:
             logger = False
         
-        if X is None:
-            return []
-
         X = X.to_pandas()
         if WAV_COLNAME in X.columns:
             model = os.path.join(MODEL_PATH,"output_graph.pbmm")
