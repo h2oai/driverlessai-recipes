@@ -22,12 +22,12 @@ from functools import reduce
 # Please fill before usage
 # Note that this information is logged in Driverless AI logs.
 
-BUCKET_NAME = 'h2o-bq-large-dataset'
-PROJECT = 'h2o-gce'
-DATASET_ID = 'bq_dataset'
-TABLE_ID = 'nyc_taxi_green'
-WILDCARD_NAME = 'nyc_taxi_green/shard-test-*.csv'
-LOCATION = 'US'
+BUCKET_NAME = ''
+PROJECT = ''
+DATASET_ID = ''
+TABLE_ID = ''
+WILDCARD_NAME = ''
+LOCATION = ''
 DAI_DATA_PATH = ''
 
 
