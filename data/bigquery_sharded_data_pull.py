@@ -70,6 +70,6 @@ class BqShardData(CustomData):
             shard_dts.append(dt.fread(shard_file_path))
             os.remove(shard_file_path)
 
-        X = reduce(lambda left_dt, right_dt: left_dt.rbind(right_dt))
+        X = reduce(lambda left_dt, right_dt: left_dt.rbind(right_dt), shard_dts)
 
         return X
