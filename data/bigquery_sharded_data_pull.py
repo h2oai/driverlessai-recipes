@@ -5,12 +5,11 @@ Based on:
     https://cloud.google.com/storage/docs/reference/libraries#using_the_client_library
 
 Author: Travis Couture
-Created: 03/17/2020
-Last Updated: 03/17/2020
+Created: 03/18/2020
+Last Updated: 03/18/2020
 """
 
 import datatable as dt
-import pandas as pd
 import os
 from h2oaicore.data import CustomData
 from h2oaicore.systemutils import config
@@ -22,12 +21,19 @@ from functools import reduce
 # Please fill before usage
 # Note that this information is logged in Driverless AI logs.
 
+# GCP Storage bucket name
 BUCKET_NAME = ''
+# GCP project name
 PROJECT = ''
+# Dataset ID/name in GCP Bigquery without project and table prefixes
 DATASET_ID = ''
+# Table ID in GCP Bigquery without project prefix
 TABLE_ID = ''
+# Pattern to use to shard data from Bigquery into GCP Storage e.g. 'my-big-data/shard-pattern-*.csv'
 WILDCARD_NAME = ''
+# GCP region e.g. 'US'
 LOCATION = ''
+# Data directory for Driverless AI e.g. '/data'
 DAI_DATA_PATH = ''
 
 
@@ -57,7 +63,7 @@ class BqShardData(CustomData):
 
         shard_count = extract_job.destination_uri_file_counts[0]
         shard_name_prefix = WILDCARD_NAME.split('*')[0]
-        shard_filetype = WILDCARD_NAME.split('*')[1]
+        shard_filetype = WILDCARD_NAME.split('*')[-1]
         shard_list = [shard_name_prefix + str(i).zfill(12) + shard_filetype for i in range(0, shard_count)]
 
         shard_dts = []
@@ -70,6 +76,8 @@ class BqShardData(CustomData):
             shard_dts.append(dt.fread(shard_file_path))
             os.remove(shard_file_path)
 
-        X = reduce(lambda left_dt, right_dt: left_dt.rbind(right_dt), shard_dts)
+        shard_dts[0].rbind(shard_dts[1:])
+
+        X = shard_dts[0]
 
         return X
