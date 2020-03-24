@@ -5,6 +5,9 @@ target_col = "y" # target column name
 
 y = dt.fread(y_file_name)
 
+if y.shape[0] != X.shape[0]:
+	raise ValueError("Datasets must have equal number of rows")
+
 X.cbind(y[target_col])
 
 return X 
