@@ -270,7 +270,6 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                     
                 #get transformed data in order to adjust SVD matrix
                 svd_ = self.TextTransformer.pipes[col][1]
-                joblib.dump(svd_, "/home/dmitry/Desktop/tmp/svd_.pkl")
                 if isinstance(svd_, CPUTruncatedSVD):
                     X_transformed = self.TextTransformer.pipes[col][0].transform(
                         self.TextTransformer.stringify_col(X_[col])
@@ -279,7 +278,6 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                     new_svd = CPUTruncatedSVD()
                     new_svd.set_params(**svd_.get_params())
                     new_svd.fit(X_transformed)
-                    joblib.dump(new_svd, "/home/dmitry/Desktop/tmp/new_svd.pkl")
 
                     #adjust old transform matrix based on new one
                     grad = svd_.components_ - new_svd.components_[:, :svd_.components_.shape[1]]
