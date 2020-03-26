@@ -1,7 +1,7 @@
 """Extract sentiment from text using pretrained models from TextBlob"""
 import importlib
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.transformers import TextTransformer
+from h2oaicore.transformers import TextTransformer, CPUTruncatedSVD
 import datatable as dt
 import numpy as np
 from h2oaicore.systemutils import config, remove, temporary_files_path
@@ -23,8 +23,8 @@ def get_value(config, key):
 
 # """   
 # {
-# 'Custom_TextTransformer_load':'/home/dmitry/Desktop/tmp/saved_txtTransformerZZZZ.pkl',
-# 'Custom_TextTransformer_save':'/home/dmitry/Desktop/tmp/saved_txtTransformerYYYY.pkl'
+# 'Custom_TextTransformer_load':'/home/dmitry/Desktop/tmp/saved_txtTransformer_000.pkl',
+# 'Custom_TextTransformer_save':'/home/dmitry/Desktop/tmp/saved_txtTransformer_111.pkl'
 # }
 # """
 class Cached_TextTransformer(CustomTransformer):
@@ -36,15 +36,18 @@ class Cached_TextTransformer(CustomTransformer):
     load_key = "Custom_TextTransformer_load"
     save_key = "Custom_TextTransformer_save"
     
+    _can_use_gpu = False
+    _can_use_multi_gpu = False
+    
     @staticmethod
     def do_acceptance_test():
-        return True
+        return False
 
     @staticmethod
     def get_parameter_choices():
         return {
             "max_features": [None],
-            "tf_idf": [True, False],
+            "tf_idf": [True],# False],
             "max_ngram": [1, 2, 3],
             "dim_reduction": [50],
         }
@@ -69,9 +72,13 @@ class Cached_TextTransformer(CustomTransformer):
                 dim_reduction = dim_reduction,
                 **kwargs
             )
+            self.TextTransformer._can_use_gpu = self._can_use_gpu
+            self.TextTransformer._can_use_multi_gpu = self._can_use_multi_gpu
         else:
             self.TextTransformer = joblib.load(self.load_path) 
             self.loaded = True
+            self.TextTransformer._can_use_gpu = self._can_use_gpu
+            self.TextTransformer._can_use_multi_gpu = self._can_use_multi_gpu
     
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
@@ -130,13 +137,13 @@ class Updatable_TextTransformer_TFIDFOnly(Cached_TextTransformer):
                     
                     freq2 = self.inverse_idf(cv.idf_, N_)
                     
-                    freq = inverse_idf(
+                    freq = self.inverse_idf(
                         pre_trained.idf_, 
-                        pre_trained.N_
+                        self.TextTransformer.N_
                     )
                     freq = freq + freq2
-                    pre_trained.N_ = pre_trained.N_ + N_
-                    freq = np.log((pre_trained.N_+1) / (1+freq)) + 1
+                    self.TextTransformer.N_ = self.TextTransformer.N_ + N_
+                    freq = np.log((self.TextTransformer.N_+1) / (1+freq)) + 1
                     pre_trained.idf_ = freq
             
             result = self.TextTransformer.transform(X.to_pandas())
@@ -149,5 +156,152 @@ class Updatable_TextTransformer_TFIDFOnly(Cached_TextTransformer):
             joblib.dump(self.TextTransformer, self.save_path)
         return result
 
+    
+class Updatable_TextTransformer(Cached_TextTransformer):
+    """
+    Updates TF-IDF terms, vocabulary and stop word, same for CountVectorizer
+    Updates SVD matrix in order to incorporate new terms and adjust influence of old ones
+    """
+    _display_name = "Updatable_TextTransformer"
+    
+    @staticmethod
+    def get_parameter_choices():
+        return {
+            "max_features": [None],
+            "tf_idf": [True],# False],
+            "max_ngram": [1, 2, 3],
+            "dim_reduction": [50],
+            "step": [1e-5, 1e-4, 1e-3, 1e-2, .1]
+        }
+    
+     
+    def __init__(self, max_features = None, tf_idf = True, max_ngram = 1, dim_reduction = 50, step = .1, **kwargs):
+        super().__init__(max_features = None, tf_idf = True, max_ngram = 1, dim_reduction = 50, **kwargs)
+        
+        self.step = step
+        
+    
+    @staticmethod
+    def inverse_idf(idf_, N_):
+        tmp = np.exp(idf_ - 1)
+        tmp = np.round((N_+1) / tmp) - 1
+        return tmp
+    
+    def fit_transform(self, X: dt.Frame, y: np.array = None):
+        if self.loaded:
+            X_ = X.to_pandas()
+            N_ = len(X_)
+            for col in self.input_feature_names:
+                if self.TextTransformer.tf_idf:
+                    cv = TfidfVectorizer()
+                    pre_trained = self.TextTransformer.pipes[col][0]["model"]
+                    cv.set_params(**pre_trained.get_params())
+#                     cv.set_params(**{
+#                         "vocabulary": pre_trained.vocabulary_, 
+#                         "stop_words": pre_trained.stop_words_
+#                     })
+                    pipe_ = copy.deepcopy(self.TextTransformer.pipes[col][0])
+                    new_pipe = []
+                    for step in pipe_.steps:
+                        if step[0] != 'model':
+                            new_pipe.append(step)
+                        else:
+                            new_pipe.append(('model', cv))
+                            break
+                    new_pipe = Pipeline(new_pipe)
+                    new_pipe.fit(self.TextTransformer.stringify_col(X_[col]))
+                    
+                    freq2 = self.inverse_idf(cv.idf_, N_)
+                    
+                    freq = self.inverse_idf(
+                        pre_trained.idf_, 
+                        self.TextTransformer.N_
+                    )
+                    
+                    new_freq = []
+                    remapped_freq = np.zeros(len(freq))
+                    dict_ = copy.copy(pre_trained.vocabulary_)
+                    stop_list = copy.copy(pre_trained.stop_words_)
+                    max_val = len(dict_)
+                    
+                    for k in cv.vocabulary_:
+                        val = dict_.get(k, -1)
+                        if val == -1:
+                            dict_[k] = max_val
+                            existed = stop_list.discard(k)
+                            max_val+=1
+                            new_freq.append(freq2[cv.vocabulary_[k]])
+                        else:
+                            remapped_freq[val] = freq2[cv.vocabulary_[k]]
+                    
+                    pre_trained.vocabulary_ = dict_
+                    pre_trained.stop_words_ = stop_list
+                    
+                    freq = freq + remapped_freq
+                    freq = np.hstack([freq, new_freq])
+                    
+                    self.TextTransformer.N_ = self.TextTransformer.N_ + N_
+                    freq = np.log((self.TextTransformer.N_+1) / (1+freq)) + 1
+                    pre_trained.idf_ = freq
+                
+                else:
+                    #train new CountVectorizer in order to expand vocabulary of the old one
+                    cv = CountVectorizer()
+                    pre_trained = self.TextTransformer.pipes[col][0]["model"]
+                    cv.set_params(**pre_trained.get_params())
+                    pipe_ = copy.deepcopy(self.TextTransformer.pipes[col][0])
+                    new_pipe = []
+                    for step in pipe_.steps:
+                        if step[0] != 'model':
+                            new_pipe.append(step)
+                        else:
+                            new_pipe.append(('model', cv))
+                            break
+                    new_pipe = Pipeline(new_pipe)
+                    new_pipe.fit(self.TextTransformer.stringify_col(X_[col]))
+                    
+                    #adjust vocabulary and stop word list based on newly data
+                    dict_ = copy.copy(pre_trained.vocabulary_)
+                    stop_list = copy.copy(pre_trained.stop_words_)
+                    max_val = len(dict_)
+                    for k in cv.vocabulary_:
+                        val = dict_.get(k, -1)
+                        if val == -1:
+                            dict_[k] = max_val
+                            existed = stop_list.discard(k)
+                            max_val+=1
+
+                    pre_trained.vocabulary_ = dict_
+                    pre_trained.stop_words_ = stop_list
+                    
+                #get transformed data in order to adjust SVD matrix
+                svd_ = self.TextTransformer.pipes[col][1]
+                joblib.dump(svd_, "/home/dmitry/Desktop/tmp/svd_.pkl")
+                if isinstance(svd_, CPUTruncatedSVD):
+                    X_transformed = self.TextTransformer.pipes[col][0].transform(
+                        self.TextTransformer.stringify_col(X_[col])
+                    )
+                    new_svd = CPUTruncatedSVD()
+                    new_svd.set_params(**svd_.get_params())
+                    new_svd.fit(X_transformed)
+                    joblib.dump(new_svd, "/home/dmitry/Desktop/tmp/new_svd.pkl")
+
+                    grad = svd_.components_ - new_svd.components_[:, :svd_.components_.shape[1]]
+                    grad = self.step*grad
+                    svd_.components_ = svd_.components_ - grad
+                    svd_.components_ = np.hstack([
+                        svd_.components_, 
+                        new_svd.components_[:, svd_.components_.shape[1]:]
+                    ])
+                        
+            result = self.TextTransformer.transform(X.to_pandas())
+
+        else:
+            self.TextTransformer.N_ = X.shape[0]
+            result = self.TextTransformer.fit_transform(X.to_pandas())
+        
+        if self.save_path:
+            joblib.dump(self.TextTransformer, self.save_path)
+        return result
     
 
