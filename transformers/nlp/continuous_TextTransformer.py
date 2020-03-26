@@ -1,4 +1,3 @@
-"""Extract sentiment from text using pretrained models from TextBlob"""
 import importlib
 from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.transformers import TextTransformer, CPUTruncatedSVD
@@ -23,8 +22,8 @@ def get_value(config, key):
 
 # """   
 # {
-# 'Custom_TextTransformer_load':'/home/dmitry/Desktop/tmp/saved_txtTransformer_000.pkl',
-# 'Custom_TextTransformer_save':'/home/dmitry/Desktop/tmp/saved_txtTransformer_111.pkl'
+# 'Custom_TextTransformer_load':'path to pickle',
+# 'Custom_TextTransformer_save':'path to pickle'
 # }
 # """
 class Cached_TextTransformer(CustomTransformer):
@@ -47,7 +46,7 @@ class Cached_TextTransformer(CustomTransformer):
     def get_parameter_choices():
         return {
             "max_features": [None],
-            "tf_idf": [True],# False],
+            "tf_idf": [True, False],
             "max_ngram": [1, 2, 3],
             "dim_reduction": [50],
         }
@@ -166,13 +165,9 @@ class Updatable_TextTransformer(Cached_TextTransformer):
     
     @staticmethod
     def get_parameter_choices():
-        return {
-            "max_features": [None],
-            "tf_idf": [True],# False],
-            "max_ngram": [1, 2, 3],
-            "dim_reduction": [50],
-            "step": [1e-5, 1e-4, 1e-3, 1e-2, .1]
-        }
+        dict_ = Cached_TextTransformer.get_parameter_choices()
+        dict_["step"]= [1e-5, 1e-4, 1e-3, 1e-2, .1]
+        return dict_
     
      
     def __init__(self, max_features = None, tf_idf = True, max_ngram = 1, dim_reduction = 50, step = .1, **kwargs):
@@ -193,13 +188,10 @@ class Updatable_TextTransformer(Cached_TextTransformer):
             N_ = len(X_)
             for col in self.input_feature_names:
                 if self.TextTransformer.tf_idf:
+                    #train new TfidfVectorizer in order to expand vocabulary of the old one and adjust idf terms
                     cv = TfidfVectorizer()
                     pre_trained = self.TextTransformer.pipes[col][0]["model"]
                     cv.set_params(**pre_trained.get_params())
-#                     cv.set_params(**{
-#                         "vocabulary": pre_trained.vocabulary_, 
-#                         "stop_words": pre_trained.stop_words_
-#                     })
                     pipe_ = copy.deepcopy(self.TextTransformer.pipes[col][0])
                     new_pipe = []
                     for step in pipe_.steps:
@@ -218,6 +210,8 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                         self.TextTransformer.N_
                     )
                     
+                    #adjust vocabulary and stop word list based on newly data
+                    #adjust frequency terms and idf terms
                     new_freq = []
                     remapped_freq = np.zeros(len(freq))
                     dict_ = copy.copy(pre_trained.vocabulary_)
@@ -281,11 +275,13 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                     X_transformed = self.TextTransformer.pipes[col][0].transform(
                         self.TextTransformer.stringify_col(X_[col])
                     )
+                    #train new SVD to get new transform matrix
                     new_svd = CPUTruncatedSVD()
                     new_svd.set_params(**svd_.get_params())
                     new_svd.fit(X_transformed)
                     joblib.dump(new_svd, "/home/dmitry/Desktop/tmp/new_svd.pkl")
 
+                    #adjust old transform matrix based on new one
                     grad = svd_.components_ - new_svd.components_[:, :svd_.components_.shape[1]]
                     grad = self.step*grad
                     svd_.components_ = svd_.components_ - grad
