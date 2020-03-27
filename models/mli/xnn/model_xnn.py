@@ -1,4 +1,4 @@
-""" Simple neural net """
+""" Explainable neural net """
 import uuid
 import os
 import datatable as dt
