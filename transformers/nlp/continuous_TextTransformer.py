@@ -9,6 +9,7 @@ from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 from sklearn.pipeline import Pipeline
 import ast
 import copy
+import scipy as sc
 
 def get_value(config, key):
     if  key in config.recipe_dict:
@@ -22,8 +23,8 @@ def get_value(config, key):
 
 # """   
 # {
-# 'Custom_TextTransformer_load':'path to pickle',
-# 'Custom_TextTransformer_save':'path to pickle'
+# 'Custom_TextTransformer_load':/home/dmitry/Desktop/tmp/save_000.pkl',
+# 'Custom_TextTransformer_save':'/home/dmitry/Desktop/tmp/save_001.pkl'
 # }
 # """
 
@@ -75,7 +76,13 @@ class Cached_TextTransformer(CustomTransformer):
             self.TextTransformer._can_use_gpu = self._can_use_gpu
             self.TextTransformer._can_use_multi_gpu = self._can_use_multi_gpu
         else:
-            self.TextTransformer = joblib.load(self.load_path) 
+            data = joblib.load(self.load_path) 
+            if isinstance(data, dict):
+                self.TextTransformer = data["txtTransformer"]
+                self.tf_idf = data["tf_idf"]
+            else:
+                self.TextTransformer = data
+                self.tf_idf = {}
             self.loaded = True
             self.TextTransformer._can_use_gpu = self._can_use_gpu
             self.TextTransformer._can_use_multi_gpu = self._can_use_multi_gpu
@@ -99,62 +106,62 @@ class Cached_TextTransformer(CustomTransformer):
         return self.TextTransformer.write_to_mojo(mojo, iframe, group_uuid, group_name)
 
 
-class Updatable_TextTransformer_TFIDFOnly(Cached_TextTransformer):
-    """
-    Only updates TF-IDF terms, vocabulary and stop word list remain the same
-    """
-    _display_name = "Updatable_TextTransformer_TFIDFOnly"
+# class Updatable_TextTransformer_TFIDFOnly(Cached_TextTransformer):
+#     """
+#     Only updates TF-IDF terms, vocabulary and stop word list remain the same
+#     """
+#     _display_name = "Updatable_TextTransformer_TFIDFOnly"
     
-    @staticmethod
-    def inverse_idf(idf_, N_):
-        tmp = np.exp(idf_ - 1)
-        tmp = np.round((N_+1) / tmp) - 1
-        return tmp
+#     @staticmethod
+#     def inverse_idf(idf_, N_):
+#         tmp = np.exp(idf_ - 1)
+#         tmp = np.round((N_+1) / tmp) - 1
+#         return tmp
     
-    def fit_transform(self, X: dt.Frame, y: np.array = None):
-        if self.loaded:
-            X_ = X.to_pandas()
-            N_ = len(X_)
-            for col in self.input_feature_names:
-                if self.TextTransformer.tf_idf: # update tf-idf terms for tokens in new data
-                    cv = TfidfVectorizer()
-                    pre_trained = self.TextTransformer.pipes[col][0]["model"]
-                    cv.set_params(**pre_trained.get_params())
-                    cv.set_params(**{
-                        "vocabulary": pre_trained.vocabulary_, 
-                        "stop_words": pre_trained.stop_words_
-                    })
-                    pipe_ = copy.deepcopy(self.TextTransformer.pipes[col][0])
-                    new_pipe = []
-                    for step in pipe_.steps:
-                        if step[0] != 'model':
-                            new_pipe.append(step)
-                        else:
-                            new_pipe.append(('model', cv))
-                            break
-                    new_pipe = Pipeline(new_pipe)
-                    new_pipe.fit(self.TextTransformer.stringify_col(X_[col]))
+#     def fit_transform(self, X: dt.Frame, y: np.array = None):
+#         if self.loaded:
+#             X_ = X.to_pandas()
+#             N_ = len(X_)
+#             for col in self.input_feature_names:
+#                 if self.TextTransformer.tf_idf: # update tf-idf terms for tokens in new data
+#                     cv = TfidfVectorizer()
+#                     pre_trained = self.TextTransformer.pipes[col][0]["model"]
+#                     cv.set_params(**pre_trained.get_params())
+#                     cv.set_params(**{
+#                         "vocabulary": pre_trained.vocabulary_, 
+#                         "stop_words": pre_trained.stop_words_
+#                     })
+#                     pipe_ = copy.deepcopy(self.TextTransformer.pipes[col][0])
+#                     new_pipe = []
+#                     for step in pipe_.steps:
+#                         if step[0] != 'model':
+#                             new_pipe.append(step)
+#                         else:
+#                             new_pipe.append(('model', cv))
+#                             break
+#                     new_pipe = Pipeline(new_pipe)
+#                     new_pipe.fit(self.TextTransformer.stringify_col(X_[col]))
                     
-                    freq2 = self.inverse_idf(cv.idf_, N_)
+#                     freq2 = self.inverse_idf(cv.idf_, N_)
                     
-                    freq = self.inverse_idf(
-                        pre_trained.idf_, 
-                        self.TextTransformer.N_
-                    )
-                    freq = freq + freq2
-                    self.TextTransformer.N_ = self.TextTransformer.N_ + N_
-                    freq = np.log((self.TextTransformer.N_+1) / (1+freq)) + 1
-                    pre_trained.idf_ = freq
+#                     freq = self.inverse_idf(
+#                         pre_trained.idf_, 
+#                         self.TextTransformer.N_
+#                     )
+#                     freq = freq + freq2
+#                     self.TextTransformer.N_ = self.TextTransformer.N_ + N_
+#                     freq = np.log((self.TextTransformer.N_+1) / (1+freq)) + 1
+#                     pre_trained.idf_ = freq
             
-            result = self.TextTransformer.transform(X.to_pandas())
+#             result = self.TextTransformer.transform(X.to_pandas())
 
-        else:
-            self.TextTransformer.N_ = X.shape[0]
-            result = self.TextTransformer.fit_transform(X.to_pandas())
+#         else:
+#             self.TextTransformer.N_ = X.shape[0]
+#             result = self.TextTransformer.fit_transform(X.to_pandas())
         
-        if self.save_path:
-            joblib.dump(self.TextTransformer, self.save_path)
-        return result
+#         if self.save_path:
+#             joblib.dump(self.TextTransformer, self.save_path)
+#         return result
 
     
 class Updatable_TextTransformer(Cached_TextTransformer):
@@ -275,28 +282,57 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                     X_transformed = self.TextTransformer.pipes[col][0].transform(
                         self.TextTransformer.stringify_col(X_[col])
                     )
-                    #train new SVD to get new transform matrix
-                    new_svd = CPUTruncatedSVD()
-                    new_svd.set_params(**svd_.get_params())
-                    new_svd.fit(X_transformed)
+                    if col in self.tf_idf:
+                        #combine saved matrix with the new one
+                        newCols = X_transformed.shape[1] - self.tf_idf[col].shape[1]
+                        if newCols > 0:
+                            newCols = np.zeros((self.tf_idf.shape[0], newCols))
+                            new_tf_idf = sc.sparse.hstack([self.tf_idf[col], newCols])
+                        else:
+                            new_tf_idf = self.tf_idf
+                        new_tf_idf = sc.sparse.vstack([self.tf_idf[col], X_transformed])
+                        self.tf_idf[col] = new_tf_idf
+                        #fit SVD on combined matrix
+                        new_svd = CPUTruncatedSVD()
+                        new_svd.set_params(**svd_.get_params())
+                        new_svd.fit(self.tf_idf[col])
+                        
+                        #replace old svd matrix with new one
+                        svd_.components_ = new_svd.components_
+                    else:
+                        self.tf_idf[col] = X_transformed
+                        #train new SVD to get new transform matrix
+                        new_svd = CPUTruncatedSVD()
+                        new_svd.set_params(**svd_.get_params())
+                        new_svd.fit(X_transformed)
 
-                    #adjust old transform matrix based on new one
-                    grad = svd_.components_ - new_svd.components_[:, :svd_.components_.shape[1]]
-                    grad = self.step*grad
-                    svd_.components_ = svd_.components_ - grad
-                    svd_.components_ = np.hstack([
-                        svd_.components_, 
-                        new_svd.components_[:, svd_.components_.shape[1]:]
-                    ])
+                        #adjust old transform matrix based on new one
+                        grad = svd_.components_ - new_svd.components_[:, :svd_.components_.shape[1]]
+                        grad = self.step*grad
+                        svd_.components_ = svd_.components_ - grad
+                        svd_.components_ = np.hstack([
+                            svd_.components_, 
+                            new_svd.components_[:, svd_.components_.shape[1]:]
+                        ])
                         
             result = self.TextTransformer.transform(X.to_pandas())
 
         else:
+            
             self.TextTransformer.N_ = X.shape[0]
             result = self.TextTransformer.fit_transform(X.to_pandas())
+            X_ = X.to_pandas()
+            self.tf_idf = {}
+            for col in self.input_feature_names:
+                self.tf_idf[col] = self.TextTransformer.pipes[col][0].transform(
+                    self.TextTransformer.stringify_col(X_[col])
+                )
         
         if self.save_path:
-            joblib.dump(self.TextTransformer, self.save_path)
+            joblib.dump({
+                "txtTransformer": self.TextTransformer,
+                "tf_idf": self.tf_idf,
+            },
+                self.save_path
+            )
         return result
-    
-
