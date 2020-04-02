@@ -12,7 +12,7 @@ import copy
 
 def get_value(config, key):
     if  key in config.recipe_dict:
-        return config.recipe_dict[k]
+        return config.recipe_dict[key]
     elif "config_overrides" in config.get_overrides_dict():
         data = config.get_overrides_dict()["config_overrides"]
         data = ast.literal_eval(ast.literal_eval(data))
@@ -26,6 +26,7 @@ def get_value(config, key):
 # 'Custom_TextTransformer_save':'path to pickle'
 # }
 # """
+
 class Cached_TextTransformer(CustomTransformer):
     _regression = True
     _binary = True
