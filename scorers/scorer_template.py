@@ -1,6 +1,7 @@
 """Template base class for a custom scorer recipe."""
 
 import numpy as np
+import datatable as dt
 import typing
 
 _global_modules_needed_by_name = []  # Optional global package requirements, for multiple custom recipes in a file
@@ -17,6 +18,12 @@ class CustomScorer(BaseScorer):
     _regression = False
     _binary = False
     _multiclass = False
+
+    """
+    Whether the dataset itself is required to score (in addition to actual and predicted columns).
+    If set to True, X will be passed as a datatable Frame, and can be converted to pandas via X.to_pandas() if needed.
+    """
+    _needs_X = False
 
     """Specify the python package dependencies (will be installed via pip install mypackage==1.3.37)"""
     _modules_needed_by_name = []  # List[str]
@@ -48,7 +55,9 @@ class CustomScorer(BaseScorer):
             actual: np.array,
             predicted: np.array,
             sample_weight: typing.Optional[np.array] = None,
-            labels: typing.Optional[List[any]] = None) -> float:
+            labels: typing.Optional[List[any]] = None,
+            X: typing.Optional[dt.Frame] = None,
+            **kwargs) -> float:
         """Please implement this function to compute a score from actual and predicted values.
 
         Args:
@@ -59,6 +68,7 @@ class CustomScorer(BaseScorer):
             sample_weight (:obj:`np.array`): Optional, observation weights for each sample
                 (1 column, 1 numeric value per row)
             labels (:obj:`List[any]`): Optional, class labels (or `None` for regression)
+            X (:obj:`dt.Frame`): Optional, datatable Frame containing dataset
 
         Returns:
             float: score
