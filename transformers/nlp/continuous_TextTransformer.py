@@ -28,6 +28,8 @@ def get_value(config, key):
 # }
 # """
 
+# "{'Custom_TextTransformer_load':'/home/dmitry/Desktop/tmp/save_000.pkl','Custom_TextTransformer_save':'/home/dmitry/Desktop/tmp/save_001.pkl'}"
+
 class Cached_TextTransformer(CustomTransformer):
     _regression = True
     _binary = True
@@ -286,11 +288,11 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                         #combine saved matrix with the new one
                         newCols = X_transformed.shape[1] - self.tf_idf[col].shape[1]
                         if newCols > 0:
-                            newCols = np.zeros((self.tf_idf.shape[0], newCols))
+                            newCols = np.zeros((self.tf_idf[col].shape[0], newCols))
                             new_tf_idf = sc.sparse.hstack([self.tf_idf[col], newCols])
                         else:
-                            new_tf_idf = self.tf_idf
-                        new_tf_idf = sc.sparse.vstack([self.tf_idf[col], X_transformed])
+                            new_tf_idf = self.tf_idf[col]
+                        new_tf_idf = sc.sparse.vstack([new_tf_idf, X_transformed])
                         self.tf_idf[col] = new_tf_idf
                         #fit SVD on combined matrix
                         new_svd = CPUTruncatedSVD()
