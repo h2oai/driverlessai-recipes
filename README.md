@@ -75,7 +75,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [wav2txt.py](./data/wav2txt.py) [Speech to text using Azure Cognitive ServicesSettings for this recipe:Assing AZURE_SERVICE_KEY and AZURE_SERVICE_REGION global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.]
   * [DATABASES](./data/databases)
     * [create_dataset_from_mongodb_collection.py](./data/databases/create_dataset_from_mongodb_collection.py) [Create dataset from MonogDB]
-  * [NLP](./data/NLP)
+  * [NLP](./data/nlp)
     * [tokenize_chinese.py](./data/NLP/tokenize_chinese.py) [Chinese text tokenization using jieba package - https://github.com/fxsjy/jieba]
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description]
