@@ -54,7 +54,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.2)
  [1.8.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.3)
  [1.8.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.4)
-### Count: 146
+### Count: 147
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.]
@@ -75,6 +75,8 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [wav2txt.py](./data/wav2txt.py) [Speech to text using Azure Cognitive ServicesSettings for this recipe:Assing AZURE_SERVICE_KEY and AZURE_SERVICE_REGION global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.]
   * [DATABASES](./data/databases)
     * [create_dataset_from_mongodb_collection.py](./data/databases/create_dataset_from_mongodb_collection.py) [Create dataset from MonogDB]
+  * [NLP](./data/NLP)
+    * [tokenize_chinese.py](./data/NLP/tokenize_chinese.py) [Chinese text tokenization using jieba package - https://github.com/fxsjy/jieba]
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description]
 * [MODELS](./models)
