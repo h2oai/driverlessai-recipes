@@ -10,6 +10,7 @@ from sklearn.pipeline import Pipeline
 import ast
 import copy
 import scipy as sc
+import pandas as pd
 
 def get_value(config, key):
     if  key in config.recipe_dict:
@@ -82,9 +83,11 @@ class Cached_TextTransformer(CustomTransformer):
             if isinstance(data, dict):
                 self.TextTransformer = data["txtTransformer"]
                 self.tf_idf = data["tf_idf"]
+                self.target = data["target"]
             else:
                 self.TextTransformer = data
                 self.tf_idf = {}
+                self.target = None
             self.loaded = True
             self.TextTransformer._can_use_gpu = self._can_use_gpu
             self.TextTransformer._can_use_multi_gpu = self._can_use_multi_gpu
@@ -192,7 +195,9 @@ class Updatable_TextTransformer(Cached_TextTransformer):
         tmp = np.round((N_+1) / tmp) - 1
         return tmp
     
-    def fit_transform(self, X: dt.Frame, y: np.array = None):
+    def fit_transform(self, X: dt.Frame, y: np.array = None, append = False):
+        y_ = y
+        new_data = []
         if self.loaded:
             X_ = X.to_pandas()
             N_ = len(X_)
@@ -301,6 +306,13 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                         
                         #replace old svd matrix with new one
                         svd_.components_ = new_svd.components_
+                        
+                        if append:
+                            data_ = svd_.transform(self.tf_idf[col])
+                            data_ = self.TextTransformer.pipes[col][2].transform(data_)
+                            data_ = pd.DataFrame(data_, columns=self.TextTransformer.get_names(col, data_.shape[1]))
+                            new_data.append(data_)
+                            
                     else:
                         self.tf_idf[col] = X_transformed
                         #train new SVD to get new transform matrix
@@ -316,7 +328,22 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                             svd_.components_, 
                             new_svd.components_[:, svd_.components_.shape[1]:]
                         ])
-                        
+            
+            if append:
+                new_data = pd.concat(new_data, axis=1)
+                if self.target is not None:
+                    y_ = np.hstack([self.target, y_])
+
+                if self.save_path:
+                    joblib.dump({
+                        "txtTransformer": self.TextTransformer,
+                        "tf_idf": self.tf_idf,
+                        "target": y_,
+                    },
+                        self.save_path
+                    )
+                return new_data, y_
+            
             result = self.TextTransformer.transform(X.to_pandas())
 
         else:
@@ -334,6 +361,7 @@ class Updatable_TextTransformer(Cached_TextTransformer):
             joblib.dump({
                 "txtTransformer": self.TextTransformer,
                 "tf_idf": self.tf_idf,
+                "target": y_,
             },
                 self.save_path
             )
