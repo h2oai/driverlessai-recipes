@@ -15,8 +15,16 @@ class FDRScorer(CustomScorer):
 
     @staticmethod
     def _metric(tp, fp, tn, fn):
-        return fp / (fp + tp)
+        if (fp + tp) != 0:
+            return fp / (fp + tp)
+        else:
+            return 1
 
+    def protected_metric(self, tp, fp, tn, fn):
+        try:
+            return self.__class__._metric(tp, fp, tn, fn)
+        except ZeroDivisionError:
+            return 0 if self.__class__._maximize else 1  # return worst score if ill-defined
 
     def score(self,
               actual: np.array,
@@ -26,8 +34,6 @@ class FDRScorer(CustomScorer):
 
         if sample_weight is not None:
             sample_weight = sample_weight.ravel()
-        if len(actual) == 1:
-            return 1.0
         enc_actual, enc_predicted, labels = prep_actual_predicted(actual, predicted, labels)
         cm_weights = sample_weight if sample_weight is not None else None
 
@@ -41,5 +47,5 @@ class FDRScorer(CustomScorer):
 
         cms = daicx.confusion_matrices(enc_actual.ravel(), enc_predicted.ravel(), sample_weight=cm_weights)
         cms = cms.loc[cms[[self.__class__._threshold_optimizer]].idxmax()]  # get row(s) for optimal metric defined above
-        cms['metric'] = cms[['tp', 'fp', 'tn', 'fn']].apply(lambda x: self.__class__._metric(*x), axis=1, raw=True)
+        cms['metric'] = cms[['tp', 'fp', 'tn', 'fn']].apply(lambda x: self.protected_metric(*x), axis=1, raw=True)
         return cms['metric'].mean()  # in case of ties
