@@ -12,6 +12,7 @@ class FDRScorer(CustomScorer):
     _multiclass = True
     _maximize = False
     _threshold_optimizer = "f1"
+    _is_for_user = False  # don't let the user pick since can be trivially optimized (even when using F1-optimal thresh)
 
     @staticmethod
     def _metric(tp, fp, tn, fn):
