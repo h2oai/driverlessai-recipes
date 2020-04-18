@@ -12,6 +12,7 @@ class PrecisionScorer(CustomScorer):
     _multiclass = True
     _maximize = True
     _threshold_optimizer = "f1"
+    _is_for_user = False  # don't allow selection as scorer to optimize, just show scores during reporting
 
     @staticmethod
     def _metric(tp, fp, tn, fn):

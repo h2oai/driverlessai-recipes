@@ -183,7 +183,7 @@ ll
                  unfitted_pipeline_path=None,
                  transformed_features=None,
                  original_user_cols=None,
-                 date_format_strings=None,
+                 date_format_strings={},
                  **kwargs):
         """
         :param context: Helper class to provide information about the experiment.
@@ -242,6 +242,7 @@ ll
                 :param iterations: number of iterations, used to predict on or re-use for fitting on full training data
 
         Recipe can raise h2oaicore.systemutils.IgnoreError to ignore error and avoid logging error for genetic algorithm.
+        Recipe can raise h2oaicore.systemutils.IgnoreEntirelyError to ignore error in all cases (including acceptance testing)
 
         """
         raise NotImplemented("No fit for %s" % self.__class__.__name__)
@@ -273,6 +274,7 @@ ll
             the call to `set_model_properties()` during `fit()`. See examples.
 
         Recipe can raise h2oaicore.systemutils.IgnoreError to ignore error and avoid logging error for genetic algorithm.
+        Recipe can raise h2oaicore.systemutils.IgnoreEntirelyError to ignore error in all cases (including acceptance testing)
 
         """
 
@@ -303,7 +305,7 @@ ll
         return False
 
 
-ts_raw_data_transformers = ['RawTransformer',
+ts_raw_data_transformers = ['RawTransformer', 'SkipTransformer',
                             'OriginalTransformer', 'CatOriginalTransformer',
                             'DateOriginalTransformer', 'DateTimeOriginalTransformer']
 """List of transformers that don't alter the original input relevant to custom time series models."""

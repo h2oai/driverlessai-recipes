@@ -213,6 +213,7 @@ class CustomTransformer(DataTableTransformer):
             Exception: If implementation has problems.
 
         Recipe can raise h2oaicore.systemutils.IgnoreError to ignore error and avoid logging error for genetic algorithm.
+        Recipe can raise h2oaicore.systemutils.IgnoreEntirelyError to ignore error in all cases (including acceptance testing)
         """
         raise NotImplementedError("Please implement the fit_transform method.")
 
@@ -244,6 +245,7 @@ class CustomTransformer(DataTableTransformer):
             Exception: If implementation has problems.
 
         Recipe can raise h2oaicore.systemutils.IgnoreError to ignore error and avoid logging error for genetic algorithm.
+        Recipe can raise h2oaicore.systemutils.IgnoreEntirelyError to ignore error in all cases (including acceptance testing)
         """
         raise NotImplementedError("Please implement the transform method.")
 
