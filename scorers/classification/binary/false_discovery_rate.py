@@ -15,6 +15,10 @@ class MyFDRScorer(CustomScorer):
     _is_for_user = False  # don't let the user pick since can be trivially optimized (even when using F1-optimal thresh)
 
     @staticmethod
+    def is_enabled():
+        return False  # Already part of Driverless AI 1.9.0+
+
+    @staticmethod
     def _metric(tp, fp, tn, fn):
         if (fp + tp) != 0:
             return fp / (fp + tp)
