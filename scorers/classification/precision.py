@@ -15,6 +15,10 @@ class MyPrecisionScorer(CustomScorer):
     _is_for_user = False  # don't allow selection as scorer to optimize, just show scores during reporting
 
     @staticmethod
+    def is_enabled():
+        return False  # Already part of Driverless AI 1.9.0+
+
+    @staticmethod
     def _metric(tp, fp, tn, fn):
         return tp / (tp + fp)
 
