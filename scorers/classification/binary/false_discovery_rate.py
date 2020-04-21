@@ -7,7 +7,7 @@ from sklearn.metrics import precision_score
 import h2o4gpu.util.metrics as daicx
 
 
-class FDRScorer(CustomScorer):
+class MyFDRScorer(CustomScorer):
     _binary = True
     _multiclass = True
     _maximize = False
