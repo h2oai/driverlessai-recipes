@@ -16,9 +16,6 @@ import ast
 import scipy as sc
 import pandas as pd
 
-from h2oaicore.lightgbm_dynamic import got_cpu_lgb, got_gpu_lgb
-import lightgbm as lgbm
-
 
 def get_value(config, key):
     if  key in config.recipe_dict:
@@ -223,7 +220,7 @@ class TextTFIDFModel(CustomModel):
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         y_ = y.copy()
         orig_cols = list(X.names)
-        
+
         if not self.loaded:
             if self.num_classes >= 2:
                 lb = LabelEncoder()
@@ -285,6 +282,8 @@ class TextTFIDFModel(CustomModel):
         
         models = [LogisticRegression(**self.return_lin_params())]
         if self.params["add_rf"]:
+            from h2oaicore.lightgbm_dynamic import got_cpu_lgb, got_gpu_lgb
+            import lightgbm as lgbm
             models.append(lgbm.LGBMClassifier(
                 boosting_type='rf',
                 colsample_bytree=.5,

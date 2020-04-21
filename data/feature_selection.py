@@ -8,9 +8,6 @@ import numpy as np
 import pandas as pd
 import os
 
-from h2oaicore.lightgbm_dynamic import got_cpu_lgb, got_gpu_lgb
-import lightgbm as lgbm
-
 from sklearn.preprocessing import OrdinalEncoder, LabelEncoder
 
 
@@ -42,6 +39,8 @@ def get_feature_importances(data, shuffle, cats = [], seed=None):
     y = data[target].copy()
     if shuffle:
         y = data[target].copy().sample(frac=1.0, random_state = seed + 4)
+    from h2oaicore.lightgbm_dynamic import got_cpu_lgb, got_gpu_lgb
+    import lightgbm as lgbm
     if is_regression:
         model = lgbm.LGBMRegressor(random_state = seed, importance_type=importance, **lgbm_params)
     else:
