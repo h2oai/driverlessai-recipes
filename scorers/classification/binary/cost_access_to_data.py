@@ -31,10 +31,10 @@ class CostBinaryWithData(CustomScorer):
               X: typing.Optional[dt.Frame] = None) -> float:
 
         # can compute arbitrary cost from all original features
-        assert X is not None
-        assert X.nrows == len(actual)
-        assert X.ncols >= 1
-        X_pd = X.to_pandas()
+        if X is not None:
+            assert X.nrows == len(actual)
+            assert X.ncols >= 1
+            X_pd = X.to_pandas()
 
         # label actuals as 1 or 0
         lb = LabelEncoder()
