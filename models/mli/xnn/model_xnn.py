@@ -5,7 +5,7 @@ import datatable as dt
 import numpy as np
 from h2oaicore.models import CustomTensorFlowModel
 from sklearn.preprocessing import LabelEncoder
-from h2oaicore.systemutils import physical_cores_count
+from h2oaicore.systemutils import physical_cores_count, loggerdata
 from h2oaicore.systemutils import temporary_files_path, remove, config
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdebug
 import functools
@@ -164,8 +164,8 @@ class CustomXNNModel(CustomTensorFlowModel):
                       
             # Record current column names
             loggerinfo(logger, "XNN LOG")
-            loggerinfo(logger, "Feature list:")
-            loggerinfo(logger, str(orig_cols))
+            loggerdata(logger, "Feature list:")
+            loggerdata(logger, str(orig_cols))
             
             # Input to ridge function number i is the dot product of our original input vector times coefficients
             ridge_input = keras.layers.Dense(ridge_functions, name="projection_layer",
