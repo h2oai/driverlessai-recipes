@@ -1,12 +1,5 @@
 """
     Custom Recipe to extract Readability features from the text data
-
-    ## About Readability Features 
-
-    ## References
-    - https://github.com/shivam5992/textstat
-    - http://www.readabilityformulas.com/free-readability-formula-tests.php
-
 """
 
 from h2oaicore.transformer_utils import CustomTransformer
@@ -16,7 +9,7 @@ import string
 
 
 class ReadabilityTransformer:
-    _modules_needed_by_name = ['textstat']
+    _modules_needed_by_name = ['textstat==0.6.0']
     _method = NotImplemented
     _parallel_task = False
 
