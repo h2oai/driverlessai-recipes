@@ -103,3 +103,4 @@ class LoglossWithCostsBinary(CustomScorer):
                                                            f.cost_tn * dt.log(f.predicted)))]
         lloss = lloss.sum()[0,0] * -1.0 / np.sum(sample_weight)
         return lloss
+
