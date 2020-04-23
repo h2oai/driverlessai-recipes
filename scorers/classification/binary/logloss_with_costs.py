@@ -106,3 +106,4 @@ class LoglossWithCostsBinary(CustomScorer):
 
         lloss = np.sum(np.multiply(sample_weight, lloss)) * -1.0 / np.sum(sample_weight)
         return lloss
+
