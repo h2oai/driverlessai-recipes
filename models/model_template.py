@@ -305,7 +305,7 @@ ll
         return False
 
 
-ts_raw_data_transformers = ['RawTransformer', 'SkipTransformer',
+ts_raw_data_transformers = ['RawTransformer',
                             'OriginalTransformer', 'CatOriginalTransformer',
                             'DateOriginalTransformer', 'DateTimeOriginalTransformer']
 """List of transformers that don't alter the original input relevant to custom time series models."""

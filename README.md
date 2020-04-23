@@ -54,7 +54,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.2)
  [1.8.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.3)
  [1.8.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.4)
-### Count: 152
+### Count: 153
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.]
@@ -129,6 +129,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
       * [cost.py](./scorers/classification/binary/cost.py) [Using hard-coded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `(x * FP + y * FN) / N`]
       * [cost_access_to_data.py](./scorers/classification/binary/cost_access_to_data.py) [Same as CostBinary, but provides access to full Data]
       * [false_discovery_rate.py](./scorers/classification/binary/false_discovery_rate.py) [Weighted False Discovery Rate: `FP / (FP + TP)` at threshold for optimal F1 Score.]
+      * [logloss_with_costs.py](./scorers/classification/binary/logloss_with_costs.py) [Logloss with costs associated with each type of 4 outcomes - typically applicable to fraud use case]
       * [marketing_campaign.py](./scorers/classification/binary/marketing_campaign.py) [Computes the mean profit per outbound marketing letter, given a fraction of the population addressed, and fixed cost and reward]
       * [profit.py](./scorers/classification/binary/profit.py) [Uses domain information about user behavior to calculate the profit or loss of a model.]
     * [MULTICLASS](./scorers/classification/multiclass)
@@ -195,7 +196,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [text_named_entities_transformer.py](./transformers/nlp/text_named_entities_transformer.py) [Extract the counts of different named entities in the text (e.g. Person, Organization, Location)]
     * [text_pos_tagging_transformer.py](./transformers/nlp/text_pos_tagging_transformer.py) [Extract the count of nouns, verbs, adjectives and adverbs in the text]
     * [text_preprocessing_transformer.py](./transformers/nlp/text_preprocessing_transformer.py) [Preprocess the text column by stemming, lemmatization and stop word removal]
-    * [text_readability_transformers.py](./transformers/nlp/text_readability_transformers.py) [    Custom Recipe to extract Readability features from the text data    ## About Readability Features     ## References    - https://github.com/shivam5992/textstat    - http://www.readabilityformulas.com/free-readability-formula-tests.php]
+    * [text_readability_transformers.py](./transformers/nlp/text_readability_transformers.py) [    Custom Recipe to extract Readability features from the text data]
     * [text_sentiment_transformer.py](./transformers/nlp/text_sentiment_transformer.py) [Extract sentiment from text using pretrained models from TextBlob]
     * [text_similarity_transformers.py](./transformers/nlp/text_similarity_transformers.py) [Row-by-row similarity between two text columns based on common N-grams, Jaccard similarity, Dice similarity and edit distance.]
     * [text_spelling_correction_transformers.py](./transformers/nlp/text_spelling_correction_transformers.py) [Correct the spelling of text column]
