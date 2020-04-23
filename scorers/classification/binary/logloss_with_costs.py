@@ -3,6 +3,7 @@
 import typing
 import numpy as np
 import datatable as dt
+from datatable import f
 from h2oaicore.metrics import CustomScorer
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdata
 from sklearn.preprocessing import LabelEncoder
@@ -87,22 +88,18 @@ class LoglossWithCostsBinary(CustomScorer):
         # label actual values as 1 or 0
         lb = LabelEncoder()
         labels = lb.fit_transform(labels)
-        actual = lb.transform(actual)
 
-        predicted = np.maximum(self.__class__._epsilon, predicted)
-        predicted = np.minimum(1 - self.__class__._epsilon, predicted)
-
-        cost_fn = self.make_cost_values(self.__class__._fn_cost, X, N, 1.)
-        cost_tp = self.make_cost_values(self.__class__._tp_cost, X, N, 0.)
-        cost_tn = self.make_cost_values(self.__class__._tn_cost, X, N, 0.)
-        cost_fp = self.make_cost_values(self.__class__._fp_cost, X, N, 1.)
-
-        lloss = np.add(np.multiply(actual,
-                                   np.add(np.multiply(cost_fn, np.log(predicted)),
-                                          np.multiply(cost_tp, np.log(np.subtract(1, predicted))))),
-                       np.multiply(np.subtract(1, actual),
-                                   np.add(np.multiply(cost_fp, np.log(np.subtract(1, predicted))),
-                                          np.multiply(cost_tn, np.log(predicted)))))
-
-        lloss = np.sum(np.multiply(sample_weight, lloss)) * -1.0 / np.sum(sample_weight)
+        # create datatable with all data
+        DT = dt.Frame(actual = lb.transform(actual),
+                      predicted = np.minimum(1 - self.__class__._epsilon, np.maximum(self.__class__._epsilon, predicted)),
+                      cost_fn = self.make_cost_values(self.__class__._fn_cost, X, N, 1.),
+                      cost_tp = self.make_cost_values(self.__class__._tp_cost, X, N, 0.),
+                      cost_tn = self.make_cost_values(self.__class__._tn_cost, X, N, 0.),
+                      cost_fp = self.make_cost_values(self.__class__._fp_cost, X, N, 1.),
+                      sample_weight = sample_weight)
+        lloss = DT[:, f.sample_weight * (f.actual * (f.cost_fn * dt.log(f.predicted) +
+                                                     f.cost_tp * dt.log(1 - f.predicted)) +
+                                         (1 - f.actual) * (f.cost_fp * dt.log(1 - f.predicted) +
+                                                           f.cost_tn * dt.log(f.predicted)))]
+        lloss = lloss.sum()[0,0] * -1.0 / np.sum(sample_weight)
         return lloss
