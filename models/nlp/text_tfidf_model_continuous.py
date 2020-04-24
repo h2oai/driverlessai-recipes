@@ -318,6 +318,9 @@ class TextTFIDFModel(CustomModel):
                 },
                 self.save_path
             )
+        # clear large objects to avoid large data in subprocess pipe
+        self.tfidf_objs = None
+        self.tf_idf_data = None
 
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
