@@ -56,7 +56,7 @@ class CustomXNNModel(CustomTensorFlowModel):
 
     @staticmethod
     def acceptance_test_timeout():
-        return 20.0
+        return 45.0
 
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
