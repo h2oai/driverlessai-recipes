@@ -67,19 +67,6 @@ class TextTFIDFModel(CustomModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
-        self.loaded = False
-
-        self.load_path = get_value(config, self.load_key)
-        self.save_path = get_value(config, self.save_key)
-        
-        if self.load_path:
-            data = joblib.load(self.load_path) 
-            self.tfidf_objs = data["tf_idf_obj"]
-            self.tf_idf_data = data["tf_idf_data"]
-            self.prev_params = data["params"]
-            self.target = data["target"]
-            self.loaded = True
-    
     @staticmethod
     def reverse_sigmoid(x):
         return np.log(x/(1-x))
@@ -220,6 +207,19 @@ class TextTFIDFModel(CustomModel):
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         y_ = y.copy()
         orig_cols = list(X.names)
+
+        self.loaded = False
+
+        self.load_path = get_value(config, self.load_key)
+        self.save_path = get_value(config, self.save_key)
+
+        if self.load_path:
+            data = joblib.load(self.load_path)
+            self.tfidf_objs = data["tf_idf_obj"]
+            self.tf_idf_data = data["tf_idf_data"]
+            self.prev_params = data["params"]
+            self.target = data["target"]
+            self.loaded = True
 
         if not self.loaded:
             if self.num_classes >= 2:
