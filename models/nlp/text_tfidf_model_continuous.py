@@ -325,6 +325,8 @@ class TextTFIDFModel(CustomModel):
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
         new_X = None
+        from h2oaicore.lightgbm_dynamic import got_cpu_lgb, got_gpu_lgb
+        import lightgbm as lgbm
         data, _, _, _ = self.get_model_properties()
         models = data["model"]
         self.tfidf_objs = data["tf-idfs"]
