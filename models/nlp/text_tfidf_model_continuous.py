@@ -66,6 +66,8 @@ class TextTFIDFModel(CustomModel):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.load_path = None
+        self.prev_params = None
         
     @staticmethod
     def reverse_sigmoid(x):
@@ -142,7 +144,7 @@ class TextTFIDFModel(CustomModel):
     
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
-        if self.load_path:
+        if self.load_path and self.prev_params:
             self.params = self.prev_params
         else:
             self.params = dict(
