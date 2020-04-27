@@ -66,20 +66,9 @@ class TextTFIDFModel(CustomModel):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.load_path = None
+        self.prev_params = None
         
-        self.loaded = False
-
-        self.load_path = get_value(config, self.load_key)
-        self.save_path = get_value(config, self.save_key)
-        
-        if self.load_path:
-            data = joblib.load(self.load_path) 
-            self.tfidf_objs = data["tf_idf_obj"]
-            self.tf_idf_data = data["tf_idf_data"]
-            self.prev_params = data["params"]
-            self.target = data["target"]
-            self.loaded = True
-    
     @staticmethod
     def reverse_sigmoid(x):
         return np.log(x/(1-x))
@@ -155,7 +144,7 @@ class TextTFIDFModel(CustomModel):
     
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
-        if self.load_path:
+        if self.load_path and self.prev_params:
             self.params = self.prev_params
         else:
             self.params = dict(
@@ -220,6 +209,19 @@ class TextTFIDFModel(CustomModel):
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         y_ = y.copy()
         orig_cols = list(X.names)
+
+        self.loaded = False
+
+        self.load_path = get_value(config, self.load_key)
+        self.save_path = get_value(config, self.save_key)
+
+        if self.load_path:
+            data = joblib.load(self.load_path)
+            self.tfidf_objs = data["tf_idf_obj"]
+            self.tf_idf_data = data["tf_idf_data"]
+            self.prev_params = data["params"]
+            self.target = data["target"]
+            self.loaded = True
 
         if not self.loaded:
             if self.num_classes >= 2:
@@ -318,10 +320,15 @@ class TextTFIDFModel(CustomModel):
                 },
                 self.save_path
             )
+        # clear large objects to avoid large data in subprocess pipe
+        self.tfidf_objs = None
+        self.tf_idf_data = None
 
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
         new_X = None
+        from h2oaicore.lightgbm_dynamic import got_cpu_lgb, got_gpu_lgb
+        import lightgbm as lgbm
         data, _, _, _ = self.get_model_properties()
         models = data["model"]
         self.tfidf_objs = data["tf-idfs"]

@@ -62,6 +62,9 @@ class FeatureSelection(CustomData):
     
     @staticmethod
     def create_data(X: dt.Frame = None):
+        if X is None:
+            return []
+
         data = X.to_pandas().copy()
         
         #identify categorical colmns and trasform them
