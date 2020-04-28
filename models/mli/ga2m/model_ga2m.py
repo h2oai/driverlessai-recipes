@@ -1,3 +1,4 @@
+"""Explainable Boosting Machines (EBM), implementation of GA2M"""
 import datatable as dt
 import numpy as np
 import logging
