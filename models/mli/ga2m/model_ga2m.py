@@ -16,7 +16,7 @@ class GA2MModel(CustomModel):
         "Intelligible models for healthcare: Predicting pneumonia risk and hospital 30-day readmission."
         "In Proceedings of the 21th ACM SIGKDD international conference on knowledge discovery and data mining (pp. 1721-1730)."
     )
-    _modules_needed_by_name = ["interpret==0.1.20"]
+    _modules_needed_by_name = ['Pillow==5.0.0', "interpret==0.1.20"]
 
     @staticmethod
     def do_acceptance_test():
