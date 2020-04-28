@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.ensemble import ExtraTreesClassifier
 from h2oaicore.models import CustomModel
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.systemutils import config, remove, temporary_files_path
+from h2oaicore.systemutils import config, remove, temporary_files_path, arch_type, get_num_gpus_for_prediction
 from sklearn.externals import joblib
 import copy
 import ast
@@ -327,8 +327,6 @@ class TextTFIDFModel(CustomModel):
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
         new_X = None
-        from h2oaicore.lightgbm_dynamic import got_cpu_lgb, got_gpu_lgb
-        import lightgbm as lgbm
         data, _, _, _ = self.get_model_properties()
         models = data["model"]
         self.tfidf_objs = data["tf-idfs"]
@@ -353,3 +351,36 @@ class TextTFIDFModel(CustomModel):
         else:
             preds = preds[0]
         return preds
+
+    def pre_get_model(self):  # copy-paste from LightGBM model class
+        from h2oaicore.lightgbm_dynamic import got_cpu_lgb, got_gpu_lgb
+
+        if arch_type == 'ppc64le':
+            # ppc has issues with this, so force ppc to only keep same architecture
+            return
+        if self.self_model_was_not_set_for_predict:
+            # if no self.model, then should also not have imported lgbm/xgb yet
+            # well, for rulefit not true
+            #check_no_xgboost_or_lightgbm()
+            pass
+        # Force the C++ session to have good "defaults" by making an exemplary dummy model to set the state from which
+        # our model will later inherit default settings from.
+        try:
+            import lightgbm as lgb
+            params = dict(n_jobs=self.params_base['n_jobs'])
+            if get_num_gpus_for_prediction() == 0 or arch_type == 'ppc64le':  # power has no GPU for lgbm yet
+                params['device_type'] = 'cpu'
+            else:
+                params['device_type'] = 'gpu'
+                params['gpu_device_id'] = self.params_base.get('gpu_id', 0)
+                params['gpu_platform_id'] = 0
+                params['gpu_use_dp'] = config.reproducible
+
+            model = lgb.LGBMClassifier(**params)
+            X = np.array([[1, 2, 3, 4], [1, 3, 4, 2]])
+            y = np.array([1, 0])
+            model.fit(X=X, y=y)
+        except:
+            if config.hard_asserts:
+                raise
+
