@@ -38,7 +38,7 @@ class CalibratedClassifierModel:
         self.le.fit(self.labels)
         y_ = self.le.transform(y)
         
-        sss = StratifiedShuffleSplit(n_splits = 1, test_size = .1, random_state=4235)
+        sss = StratifiedShuffleSplit(n_splits = 1, test_size = self.params["calib_perc"], random_state=4235)
         tr_indx, te_indx = next(iter(sss.split(y_.reshape(-1,1), y_)))
         
         whoami = [x for x in self.__class__.__bases__ if (x != CustomModel and x != CalibratedClassifierModel)][0]
