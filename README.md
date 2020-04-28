@@ -103,9 +103,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [xgboost_with_custom_loss.py](./models/custom_loss/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).]
   * [MLI](./models/mli)
     * [GA2M](./models/mli/ga2m)
-      * [model_ga2m.py](./models/mli/ga2m/model_ga2m.py) ["GA2M Model. see: Caruana, R., Lou, Y., Gehrke, J., Koch, P., Sturm, M. and Elhadad, N., 2015, August."
-        "Intelligible models for healthcare: Predicting pneumonia risk and hospital 30-day readmission."
-        "In Proceedings of the 21th ACM SIGKDD international conference on knowledge discovery and data mining (pp. 1721-1730)."]
+      * [model_ga2m.py](./models/mli/ga2m/model_ga2m.py) [Explainable Boosting Machines (EBM), implementation of GA2M]
     * [XNN](./models/mli/xnn)
       * [model_xnn.py](./models/mli/xnn/model_xnn.py) [ Explainable neural net ]
   * [NLP](./models/nlp)
