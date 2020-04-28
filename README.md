@@ -54,7 +54,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.2)
  [1.8.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.3)
  [1.8.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.4)
-### Count: 153
+### Count: 154
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.]
@@ -102,6 +102,10 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [lightgbm_with_custom_loss.py](./models/custom_loss/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).]
     * [xgboost_with_custom_loss.py](./models/custom_loss/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).]
   * [MLI](./models/mli)
+    * [GA2M](./models/mli/ga2m)
+      * [model_ga2m.py](./models/mli/ga2m/model_ga2m.py) ["GA2M Model. see: Caruana, R., Lou, Y., Gehrke, J., Koch, P., Sturm, M. and Elhadad, N., 2015, August."
+        "Intelligible models for healthcare: Predicting pneumonia risk and hospital 30-day readmission."
+        "In Proceedings of the 21th ACM SIGKDD international conference on knowledge discovery and data mining (pp. 1721-1730)."]
     * [XNN](./models/mli/xnn)
       * [model_xnn.py](./models/mli/xnn/model_xnn.py) [ Explainable neural net ]
   * [NLP](./models/nlp)
