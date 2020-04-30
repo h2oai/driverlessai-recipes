@@ -38,5 +38,7 @@ class MNISTData(CustomData):
         train_data["number"] = train_labels
         test_data["number"] = test_labels
 
-        return train_data
-        #return {"mnist_train": train_data, "mnist_test": test_data}
+        train_data = train_data.apply(np.int8)
+        test_data = test_data.apply(np.int8)
+
+        return {"mnist_train": train_data, "mnist_test": test_data}
