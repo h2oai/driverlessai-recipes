@@ -33,7 +33,9 @@ from sas7bdat import SAS7BDAT
 # 2. wget http://www.principlesofeconometrics.com/zip_files/sas.zip
 # 3. unzip sas.zip
 
-dai_file_path = "/data/SAS/"
+# uncomment below and set correct path to enable this data recipe
+#dai_file_path = "/data/SAS/"
+dai_file_path = None
 file_names = ["cloth.sas7bdat", "clothes.sas7bdat"]
 
 
@@ -44,7 +46,8 @@ class KMeansClustering(CustomData):
                                                  dt.Frame, List[dt.Frame],
                                                  np.ndarray, List[np.ndarray],
                                                  pd.DataFrame, List[pd.DataFrame]]:
-
+        if dai_file_path is None:
+            return []
         # check the datatype of user-defined columns
         if not isinstance(dai_file_path, str):
             raise ValueError("Variable: 'dai_file_path' should be <str>")
