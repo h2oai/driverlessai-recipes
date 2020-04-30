@@ -16,10 +16,7 @@ import mnist
 
 class MNISTData(CustomData):
     @staticmethod
-    def create_data(X: dt.Frame = None) -> Union[str, List[str],
-                                                 dt.Frame, List[dt.Frame],
-                                                 np.ndarray, List[np.ndarray],
-                                                 pd.DataFrame, List[pd.DataFrame]]:
+    def create_data(X: dt.Frame = None):
 
         train_images = mnist.train_images()
         train_labels = mnist.train_labels()
