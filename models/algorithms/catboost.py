@@ -7,7 +7,7 @@ import _pickle as pickle
 from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel, MainModel
-from h2oaicore.systemutils import config, arch_type, physical_cores_count, ngpus_vis, save_obj, remove
+from h2oaicore.systemutils import config, arch_type, physical_cores_count, ngpus_vis, save_obj, remove, user_dir
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdata
 from h2oaicore.models import LightGBMModel
 import inspect
@@ -489,7 +489,7 @@ class CatBoostModel(CustomModel):
         if 'num_leaves' in params and 'max_leaves' in params:
             params.pop('num_leaves', None)
 
-        params.update({'train_dir': config.data_directory,
+        params.update({'train_dir': user_dir(),
                        'allow_writing_files': False,
                        'thread_count': self.params_base.get('n_jobs', 4)})
 

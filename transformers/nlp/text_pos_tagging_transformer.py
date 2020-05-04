@@ -5,7 +5,7 @@ import shutil
 import os
 from zipfile import ZipFile
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.systemutils import config, remove, temporary_files_path
+from h2oaicore.systemutils import config, remove, temporary_files_path, user_dir
 from h2oaicore.systemutils_more import download
 
 
@@ -18,8 +18,8 @@ class POSTagTransformer:
         super().__init__(**kwargs)
 
         import nltk
-        nltk_data_path = os.path.join(config.data_directory, config.contrib_env_relative_directory, "nltk_data")
-        nltk_temp_path = os.path.join(temporary_files_path, "nltk_data")
+        nltk_data_path = os.path.join(user_dir(), config.contrib_env_relative_directory, "nltk_data")
+        nltk_temp_path = os.path.join(user_dir(), "nltk_data")
         nltk.data.path.append(nltk_data_path)
         try:
             self.pos_tagger = nltk.pos_tag

@@ -5,6 +5,7 @@ from h2oaicore.data import CustomData
 import datatable as dt
 import numpy as np
 import pandas as pd
+from h2oaicore.systemutils import user_dir
 
 
 class AirlinesData(CustomData):
@@ -26,7 +27,7 @@ class AirlinesData(CustomData):
             data = zipfile.read()
             open(output_file, 'wb').write(data)
 
-        temp_path = os.path.join(config.data_directory, config.contrib_relative_directory, "airlines")
+        temp_path = os.path.join(user_dir(), config.contrib_relative_directory, "airlines")
         os.makedirs(temp_path, exist_ok=True)
 
         link = AirlinesData.base_url + "1990.csv.bz2"
