@@ -135,6 +135,7 @@ def _setup_recipe():
     import os
     from h2oaicore.systemutils_more import extract, download
     from h2oaicore.systemutils import config, remove
+    from h2oaicore.systemutils import user_dir
     import shutil
 
     from h2oaicore.systemutils import arch_type
