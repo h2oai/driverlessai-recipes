@@ -5,7 +5,7 @@ import numpy as np
 from h2oaicore.models import CustomTimeSeriesModel
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdebug
 from h2oaicore.systemutils import (
-    arch_type, small_job_pool, save_obj, load_obj, temporary_files_path, remove, max_threads, config
+    arch_type, small_job_pool, save_obj, load_obj, user_dir, remove, max_threads, config
 )
 import os
 import pandas as pd
@@ -182,7 +182,7 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         # Create a temp folder to store files used during multi processing experiment
         # This temp folder will be removed at the end of the process
         # Set the default value without context available (required to pass acceptance test
-        tmp_folder = os.path.join(temporary_files_path, "%s_prophet_model_folder" % uuid.uuid4())
+        tmp_folder = os.path.join(user_dir(), "%s_prophet_model_folder" % uuid.uuid4())
         # Make a real tmp folder when experiment is available
         if self.context and self.context.experiment_id:
             tmp_folder = os.path.join(self.context.experiment_tmp_dir, "%s_prophet_model_folder" % uuid.uuid4())
@@ -193,7 +193,7 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         except PermissionError:
             # This not occur so log a warning
             loggerwarning(logger, "Prophet was denied temp folder creation rights")
-            tmp_folder = os.path.join(temporary_files_path, "%s_prophet_model_folder" % uuid.uuid4())
+            tmp_folder = os.path.join(user_dir(), "%s_prophet_model_folder" % uuid.uuid4())
             os.mkdir(tmp_folder)
         except FileExistsError:
             # We should never be here since temp dir name is expected to be unique
@@ -202,7 +202,7 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
             os.mkdir(tmp_folder)
         except:
             # Revert to temporary file path
-            tmp_folder = os.path.join(temporary_files_path, "%s_prophet_model_folder" % uuid.uuid4())
+            tmp_folder = os.path.join(user_dir(), "%s_prophet_model_folder" % uuid.uuid4())
             os.mkdir(tmp_folder)
 
         loggerinfo(logger, "Prophet temp folder {}".format(tmp_folder))

@@ -5,7 +5,7 @@ import numpy as np
 import os
 import h2o
 import uuid
-from h2oaicore.systemutils import temporary_files_path, config, remove
+from h2oaicore.systemutils import user_dir, config, remove
 from h2o.estimators.deeplearning import H2OAutoEncoderEstimator
 
 
@@ -27,7 +27,7 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
         try:
             model.train(x=list(range(X.ncols)), training_frame=frame)
             self.id = model.model_id
-            model_path = os.path.join(temporary_files_path, "h2o_model." + str(uuid.uuid4()))
+            model_path = os.path.join(user_dir(), "h2o_model." + str(uuid.uuid4()))
             model_path = h2o.save_model(model=model, path=model_path)
             with open(model_path, "rb") as f:
                 self.raw_model_bytes = f.read()
@@ -39,7 +39,7 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         h2o.init(port=config.h2o_recipes_port)
-        model_path = os.path.join(temporary_files_path, self.id)
+        model_path = os.path.join(user_dir(), self.id)
         with open(model_path, "wb") as f:
             f.write(self.raw_model_bytes)
         model = h2o.load_model(os.path.abspath(model_path))

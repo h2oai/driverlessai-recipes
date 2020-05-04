@@ -4,7 +4,7 @@ from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.models import TensorFlowModel
 import datatable as dt
 import numpy as np
-from h2oaicore.systemutils import small_job_pool, temporary_files_path, dummypool, print_debug, remove
+from h2oaicore.systemutils import small_job_pool, user_dir, dummypool, print_debug, remove
 import requests
 import shutil
 import uuid
@@ -39,7 +39,7 @@ class MyImgTransformer(CustomTransformer, TensorFlowModel):
         self.uuid = "%s-img-data-" % self.__class__.__name__ + self.model_name  # + str(uuid.uuid4())[:6] # no, keeps changing and re-loadeing every init
         self.uuid_tmp = str(uuid.uuid4())[:6]
         self.col_name = self.input_feature_names[0]
-        self.model_path = os.path.join(temporary_files_path, self.uuid + ".model")
+        self.model_path = os.path.join(user_dir(), self.uuid + ".model")
         self.model_tmp_path = self.model_path + "_" + self.uuid_tmp + ".tmp"
         if not os.path.exists(self.model_path):
             self.download(
@@ -89,7 +89,7 @@ class MyImgTransformer(CustomTransformer, TensorFlowModel):
 
     def preprocess_image(self, source_img_path, check_only=False):
         try:
-            final_img_path = os.path.join(temporary_files_path, self.uuid, os.path.basename(source_img_path))
+            final_img_path = os.path.join(user_dir(), self.uuid, os.path.basename(source_img_path))
         except:  # we are sometimes getting np.float32, why?
             return None
         delete = False

@@ -5,7 +5,7 @@ import copy
 from h2oaicore.models import CustomModel
 import datatable as dt
 import uuid
-from h2oaicore.systemutils import config, temporary_files_path, remove, user_dir
+from h2oaicore.systemutils import config, user_dir, remove
 import numpy as np
 
 _global_modules_needed_by_name = ['h2o==3.26.0.1']
@@ -128,7 +128,7 @@ class H2OBaseModel:
             if isinstance(model, H2OAutoML):
                 model = model.leader
             self.id = model.model_id
-            model_path = os.path.join(temporary_files_path, "h2o_model." + str(uuid.uuid4()))
+            model_path = os.path.join(user_dir(), "h2o_model." + str(uuid.uuid4()))
             model_path = h2o.save_model(model=model, path=model_path)
             with open(model_path, "rb") as f:
                 raw_model_bytes = f.read()
@@ -161,7 +161,7 @@ class H2OBaseModel:
         model, _, _, _ = self.get_model_properties()
         X = dt.Frame(X)
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
-        model_path = os.path.join(temporary_files_path, self.id)
+        model_path = os.path.join(user_dir(), self.id)
         with open(model_path, "wb") as f:
             f.write(model)
         model = h2o.load_model(os.path.abspath(model_path))
