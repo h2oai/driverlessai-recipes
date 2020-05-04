@@ -16,7 +16,8 @@ class MatchWordsTransformer(CustomData):
                                                  dt.Frame, List[dt.Frame],
                                                  np.ndarray, List[np.ndarray],
                                                  pd.DataFrame, List[pd.DataFrame]]:
-        
+        if X is None:
+            return []
         #Define here manually the list of the word to be matched
         _words_list=['manager','Mamet','references','LOGO','Cynthia','Monstervision']
 
