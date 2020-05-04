@@ -5,6 +5,7 @@ from h2oaicore.data import CustomData
 import datatable as dt
 import numpy as np
 import pandas as pd
+from h2oaicore.systemutils import user_dir
 
 
 class AirlinesData(CustomData):
@@ -26,7 +27,7 @@ class AirlinesData(CustomData):
             data = zipfile.read()
             open(output_file, 'wb').write(data)
 
-        temp_path = os.path.join(config.data_directory, "recipe_tmp", "airlines")
+        temp_path = os.path.join(user_dir(), "recipe_tmp", "airlines")
         os.makedirs(temp_path, exist_ok=True)
 
         # specify which years are used for training and testing

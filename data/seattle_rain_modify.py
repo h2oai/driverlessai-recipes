@@ -13,6 +13,9 @@ import pandas as pd
 
 # This should be called from the Data Details page of the Seattle Monthly Rain data set within DAI
 # This code could be included in the SeattleRainDataRaw method, but is shown as Modify code as an example
+from virtualenv import user_dir
+
+
 class SeattleRainDataClean(CustomData):
     @staticmethod
     def create_data(X: dt.Frame = None) -> Union[str, List[str],
@@ -44,7 +47,7 @@ class SeattleRainDataClean(CustomData):
         test_py = rain_pivot[rain_pivot['end_of_month'].dt.year == 2016]
 
         # Set up to save to disk
-        temp_path = os.path.join(config.data_directory, config.contrib_relative_directory)
+        temp_path = os.path.join(user_dir(), config.contrib_relative_directory)
         os.makedirs(temp_path, exist_ok=True)
 
         # Save files to disk

@@ -5,7 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel, BaseCustomModel, LightGBMModel
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.systemutils import config, physical_cores_count
+from h2oaicore.systemutils import config, physical_cores_count, user_dir
 
 
 # https://www.kaggle.com/c/amazon-employee-access-challenge
@@ -54,7 +54,7 @@ class CatBoostModel(CustomModel):
         orig_cols = list(X.names)
         XX = X.to_pandas()
         params = {
-            'train_dir': config.data_directory,
+            'train_dir': user_dir(),
             'allow_writing_files': False,
             'thread_count': 10,
             # 'loss_function': 'Logloss'

@@ -3,6 +3,7 @@
 import datatable as dt
 from h2oaicore.models import CustomModel
 import numpy as np
+from h2oaicore.systemutils import user_dir
 from sklearn.preprocessing import LabelEncoder
 import daal4py as d4p
 
@@ -140,10 +141,10 @@ def _setup_recipe():
     if arch_type == "ppc64le":
         raise RuntimeError("Cannot use daal on PPC")
 
-    daal_is_installed_path = os.path.join(config.data_directory, config.contrib_env_relative_directory, "daal")
+    daal_is_installed_path = os.path.join(user_dir(), config.contrib_env_relative_directory, "daal")
     daal_is_installed_file = os.path.join(daal_is_installed_path, "daal_is_installed")
     if not os.path.isfile(daal_is_installed_file):
-        daal_temp_path = os.path.join(config.data_directory, config.contrib_relative_directory, "daal")
+        daal_temp_path = os.path.join(user_dir(), config.contrib_relative_directory, "daal")
         os.makedirs(daal_temp_path, exist_ok=True)
         prefix = "https://anaconda.org/intel"
         try:
@@ -160,11 +161,11 @@ def _setup_recipe():
             file2 = download("https://0xdata-public.s3.amazonaws.com/impi_rt-2019.4-intel_243.tar.bz2", dest_path=daal_temp_path)
             file3 = download("https://0xdata-public.s3.amazonaws.com/daal-2019.4-intel_243.tar.bz2", dest_path=daal_temp_path)
             file4 = download("https://0xdata-public.s3.amazonaws.com/l_daal_oss_p_2019.4.007.tgz", dest_path=daal_temp_path)
-        temp_path = os.path.join(config.data_directory, config.contrib_env_relative_directory, "info")
+        temp_path = os.path.join(user_dir(), config.contrib_env_relative_directory, "info")
         os.makedirs(temp_path, exist_ok=True)
-        python_site_packages_path = os.path.join(config.data_directory, config.contrib_env_relative_directory)
+        python_site_packages_path = os.path.join(user_dir(), config.contrib_env_relative_directory)
         extract(file1, python_site_packages_path)
-        python_site_packages_path2 = os.path.join(config.data_directory, config.contrib_env_relative_directory)
+        python_site_packages_path2 = os.path.join(user_dir(), config.contrib_env_relative_directory)
         extract(file2, python_site_packages_path2)
         extract(file3, python_site_packages_path2)
         extract(file4, python_site_packages_path2, "gz")

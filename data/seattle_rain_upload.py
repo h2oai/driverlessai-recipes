@@ -10,6 +10,7 @@ from h2oaicore.data import CustomData
 import datatable as dt
 import numpy as np
 import pandas as pd
+from h2oaicore.systemutils import user_dir
 
 
 class SeattleRainDataRaw(CustomData):
@@ -23,7 +24,7 @@ class SeattleRainDataRaw(CustomData):
         from h2oaicore.systemutils import config
 
         # Location in DAI file system where we will save the data set
-        temp_path = os.path.join(config.data_directory, config.contrib_relative_directory)
+        temp_path = os.path.join(user_dir(), config.contrib_relative_directory)
         os.makedirs(temp_path, exist_ok=True)
 
         # URL of desired data, this comes from the City of Seattle

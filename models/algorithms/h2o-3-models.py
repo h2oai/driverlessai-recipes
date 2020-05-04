@@ -5,7 +5,7 @@ import copy
 from h2oaicore.models import CustomModel
 import datatable as dt
 import uuid
-from h2oaicore.systemutils import config, temporary_files_path, remove
+from h2oaicore.systemutils import config, temporary_files_path, remove, user_dir
 import numpy as np
 
 _global_modules_needed_by_name = ['h2o==3.26.0.1']
@@ -33,7 +33,7 @@ class H2OBaseModel:
         self.target = "__target__"
         self.weight = "__weight__"
         self.col_types = None
-        self.my_log_dir = os.path.abspath(os.path.join(config.data_directory,
+        self.my_log_dir = os.path.abspath(os.path.join(user_dir(),
                                                        config.contrib_relative_directory, "h2o_log"))
         if not os.path.isdir(self.my_log_dir):
             os.makedirs(self.my_log_dir, exist_ok=True)

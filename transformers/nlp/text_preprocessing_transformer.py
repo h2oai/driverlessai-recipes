@@ -7,7 +7,7 @@ from zipfile import ZipFile
 
 import filelock
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.systemutils import config, remove, temporary_files_path
+from h2oaicore.systemutils import config, remove, temporary_files_path, user_dir
 from h2oaicore.systemutils_more import download
 
 
@@ -24,8 +24,8 @@ class TextPreprocessingTransformer(CustomTransformer):
         self.remove_stopwords = True  # turn off as needed
 
         import nltk
-        nltk_data_path = os.path.join(config.data_directory, config.contrib_env_relative_directory, "nltk_data")
-        nltk_temp_path = os.path.join(temporary_files_path, "nltk_data")
+        nltk_data_path = os.path.join(user_dir(), config.contrib_env_relative_directory, "nltk_data")
+        nltk_temp_path = os.path.join(user_dir(), "nltk_data")
         nltk.data.path.append(nltk_data_path)
         os.makedirs(nltk_data_path, exist_ok=True)
         nltk_download_lock_file = os.path.join(nltk_data_path, "nltk.lock")
