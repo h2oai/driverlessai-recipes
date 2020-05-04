@@ -5,7 +5,7 @@ import shutil
 import os
 from zipfile import ZipFile
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.systemutils import config, remove, temporary_files_path, user_dir
+from h2oaicore.systemutils import config, remove, user_dir
 from h2oaicore.systemutils_more import download
 
 

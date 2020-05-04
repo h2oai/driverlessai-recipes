@@ -21,8 +21,8 @@ You may also want to modify the parameters explored line 99 to 103 to fit your n
 import importlib
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 from h2oaicore.systemutils import (
-    small_job_pool, save_obj, load_obj, temporary_files_path, remove, max_threads, config
-)
+    small_job_pool, save_obj, load_obj, remove, max_threads, config,
+    user_dir)
 import datatable as dt
 import numpy as np
 import os
@@ -172,7 +172,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         # Create a temp folder to store files used during multi processing experiment
         # This temp folder will be removed at the end of the process
         # Set the default value without context available (required to pass acceptance test
-        tmp_folder = os.path.join(temporary_files_path, "%s_prophet_folder" % uuid.uuid4())
+        tmp_folder = os.path.join(user_dir(), "%s_prophet_folder" % uuid.uuid4())
         # Make a real tmp folder when experiment is available
         if self.context and self.context.experiment_id:
             tmp_folder = os.path.join(self.context.experiment_tmp_dir, "%s_prophet_folder" % uuid.uuid4())
@@ -183,7 +183,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         except PermissionError:
             # This not occur so log a warning
             loggerwarning(logger, "Prophet was denied temp folder creation rights")
-            tmp_folder = os.path.join(temporary_files_path, "%s_prophet_folder" % uuid.uuid4())
+            tmp_folder = os.path.join(user_dir(), "%s_prophet_folder" % uuid.uuid4())
             os.mkdir(tmp_folder)
         except FileExistsError:
             # We should never be here since temp dir name is expected to be unique
@@ -192,7 +192,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             os.mkdir(tmp_folder)
         except:
             # Revert to temporary file path
-            tmp_folder = os.path.join(temporary_files_path, "%s_prophet_folder" % uuid.uuid4())
+            tmp_folder = os.path.join(user_dir(), "%s_prophet_folder" % uuid.uuid4())
             os.mkdir(tmp_folder)
 
         loggerinfo(logger, "Prophet temp folder {}".format(tmp_folder))
@@ -213,7 +213,8 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
             logger = make_experiment_logger(
                 experiment_id=self.context.experiment_id,
                 tmp_dir=self.context.tmp_dir,
-                experiment_tmp_dir=self.context.experiment_tmp_dir
+                experiment_tmp_dir=self.context.experiment_tmp_dir,
+                username=self.context.username,
             )
 
         try:

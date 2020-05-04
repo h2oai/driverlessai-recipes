@@ -3,7 +3,6 @@
 import datatable as dt
 from h2oaicore.models import CustomModel
 import numpy as np
-from h2oaicore.systemutils import user_dir
 from sklearn.preprocessing import LabelEncoder
 import daal4py as d4p
 

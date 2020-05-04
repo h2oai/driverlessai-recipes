@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.ensemble import ExtraTreesClassifier
 from h2oaicore.models import CustomModel
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.systemutils import config, remove, temporary_files_path, arch_type, get_num_gpus_for_prediction
+from h2oaicore.systemutils import config, remove, user_dir, arch_type, get_num_gpus_for_prediction
 from sklearn.externals import joblib
 import copy
 import ast

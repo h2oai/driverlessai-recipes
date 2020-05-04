@@ -9,7 +9,7 @@ In this implementation, Time Group Models are fitted in parallel"""
 import importlib
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 from h2oaicore.systemutils import (
-    small_job_pool, save_obj, load_obj, temporary_files_path, remove, config, max_threads
+    small_job_pool, save_obj, load_obj, user_dir, remove, config, max_threads
 )
 import datatable as dt
 import numpy as np
@@ -113,7 +113,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         # Create a temp folder to store files used during multi processing experiment
         # This temp folder will be removed at the end of the process
         # Set the default value without context available (required to pass acceptance test
-        tmp_folder = os.path.join(temporary_files_path, "%s_arima_folder" % uuid.uuid4())
+        tmp_folder = os.path.join(user_dir(), "%s_arima_folder" % uuid.uuid4())
         # Make a real tmp folder when experiment is available
         if self.context and self.context.experiment_id:
             tmp_folder = os.path.join(self.context.experiment_tmp_dir, "%s_arima_folder" % uuid.uuid4())
@@ -124,7 +124,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
         except PermissionError:
             # This not occur so log a warning
             loggerwarning(logger, "Arima was denied temp folder creation rights")
-            tmp_folder = os.path.join(temporary_files_path, "%s_arima_folder" % uuid.uuid4())
+            tmp_folder = os.path.join(user_dir(), "%s_arima_folder" % uuid.uuid4())
             os.mkdir(tmp_folder)
         except FileExistsError:
             # We should never be here since temp dir name is expected to be unique
@@ -133,7 +133,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
             os.mkdir(tmp_folder)
         except:
             # Revert to temporary file path
-            tmp_folder = os.path.join(temporary_files_path, "%s_arima_folder" % uuid.uuid4())
+            tmp_folder = os.path.join(user_dir(), "%s_arima_folder" % uuid.uuid4())
             os.mkdir(tmp_folder)
 
         loggerinfo(logger, "Arima temp folder {}".format(tmp_folder))
