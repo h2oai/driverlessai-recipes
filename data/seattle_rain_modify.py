@@ -9,13 +9,11 @@ from h2oaicore.data import CustomData
 import datatable as dt
 import numpy as np
 import pandas as pd
+from h2oaicore.systemutils import user_dir
 
 
 # This should be called from the Data Details page of the Seattle Monthly Rain data set within DAI
 # This code could be included in the SeattleRainDataRaw method, but is shown as Modify code as an example
-from virtualenv import user_dir
-
-
 class SeattleRainDataClean(CustomData):
     @staticmethod
     def create_data(X: dt.Frame = None) -> Union[str, List[str],
