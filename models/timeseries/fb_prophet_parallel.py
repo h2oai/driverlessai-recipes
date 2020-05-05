@@ -159,7 +159,12 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         # Import FB Prophet package
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
-        model = Prophet()
+        nrows = X[['ds', 'y']].shape[0]
+        n_changepoints = max(1, int(nrows * (2/3)))
+        if n_changepoints < 25:
+            model = Prophet(n_changepoints=n_changepoints)
+        else:
+            model = Prophet()
 
         with suppress_stdout_stderr():
             model.fit(X[['ds', 'y']])
@@ -229,7 +234,12 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         Prophet = getattr(mod, "Prophet")
 
         # Fit current model and prior
-        model = Prophet(growth=params["growth"])
+        nrows = X[['ds', 'y']].shape[0]
+        n_changepoints = max(1, int(nrows * (2/3)))
+        if n_changepoints < 25:
+            model = Prophet(growth=params["growth"], n_changepoints=n_changepoints)
+        else:
+            model = Prophet(growth=params["growth"])
         # Add params
         if params["country_holidays"] is not None:
             model.add_country_holidays(country_name=params["country_holidays"])
@@ -357,7 +367,12 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         # Send that to Prophet
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
-        model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
+        nrows = X[['ds', 'y']].shape[0]
+        n_changepoints = max(1, int(nrows * (2/3)))
+        if n_changepoints < 25:
+            model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True, n_changepoints = n_changepoints)
+        else:
+            model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
 
         if self.params["country_holidays"] is not None:
             model.add_country_holidays(country_name=self.params["country_holidays"])
