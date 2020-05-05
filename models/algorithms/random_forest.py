@@ -13,6 +13,7 @@ class RandomForestModel(CustomModel):
     _multiclass = True
     _display_name = "RandomForest"
     _description = "Random Forest Model based on sklearn"
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):

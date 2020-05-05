@@ -32,6 +32,7 @@ class CatBoostModel(CustomModel):
     _predict_by_iteration = True
     _predict_iteration_name = 'ntree_end'
     _save_by_pickle = True  # if False, use catboost save/load model as intermediate binary file
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     # Increase gpu_ram_part if know system is isolated
 
     _make_logger = True  # set to True to make logger

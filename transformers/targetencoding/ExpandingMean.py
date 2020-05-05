@@ -8,6 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 
 # ToDo: Completely replace pandas with datatable
 class ExpandingMean(CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _multiclass = False
 
     def __init__(self, **kwargs):

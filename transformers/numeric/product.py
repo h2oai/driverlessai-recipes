@@ -5,6 +5,7 @@ import numpy as np
 
 
 class ProductTransformer(CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod
     def is_enabled():

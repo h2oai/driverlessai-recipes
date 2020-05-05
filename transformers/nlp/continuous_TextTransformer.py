@@ -35,7 +35,8 @@ class Cached_TextTransformer(CustomTransformer):
     _regression = True
     _binary = True
     _multiclass = True
-    
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+
     _display_name = "Cached_TextTransformer"
     load_key = "Custom_TextTransformer_load"
     save_key = "Custom_TextTransformer_save"

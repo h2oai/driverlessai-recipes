@@ -6,6 +6,7 @@ from sklearn.preprocessing import LabelEncoder
 
 
 class MyLeakyCategoricalGroupMeanTargetEncoder(CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _multiclass = False
 
     def __init__(self, **kwargs):

@@ -5,6 +5,7 @@ import numpy as np
 
 
 class MyExpDiffTransformer(CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _interpretability = 10
     _interpretability_min = 3
 

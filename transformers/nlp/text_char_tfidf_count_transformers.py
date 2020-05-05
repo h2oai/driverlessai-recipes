@@ -7,6 +7,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 
 class TextCharTFIDFTransformer(CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     def __init__(self, max_ngram, n_svd_comp, **kwargs):
         super().__init__(**kwargs)
         self.max_ngram = max_ngram
@@ -49,6 +50,7 @@ class TextCharTFIDFTransformer(CustomTransformer):
 
 
 class TextCharCountTransformer(CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     def __init__(self, max_ngram, n_svd_comp, **kwargs):
         super().__init__(**kwargs)
         self.max_ngram = max_ngram

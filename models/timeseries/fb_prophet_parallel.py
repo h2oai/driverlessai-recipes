@@ -49,6 +49,7 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
     _display_name = "FB_Prophet_Parallel"
     _description = "Facebook Prophet TimeSeries forecasting with multi process support"
     _parallel_task = True
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod
     def is_enabled():

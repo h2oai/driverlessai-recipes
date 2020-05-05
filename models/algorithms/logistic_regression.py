@@ -119,6 +119,7 @@ class LogisticRegressionModel(CustomModel):
     _allow_basis_of_default_individuals = False
     _fs_permute_must_use_self = True
     _check_stall = False  # avoid stall check, joblib loky stuff detatches sometimes
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     # recipe vars for encoding choices
     _use_numerics = True

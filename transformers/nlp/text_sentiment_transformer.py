@@ -6,6 +6,7 @@ import numpy as np
 
 
 class TextSentimentTransformer(CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _modules_needed_by_name = ['textblob']
 
     @staticmethod

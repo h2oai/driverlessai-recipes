@@ -10,6 +10,7 @@ import numpy as np
 # The standard rolling window is 252 trading days per year, this may be change to any value you like
 
 class TradingVolatility(CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod
     def get_default_properties():

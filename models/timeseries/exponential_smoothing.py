@@ -13,6 +13,7 @@ class ExponentialSmoothingModel(BaseCustomModel, GLMModel):
     _display_name = "EWMA_GLM"
     _description = "GLM with EWMA Lags"
     _included_transformers = ["EwmaLagsTransformer"]
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod
     def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, **kwargs):

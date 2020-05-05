@@ -7,6 +7,7 @@ from typing import List
 
 
 class TruncatedSvdNumAll(TruncSVDNumTransformer, CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     def __init__(self, num_cols: List[str] = None, n_components=3, random_state=42, algorithm='randomized',
                  output_features_to_drop=list(), copy=False, **kwargs):

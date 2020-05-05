@@ -13,6 +13,7 @@ class FuzzyBaseTransformer:
     _modules_needed_by_name = ['fuzzywuzzy==0.17.0']
     _method = NotImplemented
     _parallel_task = False
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod
     def get_default_properties():

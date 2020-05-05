@@ -7,6 +7,7 @@ from h2oaicore.transformer_utils import CustomTransformer
 
 class TextNamedEntityTransformer(CustomTransformer):
     """Transformer to extract the count of Named Entities"""
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _modules_needed_by_name = ["spacy==2.2.3", "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.5/en_core_web_sm-2.2.5.tar.gz#egg=en_core_web_sm==2.2.5"]
 
     def __init__(self, **kwargs):
