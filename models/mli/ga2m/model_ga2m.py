@@ -12,6 +12,7 @@ class GA2MModel(CustomModel):
     _binary = True
     _multiclass = True
     _display_name = "GA2M"
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _description = (
         "GA2M Model. see: Caruana, R., Lou, Y., Gehrke, J., Koch, P., Sturm, M. and Elhadad, N., 2015, August."
         "Intelligible models for healthcare: Predicting pneumonia risk and hospital 30-day readmission."

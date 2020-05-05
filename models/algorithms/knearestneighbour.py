@@ -12,6 +12,7 @@ class KNearestNeighbourModel(CustomModel):
     _regression = True
     _binary = True
     _multiclass = True
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     _display_name = "KNearestNeighbour"
     _description = "K Nearest Neighbour Model based on sklearn. Not adviced if the data is larger than 200K rows"

@@ -71,7 +71,8 @@ class ExtremeClassifierModel:
     _can_use_gpu = True
     _mojo = False
     _description = "Extreme Classifier Model"
-    
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+
     le = LabelEncoder()
 
     @staticmethod

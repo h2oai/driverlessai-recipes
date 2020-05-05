@@ -8,6 +8,7 @@ import numpy as np
 
 class TextLangDetectTransformer(CustomTransformer):
     _modules_needed_by_name = ['langdetect']
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     language_codes = ['af', 'ar', 'bg', 'bn', 'ca', 'cs', 'cy', 'da', 'de',
                       'el', 'en', 'es', 'et', 'fa', 'fi', 'fr', 'gu', 'he',

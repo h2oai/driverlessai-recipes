@@ -36,6 +36,7 @@ class MyLGBMAsymMSE(BaseCustomModel, LightGBMModel):
     _display_name = "MyLGBMAsymMSE"
     _description = "LightGBM with custom asymetric loss/objective"
     _is_reproducible = False  # not be exactly reproducible on GPUs
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,

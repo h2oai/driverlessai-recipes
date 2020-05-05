@@ -10,6 +10,7 @@ from h2oaicore.transformer_utils import CustomTransformer
 
 
 class UserAgent(CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     _modules_needed_by_name = ["user-agents==2.0"]
 

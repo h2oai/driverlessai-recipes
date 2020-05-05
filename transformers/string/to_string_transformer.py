@@ -6,6 +6,7 @@ import numpy as np
 
 class MyToStringTransformer(CustomTransformer):
     _numeric_output = False
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @property
     def display_name(self):

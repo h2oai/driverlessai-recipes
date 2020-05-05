@@ -12,6 +12,7 @@ class SumTransformer(CustomTransformer):
     _is_reproducible = True
     _included_model_classes = None  # List[str]
     _excluded_model_classes = None  # List[str]
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod
     def is_enabled():

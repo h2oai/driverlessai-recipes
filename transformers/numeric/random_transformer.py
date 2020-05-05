@@ -6,6 +6,7 @@ import numpy as np
 
 class MyRandomTransformer(CustomTransformer):
     _is_reproducible = False
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     def __init__(self, seed=12345, **kwargs):
         super().__init__(**kwargs)

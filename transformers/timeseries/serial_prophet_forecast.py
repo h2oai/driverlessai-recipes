@@ -34,6 +34,7 @@ class MySerialProphetTransformer(CustomTimeSeriesTransformer):
     _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.4.post2']
     # _modules_needed_by_name = ['fbprophet']
     _included_model_classes = None  # ["gblinear"] for strong trends - can extrapolate
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod
     def is_enabled():

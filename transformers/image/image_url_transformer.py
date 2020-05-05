@@ -19,6 +19,7 @@ class MyImgTransformer(CustomTransformer, TensorFlowModel):
     _parallel_task = True  # assumes will use n_jobs in params_base
     _can_use_gpu = True
     _can_use_multi_gpu = True
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod
     def is_enabled():

@@ -54,6 +54,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
     _multiclass = False
     _modules_needed_by_name = ['pmdarima==1.3']
     _included_model_classes = None
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod
     def get_default_properties():

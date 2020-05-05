@@ -11,6 +11,7 @@ class EmbeddingSimilarityTransformer(CustomTransformer):
     _is_reproducible = False
     _can_use_gpu = True
     _repl_val = 0
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     def __init__(self, embedding_name, **kwargs):
         super().__init__(**kwargs)

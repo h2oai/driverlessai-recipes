@@ -13,6 +13,7 @@ class POSTagTransformer:
     """Transformer to extract the count of POS tags"""
     _method = NotImplemented
     _modules_needed_by_name = ["nltk==3.4.3"]
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

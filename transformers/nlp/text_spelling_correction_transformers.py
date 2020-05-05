@@ -7,6 +7,7 @@ from h2oaicore.transformer_utils import CustomTransformer
 
 class SpellingCorrectionTransformer(CustomTransformer):
     _numeric_output = False
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _modules_needed_by_name = ['pyspellchecker==0.5.0']
 
     @property

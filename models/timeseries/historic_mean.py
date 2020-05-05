@@ -12,6 +12,7 @@ class HistoricMeanModel(CustomTimeSeriesModel):
     _regression = True
     _display_name = "HistoricMean"
     _description = "Historic Mean"
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod
     def do_acceptance_test():

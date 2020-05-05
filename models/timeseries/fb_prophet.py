@@ -36,6 +36,7 @@ class FBProphetModel(CustomTimeSeriesModel):
     _multiclass = False
     _display_name = "FB_Prophet"
     _description = "Facebook Prophet TimeSeries forecasting"
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod
     def is_enabled():

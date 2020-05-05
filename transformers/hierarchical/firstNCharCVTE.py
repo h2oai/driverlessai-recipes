@@ -18,6 +18,7 @@ class firstNChars:
         
 
 class frst1ChrsCVTE(CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
@@ -42,6 +43,7 @@ class frst1ChrsCVTE(CustomTransformer):
         return X
 
 class frst2ChrsCVTE(CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
@@ -66,6 +68,7 @@ class frst2ChrsCVTE(CustomTransformer):
         return X
 
 class frst3ChrsCVTE(CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
@@ -90,6 +93,7 @@ class frst3ChrsCVTE(CustomTransformer):
         return X
 
 class frst4ChrsCVTE(CustomTransformer):
+    _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
