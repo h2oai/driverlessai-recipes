@@ -56,7 +56,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.4)
  [1.8.5](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.5)
  [1.8.6](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.6)
-### Count: 155
+### Count: 158
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.]
@@ -65,12 +65,14 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [airlines_joined_data_flights_in_out_regression.py](./data/airlines_joined_data_flights_in_out_regression.py) [Create augmented airlines datasets for regression]
   * [airlines_multiple.py](./data/airlines_multiple.py) [Create airlines dataset]
   * [catchallenge.py](./data/catchallenge.py) [Create cat challenge dataset]
-  * [create_transactional_data.py](./data/create_transactional_data.py) [Example code to generate and convert transactional data to i.i.d. data.]
+  * [create_transactional_data_or_convert_to_iid.py](./data/create_transactional_data_or_convert_to_iid.py) [Example code to generate and convert transactional data to i.i.d. data.]
   * [creditcard.py](./data/creditcard.py) [Modify credit card dataset]
   * [data_template.py](./data/data_template.py) [Custom data recipe base class]
   * [feature_selection.py](./data/feature_selection.py) [please add description]
   * [ieee_data_puddle.py](./data/ieee_data_puddle.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection]
+  * [kaggle_bosch.py](./data/kaggle_bosch.py) [Create Bosch competition datasets with leak]
   * [kaggle_ieee_fraud.py](./data/kaggle_ieee_fraud.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection]
+  * [keywords_data.py](./data/keywords_data.py) [Check and match a list of words from a specific string column]
   * [load_sas7bdat.py](./data/load_sas7bdat.py) [Data Recipe to load a single sas file__version__ = 0.1authored by @mtanco (Michelle Tanco)Required User Defined Inputs: name of file to load]
   * [mnist.py](./data/mnist.py) [Prep and upload the MNIST datasset]
   * [mozilla_deepspeech_wav2txt.py](./data/mozilla_deepspeech_wav2txt.py) [Speech to text using Mozilla's DeepSpeechSettings for this recipe:Assing MODEL_PATH global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.General requirements to .wav's:1 channel (mono)16 bit16000 frequency]
@@ -133,6 +135,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
       * [brier_loss.py](./scorers/classification/binary/brier_loss.py) [Brier Loss]
       * [cost.py](./scorers/classification/binary/cost.py) [Using hard-coded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `(x * FP + y * FN) / N`]
       * [cost_access_to_data.py](./scorers/classification/binary/cost_access_to_data.py) [Same as CostBinary, but provides access to full Data]
+      * [cost_smooth.py](./scorers/classification/binary/cost_smooth.py) [Using hard-coded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `(1 - y_true) * y_pred * fp_cost + y_true * (1 - y_pred) * fn_cost`]
       * [false_discovery_rate.py](./scorers/classification/binary/false_discovery_rate.py) [Weighted False Discovery Rate: `FP / (FP + TP)` at threshold for optimal F1 Score.]
       * [logloss_with_costs.py](./scorers/classification/binary/logloss_with_costs.py) [Logloss with costs associated with each type of 4 outcomes - typically applicable to fraud use case]
       * [marketing_campaign.py](./scorers/classification/binary/marketing_campaign.py) [Computes the mean profit per outbound marketing letter, given a fraction of the population addressed, and fixed cost and reward]
