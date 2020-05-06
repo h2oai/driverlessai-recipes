@@ -125,7 +125,7 @@ class TransactionalToIID(CustomData):
                         time_window = df.set_index(col_date)[y_enc].shift(shift_amount). \
                             dropna().rolling(t_days, min_periods=1)  # get time window. if leaky, includes self
                         res = getattr(time_window, op)()  # apply operator on time window
-                        res.index = df.index
+                        res.index = df.index[shift_amount:]
                         lag_feature.append(res)
                     # Index is set on both side so equal works and reorders rows automatically
                     X_pd["%s%s_%s_past_%d_days_grouped_by_%s" %
