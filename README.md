@@ -56,7 +56,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.4)
  [1.8.5](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.5)
  [1.8.6](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.6)
-### Count: 158
+### Count: 159
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.]
@@ -104,6 +104,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [nusvm.py](./models/algorithms/nusvm.py) [Nu-SVM implementation by sklearn. For small data.]
     * [random_forest.py](./models/algorithms/random_forest.py) [Random Forest (RandomForest) model from sklearn]
   * [CUSTOM_LOSS](./models/custom_loss)
+    * [lightgbm_quantile_regression.py](./models/custom_loss/lightgbm_quantile_regression.py) [Modified version of Driverless AI's internal LightGBM implementation with for quantile regression]
     * [lightgbm_with_custom_loss.py](./models/custom_loss/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).]
     * [xgboost_with_custom_loss.py](./models/custom_loss/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).]
   * [MLI](./models/mli)
