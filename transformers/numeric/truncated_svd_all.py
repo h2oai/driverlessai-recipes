@@ -16,7 +16,7 @@ class TruncatedSvdNumAll(TruncSVDNumTransformer, CustomTransformer):
 
     @staticmethod
     def get_default_properties():
-        return dict(col_type="numeric", min_cols="all", max_cols="all", relative_importance=1)
+        return dict(col_type="numeric", min_cols=2, max_cols="all", relative_importance=1)
 
     def fit_transform(self, X, y=None, **fit_params):
         if isinstance(X, dt.Frame):
