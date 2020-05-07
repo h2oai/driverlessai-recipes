@@ -5,12 +5,12 @@ from h2oaicore.metrics import CustomScorer
 
 
 class QuantileLoss(CustomScorer):
-    _quantile = 0.8  # CUSTOMIZE
-    _description = "Quantile Loss for alpha=%g" % _quantile
+    _alpha = 0.8  # CUSTOMIZE
+    _description = "Quantile Loss for alpha=%g" % _alpha
     _regression = True
     _maximize = False
     _perfect_score = 0
-    _display_name = "Quantile alpha=%g" % _quantile
+    _display_name = "Quantile alpha=%g" % _alpha
     _supports_sample_weight = True
 
     def score(self,
@@ -18,7 +18,7 @@ class QuantileLoss(CustomScorer):
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-        q = QuantileLoss._quantile
+        q = QuantileLoss._alpha
         if sample_weight is None:
             sample_weight = np.ones(len(actual))
         return np.sum(
