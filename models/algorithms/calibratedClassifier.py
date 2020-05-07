@@ -73,7 +73,7 @@ class CalibratedClassifierModel:
         
         #calibration
         model_classification.predict_proba = model_classification.predict_simple
-        model_classification.classes_ = [0, 1]
+        model_classification.classes_ = np.unique(y_)
         calibrator = CalibratedClassifierCV(
             base_estimator=model_classification, 
             method=self.params["calib_method"], 
