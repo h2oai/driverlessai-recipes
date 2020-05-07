@@ -56,7 +56,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.4)
  [1.8.5](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.5)
  [1.8.6](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.6)
-### Count: 159
+### Count: 160
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.]
@@ -155,6 +155,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [mean_squared_log_error.py](./scorers/regression/mean_squared_log_error.py) [Mean Squared Log Error for regression]
     * [median_absolute_error.py](./scorers/regression/median_absolute_error.py) [Median Absolute Error for regression]
     * [pearson_correlation.py](./scorers/regression/pearson_correlation.py) [Pearson Correlation Coefficient for regression]
+    * [quantile_loss.py](./scorers/regression/quantile_loss.py) [Quantile Loss regression]
     * [top_decile.py](./scorers/regression/top_decile.py) [Median Absolute Error for predictions in the top decile]
 * [TRANSFORMERS](./transformers)
   * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [Example how to debug a transformer outside of Driverless AI (optional)]
