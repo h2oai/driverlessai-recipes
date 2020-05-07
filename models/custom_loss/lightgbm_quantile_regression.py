@@ -31,7 +31,7 @@ class QuantileRegressionLightGBMModel(BaseCustomModel, LightGBMModel):
         )
         # Now we just need to tell LightGBM to do quantile regression
         self.params["objective"] = "quantile"
-        self.params["alpha"] = 0.8
+        self.params["alpha"] = QuantileRegressionLightGBMModel._quantile
 
     def mutate_params(
             self, get_best=False, time_tolerance=10, accuracy=10, interpretability=1,
@@ -52,4 +52,4 @@ class QuantileRegressionLightGBMModel(BaseCustomModel, LightGBMModel):
             score_f_name=score_f_name, **kwargs)
         # Now we just need to tell LightGBM to do quantile regression
         self.params["objective"] = "quantile"
-        self.params["alpha"] = 0.8
+        self.params["alpha"] = QuantileRegressionLightGBMModel._quantile
