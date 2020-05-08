@@ -1,4 +1,4 @@
-""" Chinese text tokenization using jieba package - https://github.com/fxsjy/jieba """
+"""Chinese text tokenization using jieba package - https://github.com/fxsjy/jieba"""
 from typing import Union, List
 from h2oaicore.data import CustomData
 import datatable as dt
