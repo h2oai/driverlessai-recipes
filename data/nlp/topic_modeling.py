@@ -10,9 +10,9 @@ n_topics = 4
 # text column name on which the topic modeling will be run
 text_colname = "text"
 # output dataset name
-output_dataset_name = "lda_topics"
+output_dataset_name = "df_topic_modeling"
 # number of top words to be represented in the column name
-n_words_colname = 3
+n_words_colname = 10
 
 _global_modules_needed_by_name = ["gensim==3.8.0"]
 
@@ -43,6 +43,7 @@ class LdaTopicsClass(CustomData):
 
         dictionary = corpora.Dictionary(new_X)
         new_X = [dictionary.doc2bow(doc) for doc in new_X]
+
         model = gensim.models.ldamodel.LdaModel(new_X,
                                                 num_topics=n_topics,
                                                 id2word=dictionary,
@@ -53,7 +54,8 @@ class LdaTopicsClass(CustomData):
         df = pd.concat([X.to_pandas(), pd.DataFrame(model.inference(new_X)[0])], axis=1)
 
         topics = model.print_topics(num_words=n_words_colname)
-        df.columns = list(X.names) + [x[1] for x in topics]
+        topic_names = ["_".join([v.split("*")[1].strip('"') for v in x[1].split(" + ")]) for x in topics]
+        df.columns = list(X.names) + topic_names
 
         temp_path = os.path.join(config.data_directory, config.contrib_relative_directory)
         os.makedirs(temp_path, exist_ok=True)
