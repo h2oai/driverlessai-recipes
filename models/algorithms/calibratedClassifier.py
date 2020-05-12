@@ -110,6 +110,8 @@ class CalibratedClassifierModel:
 
 
 class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, CustomModel):
+    _mojo = False
+    
     @property
     def has_pred_contribs(self):
         return False
@@ -127,3 +129,6 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
         super().mutate_params(**kwargs)
         self.params["calib_method"] = np.random.choice(["isotonic", "sigmoid"])
         self.params["calib_perc"] = np.random.choice([.05,.1,.15,.2])
+        
+    def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
+        raise NotImplementedError("No MOJO for %s" % self.class.name)
