@@ -56,7 +56,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.4)
  [1.8.5](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.5)
  [1.8.6](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.6)
-### Count: 163
+### Count: 164
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.]
@@ -84,6 +84,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [create_dataset_from_mongodb_collection.py](./data/databases/create_dataset_from_mongodb_collection.py) [Create dataset from MonogDB]
   * [NLP](./data/nlp)
     * [sentiment_score.py](./data/nlp/sentiment_score.py) [Data recipe to get sentiment score using textblob]
+    * [sentiment_score_vader.py](./data/nlp/sentiment_score_vader.py) [Data recipe to get sentiment score using vader]
     * [text_summarization.py](./data/nlp/text_summarization.py) [Data recipe to get summary of text using gensim]
     * [tokenize_chinese.py](./data/nlp/tokenize_chinese.py) [Chinese text tokenization using jieba package - https://github.com/fxsjy/jieba]
     * [topic_modeling.py](./data/nlp/topic_modeling.py) [Data recipe to perform topic modeling]
