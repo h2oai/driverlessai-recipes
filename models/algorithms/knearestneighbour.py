@@ -82,7 +82,9 @@ class KNearestNeighbourModel(CustomModel):
                 self.means[col] = 0
             XX.replace(None, self.means[col])
             X[:, col] = XX
-            assert X[dt.isna(dt.f[col]), col].nrows == 0
+            if X[dt.isna(dt.f[col]), col].nrows > 0:
+                X[:, col] = dt.Frame(np.zeros((X.nrows, 1)))
+
         X = X.to_numpy()
         X = self.standard_scaler.fit_transform(X)
         feature_model.fit(X, y)
