@@ -3,6 +3,7 @@
 
 import copy
 import datatable as dt
+from h2oaicore.mojo import MojoWriter, MojoFrame
 from h2oaicore.systemutils import config
 from h2oaicore.models import CustomModel, LightGBMModel
 from sklearn.preprocessing import LabelEncoder
@@ -131,4 +132,4 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
         self.params["calib_perc"] = np.random.choice([.05,.1,.15,.2])
         
     def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
-        raise NotImplementedError("No MOJO for %s" % self.class.name)
+        raise NotImplementedError("No MOJO for %s" % self.__class__.__name__)
