@@ -6,6 +6,7 @@ import numpy as np
 
 class FlagMissingTransformer(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+
     @staticmethod
     def get_default_properties():
         return dict(col_type="all", min_cols=1, max_cols=1, relative_importance=1)

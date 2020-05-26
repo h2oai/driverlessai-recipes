@@ -6,6 +6,7 @@ from datatable import f
 import math
 import numpy as np
 
+
 class AirportOriginDestDTTransformer(CustomTransformer):
     _display_name = 'AirportOriginDest'
     _allow_transform_to_modify_output_feature_names = True
@@ -60,8 +61,10 @@ class AirportOriginDestDTTransformer(CustomTransformer):
             X_dest = dest_dt[:, :, dt.join(codes_dt)]
             del X_dest[:, "iata_code"]
             X_dest.names = ["dest_elevation_ft", "dest_long", "dest_lat"]
-            self._output_feature_names = self._output_feature_names + ["{}.{}".format(self._display_name, f) for f in X_dest.names]
-            self._feature_desc = self._feature_desc + ['Destination Elevation', 'Destination Longitude', 'Destination Latitude']
+            self._output_feature_names = self._output_feature_names + ["{}.{}".format(self._display_name, f) for f in
+                                                                       X_dest.names]
+            self._feature_desc = self._feature_desc + ['Destination Elevation', 'Destination Longitude',
+                                                       'Destination Latitude']
 
         # Both Origin and Destination
         if (isOrigin and isDest):
@@ -74,23 +77,25 @@ class AirportOriginDestDTTransformer(CustomTransformer):
 
             p = dt.math.pi / 180
             a = 0.5 - dt.math.cos((f["dest_lat"] - f["origin_lat"]) * p) / 2 + \
-                    dt.math.cos(f["origin_lat"] * p) * dt.math.cos(f["dest_lat"] * p) * (1 - dt.math.cos((f["dest_long"] - f["origin_long"]) * p)) / 2
+                dt.math.cos(f["origin_lat"] * p) * dt.math.cos(f["dest_lat"] * p) * (
+                            1 - dt.math.cos((f["dest_long"] - f["origin_long"]) * p)) / 2
             b = 12742 * dt.math.arcsin(dt.math.sqrt(a))  # 2*R*asin...
             all_dt["distanc_km"] = b
 
             self._output_feature_names = self._output_feature_names + ["{}.{}".format(self._display_name, f) for f in
-                                          ['elevation_diff', 'lat_diff', 'long_diff', 'distance_km']]
+                                                                       ['elevation_diff', 'lat_diff', 'long_diff',
+                                                                        'distance_km']]
             self._feature_desc = self._feature_desc + [
-                                  'Elevation difference between Origin and Destination',
-                                  'Latitude difference between Origin and Destination',
-                                  'Longitude difference between Origin and Destination',
-                                  'Distance in km between Origin and Destination (Harvestine approx.)']
+                'Elevation difference between Origin and Destination',
+                'Latitude difference between Origin and Destination',
+                'Longitude difference between Origin and Destination',
+                'Distance in km between Origin and Destination (Harvestine approx.)']
         elif (isOrigin and not isDest):
             all_dt = X_origin
         elif (isDest and not isOrigin):
             all_dt = X_dest
         else:
-            all_dt = dt.Frame(np.zeros((X.shape[0], 1)), names = ["dummy"])
+            all_dt = dt.Frame(np.zeros((X.shape[0], 1)), names=["dummy"])
             self._output_feature_names = ["dummy"]
             self._feature_desc = ["dummy"]
 
@@ -98,8 +103,8 @@ class AirportOriginDestDTTransformer(CustomTransformer):
 
     @staticmethod
     def make_airportcode_data():
-            return dt.fread(
-                """
+        return dt.fread(
+            """
 iata_code,elevation_ft,long,lat
 ALZ,,-154.248001099,56.8995018005
 APR,220,142.540138889,-4.67666666667
@@ -1887,4 +1892,4 @@ WUV,16,142.836666667,-1.73611111111
 ZEN,3200,146.61625,-6.9522222222200005
 ZNC,460,-159.994003296,60.9807014465
 
-            """)
+        """)

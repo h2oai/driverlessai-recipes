@@ -7,6 +7,7 @@ import pandas as pd
 
 class MyDateTimeDiffTransformer(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+
     @staticmethod
     def get_default_properties():
         return dict(col_type="datetime", min_cols=2, max_cols=2, relative_importance=1)

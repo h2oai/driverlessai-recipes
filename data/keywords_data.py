@@ -9,7 +9,6 @@ import pandas as pd
 
 
 class MatchWordsTransformer(CustomData):
-    
 
     @staticmethod
     def create_data(X: dt.Frame = None) -> Union[str, List[str],
@@ -18,17 +17,16 @@ class MatchWordsTransformer(CustomData):
                                                  pd.DataFrame, List[pd.DataFrame]]:
         if X is None:
             return []
-        #Define here manually the list of the word to be matched
-        _words_list=['manager','Mamet','references','LOGO','Cynthia','Monstervision']
+        # Define here manually the list of the word to be matched
+        _words_list = ['manager', 'Mamet', 'references', 'LOGO', 'Cynthia', 'Monstervision']
 
-        data=X.to_pandas()
-        
-        data['keywords']=''
-        words_list=[x.lower() for x in _words_list]
+        data = X.to_pandas()
+
+        data['keywords'] = ''
+        words_list = [x.lower() for x in _words_list]
         for w in words_list:
-        #Change the 'review' column to the column with the free text
-            data['keywords']=np.where(data['review'].str.lower().str.contains(w, regex=False),w,data['keywords'])
-        data['keywords']=np.where(data['keywords']=='',np.nan,data['keywords'])
-        
-        
+            # Change the 'review' column to the column with the free text
+            data['keywords'] = np.where(data['review'].str.lower().str.contains(w, regex=False), w, data['keywords'])
+        data['keywords'] = np.where(data['keywords'] == '', np.nan, data['keywords'])
+
         return data

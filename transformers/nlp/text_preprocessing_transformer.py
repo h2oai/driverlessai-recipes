@@ -48,8 +48,9 @@ class TextPreprocessingTransformer(CustomTransformer):
                 os.makedirs(nltk_temp_path, exist_ok=True)
                 tokenizer_path = os.path.join(nltk_data_path, "tokenizers")
                 os.makedirs(tokenizer_path, exist_ok=True)
-                file1 = download("https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt.zip",
-                                 dest_path=nltk_temp_path)
+                file1 = download(
+                    "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt.zip",
+                    dest_path=nltk_temp_path)
                 self.unzip_file(file1, tokenizer_path)
                 self.atomic_copy(file1, tokenizer_path)
                 self.stemmer = nltk.stem.porter.PorterStemmer()
@@ -70,12 +71,15 @@ class TextPreprocessingTransformer(CustomTransformer):
                 corpora_path = os.path.join(nltk_data_path, "corpora")
                 os.makedirs(tagger_path, exist_ok=True)
                 os.makedirs(corpora_path, exist_ok=True)
-                file1 = download("https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/averaged_perceptron_tagger.zip",
-                                 dest_path=nltk_temp_path)
-                file2 = download("https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/maxent_treebank_pos_tagger.zip",
-                                 dest_path=nltk_temp_path)
-                file3 = download("https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/wordnet.zip",
-                                 dest_path=nltk_temp_path)
+                file1 = download(
+                    "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/averaged_perceptron_tagger.zip",
+                    dest_path=nltk_temp_path)
+                file2 = download(
+                    "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/maxent_treebank_pos_tagger.zip",
+                    dest_path=nltk_temp_path)
+                file3 = download(
+                    "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/wordnet.zip",
+                    dest_path=nltk_temp_path)
                 self.unzip_file(file1, tagger_path)
                 self.unzip_file(file2, tagger_path)
                 self.unzip_file(file3, corpora_path)
@@ -87,11 +91,11 @@ class TextPreprocessingTransformer(CustomTransformer):
                 self.pos_tagger = nltk.pos_tag
                 self.lemmatizer.lemmatize("test", wordnet.NOUN)
                 self.pos_tagger("test")
-            self.wordnet_map = {"N":wordnet.NOUN,
-                                "V":wordnet.VERB,
-                                "J":wordnet.ADJ,
-                                "R":wordnet.ADV,
-                                "O":wordnet.NOUN}
+            self.wordnet_map = {"N": wordnet.NOUN,
+                                "V": wordnet.VERB,
+                                "J": wordnet.ADJ,
+                                "R": wordnet.ADV,
+                                "O": wordnet.NOUN}
 
         # download resources for stopwords if needed
         if self.remove_stopwords:
@@ -102,8 +106,9 @@ class TextPreprocessingTransformer(CustomTransformer):
                 os.makedirs(nltk_temp_path, exist_ok=True)
                 corpora_path = os.path.join(nltk_data_path, "corpora")
                 os.makedirs(corpora_path, exist_ok=True)
-                file1 = download("https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/stopwords.zip",
-                                 dest_path=nltk_temp_path)
+                file1 = download(
+                    "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/stopwords.zip",
+                    dest_path=nltk_temp_path)
                 self.unzip_file(file1, corpora_path)
                 self.atomic_copy(file1, corpora_path)
                 self.stopwords = set(nltk.corpus.stopwords.words('english'))

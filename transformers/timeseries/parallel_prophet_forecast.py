@@ -35,6 +35,7 @@ from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from datetime import datetime
 
+
 # For more information about FB prophet please visit :
 
 # This parallel implementation is faster than the serial implementation
@@ -307,7 +308,8 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         self.top_groups = None
         if len(tgc_wo_time) > 0:
             if self.top_n > 0:
-                top_n_grp = X.groupby(tgc_wo_time).size().sort_values().reset_index()[tgc_wo_time].iloc[-self.top_n:].values
+                top_n_grp = X.groupby(tgc_wo_time).size().sort_values().reset_index()[tgc_wo_time].iloc[
+                            -self.top_n:].values
                 self.top_groups = [
                     '_'.join(map(str, key))
                     for key in top_n_grp
@@ -325,7 +327,8 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
             pool_to_use = small_job_pool
             loggerinfo(logger, f"Prophet will use {n_jobs} workers for fitting.")
-            loggerinfo(logger, "Prophet parameters holidays {} / monthly {}".format(self.country_holidays, self.monthly_seasonality))
+            loggerinfo(logger, "Prophet parameters holidays {} / monthly {}".format(self.country_holidays,
+                                                                                    self.monthly_seasonality))
             pool = pool_to_use(
                 logger=None, processor=processor,
                 num_tasks=num_tasks, max_workers=n_jobs
@@ -482,6 +485,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
 
             def processor(out, res):
                 out.append(res)
+
             num_tasks = len(self.top_groups)
             pool_to_use = small_job_pool
             pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks, max_workers=n_jobs)

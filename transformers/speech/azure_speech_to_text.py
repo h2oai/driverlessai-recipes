@@ -80,4 +80,3 @@ class AzureSpeechToText(CustomTransformer):
     def transform(self, X: dt.Frame) -> dt.Frame:
         # TODO: parallelize
         return X.to_pandas().astype(str).iloc[:, 0].apply(lambda s: self._wav_to_str(s))
-

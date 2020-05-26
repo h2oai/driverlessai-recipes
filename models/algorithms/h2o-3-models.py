@@ -44,7 +44,7 @@ class H2OBaseModel:
                            **kwargs):
         max_runtime_secs = 600
         if accuracy is not None and time_tolerance is not None:
-            max_runtime_secs = accuracy * (time_tolerance + 1) * 10 # customize here to your liking
+            max_runtime_secs = accuracy * (time_tolerance + 1) * 10  # customize here to your liking
         self.params = dict(max_runtime_secs=max_runtime_secs)
 
     def get_iterations(self, model):
@@ -107,7 +107,7 @@ class H2OBaseModel:
             if sample_weight is not None:
                 train_kwargs['weights_column'] = self.weight
             model = self.make_instance(**params)
-            
+
             # Don't ever use the offset column as a feature
             offset_col = None  # if no column is called offset we will pass "None" and not use this feature
             cols_to_train = []  # list of all non-offset columns
@@ -122,7 +122,8 @@ class H2OBaseModel:
 
             # Models that can use an offset column
             if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
-                model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col, **train_kwargs)
+                model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col,
+                            **train_kwargs)
             else:
                 model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
 

@@ -29,7 +29,6 @@ class CostBinaryWithData(CustomScorer):
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None,
               X: typing.Optional[dt.Frame] = None) -> float:
-
         # can compute arbitrary cost from all original features
         if X is not None:
             assert X.nrows == len(actual)
@@ -49,4 +48,5 @@ class CostBinaryWithData(CustomScorer):
         tn, fp, fn, tp = cm.ravel()
 
         # calculate`$1*FP + $2*FN`
-        return ((fp * self.__class__._fp_cost) + (fn * self.__class__._fn_cost)) / (tn+fp+fn+tp)  # divide by total weighted count to make loss invariant to data size
+        return ((fp * self.__class__._fp_cost) + (fn * self.__class__._fn_cost)) / (
+                    tn + fp + fn + tp)  # divide by total weighted count to make loss invariant to data size

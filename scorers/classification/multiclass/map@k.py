@@ -38,5 +38,3 @@ class MAPatk(CustomScorer):
         for i in range(k):
             mapk += ((best_k[:, i] - actual) == 0).mean() / (i + 1)
         return mapk
-
-

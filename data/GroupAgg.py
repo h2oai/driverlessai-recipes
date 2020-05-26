@@ -44,9 +44,9 @@ class GroupAgg(CustomData):
         # These two variables controls the total # of extra GROUP BY columns generated and memory used
         # If the input table has a lot of columns, there could be a combinatorial explosion based on the GROUP BYs below
         # ******* DO NOT GO OVER 2 below
-        
+
         max_features_in_groups = 1
-        
+
         # Datatable aggregation functions. 
         aggs = [('mean', dt.mean), ('max', dt.max), ('min', dt.min), ('sd', dt.sd)]
 
@@ -55,7 +55,7 @@ class GroupAgg(CustomData):
         # Be aware that int features may also be categorical
         categorical_features = [
             X.names[i] for i, t in enumerate(X.ltypes)
-            if (t in [dt.ltype.str, dt.ltype.int]) & (X[X.names[i]].nunique1()/X.shape[0] <= 0.1)
+            if (t in [dt.ltype.str, dt.ltype.int]) & (X[X.names[i]].nunique1() / X.shape[0] <= 0.1)
         ]
 
         numerical_features = [
@@ -76,13 +76,13 @@ class GroupAgg(CustomData):
         # Go through numerical features
         for num_feat in numerical_features:  # Walk through Numeric cols 1 by 1
             for group in groupby_features:  # Walk through Aggregates 1 by 1
-                for agg, func in aggs:  
+                for agg, func in aggs:
                     # Aggregate
                     agg_y_colname = '_'.join(group)
                     agg_feature_name = "GroupBy_" + agg_y_colname.upper() + "_" + str(agg) + "_of_" + num_feat.upper()
                     aggregated = X[:, list(group) + [num_feat]][:, {
-                        agg_feature_name: func(dt.f[num_feat])
-                    }, dt.by(*list(group))]
+                                                                       agg_feature_name: func(dt.f[num_feat])
+                                                                   }, dt.by(*list(group))]
                     # Merge back
                     aggregated.key = group
                     X = X[:, :, dt.join(aggregated)]
