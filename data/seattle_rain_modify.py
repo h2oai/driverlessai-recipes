@@ -59,6 +59,3 @@ class SeattleRainDataClean(CustomData):
         # Instead of saving to disk we could return our data frames instead
         # by writing the files we can return multiple and control their names in the UI
         # return rain_pivot # return a single data frame
-
-
-

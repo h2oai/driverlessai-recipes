@@ -10,22 +10,23 @@ from sklearn.preprocessing import LabelEncoder
 
 class firstNChars:
     def fit_transform(self, X: dt.Frame, n):
-        return self.transform(X,n)
+        return self.transform(X, n)
 
-    def transform(self, X: dt.Frame,n):
+    def transform(self, X: dt.Frame, n):
         assert X.ncols == 1
-        return dt.Frame(X.to_pandas().apply(lambda x: x[0:n],axis=1))
-        
+        return dt.Frame(X.to_pandas().apply(lambda x: x[0:n], axis=1))
+
 
 class frst1ChrsCVTE(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+
     @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         self.binner = firstNChars()
-        X = self.binner.fit_transform(X,1)
+        X = self.binner.fit_transform(X, 1)
 
         # Compute mean target (out of fold) per same string
         self.cvte = CVTargetEncodeTransformer(cat_cols=X.names)
@@ -38,19 +39,21 @@ class frst1ChrsCVTE(CustomTransformer):
         return X
 
     def transform(self, X: dt.Frame):
-        X = self.binner.transform(X,1)
+        X = self.binner.transform(X, 1)
         X = self.cvte.transform(X)
         return X
+
 
 class frst2ChrsCVTE(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+
     @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         self.binner = firstNChars()
-        X = self.binner.fit_transform(X,2)
+        X = self.binner.fit_transform(X, 2)
 
         # Compute mean target (out of fold) per same string
         self.cvte = CVTargetEncodeTransformer(cat_cols=X.names)
@@ -63,19 +66,21 @@ class frst2ChrsCVTE(CustomTransformer):
         return X
 
     def transform(self, X: dt.Frame):
-        X = self.binner.transform(X,2)
+        X = self.binner.transform(X, 2)
         X = self.cvte.transform(X)
         return X
+
 
 class frst3ChrsCVTE(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+
     @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         self.binner = firstNChars()
-        X = self.binner.fit_transform(X,3)
+        X = self.binner.fit_transform(X, 3)
 
         # Compute mean target (out of fold) per same string
         self.cvte = CVTargetEncodeTransformer(cat_cols=X.names)
@@ -88,19 +93,21 @@ class frst3ChrsCVTE(CustomTransformer):
         return X
 
     def transform(self, X: dt.Frame):
-        X = self.binner.transform(X,3)
+        X = self.binner.transform(X, 3)
         X = self.cvte.transform(X)
         return X
 
+
 class frst4ChrsCVTE(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+
     @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         self.binner = firstNChars()
-        X = self.binner.fit_transform(X,4)
+        X = self.binner.fit_transform(X, 4)
 
         # Compute mean target (out of fold) per same string
         self.cvte = CVTargetEncodeTransformer(cat_cols=X.names)
@@ -113,6 +120,6 @@ class frst4ChrsCVTE(CustomTransformer):
         return X
 
     def transform(self, X: dt.Frame):
-        X = self.binner.transform(X,4)
+        X = self.binner.transform(X, 4)
         X = self.cvte.transform(X)
         return X

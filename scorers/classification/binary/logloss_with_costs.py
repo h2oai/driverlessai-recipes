@@ -8,6 +8,7 @@ from h2oaicore.metrics import CustomScorer
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdata
 from sklearn.preprocessing import LabelEncoder
 
+
 class LoglossWithCostsBinary(CustomScorer):
     _description = "Embed costs in logloss for binary classification: `(fp_cost*FP + tp_cost*TP + fn_cost*FN + tn_cost*TN) / N`"
     _binary = True
@@ -56,7 +57,7 @@ class LoglossWithCostsBinary(CustomScorer):
             if isinstance(X, dt.Frame) and cost_value in X.names:
                 cost = X[cost_value]
             else:
-#                loggerwarning(logger, "Column " + cost_value + " not found - falling back to default cost " + default_value)
+                #                loggerwarning(logger, "Column " + cost_value + " not found - falling back to default cost " + default_value)
                 cost = np.full(shape, default_value)
         elif isinstance(cost_value, float) or isinstance(cost_value, int):
             cost = np.full(shape, cost_value)
@@ -73,13 +74,13 @@ class LoglossWithCostsBinary(CustomScorer):
               labels: typing.Optional[np.array] = None) -> float:
 
         logger = None
-#        if self._make_logger:
-            # Example use of logger, with required import of:
-            #  from h2oaicore.systemutils import make_experiment_logger, loggerinfo
-            # Can use loggerwarning, loggererror, etc. for different levels
-#            if self.context and self.context.experiment_id:
-#                logger = make_experiment_logger(experiment_id=self.context.experiment_id, tmp_dir=self.context.tmp_dir,
-#                                                experiment_tmp_dir=self.context.experiment_tmp_dir)
+        #        if self._make_logger:
+        # Example use of logger, with required import of:
+        #  from h2oaicore.systemutils import make_experiment_logger, loggerinfo
+        # Can use loggerwarning, loggererror, etc. for different levels
+        #            if self.context and self.context.experiment_id:
+        #                logger = make_experiment_logger(experiment_id=self.context.experiment_id, tmp_dir=self.context.tmp_dir,
+        #                                                experiment_tmp_dir=self.context.experiment_tmp_dir)
 
         N = actual.shape[0]
         if sample_weight is None:
@@ -90,17 +91,16 @@ class LoglossWithCostsBinary(CustomScorer):
         labels = lb.fit_transform(labels)
 
         # create datatable with all data
-        DT = dt.Frame(actual = lb.transform(actual),
-                      predicted = np.minimum(1 - self.__class__._epsilon, np.maximum(self.__class__._epsilon, predicted)),
-                      cost_fn = self.make_cost_values(self.__class__._fn_cost, X, N, 1.),
-                      cost_tp = self.make_cost_values(self.__class__._tp_cost, X, N, 0.),
-                      cost_tn = self.make_cost_values(self.__class__._tn_cost, X, N, 0.),
-                      cost_fp = self.make_cost_values(self.__class__._fp_cost, X, N, 1.),
-                      sample_weight = sample_weight)
+        DT = dt.Frame(actual=lb.transform(actual),
+                      predicted=np.minimum(1 - self.__class__._epsilon, np.maximum(self.__class__._epsilon, predicted)),
+                      cost_fn=self.make_cost_values(self.__class__._fn_cost, X, N, 1.),
+                      cost_tp=self.make_cost_values(self.__class__._tp_cost, X, N, 0.),
+                      cost_tn=self.make_cost_values(self.__class__._tn_cost, X, N, 0.),
+                      cost_fp=self.make_cost_values(self.__class__._fp_cost, X, N, 1.),
+                      sample_weight=sample_weight)
         lloss = DT[:, f.sample_weight * (f.actual * (f.cost_fn * dt.log(f.predicted) +
                                                      f.cost_tp * dt.log(1 - f.predicted)) +
                                          (1 - f.actual) * (f.cost_fp * dt.log(1 - f.predicted) +
                                                            f.cost_tn * dt.log(f.predicted)))]
-        lloss = lloss.sum()[0,0] * -1.0 / np.sum(sample_weight)
+        lloss = lloss.sum()[0, 0] * -1.0 / np.sum(sample_weight)
         return lloss
-

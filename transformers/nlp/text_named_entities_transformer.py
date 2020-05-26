@@ -8,7 +8,8 @@ from h2oaicore.transformer_utils import CustomTransformer
 class TextNamedEntityTransformer(CustomTransformer):
     """Transformer to extract the count of Named Entities"""
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
-    _modules_needed_by_name = ["spacy==2.2.3", "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.5/en_core_web_sm-2.2.5.tar.gz#egg=en_core_web_sm==2.2.5"]
+    _modules_needed_by_name = ["spacy==2.2.3",
+                               "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.5/en_core_web_sm-2.2.5.tar.gz#egg=en_core_web_sm==2.2.5"]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -23,7 +24,7 @@ class TextNamedEntityTransformer(CustomTransformer):
         if entities:
             return [len([entity for entity in entities if entity.label_ == ne_type]) for ne_type in self.ne_types]
         else:
-            return [0]*len(self.ne_types)
+            return [0] * len(self.ne_types)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         return self.transform(X)
@@ -38,4 +39,3 @@ class TextNamedEntityTransformer(CustomTransformer):
         new_X = X.apply(lambda x: self.get_ne_count(x[orig_col_name], nlp), axis=1, result_type='expand')
         new_X.columns = [f'{orig_col_name}_Count_{ne_type}' for ne_type in self.ne_types]
         return new_X
-

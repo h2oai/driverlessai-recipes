@@ -86,7 +86,7 @@ class CatBoostModel(CustomModel):
                        'learning_rate': learning_rate,
                        'early_stopping_rounds': early_stopping_rounds,
                        'max_depth': 8
-                      }
+                       }
 
         dummy = kwargs.get('dummy', False)
         ensemble_level = kwargs.get('ensemble_level', 0)
@@ -141,7 +141,8 @@ class CatBoostModel(CustomModel):
                 self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 65535)
 
         if not uses_gpus:
-            self.params['sampling_frequency'] = MainModel.get_one(['PerTree', 'PerTreeLevel', 'PerTreeLevel', 'PerTreeLevel'])
+            self.params['sampling_frequency'] = MainModel.get_one(
+                ['PerTree', 'PerTreeLevel', 'PerTreeLevel', 'PerTreeLevel'])
 
         bootstrap_type_list = ['Bayesian', 'Bayesian', 'Bayesian', 'Bayesian', 'Bernoulli', 'MVS', 'Poisson', 'No']
         if not uses_gpus:
@@ -151,7 +152,8 @@ class CatBoostModel(CustomModel):
         self.params['bootstrap_type'] = MainModel.get_one(bootstrap_type_list)
 
         if self.params['bootstrap_type'] in ['Poisson', 'Bernoulli']:
-            self.params['subsample'] = MainModel.get_one([0.5, 0.66, 0.66, 0.9])  # will get pop'ed if not Poisson/Bernoulli
+            self.params['subsample'] = MainModel.get_one(
+                [0.5, 0.66, 0.66, 0.9])  # will get pop'ed if not Poisson/Bernoulli
 
         if self.params['bootstrap_type'] in ['Bayesian']:
             self.params['bagging_temperature'] = MainModel.get_one([0, 0.1, 0.5, 0.9, 1.0])
@@ -223,7 +225,8 @@ class CatBoostModel(CustomModel):
             numeric_cols = list(X.select_dtypes([np.number]).columns)
 
         # unlike lightgbm that needs label encoded categoricals, catboots can take raw strings etc.
-        self.params['cat_features'] = [i for i, x in enumerate(orig_cols) if 'CatOrig:' in x or 'Cat:' in x or x not in numeric_cols]
+        self.params['cat_features'] = [i for i, x in enumerate(orig_cols) if
+                                       'CatOrig:' in x or 'Cat:' in x or x not in numeric_cols]
 
         if not self.get_uses_gpus(self.params):
             # monotonicity constraints not available for GPU for catboost
@@ -267,7 +270,8 @@ class CatBoostModel(CustomModel):
         params = self.transcribe_and_filter_params(params, eval_set is not None)
 
         if logger is not None:
-            loggerdata(logger, "CatBoost parameters: params_base : %s params: %s catboost_params: %s" % (str(self.params_base), str(self.params), str(params)))
+            loggerdata(logger, "CatBoost parameters: params_base : %s params: %s catboost_params: %s" % (
+            str(self.params_base), str(self.params), str(params)))
 
         if self.num_classes == 1:
             model = CatBoostRegressor(**params)
@@ -281,10 +285,10 @@ class CatBoostModel(CustomModel):
         else:
             baseline = None
 
-        kargs=dict(X=X, y=y,
-                  sample_weight=sample_weight,
-                  baseline=baseline,
-                  eval_set=eval_set)
+        kargs = dict(X=X, y=y,
+                     sample_weight=sample_weight,
+                     baseline=baseline,
+                     eval_set=eval_set)
         pickle_path = None
         if config.debug_daimodel_level >= 2:
             self.uuid = str(uuid.uuid4())[:6]
@@ -515,11 +519,10 @@ class CatBoostModel(CustomModel):
         if params['task_type'] == 'GPU':
             params['max_bin'] = min(params['max_bin'], 127)  # https://github.com/catboost/catboost/issues/1010
 
-
         if uses_gpus:
             # https://catboost.ai/docs/features/training-on-gpu.html
             params['devices'] = "%d-%d" % (
-            self.params_base.get('gpu_id', 0), self.params_base.get('gpu_id', 0) + n_gpus - 1)
+                self.params_base.get('gpu_id', 0), self.params_base.get('gpu_id', 0) + n_gpus - 1)
             params['gpu_ram_part'] = 0.3  # per-GPU, assumes GPU locking or no other experiments running
 
         if self.num_classes > 2:

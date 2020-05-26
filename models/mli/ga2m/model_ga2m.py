@@ -27,7 +27,7 @@ class GA2MModel(CustomModel):
         )  # would fail for imbalanced binary problems when logloss gets constant response for holdout (EBM should be passing labels)
 
     def set_default_params(
-        self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
+            self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
     ):
         # Fill up parameters we care about
         self.params = dict(
@@ -74,13 +74,13 @@ class GA2MModel(CustomModel):
         return importances
 
     def fit(
-        self,
-        X,
-        y,
-        sample_weight=None,
-        eval_set=None,
-        sample_weight_eval_set=None,
-        **kwargs
+            self,
+            X,
+            y,
+            sample_weight=None,
+            eval_set=None,
+            sample_weight_eval_set=None,
+            **kwargs
     ):
         from interpret.glassbox import (
             ExplainableBoostingClassifier,

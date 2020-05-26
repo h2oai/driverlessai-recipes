@@ -12,6 +12,7 @@ output_dataset_name = "df_with_vader_sentiment"
 
 _global_modules_needed_by_name = ["vaderSentiment"]
 
+
 class SentimentScoreClass(CustomData):
     @staticmethod
     def create_data(X: dt.Frame = None) -> Union[str, List[str],
@@ -27,8 +28,8 @@ class SentimentScoreClass(CustomData):
 
         X = dt.Frame(X).to_pandas()
         for text_colname in text_colnames:
-            X["sentiment_vader_dai_"+text_colname] = X[text_colname].astype(str).fillna("NA").apply(
-                                                   lambda x: SentimentIntensityAnalyzer().polarity_scores(x)['compound'])
+            X["sentiment_vader_dai_" + text_colname] = X[text_colname].astype(str).fillna("NA").apply(
+                lambda x: SentimentIntensityAnalyzer().polarity_scores(x)['compound'])
 
         temp_path = os.path.join(config.data_directory, config.contrib_relative_directory)
         os.makedirs(temp_path, exist_ok=True)
@@ -38,5 +39,3 @@ class SentimentScoreClass(CustomData):
         X.to_csv(file_train, index=False)
 
         return [file_train]
-
-

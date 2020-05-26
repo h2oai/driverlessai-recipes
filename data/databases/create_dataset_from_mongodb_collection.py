@@ -8,7 +8,6 @@ import datatable as dt
 import pandas as pd
 from h2oaicore.data import CustomData
 
-
 _global_modules_needed_by_name = ["pymongo", "dnspython"]
 
 # Please fill before usage
@@ -20,7 +19,6 @@ DATASET_NAME = "sample_mflix.theaters"
 
 
 class MongoDbData(CustomData):
-
     _modules_needed_by_name = ["pymongo", "dnspython"]
 
     @staticmethod
@@ -49,4 +47,3 @@ class MongoDbData(CustomData):
             return {DATASET_NAME: dt.Frame(df)}
         except Exception as e:
             return []
-

@@ -14,7 +14,6 @@ class CreditCardData(CustomData):
                                                  dt.Frame, List[dt.Frame],
                                                  np.ndarray, List[np.ndarray],
                                                  pd.DataFrame, List[pd.DataFrame]]:
-
         if X is None:
             return []
         X[:, 'default payment next month leak'] = X[:, 'default payment next month']

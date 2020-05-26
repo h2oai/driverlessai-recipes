@@ -14,6 +14,6 @@ if len(values) > MAX_PARTITIONS:
 result = {}
 for val in values:
     partition = X[dt.f[partition_col_name] == val, :]
-    result.update({"mydata_" + str(val) : partition})
+    result.update({"mydata_" + str(val): partition})
 
 return result

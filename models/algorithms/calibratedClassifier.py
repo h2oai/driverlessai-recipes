@@ -12,7 +12,7 @@ from scipy.special import softmax
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.model_selection import StratifiedShuffleSplit
 
-    
+
 class CalibratedClassifierModel:
     _regression = False
     _binary = True
@@ -20,7 +20,7 @@ class CalibratedClassifierModel:
     _can_use_gpu = True
     _mojo = False
     _description = "Calibrated Classifier Model (LightGBM)"
-    
+
     le = LabelEncoder()
 
     @staticmethod
@@ -35,16 +35,15 @@ class CalibratedClassifierModel:
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         assert len(self.__class__.__bases__) == 3
         assert CalibratedClassifierModel in self.__class__.__bases__
-        
+
         self.le.fit(self.labels)
         y_ = self.le.transform(y)
-        
-        sss = StratifiedShuffleSplit(n_splits = 1, test_size = self.params["calib_perc"], random_state=4235)
-        tr_indx, te_indx = next(iter(sss.split(y_.reshape(-1,1), y_)))
-        
+
+        sss = StratifiedShuffleSplit(n_splits=1, test_size=self.params["calib_perc"], random_state=4235)
+        tr_indx, te_indx = next(iter(sss.split(y_.reshape(-1, 1), y_)))
+
         whoami = [x for x in self.__class__.__bases__ if (x != CustomModel and x != CalibratedClassifierModel)][0]
-        
-        
+
         kwargs_classification = copy.deepcopy(self.params_base)
         kwargs_update = dict(num_classes=2, objective='binary:logistic', eval_metric='logloss', labels=[0, 1],
                              score_f_name='LOGLOSS')
@@ -62,57 +61,57 @@ class CalibratedClassifierModel:
         if eval_set is not None:
             eval_set_y = self.le.transform(eval_set[0][1])
             eval_set_classification = [(eval_set[0][0], eval_set_y.astype(int))]
-        
+
         if sample_weight is not None:
             sample_weight_ = sample_weight[tr_indx]
         else:
             sample_weight_ = sample_weight
 
-        model_classification.fit(X[tr_indx,:], y_.astype(int)[tr_indx],
+        model_classification.fit(X[tr_indx, :], y_.astype(int)[tr_indx],
                                  sample_weight=sample_weight_, eval_set=eval_set_classification,
                                  sample_weight_eval_set=sample_weight_eval_set, **kwargs)
-        
-        #calibration
+
+        # calibration
         model_classification.predict_proba = model_classification.predict_simple
         model_classification.classes_ = np.unique(y_)
         calibrator = CalibratedClassifierCV(
-            base_estimator=model_classification, 
-            method=self.params["calib_method"], 
+            base_estimator=model_classification,
+            method=self.params["calib_method"],
             cv='prefit')
-        calibrator.fit(X[te_indx,:].to_pandas(), y_.astype(int)[te_indx].ravel())
-        #calibration
-        
+        calibrator.fit(X[te_indx, :].to_pandas(), y_.astype(int)[te_indx].ravel())
+        # calibration
+
         varimp = model_classification.imp_features(columns=X.names)
         varimp.index = varimp['LInteraction']
         varimp = varimp['LGain']
         varimp = varimp[:len(X.names)]
         varimp = varimp.reindex(X.names).values
         importances = varimp
-        
+
         iters = model_classification.best_iterations
         iters = int(max(1, iters))
-        self.set_model_properties(model={ 
+        self.set_model_properties(model={
             "models": calibrator,
-            "classes_": self.le.classes_, 
+            "classes_": self.le.classes_,
             "best_iters": iters,
-            },
+        },
             features=list(X.names), importances=importances, iterations=iters
         )
-    
+
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
         data, _, _, _ = self.get_model_properties()
         model, classes_, best_iters = data["models"], data["classes_"], data["best_iters"]
-        
+
         model.base_estimator.best_iterations = best_iters
         preds = model.predict_proba(X)
-        
+
         return preds
 
 
 class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, CustomModel):
     _mojo = False
-    
+
     @property
     def has_pred_contribs(self):
         return False
@@ -120,16 +119,16 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
     @property
     def has_output_margin(self):
         return False
-    
+
     def set_default_params(self, **kwargs):
         super().set_default_params(**kwargs)
         self.params["calib_method"] = "sigmoid"
         self.params["calib_perc"] = .1
-        
+
     def mutate_params(self, **kwargs):
         super().mutate_params(**kwargs)
         self.params["calib_method"] = np.random.choice(["isotonic", "sigmoid"])
-        self.params["calib_perc"] = np.random.choice([.05,.1,.15,.2])
-        
+        self.params["calib_perc"] = np.random.choice([.05, .1, .15, .2])
+
     def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
         raise NotImplementedError("No MOJO for %s" % self.__class__.__name__)

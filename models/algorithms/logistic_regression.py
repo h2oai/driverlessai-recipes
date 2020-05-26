@@ -343,7 +343,8 @@ class LogisticRegressionModel(CustomModel):
         # can add explicit column name list to below force_cats
         force_cats = cat_features + catlabel_features
 
-        actual_numerical_features = (X.dtypes == 'float') | (X.dtypes == 'float32') | (X.dtypes == 'float64')# | (X.dtypes == 'int') | (X.dtypes == 'int32') | (X.dtypes == 'int64') | (X.dtypes == 'bool')
+        actual_numerical_features = (X.dtypes == 'float') | (X.dtypes == 'float32') | (
+                    X.dtypes == 'float64')  # | (X.dtypes == 'int') | (X.dtypes == 'int32') | (X.dtypes == 'int64') | (X.dtypes == 'bool')
         # choose if numeric is treated as categorical
         if not self._num_as_cat or self._num_as_num:
             # treat (e.g.) binary as both numeric and categorical
@@ -584,7 +585,6 @@ class LogisticRegressionModel(CustomModel):
                 struuid = str(uuid.uuid4())
                 imp.to_csv("prepreimp_%s.csv" % struuid)
 
-
         if self._debug:
             imp = pd.Series(importances, index=full_features_list).sort_values(ascending=False)
             import uuid
@@ -608,7 +608,8 @@ class LogisticRegressionModel(CustomModel):
 
         # aggregate importances by dai feature name
         importances = pd.Series(np.abs(importances), index=full_features_list).groupby(level=0).mean()
-        assert len(importances) == len(X_orig_cols_names), "lenimp=%d lenorigX=%d msg=%s : X.columns=%s dtypes=%s : full_features_list=%s" % (
+        assert len(importances) == len(
+            X_orig_cols_names), "lenimp=%d lenorigX=%d msg=%s : X.columns=%s dtypes=%s : full_features_list=%s" % (
             len(importances), len(X_orig_cols_names), msg,
             str(list(X.columns)), str(list(X.dtypes)), str(full_features_list))
 
@@ -813,7 +814,7 @@ class make_features(object):
         file = file.replace("csv", "pkl")
         file2 = file.replace("munged", "clone")
         if self.cache and os.path.isfile(file) and os.path.isfile(file2):
-            #X = pd.read_csv(file, sep=',', header=0)
+            # X = pd.read_csv(file, sep=',', header=0)
             X = load_obj(file)
             X = X.drop("target", axis=1, errors='ignore')
             if not transform:
@@ -841,12 +842,12 @@ class make_features(object):
 
         X, self.animal = self.make_feat(X, 'nom_2', 'animal', nom22num)
 
-        #def has_char(x, char):
+        # def has_char(x, char):
         #    x_str = str(x)
         #    return 1 if char.upper() in x_str.upper() else 0
 
-        #self.haschars = [None] * len(self.orig_cols)
-        #for ni, c in enumerate(self.orig_cols):
+        # self.haschars = [None] * len(self.orig_cols)
+        # for ni, c in enumerate(self.orig_cols):
         #    X, self.lenfeats[ni] = self.make_feat(X, c, 'len', get_len)
 
         def get_len(x):
@@ -856,6 +857,7 @@ class make_features(object):
         self.lenfeats = [None] * len(self.orig_cols)
         for ni, c in enumerate(self.orig_cols):
             X, self.lenfeats[ni] = self.make_feat(X, c, 'len', get_len)
+
         #
         def get_first(x):
             x_str = str(x)
@@ -886,7 +888,9 @@ class make_features(object):
             self.hexchar = [None] * len(hex_strings) * width
             for ni, c in enumerate(hex_strings):
                 for nii in range(0, width):
-                    X, self.hexchar[ni * width + nii] = self.make_feat(X, c, 'hexchar%d' % nii, get_charnum, is_float=False, i=nii)
+                    X, self.hexchar[ni * width + nii] = self.make_feat(X, c, 'hexchar%d' % nii, get_charnum,
+                                                                       is_float=False, i=nii)
+
         #
         def hex_to_int(x):
             x_int = int(eval('0x' + str(x)))
@@ -1021,7 +1025,8 @@ class make_features(object):
                            'nom_3', 'nom_4', 'nom_5',
                            'nom_6', 'nom_7', 'nom_8',
                            'nom_9', 'ord_1', 'ord_2']
-        orig_feat_names = [self.raw_names_dict_reversed[x] for x in list(self.orig_cols)]  # try just encoding all columns
+        orig_feat_names = [self.raw_names_dict_reversed[x] for x in
+                           list(self.orig_cols)]  # try just encoding all columns
         new_names = ['lexi%d' % x for x in range(len(orig_feat_names))]
         if not transform:
             self.lexi = [None] * len(orig_feat_names)
@@ -1042,7 +1047,7 @@ class make_features(object):
                 self.new_names_dict[new_feat_name] = [dai_feat_name]
                 self.lexi_names[ni] = new_feat_name
 
-        if False: # already done by lexi encoding
+        if False:  # already done by lexi encoding
             # sorted label encoding of ord_5, use for numeric
             orig_feat_name = 'ord_5'
             new_name = 'ord5sorted'
@@ -1183,7 +1188,7 @@ class make_features(object):
             Xy = X.copy()
             if not transform:
                 Xy.loc[:, 'target'] = y
-            #Xy.to_csv(file, index=False)
+            # Xy.to_csv(file, index=False)
             save_obj_atomically(Xy, file)
             if not transform:
                 save_obj_atomically(copy.deepcopy(self), file2)
@@ -1289,16 +1294,16 @@ class make_features(object):
         return features
 
     def update_cat_and_num(self, force):
-        #if self.other_te:
+        # if self.other_te:
         #    force.extend(self.teo_names)  # numeric and cat
-        #if self.dai_te:
+        # if self.dai_te:
         #    force.extend(self.te_names)  # numeric and cat
 
-        #if 'bin_0' in self.raw_names_dict:
+        # if 'bin_0' in self.raw_names_dict:
         #    force.append(self.raw_names_dict['bin_0'])
-        #if 'bin_1' in self.raw_names_dict:
+        # if 'bin_1' in self.raw_names_dict:
         #    force.append(self.raw_names_dict['bin_1'])
-        #if 'bin_2' in self.raw_names_dict:
+        # if 'bin_2' in self.raw_names_dict:
         #    force.append(self.raw_names_dict['bin_2'])
         return force
 
@@ -1318,4 +1323,3 @@ def get_TE_params(cat_X, debug=False):
     MAX_UNIQUE = max(len_uniques)
     FEATURES_COUNT = cat_X.shape[1]
     return ALPHA, MAX_UNIQUE, FEATURES_COUNT
-

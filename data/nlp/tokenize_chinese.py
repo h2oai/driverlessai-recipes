@@ -9,6 +9,7 @@ cols_to_tokenize = []
 
 _global_modules_needed_by_name = ["jieba==0.42.1"]
 
+
 class TokenizeChiense(CustomData):
 
     @staticmethod

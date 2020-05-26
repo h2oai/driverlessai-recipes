@@ -16,7 +16,7 @@ import pandas as pd
 from h2oaicore.data import BaseData
 import typing
 
-#Please fill up before usage
+# Please fill up before usage
 AZURE_SERVICE_KEY = ''
 AZURE_SERVICE_REGION = ''
 WAV_COLNAME = ''
@@ -29,7 +29,7 @@ class AzureWav2Txt(BaseData):
     """
 
     """Specify the python package dependencies (will be installed via pip install mypackage==1.3.37)"""
-    _modules_needed_by_name = ["azure-cognitiveservices-speech==1.6.0"] 
+    _modules_needed_by_name = ["azure-cognitiveservices-speech==1.6.0"]
 
     @staticmethod
     def create_data(X: dt.Frame = None) -> dt.Frame:
@@ -48,7 +48,6 @@ class AzureWav2Txt(BaseData):
         if WAV_COLNAME in X.columns:
             speech_config = speechsdk.SpeechConfig(subscription=AZURE_SERVICE_KEY, region=AZURE_SERVICE_REGION)
             X[WAV_COLNAME] = X[WAV_COLNAME].astype(str)
-            X[WAV_COLNAME+"_txt"] = X[WAV_COLNAME].apply(lambda s: _wav_to_str(s, speech_config))  
-        
+            X[WAV_COLNAME + "_txt"] = X[WAV_COLNAME].apply(lambda s: _wav_to_str(s, speech_config))
+
         return dt.Frame(X)
-    

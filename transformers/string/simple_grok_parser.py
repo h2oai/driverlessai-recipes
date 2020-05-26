@@ -12,6 +12,8 @@ _PATTERN = '%{TIMESTAMP_ISO8601:ts} %{IPV4:ip} %{NUMBER:status:int}: %{LOGLEVEL:
 #
 # Column name to transform using the pattern above
 _COLUMN_TO_PARSE = 'syslog'
+
+
 #
 #
 # These new columns will be added based on the pattern above:
