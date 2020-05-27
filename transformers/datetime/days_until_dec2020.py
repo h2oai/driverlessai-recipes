@@ -11,12 +11,12 @@
 
 
 from h2oaicore.transformer_utils import CustomTransformer
+import pandas as pd
 import datatable as dt
 import numpy as np
-import pandas as pd
 import dateparser
 
-_global_modules_needed_by_name = ['regex==2018.1.10', 'dateparser==0.7.1']
+_global_modules_needed_by_name = ['dateparser==0.7.1']
 
 
 def convert_to_age(ts):
