@@ -7,7 +7,7 @@ import math
 
 
 class EmbeddingSimilarityTransformer(CustomTransformer):
-    _modules_needed_by_name = ['regex==2018.1.10', 'flair==0.4.1', 'segtok==1.5.7']
+    _modules_needed_by_name = ['regex==2019.12.17', 'flair==0.4.1', 'segtok==1.5.7']
     _is_reproducible = False
     _can_use_gpu = True
     _repl_val = 0
