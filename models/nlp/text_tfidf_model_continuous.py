@@ -28,29 +28,6 @@ def get_value(config, key):
         return None
 
 
-# Text column should be passed through this transformer for the TextTFIDF model
-class TextIdentityTransformer(CustomTransformer):
-    """Identity transformer for text"""
-    _numeric_output = False
-
-    @property
-    def display_name(self):
-        return "Str"
-
-    @staticmethod
-    def get_default_properties():
-        return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
-
-    def fit_transform(self, X: dt.Frame, y: np.array = None):
-        return self.transform(X)
-
-    def transform(self, X: dt.Frame):
-        return X.to_pandas().astype(str)
-
-
-# "{'Custom_TextTFIDF_save':'/home/dmitry/Desktop/tmp/save_0.pkl'}"
-# "{'Custom_TextTFIDF_load':'/home/dmitry/Desktop/tmp/save_0.pkl','Custom_TextTFIDF_save':'/home/dmitry/Desktop/tmp/save_1.pkl'}"
-
 class TextTFIDFModel(CustomModel):
     """Text classification / regression model using TFIDF"""
     _regression = False
@@ -58,8 +35,7 @@ class TextTFIDFModel(CustomModel):
     _multiclass = True
     _can_handle_non_numeric = True
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
-
-    _included_transformers = ["TextIdentityTransformer"]  # Takes input only from above transformer
+    _included_transformers = ["TextOriginalTransformer"]
 
     load_key = "Custom_TextTFIDF_load"
     save_key = "Custom_TextTFIDF_save"
