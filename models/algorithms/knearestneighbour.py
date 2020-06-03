@@ -86,7 +86,13 @@ class KNearestNeighbourModel(CustomModel):
                 X[:, col] = dt.Frame(np.zeros((X.nrows, 1)))
 
         X = X.to_numpy()
+        X = np.nan_to_num(X)
+        X[X == np.inf] = 0
+        X[X == -np.inf] = 0
         X = self.standard_scaler.fit_transform(X)
+        X = np.nan_to_num(X)
+        X[X == np.inf] = 0
+        X[X == -np.inf] = 0
         feature_model.fit(X, y)
         model.fit(X, y)
         importances = np.array(abs(feature_model.coef_))
@@ -108,7 +114,13 @@ class KNearestNeighbourModel(CustomModel):
 
         model, _, _, _ = self.get_model_properties()
         X = X.to_numpy()
+        X = np.nan_to_num(X)
+        X[X == np.inf] = 0
+        X[X == -np.inf] = 0
         X = self.standard_scaler.transform(X)
+        X = np.nan_to_num(X)
+        X[X == np.inf] = 0
+        X[X == -np.inf] = 0
         if not pred_contribs:
             if self.num_classes == 1:
                 preds = model.predict(X)
