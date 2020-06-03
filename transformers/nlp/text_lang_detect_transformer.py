@@ -42,5 +42,9 @@ class TextLangDetectTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        return X.to_pandas().astype(str).iloc[:, 0].apply(
-            lambda x: self.detectLanguageAndEncode(x))
+        from langdetect.lang_detect_exception import LangDetectException
+        try:
+            return X.to_pandas().astype(str).iloc[:, 0].apply(
+                lambda x: self.detectLanguageAndEncode(x))
+        except LangDetectException:
+            return dt.Frame(np.zeros((X.nrows, 1)))
