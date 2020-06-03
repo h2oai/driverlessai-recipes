@@ -553,6 +553,9 @@ class LogisticRegressionModel(CustomModel):
             X = np.nan_to_num(X)
             X[X == np.inf] = 0
             X[X == -np.inf] = 0
+            X[X == -np.inf] = 0
+            X[X > 1E15] = 1E15
+            X[X < -1E15] = -1E15
             model.fit(X, y, **fitkwargs)
 
         # get actual LR model
@@ -685,6 +688,8 @@ class LogisticRegressionModel(CustomModel):
         X = np.nan_to_num(X)
         X[X == np.inf] = 0
         X[X == -np.inf] = 0
+        X[X > 1E15] = 1E15
+        X[X < -1E15] = -1E15
         if self.num_classes == 1:
             preds = model.predict(X)
         else:
