@@ -549,13 +549,8 @@ class LogisticRegressionModel(CustomModel):
         else:
             fitkwargs = dict()
             fitkwargs["%s__sample_weight" % estimator_name] = sample_weight
-            X = X.to_numpy()
-            X = np.nan_to_num(X)
-            X[X == np.inf] = 0
-            X[X == -np.inf] = 0
-            X[X == -np.inf] = 0
-            X[X > 1E15] = 1E15
-            X[X < -1E15] = -1E15
+            X = X.replace([np.inf, -np.inf], np.nan)
+            X = X.fillna(value=0)
             model.fit(X, y, **fitkwargs)
 
         # get actual LR model
@@ -683,13 +678,8 @@ class LogisticRegressionModel(CustomModel):
         X = X.to_pandas()
         if self._kaggle_features and features is not None:
             X = features.transform(X)
-
-        X = X.to_numpy()
-        X = np.nan_to_num(X)
-        X[X == np.inf] = 0
-        X[X == -np.inf] = 0
-        X[X > 1E15] = 1E15
-        X[X < -1E15] = -1E15
+        X = X.replace([np.inf, -np.inf], np.nan)
+        X = X.fillna(value=0)
         if self.num_classes == 1:
             preds = model.predict(X)
         else:
