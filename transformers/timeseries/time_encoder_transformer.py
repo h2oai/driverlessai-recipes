@@ -6,6 +6,7 @@ import numpy as np
 
 class MyTimeColTransformer(CustomTimeSeriesTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+    _causal_recipe_allowed = False  # need self.encoder only available in lag time series recipe mode
 
     @staticmethod
     def get_default_properties():
