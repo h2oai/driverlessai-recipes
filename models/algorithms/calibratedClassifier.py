@@ -73,12 +73,12 @@ class CalibratedClassifierModel:
 
         # calibration
         model_classification.predict_proba = model_classification.predict_simple
-        model_classification.classes_ = np.unique(y_)
+        model_classification.classes_ = self.le.classes_
         calibrator = CalibratedClassifierCV(
             base_estimator=model_classification,
             method=self.params["calib_method"],
             cv='prefit')
-        calibrator.fit(X[te_indx, :].to_pandas(), y_.astype(int)[te_indx].ravel())
+        calibrator.fit(X[te_indx, :].to_pandas(), np.array(y)[te_indx].ravel())
         # calibration
 
         varimp = model_classification.imp_features(columns=X.names)
@@ -108,6 +108,7 @@ class CalibratedClassifierModel:
 
         return preds
 
+from h2oaicore.mojo import MojoWriter, MojoFrame
 
 class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, CustomModel):
     _mojo = False
@@ -131,4 +132,4 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
         self.params["calib_perc"] = np.random.choice([.05, .1, .15, .2])
 
     def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
-        raise NotImplementedError("No MOJO for %s" % self.__class__.__name__)
+        raise NotImplementedError
