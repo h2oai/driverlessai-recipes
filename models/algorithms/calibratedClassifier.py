@@ -35,12 +35,30 @@ class CalibratedClassifierModel:
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         assert len(self.__class__.__bases__) == 3
         assert CalibratedClassifierModel in self.__class__.__bases__
+        
+
 
         self.le.fit(self.labels)
         y_ = self.le.transform(y)
 
         sss = StratifiedShuffleSplit(n_splits=1, test_size=self.params["calib_perc"], random_state=4235)
         tr_indx, te_indx = next(iter(sss.split(y_.reshape(-1, 1), y_)))
+        
+        ### In case of highly imbalanced data te_indx could not contain any positive class examples
+        ### in that case we randomly add 1 exemplar from tr_indx to te_indx
+        #checking classes
+        tr_classes = np.unique(y_[tr_indx])
+        te_classes = np.unique(y_[te_indx])
+        missing_classes = np.setdiff1d(tr_classes, te_classes)
+        
+        #randomly select 1 exemplar of missing class from tr_indx to te_indx
+        if len(missing_classes) > 0:
+            for c in missing_classes:
+                y_train = y_[tr_indx]
+                c_indx = np.argwhere(y_train == c).ravel()
+                c_indx = np.random.choice(c_indx)
+                te_indx = np.append(te_indx, tr_indx[c_indx])
+                tr_indx = tr_indx[tr_indx!=tr_indx[c_indx]]
 
         whoami = [x for x in self.__class__.__bases__ if (x != CustomModel and x != CalibratedClassifierModel)][0]
 
