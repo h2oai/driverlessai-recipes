@@ -283,14 +283,16 @@ class CustomTimeSeriesTransformer(CustomTransformer):
         This default initializer for a `CustomTimeSeriesTransformer` ensures that certain attributes are set.
         Note: Experimental API, will most likely change in future versions.
         """
-        self.encoder = kwargs['encoder']  # maps the date strings of the time column to datetime (int64)
         self.tgc = kwargs['tgc']  # name(s) of time group columns (also includes time column)
-        self.pred_gap = kwargs['pred_gap']  # gap between train and test in periods
-        self.pred_periods = kwargs['pred_periods']  # requested forecast horizon in periods
         self.target = kwargs['target']  # name of target column
         self.time_column = kwargs['time_column'][0] if isinstance(kwargs['time_column'], list) else kwargs[
             'time_column']
         self._datetime_formats = kwargs['datetime_formats']  # dictionary of date/datetime column name -> date format
+
+        # below available only for lag based recipe
+        self.encoder = kwargs['encoder']  # maps the date strings of the time column to datetime (int64)
+        self.pred_gap = kwargs['pred_gap']  # gap between train and test in periods
+        self.pred_periods = kwargs['pred_periods']  # requested forecast horizon in periods
 
     def update_history(self, X: dt.Frame, y: np.array = None, **fit_params):
         """
