@@ -10,7 +10,7 @@ from h2oaicore.systemutils import physical_cores_count
 class GA2MModel(CustomModel):
     _regression = True
     _binary = True
-    _multiclass = True
+    _multiclass = False # According to the `interpret` library: "Multiclass is still experimental. Subject to change per release." So, set to `True` at your own risk.
     _display_name = "GA2M"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _description = (
