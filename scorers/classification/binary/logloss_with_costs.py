@@ -37,7 +37,7 @@ class LoglossWithCostsBinary(CustomScorer):
 
     # column names for cost values or use numeric value when constant
     # costs of false negatives and false positives
-    _fn_cost = 'age'
+    _fn_cost = 'trx_amount'
     _fp_cost = 1.0
     # costs of true negatives and true positives
     _tn_cost = 0.0
