@@ -341,6 +341,10 @@ class CatBoostModel(CustomModel):
                 else:
                     cattype = str  # if was marked as non-numeric, must become string (e.g. for leakage/shift)
                 if cattype is not None:
+                    if cattype == int:
+                        # otherwise would hit: ValueError: Cannot convert non-finite values (NA or inf) to integer
+                        X[col] = X[col].replace([np.inf, -np.inf], np.nan)
+                        X[col] = X[col].fillna(value=0)
                     X[col] = X[col].astype(cattype)
                     if eval_set is not None:
                         valid_X = eval_set[0][0]
