@@ -10,8 +10,6 @@ from sklearn.preprocessing import LabelEncoder
 import numpy as np
 from scipy.special import softmax
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.model_selection import StratifiedShuffleSplit
-
 
 class CalibratedClassifierModel:
     _regression = False
@@ -40,25 +38,20 @@ class CalibratedClassifierModel:
 
         self.le.fit(self.labels)
         y_ = self.le.transform(y)
-
-        sss = StratifiedShuffleSplit(n_splits=1, test_size=self.params["calib_perc"], random_state=4235)
-        tr_indx, te_indx = next(iter(sss.split(y_.reshape(-1, 1), y_)))
         
-        ### In case of highly imbalanced data te_indx could not contain any positive class examples
-        ### in that case we randomly add 1 exemplar from tr_indx to te_indx
-        #checking classes
-        tr_classes = np.unique(y_[tr_indx])
-        te_classes = np.unique(y_[te_indx])
-        missing_classes = np.setdiff1d(tr_classes, te_classes)
         
-        #randomly select 1 exemplar of missing class from tr_indx to te_indx
-        if len(missing_classes) > 0:
-            for c in missing_classes:
-                y_train = y_[tr_indx]
-                c_indx = np.argwhere(y_train == c).ravel()
-                c_indx = np.random.choice(c_indx)
-                te_indx = np.append(te_indx, tr_indx[c_indx])
-                tr_indx = tr_indx[tr_indx!=tr_indx[c_indx]]
+        #Stratified split with classes control - making sure all classes present in both train and test
+        unique_cls = np.unique(y_)
+        tr_indx, te_indx = [], []
+        
+        for c in unique_cls:
+            c_indx = np.argwhere(y_==c).ravel()
+            indx = np.random.permutation(c_indx)
+            start_indx = max(1, int(self.params["calib_perc"]*len(c_indx))) # at least 1 exemplar should be presented
+            tr_indx += list(indx[start_indx:])
+            te_indx += list(indx[:start_indx])
+        tr_indx = np.array(tr_indx)
+        te_indx = np.array(te_indx)
 
         whoami = [x for x in self.__class__.__bases__ if (x != CustomModel and x != CalibratedClassifierModel)][0]
 
