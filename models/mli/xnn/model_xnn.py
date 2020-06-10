@@ -50,6 +50,7 @@ class CustomXNNModel(CustomTensorFlowModel):
 
     _is_reproducible = False
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+    _mojo = False
 
     @staticmethod
     def do_acceptance_test():

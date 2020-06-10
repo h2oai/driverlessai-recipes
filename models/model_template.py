@@ -306,7 +306,7 @@ ll
 
 
 ts_raw_data_transformers = ['RawTransformer',
-                            'OriginalTransformer', 'CatOriginalTransformer',
+                            'OriginalTransformer', 'CatOriginalTransformer', 'TextOriginalTransformer',
                             'DateOriginalTransformer', 'DateTimeOriginalTransformer']
 """List of transformers that don't alter the original input relevant to custom time series models."""
 
@@ -323,6 +323,8 @@ class CustomTimeSeriesModel(CustomModel):
     _time_series_only = True
     _can_handle_non_numeric = True  # date format strings and time grouping columns
     _included_transformers = ts_raw_data_transformers  # this enforces the constraint on input features
+    _lag_recipe_allowed = True  # by default allow lag time series recipe (fold split and features)
+    _causal_recipe_allowed = True  # by default allow causal validation scheme (no lag features)
 
     def __init__(self, context=None, unfitted_pipeline_path=None, transformed_features=None,
                  original_user_cols=None, date_format_strings=dict(), **kwargs):

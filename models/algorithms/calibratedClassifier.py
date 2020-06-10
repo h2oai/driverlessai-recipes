@@ -10,8 +10,6 @@ from sklearn.preprocessing import LabelEncoder
 import numpy as np
 from scipy.special import softmax
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.model_selection import StratifiedShuffleSplit
-
 
 class CalibratedClassifierModel:
     _regression = False
@@ -35,12 +33,25 @@ class CalibratedClassifierModel:
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         assert len(self.__class__.__bases__) == 3
         assert CalibratedClassifierModel in self.__class__.__bases__
+        
+
 
         self.le.fit(self.labels)
         y_ = self.le.transform(y)
-
-        sss = StratifiedShuffleSplit(n_splits=1, test_size=self.params["calib_perc"], random_state=4235)
-        tr_indx, te_indx = next(iter(sss.split(y_.reshape(-1, 1), y_)))
+        
+        
+        #Stratified split with classes control - making sure all classes present in both train and test
+        unique_cls = np.unique(y_)
+        tr_indx, te_indx = [], []
+        
+        for c in unique_cls:
+            c_indx = np.argwhere(y_==c).ravel()
+            indx = np.random.permutation(c_indx)
+            start_indx = max(1, int(self.params["calib_perc"]*len(c_indx))) # at least 1 exemplar should be presented
+            tr_indx += list(indx[start_indx:])
+            te_indx += list(indx[:start_indx])
+        tr_indx = np.array(tr_indx)
+        te_indx = np.array(te_indx)
 
         whoami = [x for x in self.__class__.__bases__ if (x != CustomModel and x != CalibratedClassifierModel)][0]
 
@@ -73,12 +84,12 @@ class CalibratedClassifierModel:
 
         # calibration
         model_classification.predict_proba = model_classification.predict_simple
-        model_classification.classes_ = np.unique(y_)
+        model_classification.classes_ = self.le.classes_
         calibrator = CalibratedClassifierCV(
             base_estimator=model_classification,
             method=self.params["calib_method"],
             cv='prefit')
-        calibrator.fit(X[te_indx, :].to_pandas(), y_.astype(int)[te_indx].ravel())
+        calibrator.fit(X[te_indx, :].to_pandas(), np.array(y)[te_indx].ravel())
         # calibration
 
         varimp = model_classification.imp_features(columns=X.names)
@@ -108,6 +119,7 @@ class CalibratedClassifierModel:
 
         return preds
 
+from h2oaicore.mojo import MojoWriter, MojoFrame
 
 class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, CustomModel):
     _mojo = False
@@ -131,4 +143,4 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
         self.params["calib_perc"] = np.random.choice([.05, .1, .15, .2])
 
     def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
-        raise NotImplementedError("No MOJO for %s" % self.__class__.__name__)
+        raise NotImplementedError
