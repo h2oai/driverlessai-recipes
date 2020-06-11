@@ -89,7 +89,7 @@ class H2OBaseModel:
         try:
             train_kwargs = dict()
 
-            max_runtime_secs = self.params.pop('max_runtime_secs')
+            max_runtime_secs = self.params.get('max_runtime_secs', 0)
             train_kwargs = dict(max_runtime_secs=max_runtime_secs)
 
             if valid_frame is not None:
