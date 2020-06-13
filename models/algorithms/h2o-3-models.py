@@ -163,11 +163,10 @@ class H2OBaseModel:
         model, _, _, _ = self.get_model_properties()
         X = dt.Frame(X)
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
-        model_path = os.path.join(user_dir(), self.id)
+        model_path = os.path.join(user_dir(), self.id, "h2o_model." + str(uuid.uuid4()))
         with open(model_path, "wb") as f:
             f.write(model)
         model = h2o.load_model(os.path.abspath(model_path))
-        remove(model_path)
         test_frame = h2o.H2OFrame(X.to_pandas(), column_types=self.col_types)
         preds_frame = None
 
@@ -185,6 +184,7 @@ class H2OBaseModel:
         finally:
             h2o.remove(self.id)
             h2o.remove(test_frame)
+            remove(model_path)
             if preds_frame is not None:
                 h2o.remove(preds_frame)
 
