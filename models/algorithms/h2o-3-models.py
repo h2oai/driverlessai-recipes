@@ -182,7 +182,7 @@ class H2OBaseModel:
             else:
                 return preds.iloc[:, 1:].values
         finally:
-            h2o.remove(self.id)
+            # h2o.remove(self.id)  Cannot remove id, do multiple predictions on same model
             h2o.remove(test_frame)
             remove(model_path)
             if preds_frame is not None:
