@@ -128,10 +128,11 @@ class H2OBaseModel:
         X = dt.Frame(X)
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = os.path.join(user_dir(), self.id)
-        with open(model_path, "wb") as f:
+        model_file = os.path.join(model_path, "h2o_model." + str(uuid.uuid4()) + ".bin")
+        os.makedirs(model_path, exist_ok=True)
+        with open(model_file, "wb") as f:
             f.write(model)
-        model = h2o.load_model(os.path.abspath(model_path))
-        remove(model_path)
+        model = h2o.load_model(os.path.abspath(model_file))
         test_frame = h2o.H2OFrame(X.to_pandas(), column_types=self.col_types)
         preds_frame = None
 
@@ -142,7 +143,8 @@ class H2OBaseModel:
             return preds.values.ravel()
 
         finally:
-            h2o.remove(self.id)
+            remove(model_path)
+            # h2o.remove(self.id) # Cannot remove id, do multiple predictions on same model
             h2o.remove(test_frame)
             if preds_frame is not None:
                 h2o.remove(preds_frame)
