@@ -46,7 +46,7 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
         os.makedirs(model_path, exist_ok=True)
         with open(model_file, "wb") as f:
             f.write(self.raw_model_bytes)
-        model = h2o.load_model(os.path.abspath(model_path))
+        model = h2o.load_model(os.path.abspath(model_file))
         frame = h2o.H2OFrame(X.to_pandas())
         anomaly_frame = None
 
