@@ -122,6 +122,7 @@ class MyImgTransformer(CustomTransformer, TensorFlowModel):
 
     def transform(self, X: dt.Frame, **kwargs):
         if not os.path.exists(self.model_path):
+            os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
             with open(self.model_path, 'wb') as f:
                 f.write(self.model_bytes)
 
