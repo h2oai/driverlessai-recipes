@@ -55,6 +55,6 @@ class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
             anomaly_frame_df = anomaly_frame.as_data_frame(header=False)
             return anomaly_frame_df
         finally:
-            remove(model_path)
+            remove(model_file)
             h2o.remove(self.id)
             h2o.remove(anomaly_frame)
