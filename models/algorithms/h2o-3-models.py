@@ -186,7 +186,7 @@ class H2OBaseModel:
         finally:
             # h2o.remove(self.id) # Cannot remove id, do multiple predictions on same model
             h2o.remove(test_frame)
-            remove(model_path)
+            remove(model_file)
             if preds_frame is not None:
                 h2o.remove(preds_frame)
 
