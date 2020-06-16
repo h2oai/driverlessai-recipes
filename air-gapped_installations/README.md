@@ -18,13 +18,13 @@ To use custom recipes on a air-gapped environment, do the following steps.
 4) Run the following python script, either in one of the following ways:
 
     a) To load custom recipes from a local file.
-            ./dai-env.sh python load_custom_recipe.py -p </absolute/path/to/the/custom_recipe/file.py>
+            ./dai-env.sh python load_custom_recipe.py -p </absolute/path/to/the/custom_recipe/file.py> >> load_custom_recipe.log
     
     b) To load custom recipes from a URL.
-            ./dai-env.sh python load_custom_recipe.py -u <URL>
+            ./dai-env.sh python load_custom_recipe.py -u <URL> >> load_custom_recipe.log
             
-5) Once the above script was executed successfully, custom recipes and python dependencies will be
-    installed in the  dai-VERSION/tmp/contrib directory.
+5) Once the above script was executed successfully, custom recipes and python dependencies will be installed in the  
+            dai-VERSION/tmp/contrib directory.            
     
 6) Zip the dai-VERSION/tmp/contrib directory, move it to the air-gapped machine and unzip there into the DAI tmp directory.                  
 
