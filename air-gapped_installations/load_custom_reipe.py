@@ -1,36 +1,32 @@
-import sys, getopt
+import argparse
+import sys
 from h2oaicore.recipe_server_support import server_load_all_custom_recipes
 
 
-def main(argv):
-    try:
-        opts, args = getopt.getopt(argv, "hpu:", ["help", "recipe_path=", "recipe_url="])
-        print(opts)
-        if len(opts) == 0:
-            raise getopt.GetoptError("")
-    except getopt.GetoptError:
-        print("Usage:")
-        print('test.py -p <absolute/path/to/recipe>')
-        print('test.py -u <url/to/recipe>')
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt == '-h':
-            print('test.py -p <absolute/path/to/recipe>')
-            print('test.py -u <url/to/recipe>')
-            sys.exit()
-        elif opt in ("-p", "--recipe_path"):
-            if len(arg) == 0:
-                print("Not a valid path")
-            else:
-               server_load_all_custom_recipes(path=arg)
-            sys.exit()
-        elif opt in ("-u", "--recipe_url"):
-            if len(arg) == 0:
-                print("Not a valid URL")
-            else:
-               server_load_all_custom_recipes(url=arg)
-            sys.exit()
+def main():
+
+    agr_parser = argparse.ArgumentParser(description='Load custom recipes',
+                                         usage='./dai-env.sh python load_custom_recipe.py [options] -path or -url')
+
+    args_group = agr_parser.add_mutually_exclusive_group(required=True)
+    args_group.add_argument('-path',
+                           type=str,
+                           help='The path to custom recipes')
+
+    args_group.add_argument('-url',
+                            type=str,
+                            help='The URL to custom recipes')
+
+    args = agr_parser.parse_args()
+
+    print(args.__dict__)
+    if args.path:
+        server_load_all_custom_recipes(path=args.path)
+    elif args.url:
+        server_load_all_custom_recipes(url=args.url)
+    else:
+        print("Need to pass either -path or -url")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
