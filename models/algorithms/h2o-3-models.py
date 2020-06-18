@@ -151,6 +151,10 @@ class H2OBaseModel:
         else:
             df_varimp.index = df_varimp['variable']
             df_varimp = df_varimp.iloc[:, 1]  # relative importance
+            for missing in [x for x in orig_cols if x not in list(df_varimp.index)]:
+                # h2o3 doesn't handle raw strings all the time, can hit:
+                # KeyError: "None of [Index(['0_Str:secret_ChangeTemp'], dtype='object', name='variable')] are in the [index]"
+                df_varimp[missing] = 0
             varimp = df_varimp[orig_cols].values  # order by fitted features
             varimp = np.nan_to_num(varimp)
 
