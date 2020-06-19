@@ -56,7 +56,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.4)
  [1.8.5](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.5)
  [1.8.6](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.6)
-### Count: 165
+### Count: 166
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.]
@@ -117,6 +117,8 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
       * [model_ga2m.py](./models/mli/ga2m/model_ga2m.py) [Explainable Boosting Machines (EBM), implementation of GA2M]
     * [XNN](./models/mli/xnn)
       * [model_xnn.py](./models/mli/xnn/model_xnn.py) [ Explainable neural net ]
+  * [MONOTONIC](./models/monotonic)
+    * [monotonic_gbms.py](./models/monotonic/monotonic_gbms.py) [LightGBM/XGBoost with user-given monotonicity constraints (1/-1/0) for original numeric features]
   * [NLP](./models/nlp)
     * [text_tfidf_model.py](./models/nlp/text_tfidf_model.py) [Text classification / regression model using TFIDF]
     * [text_tfidf_model_continuous.py](./models/nlp/text_tfidf_model_continuous.py) [Text classification model using TFIDF]
