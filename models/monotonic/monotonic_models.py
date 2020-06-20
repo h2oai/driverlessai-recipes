@@ -19,7 +19,10 @@ class MonotonicGBMModel:
     _multiclass = False  # not supported
     _can_handle_categorical = False
     _included_transformers = ['OriginalTransformer']  # want monotonicity on orig features, disable feature engineering
-    _interpretability_min = 7  # enable this model only for interpretability >= 7
+
+    @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
+        return interpretability >= config.monotonicity_constraints_interpretability_switch
 
     # this method is called before fit(), and we use this opportunity to set some internal dicts
     def pre_fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
