@@ -118,7 +118,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [XNN](./models/mli/xnn)
       * [model_xnn.py](./models/mli/xnn/model_xnn.py) [ Explainable neural net ]
   * [MONOTONIC](./models/monotonic)
-    * [monotonic_gbms.py](./models/monotonic/monotonic_gbms.py) [LightGBM/XGBoost with user-given monotonicity constraints (1/-1/0) for original numeric features]
+    * [monotonic_models.py](./models/monotonic/monotonic_models.py) [LightGBM/XGBoostGBM/DecisionTree with user-given monotonicity constraints (1/-1/0) for original numeric features]
   * [NLP](./models/nlp)
     * [text_tfidf_model.py](./models/nlp/text_tfidf_model.py) [Text classification / regression model using TFIDF]
     * [text_tfidf_model_continuous.py](./models/nlp/text_tfidf_model_continuous.py) [Text classification model using TFIDF]
