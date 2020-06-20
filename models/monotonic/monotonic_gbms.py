@@ -53,16 +53,20 @@ class MonotonicGBMModel:
             loggerinfo(logger, "Monotonicity constraints: %s" % {x: user_constraints.get(x, 0) for x in X_names_raw})
 
 
+# https://xgboost.readthedocs.io/en/latest/tutorials/monotonic.html
 class MonotonicXGBoostModel(MonotonicGBMModel, XGBoostGBMModel, BaseCustomModel):
     _description = "XGBoostGBM with user-given monotonicity constraints on original numeric features"
+    _can_use_gpu = False  # slow on GPU
 
     def set_constraints(self, constraints):
         self.params['monotone_constraints'] = "(" + ",".join(constraints) + ")"
 
 
+# https://lightgbm.readthedocs.io/en/latest/Parameters.html#monotone_constraints
 class MonotonicLightGBMModel(MonotonicGBMModel, LightGBMModel, BaseCustomModel):
     _description = "LightGBM with user-given monotonicity constraints on original numeric features"
 
     def set_constraints(self, constraints):
         self.lightgbm_params['monotone_constraints'] = ",".join(constraints)
+        self.lightgbm_params['monotone_penalty'] = 20  # greater than max depth
 
