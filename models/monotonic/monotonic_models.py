@@ -1,6 +1,6 @@
-"""LightGBM/XGBoost with user-given monotonicity constraints (1/-1/0) for original numeric features
+"""LightGBM/XGBoostGBM/DecisionTree with user-given monotonicity constraints (1/-1/0) for original numeric features
 """
-from h2oaicore.models import BaseCustomModel, XGBoostGBMModel, LightGBMModel
+from h2oaicore.models import BaseCustomModel, XGBoostGBMModel, LightGBMModel, DecisionTreeModel
 from h2oaicore.transformers import Transformer
 import numpy as np
 import datatable as dt
@@ -18,8 +18,8 @@ class MonotonicGBMModel:
     """
     _multiclass = False  # not supported
     _can_handle_categorical = False
-    _is_reproducible = False  # not reproducible on GPUs
     _included_transformers = ['OriginalTransformer']  # want monotonicity on orig features, disable feature engineering
+    _interpretability_min = 7  # enable this model only for interpretability >= 7
 
     # this method is called before fit(), and we use this opportunity to set some internal dicts
     def pre_fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
@@ -56,7 +56,7 @@ class MonotonicGBMModel:
 # https://xgboost.readthedocs.io/en/latest/tutorials/monotonic.html
 class MonotonicXGBoostModel(MonotonicGBMModel, XGBoostGBMModel, BaseCustomModel):
     _description = "XGBoostGBM with user-given monotonicity constraints on original numeric features"
-    _can_use_gpu = False  # slow on GPU
+    _can_use_gpu = False  # faster and more reproducible on CPU
 
     def set_constraints(self, constraints):
         self.params['monotone_constraints'] = "(" + ",".join(constraints) + ")"
@@ -65,6 +65,17 @@ class MonotonicXGBoostModel(MonotonicGBMModel, XGBoostGBMModel, BaseCustomModel)
 # https://lightgbm.readthedocs.io/en/latest/Parameters.html#monotone_constraints
 class MonotonicLightGBMModel(MonotonicGBMModel, LightGBMModel, BaseCustomModel):
     _description = "LightGBM with user-given monotonicity constraints on original numeric features"
+    _can_use_gpu = False  # faster and more reproducible on CPU
+
+    def set_constraints(self, constraints):
+        self.lightgbm_params['monotone_constraints'] = ",".join(constraints)
+        self.lightgbm_params['monotone_penalty'] = 20  # greater than max depth
+
+
+# https://lightgbm.readthedocs.io/en/latest/Parameters.html#monotone_constraints
+class MonotonicDecisionTreeModel(MonotonicGBMModel, DecisionTreeModel, BaseCustomModel):
+    _description = "DecisionTree with user-given monotonicity constraints on original numeric features"
+    _can_use_gpu = False  # faster and more reproducible on CPU
 
     def set_constraints(self, constraints):
         self.lightgbm_params['monotone_constraints'] = ",".join(constraints)
