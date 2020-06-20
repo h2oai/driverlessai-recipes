@@ -4,7 +4,7 @@ from h2oaicore.models import BaseCustomModel, XGBoostGBMModel, LightGBMModel, De
 from h2oaicore.transformers import Transformer
 import numpy as np
 import datatable as dt
-from h2oaicore.systemutils import make_experiment_logger, loggerinfo, config
+from h2oaicore.systemutils import make_experiment_logger, loggerinfo, config, loggerdata
 
 
 class MonotonicGBMModel:
@@ -53,7 +53,7 @@ class MonotonicGBMModel:
         if self.context and self.context.experiment_id:
             logger = make_experiment_logger(experiment_id=self.context.experiment_id, tmp_dir=self.context.tmp_dir,
                                             experiment_tmp_dir=self.context.experiment_tmp_dir)
-            loggerinfo(logger, "Monotonicity constraints: %s" % {x: user_constraints.get(x, 0) for x in X_names_raw})
+            loggerdata(logger, "Monotonicity constraints: %s" % {x: user_constraints.get(x, 0) for x in X_names_raw})
 
 
 # https://xgboost.readthedocs.io/en/latest/tutorials/monotonic.html
