@@ -22,6 +22,7 @@ class MonotonicGBMModel:
 
     @staticmethod
     def can_use(accuracy, interpretability, **kwargs):
+        # only enable this model if interpretability setting is high enough (>= 7 by default)
         return interpretability >= config.monotonicity_constraints_interpretability_switch
 
     # this method is called before fit(), and we use this opportunity to set some internal dicts
@@ -42,11 +43,8 @@ class MonotonicGBMModel:
         assert all(x == 1 or x == 0 or x == -1 for x in user_constraints.values()), \
             "monotonicity_constraints_dict must contain only values of 0, 1 or -1"
 
-        # disable default handling of monotonicity constraints in DAI
-        self.params["monotonicity_constraints"] = False
-
         # set custom monotonicity constraints, or fall back to 0 if not provided
-        constraints = [str(user_constraints.get(x, 0)) for x in X_names_raw]
+        constraints = [user_constraints.get(x, 0) for x in X_names_raw]
         self.set_constraints(constraints)
 
         # optional logging
@@ -62,7 +60,7 @@ class MonotonicXGBoostModel(MonotonicGBMModel, XGBoostGBMModel, BaseCustomModel)
     _can_use_gpu = False  # faster and more reproducible on CPU
 
     def set_constraints(self, constraints):
-        self.params['monotone_constraints'] = "(" + ",".join(constraints) + ")"
+        self.params['monotone_constraints'] = constraints
 
 
 # https://lightgbm.readthedocs.io/en/latest/Parameters.html#monotone_constraints
@@ -71,7 +69,7 @@ class MonotonicLightGBMModel(MonotonicGBMModel, LightGBMModel, BaseCustomModel):
     _can_use_gpu = False  # faster and more reproducible on CPU
 
     def set_constraints(self, constraints):
-        self.lightgbm_params['monotone_constraints'] = ",".join(constraints)
+        self.lightgbm_params['monotone_constraints'] = constraints
         self.lightgbm_params['monotone_penalty'] = 20  # greater than max depth
 
 
@@ -81,6 +79,6 @@ class MonotonicDecisionTreeModel(MonotonicGBMModel, DecisionTreeModel, BaseCusto
     _can_use_gpu = False  # faster and more reproducible on CPU
 
     def set_constraints(self, constraints):
-        self.lightgbm_params['monotone_constraints'] = ",".join(constraints)
+        self.lightgbm_params['monotone_constraints'] = constraints
         self.lightgbm_params['monotone_penalty'] = 20  # greater than max depth
 
