@@ -60,7 +60,7 @@ class MonotonicXGBoostModel(MonotonicGBMModel, XGBoostGBMModel, BaseCustomModel)
     _can_use_gpu = False  # faster and more reproducible on CPU
 
     def set_constraints(self, constraints):
-        self.params['monotone_constraints'] = constraints
+        self.params['monotone_constraints'] = '(' + ",".join([str(x) for x in constraints]) + ")"
 
 
 # https://lightgbm.readthedocs.io/en/latest/Parameters.html#monotone_constraints
