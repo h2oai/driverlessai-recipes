@@ -38,11 +38,12 @@ class MonotonicGBMModel:
 
         # read user-defined monotonicity constraints, or empty dict
         user_constraints = config.recipe_dict.get('monotonicity_constraints_dict', {})
-
         # sanity checks
         assert all(x == 1 or x == 0 or x == -1 for x in user_constraints.values()), \
             "monotonicity_constraints_dict must contain only values of 0, 1 or -1"
 
+        # disable default handling of monotonicity constraints in DAI <= 1.8.7
+        self.params["monotonicity_constraints"] = False
         # set custom monotonicity constraints, or fall back to 0 if not provided
         constraints = [user_constraints.get(x, 0) for x in X_names_raw]
         self.set_constraints(constraints)
@@ -64,6 +65,7 @@ class MonotonicXGBoostModel(MonotonicGBMModel, XGBoostGBMModel, BaseCustomModel)
 
 
 # https://lightgbm.readthedocs.io/en/latest/Parameters.html#monotone_constraints
+# only supported for DAI 1.8.7.1+
 class MonotonicLightGBMModel(MonotonicGBMModel, LightGBMModel, BaseCustomModel):
     _description = "LightGBM with user-given monotonicity constraints on original numeric features"
     _can_use_gpu = False  # faster and more reproducible on CPU
@@ -74,6 +76,7 @@ class MonotonicLightGBMModel(MonotonicGBMModel, LightGBMModel, BaseCustomModel):
 
 
 # https://lightgbm.readthedocs.io/en/latest/Parameters.html#monotone_constraints
+# only supported for DAI 1.8.7.1+
 class MonotonicDecisionTreeModel(MonotonicGBMModel, DecisionTreeModel, BaseCustomModel):
     _description = "DecisionTree with user-given monotonicity constraints on original numeric features"
     _can_use_gpu = False  # faster and more reproducible on CPU
