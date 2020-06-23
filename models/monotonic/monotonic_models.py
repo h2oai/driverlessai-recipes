@@ -9,7 +9,8 @@ from h2oaicore.systemutils import make_experiment_logger, loggerinfo, config, lo
 
 class MonotonicModel:
     """
-    This recipe forces user-defined monotonicity constraints on *original* numeric features. It is "just" a convenience wrapper to disable feature engineering, and to only show up if user-specified constraints are active.
+    This recipe forces user-defined monotonicity constraints on *original* numeric features. It is "just" a
+    convenience wrapper to disable feature engineering, and to only show up if user-specified constraints are active.
 
     Add monotonicity constraints under Expert Settings -> Features -> Manual override for monotonicity constraints.
     E.g., monotonicity_constraints_dict = {'PAY_0': -1, 'PAY_2': -1, 'AGE': -1, 'BILL_AMT1': 1, 'PAY_AMT1': -1}
