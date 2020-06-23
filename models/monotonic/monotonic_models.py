@@ -9,12 +9,10 @@ from h2oaicore.systemutils import make_experiment_logger, loggerinfo, config, lo
 
 class MonotonicModel:
     """
-    This recipe enables monotonicity constraints if the recipe_dict contains a valid feature->constraint mapping.
+    This recipe forces user-defined monotonicity constraints on *original* numeric features. It is "just" a convenience wrapper to disable feature engineering, and to only show up if user-specified constraints are active.
 
     Add monotonicity constraints under Expert Settings -> Features -> Manual override for monotonicity constraints.
     E.g., monotonicity_constraints_dict = {'PAY_0': -1, 'PAY_2': -1, 'AGE': -1, 'BILL_AMT1': 1, 'PAY_AMT1': -1}
-
-    Preview/AutoReport can show monotonicity constraints as disabled, but you can ignore that, as recipe takes over.
     """
     _multiclass = False  # not supported
     _can_handle_categorical = False
@@ -26,8 +24,7 @@ class MonotonicModel:
 
     @staticmethod
     def can_use(accuracy, interpretability, **kwargs):
-        # only enable this model if the user provides custom monotonicity constraints, otherwise built-in tree models
-        # already support monotonicity constraints for interpretability >= 7 (based on correlation with target)
+        # only enable this model if the user provides custom monotonicity constraints.
         return len(config.monotonicity_constraints_dict) > 0
 
 
