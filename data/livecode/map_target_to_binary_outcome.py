@@ -3,9 +3,9 @@
 # For example, use when working with multi-nominal classifier and want 
 # to see if binomial model may be preferred or compliment use case.
 
-old_target_name = 'intake_type'
-new_target_name = 'binary_target'
-value_to_map_to_true = 'STRAY'
+old_target_name = 'outcome_type'
+new_target_name = 'is_adoption_target'
+value_to_map_to_true = 'ADOPTION'
 binary_outcomes = (False, True)
 
 # setup filter
