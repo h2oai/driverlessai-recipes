@@ -62,6 +62,13 @@ class CustomTransformer(DataTableTransformer):
         return True
 
     @staticmethod
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, **kwargs):
+        """
+        Whether by default to use.  If False, then only used if all other transformers disabled
+        """
+        return True
+
+    @staticmethod
     def enabled_setting():
         """Return whether recipe operates in "auto", "on", or "off" mode.
            If "auto", then recipe may not always appear as overridden by automatic "smart" choices.
