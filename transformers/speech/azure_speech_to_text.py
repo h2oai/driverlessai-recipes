@@ -41,6 +41,10 @@ class AzureSpeechToText(CustomTransformer):
 
     @staticmethod
     def is_enabled():
+        return True
+
+    @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
         return False
 
     def __init__(self, **kwargs):

@@ -24,6 +24,10 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
     def get_default_properties():
         return dict(col_type="time_column", min_cols=1, max_cols=1, relative_importance=1)
 
+    @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
+        return False  # by default auto arima is too slow, but if the only model selected this will still allow use
+
     def fit(self, X: dt.Frame, y: np.array = None):
         """
         Fits ARIMA models (1 per time group) using historical target values contained in y

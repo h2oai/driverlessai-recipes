@@ -56,6 +56,10 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         return not (arch_type == "ppc64le")
 
     @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
+        return False  # by default too slow unless only enabled
+
+    @staticmethod
     def do_acceptance_test():
         return False
 

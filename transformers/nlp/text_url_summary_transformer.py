@@ -12,6 +12,14 @@ class TextURLSummaryTransformer(CustomTransformer):
 
     @staticmethod
     def is_enabled():
+        return True
+
+    @staticmethod
+    def do_acceptance_test():
+        return False
+
+    @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
         return False
 
     @staticmethod
