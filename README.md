@@ -56,7 +56,11 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.4)
  [1.8.5](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.5)
  [1.8.6](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.6)
-### Count: 166
+ [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
+ [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
+### Count: 169
+* [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
+  * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description]
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.]
@@ -64,7 +68,9 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [airlines_joined_data_flights_in_out.py](./data/airlines_joined_data_flights_in_out.py) [Create augmented airlines datasets]
   * [airlines_joined_data_flights_in_out_regression.py](./data/airlines_joined_data_flights_in_out_regression.py) [Create augmented airlines datasets for regression]
   * [airlines_multiple.py](./data/airlines_multiple.py) [Create airlines dataset]
+  * [bigquery_sharded_data_pull.py](./data/bigquery_sharded_data_pull.py) [Pull data >1Gb from GCP Bigquery using sharding functionality.Based on:    https://cloud.google.com/bigquery/docs/exporting-data#exporting_table_data    https://cloud.google.com/storage/docs/reference/libraries#using_the_client_libraryAuthor: Travis CoutureCreated: 03/18/2020Last Updated: 03/18/2020]
   * [catchallenge.py](./data/catchallenge.py) [Create cat challenge dataset]
+  * [create_transactional_data.py](./data/create_transactional_data.py) [Example code to generate and convert transactional data to i.i.d. data.]
   * [create_transactional_data_or_convert_to_iid.py](./data/create_transactional_data_or_convert_to_iid.py) [Example code to generate and convert transactional data to i.i.d. data.]
   * [creditcard.py](./data/creditcard.py) [Modify credit card dataset]
   * [data_template.py](./data/data_template.py) [Custom data recipe base class]
