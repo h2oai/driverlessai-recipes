@@ -19,7 +19,7 @@ class EmbeddingSimilarityTransformer(CustomTransformer):
 
     @staticmethod
     def is_enabled():
-        return True
+        return False  # sometimes package flair has issues installing
 
     @staticmethod
     def can_use(accuracy, interpretability, **kwargs):
