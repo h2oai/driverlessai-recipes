@@ -27,6 +27,10 @@ class GA2MModel(CustomModel):
             False
         )  # would fail for imbalanced binary problems when logloss gets constant response for holdout (EBM should be passing labels)
 
+    @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
+        return False  # by default GA2M too slow, but if the only model selected this will still allow use
+
     def set_default_params(
             self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
     ):

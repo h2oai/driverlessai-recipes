@@ -349,8 +349,8 @@ class MyNumbaSignalProcessingTransformer(CustomTransformer):
     _modules_needed_by_name = ["numba", "progressbar2"]
 
     @staticmethod
-    def is_enabled():
-        return False
+    def can_use(accuracy, interpretability, **kwargs):
+        return False  # by default too slow unless only enabled
 
     @staticmethod
     def do_acceptance_test():

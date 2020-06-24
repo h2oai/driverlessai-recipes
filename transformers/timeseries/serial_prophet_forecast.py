@@ -38,6 +38,10 @@ class MySerialProphetTransformer(CustomTimeSeriesTransformer):
 
     @staticmethod
     def is_enabled():
+        return True
+
+    @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
         return False
 
     @staticmethod

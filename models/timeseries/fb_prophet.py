@@ -44,8 +44,12 @@ class FBProphetModel(CustomTimeSeriesModel):
         return False
 
     @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
+        return False  # by default too slow unless only enabled
+
+    @staticmethod
     def do_acceptance_test():
-        return True
+        return False
 
     _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.4.post2']
 

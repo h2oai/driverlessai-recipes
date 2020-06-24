@@ -19,6 +19,10 @@ class EmbeddingSimilarityTransformer(CustomTransformer):
 
     @staticmethod
     def is_enabled():
+        return True
+
+    @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
         """Uses all GPU memory - can lead to OOM failures in combination with other GPU-based transformers"""
         return False
 
