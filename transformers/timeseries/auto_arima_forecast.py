@@ -1,4 +1,4 @@
-"""Auto ARIMA transformer is a time series transformer that predicts target using ARIMA models"""
+"""Auto ARIMA transformer is a time series transformer that predicts target using ARIMA models."""
 
 # For more information about the python ARIMA package
 # please visit https://www.alkaline-ml.com/pmdarima/index.html
@@ -228,7 +228,10 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
                     loggerinfo(logger, "Auto ARIMA : %d%% of groups transformed" % (100 * (_i_g + 1) // nb_groups))
 
                 grp_hash = self.get_hash(grp_col, key)
-                model = self.models[grp_hash]
+                try:
+                    model = self.models[grp_hash]
+                except KeyError:
+                    model = None
 
                 # Find unique datetime
                 X_time = X_grp [['ds']].groupby('ds').first().reset_index()
