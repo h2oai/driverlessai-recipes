@@ -41,6 +41,8 @@ class BqShardData(CustomData):
 
     @staticmethod
     def create_data(X: dt.Frame = None) -> dt.Frame:
+        if not BUCKET_NAME:
+            return []
 
         sa_json = config.gcs_path_to_service_account_json
 
