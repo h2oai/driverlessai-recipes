@@ -67,11 +67,12 @@ class LoglossWithCostsBinary(CustomScorer):
         return cost
 
     def score(self,
-              X: dt.Frame,
               actual: np.array,
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
-              labels: typing.Optional[np.array] = None) -> float:
+              labels: typing.Optional[np.array] = None,
+              X: typing.Optional[dt.Frame] = None,
+              **kwargs) -> float:
 
         logger = None
         #        if self._make_logger:
