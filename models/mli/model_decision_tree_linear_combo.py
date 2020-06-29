@@ -191,7 +191,7 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
                 
         pd.DataFrame(equation_log, columns=['leaf value', 'number of samples', 'intercept'] + list(X.columns)).to_csv(os.path.join(tmp_folder, 'Leaf_model_coef.csv'))
 
-        fig, axes = plt.subplots(nrows = 1,ncols = 1,figsize = (4,4), dpi=300)
+        fig, axes = plt.subplots(nrows = 1,ncols = 1,figsize = (8, 8), dpi=1600)
         tree.plot_tree(clf, feature_names = list(X.columns))
         fig.savefig(os.path.join(tmp_folder, 'Decision_tree_plot.png'))
         
