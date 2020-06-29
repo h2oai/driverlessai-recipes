@@ -224,7 +224,9 @@ class SKOPE_RULES(CustomModel):
         if max(var_imp) != 0:
             importances = list(np.array(var_imp)/max(var_imp))
         else:
-            importances = [1] * len(var_imp)     
+            importances = [1] * len(var_imp)   
+            
+        pd.DataFrame(model.rules_).to_csv(os.path.join(tmp_folder, 'Skope_rules.csv'), index=False)
         
         # Set model properties
         self.set_model_properties(model=model,
