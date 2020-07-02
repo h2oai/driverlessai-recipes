@@ -17,7 +17,8 @@ class MyAverageMCCScorer(CustomScorer):
               actual: np.array,
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
-              labels: typing.Optional[np.array] = None) -> float:
+              labels: typing.Optional[np.array] = None,
+              **kwargs) -> float:
         """Reasoning behind using several thresholds
         MCC can vary a lot from one threshold to another
         and especially may give different results on train and test datasets
