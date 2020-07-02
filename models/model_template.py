@@ -111,6 +111,9 @@ class CustomModel(BaseCustomModel):
         """
         Return whether the model can be used given the settings and parameters that are passed in.
 
+        Note: If all models selected by include list have can_use of False, then the used list reverts to
+        the include list without considering can_use.
+
         Args:
             accuracy (int): Accuracy setting for this experiment (1 to 10)
                 10 is most accurate, expensive
