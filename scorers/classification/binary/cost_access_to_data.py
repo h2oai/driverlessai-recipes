@@ -28,7 +28,8 @@ class CostBinaryWithData(CustomScorer):
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None,
-              X: typing.Optional[dt.Frame] = None) -> float:
+              X: typing.Optional[dt.Frame] = None,
+              **kwargs) -> float:
         # can compute arbitrary cost from all original features
         if X is not None:
             assert X.nrows == len(actual)

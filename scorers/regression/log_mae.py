@@ -17,5 +17,6 @@ class LogMeanAbsoluteError(CustomScorer):
               actual: np.array,
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
-              labels: typing.Optional[np.array] = None) -> float:
+              labels: typing.Optional[np.array] = None,
+              **kwargs) -> float:
         return np.log(mean_absolute_error(actual, predicted))
