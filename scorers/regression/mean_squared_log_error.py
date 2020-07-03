@@ -17,7 +17,8 @@ class MyMeanSquaredLogError(CustomScorer):
               actual: np.array,
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
-              labels: typing.Optional[np.array] = None) -> float:
+              labels: typing.Optional[np.array] = None,
+              **kwargs) -> float:
         if not ((actual >= 0).all() and (predicted >= 0).all()):
             return 1e36
         return mean_squared_log_error(actual, predicted)
