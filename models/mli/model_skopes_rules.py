@@ -227,7 +227,9 @@ class SKOPE_RULES(CustomModel):
             importances = [1] * len(var_imp)   
             
         pd.DataFrame(model.rules_).to_csv(os.path.join(tmp_folder, 'Skope_rules.csv'), index=False)
-        
+ 
+        self.mean_target = np.array(sum(y)/len(y))
+       
         # Set model properties
         self.set_model_properties(model=model,
                                   features=list(X.columns),
@@ -283,6 +285,7 @@ class SKOPE_RULES(CustomModel):
         preds=model.score_top_rules(X) / len(self.rule_list)
         preds=np.array(preds)
         epsilon = 10**(-3)
+        preds = np.nan_to_num(preds, nan=self.mean_target)
         preds[preds>1-epsilon] = 1.0 - epsilon
         preds[preds<0+epsilon] = 0.0 + epsilon
 

@@ -198,6 +198,8 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
         importances = clf.feature_importances_
         loggerinfo(logger, str(importances))
         
+        self.mean_target = np.array(sum(y)/len(y))        
+        
         model = [clf, model_array]
         # Set model properties
         self.set_model_properties(model=model,
@@ -273,4 +275,6 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
                         temp = lm.predict(X[p==cat])  
                         pp[p==cat] = temp 
                      
+        pp = np.nan_to_num(pp, nan=self.mean_target)
+                        
         return pp
