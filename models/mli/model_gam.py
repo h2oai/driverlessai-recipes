@@ -178,6 +178,8 @@ class GAM(CustomModel):
         else:
             importances = [1]*(len(p_values) - 1)
 
+        self.mean_target = np.array(sum(y)/len(y))
+
         self.set_model_properties(model=clf,
                                   features=list(X.columns),
                                   importances=importances,
@@ -232,5 +234,7 @@ class GAM(CustomModel):
             p = model.predict_proba(X)
         else:
             p = model.predict(X)
+
+        p = np.nan_to_num(p, nan=self.mean_target)
 
         return p
