@@ -173,7 +173,7 @@ class GAM(CustomModel):
 
         if max(p_values[0:(len(p_values) - 1)]) > 0:
             importances = -np.log(p_values[0:(len(p_values) - 1)] + 10**(-16))
-            #importances = np.array(importances) - min(importances)
+
             importances = list(importances/max(importances))
         else:
             importances = [1]*(len(p_values) - 1)
