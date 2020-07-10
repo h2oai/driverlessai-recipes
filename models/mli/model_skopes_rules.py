@@ -285,7 +285,7 @@ class SKOPE_RULES(CustomModel):
         preds=model.score_top_rules(X) / len(self.rule_list)
         preds=np.array(preds)
         epsilon = 10**(-3)
-        preds = np.nan_to_num(preds, nan=self.mean_target)
+        preds[np.isnan(preds)] = self.mean_target
         preds[preds>1-epsilon] = 1.0 - epsilon
         preds[preds<0+epsilon] = 0.0 + epsilon
 
