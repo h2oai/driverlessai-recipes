@@ -275,6 +275,6 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
                         temp = lm.predict(X[p==cat])  
                         pp[p==cat] = temp 
                      
-        pp = np.nan_to_num(pp, nan=self.mean_target)
+        pp[np.isnan(pp)] = self.mean_target
                         
         return pp

@@ -235,6 +235,6 @@ class GAM(CustomModel):
         else:
             p = model.predict(X)
 
-        p = np.nan_to_num(p, nan=self.mean_target)
+        p[np.isnan(p)] = self.mean_target
 
         return p
