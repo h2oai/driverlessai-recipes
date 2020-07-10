@@ -5,7 +5,7 @@
 # Last Updated:
 
 
-from typing import Union, List
+from typing import Union, List, Dict
 from h2oaicore.data import CustomData
 import datatable as dt
 import numpy as np
@@ -15,10 +15,16 @@ from h2oaicore.systemutils import user_dir
 
 class NYTimesCovid19DailyCasesDeathsByStatesData(CustomData):
     @staticmethod
-    def create_data(X: dt.Frame = None) -> Union[str, List[str],
-                                                 dt.Frame, List[dt.Frame],
-                                                 np.ndarray, List[np.ndarray],
-                                                 pd.DataFrame, List[pd.DataFrame]]:
+    def create_data(X: dt.Frame = None) -> Union[
+        str, List[str],
+        dt.Frame, List[dt.Frame],
+        np.ndarray, List[np.ndarray],
+        pd.DataFrame, List[pd.DataFrame],
+        Dict[str, str],  # {data set names : paths}
+        Dict[str, dt.Frame],  # {data set names : dt frames}
+        Dict[str, np.ndarray],  # {data set names : np arrays}
+        Dict[str, pd.DataFrame],  # {data set names : pd frames}
+    ]:
         # define date column and forecast horizon
         date_col = 'date'
         forecast_len = 7
@@ -35,8 +41,7 @@ class NYTimesCovid19DailyCasesDeathsByStatesData(CustomData):
         # augment data with state population figures and create adjusted case and death counts
         us_states[:, dt.update(pop=dt.g.pop, pop100k=dt.g.pop / 100000,
                                cases100k=dt.f.cases / (dt.g.pop / 100000),
-                               deaths100k=dt.f.deaths / (dt.g.pop / 100000)),
-        dt.join(us_states_pop)]
+                               deaths100k=dt.f.deaths / (dt.g.pop / 100000)), dt.join(us_states_pop)]
 
         # determine threshold to split train and test based on forecast horizon
         dates = dt.unique(us_states[:, date_col])
