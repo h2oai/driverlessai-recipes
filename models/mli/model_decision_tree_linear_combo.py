@@ -110,6 +110,7 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
         
         # Find the datatypes
         X = X.to_pandas()
+        X.columns = orig_cols
 
         # Change continuous features to categorical
         X_datatypes = [str(item) for item in list(X.dtypes)]
