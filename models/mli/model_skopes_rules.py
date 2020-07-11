@@ -165,6 +165,7 @@ class SKOPE_RULES(CustomModel):
         
         # Find the datatypes
         X = X.to_pandas()
+        X.columns = orig_cols
 
         # Change continuous features to categorical
         X_datatypes = [str(item) for item in list(X.dtypes)]
