@@ -227,7 +227,7 @@ class SKOPE_RULES(CustomModel):
         else:
             importances = [1] * len(var_imp)   
             
-        pd.DataFrame(model.rules_).to_csv(os.path.join(tmp_folder, 'Skope_rules.csv'), index=False)
+        pd.DataFrame(model.rules_, columns=['Rule', '(Precision, Recall, nb)']).to_csv(os.path.join(tmp_folder, 'Skope_rules.csv'), index=False)
  
         self.mean_target = np.array(sum(y)/len(y))
        
