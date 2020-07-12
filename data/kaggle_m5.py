@@ -3,7 +3,7 @@ import uuid
 from collections import OrderedDict
 from zipfile import ZipFile
 
-from h2oaicore.data import CustomData  # BoilerPlate - not needed for unit test
+from h2oaicore.data import CustomData
 
 import pandas as pd
 import datatable as dt
@@ -13,10 +13,8 @@ from h2oaicore.systemutils_more import download
 tmp_dir = os.path.join(user_dir(), str(uuid.uuid4())[:6])
 path_to_zip = "https://files.slack.com/files-pri/T0329MHH6-F0150BK8L01/download/m5-forecasting-accuracy.zip?pub_secret=acfcbf3386"
 
-# Customize
 holdout_splits = {
-    'm5_public': range(1914, 1914 + 28),  # public LB - will be part of training at end of comp
-    'm5_private': range(1942, 1942 + 28)   # private LB
+    'm5_private': range(1942, 1942 + 28)  # private LB
 }
 
 
@@ -40,19 +38,12 @@ class PrepareM5Data(CustomData):
         data = pd.melt(main_data.to_pandas(), id_vars=id_cols, value_vars=date_cols, var_name="d", value_name=target)
         data[target] = data[target].astype(float)
         data = dt.Frame(data)
+        data_splits = [data]
         names = ["m5_train"]
-
-        # public leaderboard
-        date_cols2 = all_cols[-28:]
-        data2 = pd.melt(main_data.to_pandas(), id_vars=id_cols, value_vars=date_cols2, var_name="d", value_name=target)
-        data2[target] = data2[target].astype(float)
-        data2 = dt.Frame(data2)
-        names.append("m5_test")
 
         # test data for submission
         submission = dt.fread(os.path.join(tmp_dir, "sample_submission.csv"))
 
-        data_splits = [data, data2]
         for name, ranges in holdout_splits.items():
             test_cls = ["d_" + str(k) for k in ranges]
             test_data = []
@@ -88,9 +79,3 @@ class PrepareM5Data(CustomData):
             f = f[:, :, dt.join(price_data)]
             ret[n] = f
         return ret
-
-
-def test_m5():
-    ret = PrepareM5Data.create_data()
-    for t in ret.values():
-        print(t)
