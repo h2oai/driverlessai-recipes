@@ -49,7 +49,7 @@ class GAM(CustomModel):
         self.params["max_iter"] = np.random.choice(max_iter) 
 
     def _create_tmp_folder(self, logger):
-        # Create a temp folder to store xnn files 
+        # Create a temp folder to store files 
         # Set the default value without context available (required to pass acceptance test)
         tmp_folder = os.path.join(temporary_files_path, "%s_GAM_model_folder" % uuid.uuid4())
         # Make a real tmp folder when experiment is available
@@ -78,6 +78,7 @@ class GAM(CustomModel):
         return tmp_folder
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        
         orig_cols = list(X.names)
        
         import pandas as pd
@@ -118,7 +119,6 @@ class GAM(CustomModel):
         X_datatypes = [str(item) for item in list(X.dtypes)]
         
         # Change all float32 values to float64
-        # Skopes crashes otherwise
         for ii in range(len(X_datatypes)):
             if X_datatypes[ii] == 'float32':
                X = X.astype({orig_cols[ii]: np.float64})
@@ -163,6 +163,7 @@ class GAM(CustomModel):
         
         p_values = np.array(clf.statistics_['p_values'])
                           
+        # Plot the partial dependence plots for each feature
         for ii in range(X.shape[1]):
             XX = clf.generate_X_grid(term=ii)
             plt.figure();

@@ -41,7 +41,6 @@ class SKOPE_RULES(CustomModel):
             recall_min=[0.01, 0.05]
             max_samples = [0.5, 0.8, 1.0]
             max_samples_features = [0.5, 0.8, 1.0]
-
             max_depth = [3, 4, 5]
             max_features = ["sqrt", "log2", "auto"]
             min_samples_split = [2, 11, 21]
@@ -54,7 +53,6 @@ class SKOPE_RULES(CustomModel):
             recall_min=[0.01]
             max_samples = [0.8, 1.0]
             max_samples_features = [1.0]
-
             max_depth = [3, 4]
             max_features = ["sqrt", "log2", "auto"]
             min_samples_split = [2, 5, 11]
@@ -67,13 +65,12 @@ class SKOPE_RULES(CustomModel):
             recall_min=[0.01]
             max_samples = [0.8, 1.0]
             max_samples_features = [0.8, 1.0]
-
             max_depth = [3, 4]
             max_features = ["auto"]
             min_samples_split = [2]
             bootstrap= [True, False]     
             bootstrap_features = [True, False]  
-        # Modify certain parameters for tuning
+
         self.params["max_depth_duplication"] = np.random.choice(max_depth_duplication)
         self.params["n_estimators"] = np.random.choice(n_estimators)
         self.params["precision_min"] = np.random.choice(precision_min)        
@@ -88,7 +85,7 @@ class SKOPE_RULES(CustomModel):
 
 
     def _create_tmp_folder(self, logger):
-        # Create a temp folder to store xnn files 
+        # Create a temp folder to store files 
         # Set the default value without context available (required to pass acceptance test)
         tmp_folder = os.path.join(temporary_files_path, "%s_SKOPE_model_folder" % uuid.uuid4())
         # Make a real tmp folder when experiment is available
@@ -118,8 +115,8 @@ class SKOPE_RULES(CustomModel):
 
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        
         orig_cols = list(X.names)
-       
         
         import pandas as pd
         import numpy as np
@@ -171,7 +168,6 @@ class SKOPE_RULES(CustomModel):
         X_datatypes = [str(item) for item in list(X.dtypes)]
         
         # Change all float32 values to float64
-        # Skopes crashes otherwise
         for ii in range(len(X_datatypes)):
             if X_datatypes[ii] == 'float32':
                X = X.astype({orig_cols[ii]: np.float64})
@@ -194,7 +190,6 @@ class SKOPE_RULES(CustomModel):
         if len(self.X_categorical) > 0:
             loggerinfo(logger, "PCategorical encode")  
             
-            #X.loc[:, self.X_categorical] = X[self.X_categorical].fillna("Missing").copy()
             for colname in self.X_categorical:
                 X[colname] = list(X[colname].fillna("Missing")) 
             self.enc = OneHotEncoder(handle_unknown='ignore')
@@ -208,7 +203,7 @@ class SKOPE_RULES(CustomModel):
 
         # Replace missing values with a missing value code
         if len(self.X_numeric) > 0:
-            #X.loc[:, self.X_numeric] = X[self.X_numeric].fillna(-999).copy()      
+   
             for colname in self.X_numeric:
                 X[colname] = list(X[colname].fillna(-999)) 
         
