@@ -44,7 +44,7 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
 
 
     def _create_tmp_folder(self, logger):
-        # Create a temp folder to store xnn files 
+        # Create a temp folder to store files 
         # Set the default value without context available (required to pass acceptance test)
         tmp_folder = os.path.join(temporary_files_path, "%s_DTL_model_folder" % uuid.uuid4())
         # Make a real tmp folder when experiment is available
@@ -74,6 +74,7 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
 
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        
         orig_cols = list(X.names)
         
         import pandas as pd
@@ -151,6 +152,7 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
         if len(self.X_numeric) > 0:
             X.loc[:, self.X_numeric] = X[self.X_numeric].fillna(-999).copy()   
             
+        # Fit the decision tree
         clf.fit(X, y)
         if self.is_classifier:
             yy = clf.predict_proba(X)
@@ -163,6 +165,8 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
             
         self.leaf_categories = list(set(p))
         
+        
+        # Fit linear or logistic models to each leaf node
         model_array = {}
         equation_log = []
         for cat in self.leaf_categories:
@@ -190,8 +194,10 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
                     loggerinfo(logger, "No leaf fit")
                     model_array[cat] = "dt"                    
                 
+        # Save the leaf models
         pd.DataFrame(equation_log, columns=['leaf value', 'number of samples', 'intercept'] + list(X.columns)).to_csv(os.path.join(tmp_folder, 'Leaf_model_coef.csv'))
 
+        # Plot the decision tree
         fig, axes = plt.subplots(nrows = 1,ncols = 1,figsize = (8, 8), dpi=1600)
         tree.plot_tree(clf, feature_names = list(X.columns))
         fig.savefig(os.path.join(tmp_folder, 'Decision_tree_plot.png'))
@@ -254,7 +260,7 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
             X = pd.concat([X[self.X_numeric], pd.DataFrame(X_enc, columns=self.encoded_categories)], axis=1) 
       
         # Make predictions on the test set
-
+        # Decision tree predictions
         if self.is_classifier:
             y = model[0].predict_proba(X)
             p = np.round_(y[:,1], 5)
@@ -264,6 +270,7 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
             
         pp = p.copy()
         
+        # Leaf node predictions
         for cat in self.leaf_categories:
             if len(X[p==cat]) > 0:
                 if model[1][cat] != "dt":
