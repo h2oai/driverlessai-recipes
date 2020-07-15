@@ -30,10 +30,12 @@ class POSTagTransformer:
             os.makedirs(nltk_temp_path, exist_ok=True)
             tagger_path = os.path.join(nltk_data_path, "taggers")
             os.makedirs(tagger_path, exist_ok=True)
-            file1 = download("https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/averaged_perceptron_tagger.zip",
-                             dest_path=nltk_temp_path)
-            file2 = download("https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/maxent_treebank_pos_tagger.zip",
-                             dest_path=nltk_temp_path)
+            file1 = download(
+                "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/averaged_perceptron_tagger.zip",
+                dest_path=nltk_temp_path)
+            file2 = download(
+                "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/maxent_treebank_pos_tagger.zip",
+                dest_path=nltk_temp_path)
             self.unzip_file(file1, tagger_path)
             self.unzip_file(file2, tagger_path)
             self.atomic_copy(file1, tagger_path)

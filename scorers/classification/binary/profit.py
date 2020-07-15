@@ -35,7 +35,8 @@ class cost_binary(CustomScorer):
               actual: np.array,
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
-              labels: typing.Optional[np.array] = None) -> float:
+              labels: typing.Optional[np.array] = None,
+              **kwargs) -> float:
         # label actuals as 1 or 0
         lb = LabelEncoder()
         labels = lb.fit_transform(labels)
@@ -56,4 +57,5 @@ class cost_binary(CustomScorer):
         fp_loss = fp * cost * (self.__class__._is_zero_predict_one - self.__class__._is_zero_predict_zero)
         tn_profit = tn * cost * (self.__class__._is_zero_predict_zero - self.__class__._is_zero_predict_one)
 
-        return (tp_profit + fn_loss + fp_loss + tn_profit) / (tn+fp+fn+tp)  # divide by total weighted count to make loss invariant of data size
+        return (tp_profit + fn_loss + fp_loss + tn_profit) / (
+                    tn + fp + fn + tp)  # divide by total weighted count to make loss invariant of data size

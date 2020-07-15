@@ -56,6 +56,10 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         return not (arch_type == "ppc64le")
 
     @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
+        return False  # by default too slow unless only enabled
+
+    @staticmethod
     def do_acceptance_test():
         return False
 
@@ -161,7 +165,7 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
         nrows = X[['ds', 'y']].shape[0]
-        n_changepoints = max(1, int(nrows * (2/3)))
+        n_changepoints = max(1, int(nrows * (2 / 3)))
         if n_changepoints < 25:
             model = Prophet(n_changepoints=n_changepoints)
         else:
@@ -236,7 +240,7 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
 
         # Fit current model and prior
         nrows = X[['ds', 'y']].shape[0]
-        n_changepoints = max(1, int(nrows * (2/3)))
+        n_changepoints = max(1, int(nrows * (2 / 3)))
         if n_changepoints < 25:
             model = Prophet(growth=params["growth"], n_changepoints=n_changepoints)
         else:
@@ -345,7 +349,6 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         for g in tgc_wo_time:
             print(f'Number of groups in {g} groups : {X[g].unique().shape}')
 
-
         for key, X_grp in X_groups:
             # Create dict key to store the min max scaler
             grp_hash = self.get_hash(key)
@@ -369,9 +372,10 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         mod = importlib.import_module('fbprophet')
         Prophet = getattr(mod, "Prophet")
         nrows = X[['ds', 'y']].shape[0]
-        n_changepoints = max(1, int(nrows * (2/3)))
+        n_changepoints = max(1, int(nrows * (2 / 3)))
         if n_changepoints < 25:
-            model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True, n_changepoints = n_changepoints)
+            model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True,
+                            n_changepoints=n_changepoints)
         else:
             model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
 
@@ -588,6 +592,7 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
 
             def processor(out, res):
                 out.append(res)
+
             num_tasks = len(top_groups)
             pool_to_use = small_job_pool
             pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks, max_workers=n_jobs)

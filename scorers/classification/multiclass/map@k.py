@@ -26,7 +26,8 @@ class MAPatk(CustomScorer):
     _supports_sample_weight = False
 
     def score(self, actual: np.array, predicted: np.array, sample_weight: typing.Optional[np.array] = None,
-              labels: typing.Optional[np.array] = None) -> float:
+              labels: typing.Optional[np.array] = None,
+              **kwargs) -> float:
         num_classes = len(labels)
         lb = LabelEncoder()
         labels = lb.fit_transform(labels)
@@ -38,5 +39,3 @@ class MAPatk(CustomScorer):
         for i in range(k):
             mapk += ((best_k[:, i] - actual) == 0).mean() / (i + 1)
         return mapk
-
-

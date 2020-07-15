@@ -23,13 +23,14 @@ class CostBinary_smooth(CustomScorer):
               actual: np.array,
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
-              labels: typing.Optional[np.array] = None) -> float:
-        
+              labels: typing.Optional[np.array] = None,
+              **kwargs) -> float:
         lb = LabelEncoder()
         labels = list(lb.fit_transform(labels))
         actual = lb.transform(actual)
-        
+
         if sample_weight is None:
             sample_weight = np.ones(actual.shape[0])
 
-        return np.sum(((1-actual) * predicted * self.__class__._fp_cost + actual * (1-predicted) * self.__class__._fn_cost)*sample_weight)/np.sum(sample_weight)
+        return np.sum(((1 - actual) * predicted * self.__class__._fp_cost + actual * (
+                    1 - predicted) * self.__class__._fn_cost) * sample_weight) / np.sum(sample_weight)

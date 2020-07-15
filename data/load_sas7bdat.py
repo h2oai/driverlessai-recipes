@@ -34,7 +34,7 @@ from sas7bdat import SAS7BDAT
 # 3. unzip sas.zip
 
 # uncomment below and set correct path to enable this data recipe
-#dai_file_path = "/data/SAS/"
+# dai_file_path = "/data/SAS/"
 dai_file_path = None
 file_names = ["cloth.sas7bdat", "clothes.sas7bdat"]
 

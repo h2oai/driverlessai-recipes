@@ -41,6 +41,10 @@ class AzureSpeechToText(CustomTransformer):
 
     @staticmethod
     def is_enabled():
+        return True
+
+    @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
         return False
 
     def __init__(self, **kwargs):
@@ -80,4 +84,3 @@ class AzureSpeechToText(CustomTransformer):
     def transform(self, X: dt.Frame) -> dt.Frame:
         # TODO: parallelize
         return X.to_pandas().astype(str).iloc[:, 0].apply(lambda s: self._wav_to_str(s))
-

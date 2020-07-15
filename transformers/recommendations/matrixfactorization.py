@@ -29,6 +29,7 @@ from sklearn.decomposition import NMF
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 
+
 class RecH2OMFTransformer(CustomTransformer):
     _multiclass = False
     _can_use_gpu = True

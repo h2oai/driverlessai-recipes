@@ -9,6 +9,7 @@ import nltk
 
 class CountCommonNGramsTransformer(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+
     def __init__(self, ngrams, **kwargs):
         super().__init__(**kwargs)
         self.ngrams = ngrams

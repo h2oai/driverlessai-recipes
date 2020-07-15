@@ -32,7 +32,8 @@ class MyRecallScorer(CustomScorer):
               actual: np.array,
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
-              labels: typing.Optional[np.array] = None) -> float:
+              labels: typing.Optional[np.array] = None,
+              **kwargs) -> float:
 
         if sample_weight is not None:
             sample_weight = sample_weight.ravel()
@@ -48,6 +49,7 @@ class MyRecallScorer(CustomScorer):
             assert cm_weights is None or enc_predicted.shape == cm_weights.shape
 
         cms = daicx.confusion_matrices(enc_actual.ravel(), enc_predicted.ravel(), sample_weight=cm_weights)
-        cms = cms.loc[cms[[self.__class__._threshold_optimizer]].idxmax()]  # get row(s) for optimal metric defined above
+        cms = cms.loc[
+            cms[[self.__class__._threshold_optimizer]].idxmax()]  # get row(s) for optimal metric defined above
         cms['metric'] = cms[['tp', 'fp', 'tn', 'fn']].apply(lambda x: self.protected_metric(*x), axis=1, raw=True)
         return cms['metric'].mean()  # in case of ties

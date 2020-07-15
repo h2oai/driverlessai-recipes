@@ -15,44 +15,40 @@ class PEDataDirectoryFeatures(CustomTransformer):
     _can_use_multi_gpu = True  # if enabled, can get access to multiple GPUs for single transformer (experimental)
     _numeric_output = True
 
-    
     @staticmethod
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
-   
 
     @staticmethod
     def do_acceptance_test():
         return False
-    
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         return self.transform(X)
 
-    
     def load_pe(self, file_path):
         with open(file_path, 'rb') as f:
             bytez = bytearray(f.read())
-        return(bytez)
-    
-    
+        return (bytez)
+
     def data_directory_features(self, lief_binary):
-        
+
         data_directories = lief_binary.data_directories
         features = {}
         for data_directory in data_directories:
-            features.update({'Data_Directory_{}_size'.format(str(data_directory.type).split(".")[1]): data_directory.size})
-            features.update({'Data_Directory_{}_virtual_address'.format(str(data_directory.type).split(".")[1]): data_directory.rva})
+            features.update(
+                {'Data_Directory_{}_size'.format(str(data_directory.type).split(".")[1]): data_directory.size})
+            features.update({'Data_Directory_{}_virtual_address'.format(
+                str(data_directory.type).split(".")[1]): data_directory.rva})
         return features
-    
-    
+
     def get_data_directory_features(self, file_path):
         import lief
         try:
-            pe_bytez = self.load_pe(file_path) 
+            pe_bytez = self.load_pe(file_path)
             lief_binary = lief.PE.parse(list(pe_bytez))
             X = self.data_directory_features(lief_binary)
-        
+
             return X
 
         except:
@@ -87,18 +83,17 @@ class PEDataDirectoryFeatures(CustomTransformer):
                  'Data_Directory_CLR_RUNTIME_HEADER_size': 0,
                  'Data_Directory_CLR_RUNTIME_HEADER_virtual_address': 0}
             return X
-    
 
     def transform(self, X: dt.Frame):
         import pandas as pd
 
         ret_df = pd.DataFrame(
-                [
-                    self.get_data_directory_features(x)
-                    for x in X.to_pandas().values[:,0]
-                ]
-            )
-        
+            [
+                self.get_data_directory_features(x)
+                for x in X.to_pandas().values[:, 0]
+            ]
+        )
+
         self._output_feature_names = ret_df.columns.to_list()
         self._feature_desc = self._output_feature_names
 

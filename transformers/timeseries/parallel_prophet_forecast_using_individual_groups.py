@@ -67,7 +67,7 @@ def fit_prophet_model(Prophet, X_avg, params, force=False):
 
     # Set n_changepoints when default is too high compared to number of available data points
     # Having n_changepoints too high seems to raise exceptions on CentOS
-    n_changepoints = min(25, int(X_avg.shape[0] * 4/5 - 1))  # Prophet default value
+    n_changepoints = min(25, int(X_avg.shape[0] * 4 / 5 - 1))  # Prophet default value
 
     avg_model = Prophet(
         yearly_seasonality=True,
@@ -432,6 +432,7 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
 
             def processor(out, res):
                 out.append(res)
+
             num_tasks = len(X_groups)
             pool_to_use = small_job_pool
             pool = pool_to_use(logger=None, processor=processor, num_tasks=num_tasks, max_workers=n_jobs)
@@ -474,7 +475,8 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
                                    out=XX_paths)
 
             pool.finish()
-            y_predictions[f'{grp_col}_pred'] = pd.concat((load_obj(XX_path) for XX_path in XX_paths), axis=0).sort_index()
+            y_predictions[f'{grp_col}_pred'] = pd.concat((load_obj(XX_path) for XX_path in XX_paths),
+                                                         axis=0).sort_index()
             for p in XX_paths + model_paths:
                 remove(p)
 

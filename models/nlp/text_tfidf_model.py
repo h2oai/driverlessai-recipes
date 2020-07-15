@@ -10,26 +10,6 @@ from h2oaicore.models import CustomModel
 from h2oaicore.transformer_utils import CustomTransformer
 
 
-# Text column should be passed through this transformer for the TextTFIDF model
-class TextIdentityTransformer(CustomTransformer):
-    """Identity transformer for text"""
-    _numeric_output = False
-
-    @property
-    def display_name(self):
-        return "Str"
-
-    @staticmethod
-    def get_default_properties():
-        return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
-
-    def fit_transform(self, X: dt.Frame, y: np.array = None):
-        return self.transform(X)
-
-    def transform(self, X: dt.Frame):
-        return X.to_pandas().astype(str)
-
-
 class TextTFIDFModel(CustomModel):
     """Text classification / regression model using TFIDF"""
     _regression = True
@@ -37,8 +17,7 @@ class TextTFIDFModel(CustomModel):
     _multiclass = True
     _can_handle_non_numeric = True
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
-
-    _included_transformers = ["TextIdentityTransformer"]  # Takes input only from above transformer
+    _included_transformers = ["TextOriginalTransformer"]
 
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
@@ -73,6 +52,8 @@ class TextTFIDFModel(CustomModel):
                 new_X = sp.sparse.hstack([new_X, XX])
 
         model.fit(new_X, y)
+        model = (model, self.tfidf_objs)
+        self.tfidf_objs = []
         importances = [1] * len(orig_cols)
         self.set_model_properties(model=model,
                                   features=orig_cols,
@@ -80,6 +61,7 @@ class TextTFIDFModel(CustomModel):
                                   iterations=0)
 
     def predict(self, X, **kwargs):
+        (model, self.tfidf_objs), _, _, _ = self.get_model_properties()
         X = dt.Frame(X)
         new_X = None
         for ind, col in enumerate(X.names):
@@ -91,7 +73,7 @@ class TextTFIDFModel(CustomModel):
                 new_X = XX
             else:
                 new_X = sp.sparse.hstack([new_X, XX])
-        model, _, _, _ = self.get_model_properties()
+        self.tfidf_objs = []
         if self.num_classes == 1:
             preds = model.predict(new_X)
         else:

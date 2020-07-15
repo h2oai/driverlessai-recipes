@@ -6,6 +6,7 @@ import numpy as np
 
 class CountNegativePerRowTransformer(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+
     @staticmethod
     def get_default_properties():
         return dict(col_type="numeric", min_cols="all", max_cols="all", relative_importance=1)

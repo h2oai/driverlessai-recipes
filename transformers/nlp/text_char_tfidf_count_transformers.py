@@ -6,8 +6,10 @@ import string
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 
+
 class TextCharTFIDFTransformer(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+
     def __init__(self, max_ngram, n_svd_comp, **kwargs):
         super().__init__(**kwargs)
         self.max_ngram = max_ngram
@@ -33,7 +35,7 @@ class TextCharTFIDFTransformer(CustomTransformer):
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         X = X.to_pandas().astype(str).iloc[:, 0].fillna("NA")
         # TFIDF Vectorizer
-        self.tfidf_vec = TfidfVectorizer(analyzer="char", ngram_range=(1,self.max_ngram))
+        self.tfidf_vec = TfidfVectorizer(analyzer="char", ngram_range=(1, self.max_ngram))
         X = self.tfidf_vec.fit_transform(X)
         # Truncated SVD
         if len(self.tfidf_vec.vocabulary_) <= self.n_svd_comp:
@@ -51,6 +53,7 @@ class TextCharTFIDFTransformer(CustomTransformer):
 
 class TextCharCountTransformer(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+
     def __init__(self, max_ngram, n_svd_comp, **kwargs):
         super().__init__(**kwargs)
         self.max_ngram = max_ngram
@@ -76,7 +79,7 @@ class TextCharCountTransformer(CustomTransformer):
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         X = X.to_pandas().astype(str).iloc[:, 0].fillna("NA")
         # Count Vectorizer
-        self.cnt_vec = CountVectorizer(analyzer="char", ngram_range=(1,self.max_ngram))
+        self.cnt_vec = CountVectorizer(analyzer="char", ngram_range=(1, self.max_ngram))
         X = self.cnt_vec.fit_transform(X)
         # Truncated SVD
         if len(self.cnt_vec.vocabulary_) <= self.n_svd_comp:

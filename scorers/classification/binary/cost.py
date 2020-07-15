@@ -24,7 +24,8 @@ class CostBinary(CustomScorer):
               actual: np.array,
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
-              labels: typing.Optional[np.array] = None) -> float:
+              labels: typing.Optional[np.array] = None,
+              **kwargs) -> float:
         # label actuals as 1 or 0
         lb = LabelEncoder()
         labels = lb.fit_transform(labels)
@@ -38,4 +39,5 @@ class CostBinary(CustomScorer):
         tn, fp, fn, tp = cm.ravel()
 
         # calculate`$1*FP + $2*FN`
-        return ((fp * self.__class__._fp_cost) + (fn * self.__class__._fn_cost)) / (tn+fp+fn+tp)  # divide by total weighted count to make loss invariant to data size
+        return ((fp * self.__class__._fp_cost) + (fn * self.__class__._fn_cost)) / (
+                    tn + fp + fn + tp)  # divide by total weighted count to make loss invariant to data size

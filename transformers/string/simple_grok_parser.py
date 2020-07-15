@@ -12,6 +12,8 @@ _PATTERN = '%{TIMESTAMP_ISO8601:ts} %{IPV4:ip} %{NUMBER:status:int}: %{LOGLEVEL:
 #
 # Column name to transform using the pattern above
 _COLUMN_TO_PARSE = 'syslog'
+
+
 #
 #
 # These new columns will be added based on the pattern above:
@@ -63,4 +65,4 @@ class TextGrokParser(CustomTransformer):
             Z = dt.Frame([self.parse_text(x) for x in Y], names=[f"{col_name}_{s}" for s in self.columns])
             return Z
         else:
-            return X.to_pandas().iloc[:, None]
+            return dt.Frame(np.zeros(X.shape[0]))

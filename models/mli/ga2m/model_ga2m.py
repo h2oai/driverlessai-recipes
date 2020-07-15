@@ -10,7 +10,8 @@ from h2oaicore.systemutils import physical_cores_count
 class GA2MModel(CustomModel):
     _regression = True
     _binary = True
-    _multiclass = True
+    _multiclass = False  # According to the `interpret` library: "Multiclass is still experimental. Subject to change per release." So, set to `True` at your own risk.
+                         # Current known issue(s): https://github.com/interpretml/interpret/issues/142
     _display_name = "GA2M"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _description = (
@@ -26,8 +27,12 @@ class GA2MModel(CustomModel):
             False
         )  # would fail for imbalanced binary problems when logloss gets constant response for holdout (EBM should be passing labels)
 
+    @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
+        return False  # by default GA2M too slow, but if the only model selected this will still allow use
+
     def set_default_params(
-        self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
+            self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
     ):
         # Fill up parameters we care about
         self.params = dict(
@@ -74,13 +79,13 @@ class GA2MModel(CustomModel):
         return importances
 
     def fit(
-        self,
-        X,
-        y,
-        sample_weight=None,
-        eval_set=None,
-        sample_weight_eval_set=None,
-        **kwargs
+            self,
+            X,
+            y,
+            sample_weight=None,
+            eval_set=None,
+            sample_weight_eval_set=None,
+            **kwargs
     ):
         from interpret.glassbox import (
             ExplainableBoostingClassifier,

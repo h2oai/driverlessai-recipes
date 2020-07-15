@@ -111,6 +111,9 @@ class CustomModel(BaseCustomModel):
         """
         Return whether the model can be used given the settings and parameters that are passed in.
 
+        Note: If all models selected by include list have can_use of False, then the used list reverts to
+        the include list without considering can_use.
+
         Args:
             accuracy (int): Accuracy setting for this experiment (1 to 10)
                 10 is most accurate, expensive
@@ -306,7 +309,7 @@ ll
 
 
 ts_raw_data_transformers = ['RawTransformer',
-                            'OriginalTransformer', 'CatOriginalTransformer',
+                            'OriginalTransformer', 'CatOriginalTransformer', 'TextOriginalTransformer',
                             'DateOriginalTransformer', 'DateTimeOriginalTransformer']
 """List of transformers that don't alter the original input relevant to custom time series models."""
 
@@ -323,6 +326,8 @@ class CustomTimeSeriesModel(CustomModel):
     _time_series_only = True
     _can_handle_non_numeric = True  # date format strings and time grouping columns
     _included_transformers = ts_raw_data_transformers  # this enforces the constraint on input features
+    _lag_recipe_allowed = True  # by default allow lag time series recipe (fold split and features)
+    _causal_recipe_allowed = True  # by default allow causal validation scheme (no lag features)
 
     def __init__(self, context=None, unfitted_pipeline_path=None, transformed_features=None,
                  original_user_cols=None, date_format_strings=dict(), **kwargs):

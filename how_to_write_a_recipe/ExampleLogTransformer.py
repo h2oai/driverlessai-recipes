@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import logging
 
+
 class ExampleLogTransformer(CustomTransformer):
     _regression = True
     _binary = True
@@ -19,7 +20,7 @@ class ExampleLogTransformer(CustomTransformer):
 
     @staticmethod
     def get_default_properties():
-        return dict(col_type = "numeric", min_cols = 1, max_cols = 1,relative_importance = 1)
+        return dict(col_type="numeric", min_cols=1, max_cols=1, relative_importance=1)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         X_pandas = X.to_pandas()

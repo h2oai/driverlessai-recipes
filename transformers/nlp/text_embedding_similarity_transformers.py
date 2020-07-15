@@ -7,7 +7,7 @@ import math
 
 
 class EmbeddingSimilarityTransformer(CustomTransformer):
-    _modules_needed_by_name = ['regex==2018.1.10', 'flair==0.4.1', 'segtok==1.5.7']
+    _modules_needed_by_name = ["gensim==3.8.0", 'regex==2019.12.17', 'flair==0.4.1', 'segtok==1.5.7']
     _is_reproducible = False
     _can_use_gpu = True
     _repl_val = 0
@@ -19,6 +19,10 @@ class EmbeddingSimilarityTransformer(CustomTransformer):
 
     @staticmethod
     def is_enabled():
+        return False  # sometimes package flair has issues installing
+
+    @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
         """Uses all GPU memory - can lead to OOM failures in combination with other GPU-based transformers"""
         return False
 

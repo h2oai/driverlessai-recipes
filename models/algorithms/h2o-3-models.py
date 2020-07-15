@@ -8,7 +8,7 @@ import uuid
 from h2oaicore.systemutils import config, user_dir, remove
 import numpy as np
 
-_global_modules_needed_by_name = ['h2o==3.26.0.1']
+_global_modules_needed_by_name = ['h2o==3.30.0.3']
 import h2o
 import os
 
@@ -44,7 +44,7 @@ class H2OBaseModel:
                            **kwargs):
         max_runtime_secs = 600
         if accuracy is not None and time_tolerance is not None:
-            max_runtime_secs = accuracy * (time_tolerance + 1) * 10 # customize here to your liking
+            max_runtime_secs = accuracy * (time_tolerance + 1) * 10  # customize here to your liking
         self.params = dict(max_runtime_secs=max_runtime_secs)
 
     def get_iterations(self, model):
@@ -107,7 +107,7 @@ class H2OBaseModel:
             if sample_weight is not None:
                 train_kwargs['weights_column'] = self.weight
             model = self.make_instance(**params)
-            
+
             # Don't ever use the offset column as a feature
             offset_col = None  # if no column is called offset we will pass "None" and not use this feature
             cols_to_train = []  # list of all non-offset columns
@@ -122,7 +122,8 @@ class H2OBaseModel:
 
             # Models that can use an offset column
             if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
-                model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col, **train_kwargs)
+                model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col,
+                            **train_kwargs)
             else:
                 model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
 
@@ -150,6 +151,10 @@ class H2OBaseModel:
         else:
             df_varimp.index = df_varimp['variable']
             df_varimp = df_varimp.iloc[:, 1]  # relative importance
+            for missing in [x for x in orig_cols if x not in list(df_varimp.index)]:
+                # h2o3 doesn't handle raw strings all the time, can hit:
+                # KeyError: "None of [Index(['0_Str:secret_ChangeTemp'], dtype='object', name='variable')] are in the [index]"
+                df_varimp[missing] = 0
             varimp = df_varimp[orig_cols].values  # order by fitted features
             varimp = np.nan_to_num(varimp)
 
@@ -163,10 +168,11 @@ class H2OBaseModel:
         X = dt.Frame(X)
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = os.path.join(user_dir(), self.id)
-        with open(model_path, "wb") as f:
+        model_file = os.path.join(model_path, "h2o_model." + str(uuid.uuid4()) + ".bin")
+        os.makedirs(model_path, exist_ok=True)
+        with open(model_file, "wb") as f:
             f.write(model)
-        model = h2o.load_model(os.path.abspath(model_path))
-        remove(model_path)
+        model = h2o.load_model(os.path.abspath(model_file))
         test_frame = h2o.H2OFrame(X.to_pandas(), column_types=self.col_types)
         preds_frame = None
 
@@ -182,8 +188,9 @@ class H2OBaseModel:
             else:
                 return preds.iloc[:, 1:].values
         finally:
-            h2o.remove(self.id)
+            # h2o.remove(self.id) # Cannot remove id, do multiple predictions on same model
             h2o.remove(test_frame)
+            remove(model_file)
             if preds_frame is not None:
                 h2o.remove(preds_frame)
 
@@ -304,7 +311,7 @@ from h2o.automl import H2OAutoML
 
 class H2OAutoMLModel(H2OBaseModel, CustomModel):
     @staticmethod
-    def is_enabled():
+    def can_use(accuracy, interpretability, **kwargs):
         return False  # automl inside automl can be too slow, especially given small max_runtime_secs above
 
     @staticmethod

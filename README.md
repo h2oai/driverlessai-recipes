@@ -56,7 +56,11 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.4)
  [1.8.5](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.5)
  [1.8.6](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.6)
-### Count: 162
+ [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
+ [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
+### Count: 168
+* [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
+  * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description]
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.]
@@ -64,6 +68,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [airlines_joined_data_flights_in_out.py](./data/airlines_joined_data_flights_in_out.py) [Create augmented airlines datasets]
   * [airlines_joined_data_flights_in_out_regression.py](./data/airlines_joined_data_flights_in_out_regression.py) [Create augmented airlines datasets for regression]
   * [airlines_multiple.py](./data/airlines_multiple.py) [Create airlines dataset]
+  * [bigquery_sharded_data_pull.py](./data/bigquery_sharded_data_pull.py) [Pull data >1Gb from GCP Bigquery using sharding functionality.Based on:    https://cloud.google.com/bigquery/docs/exporting-data#exporting_table_data    https://cloud.google.com/storage/docs/reference/libraries#using_the_client_libraryAuthor: Travis CoutureCreated: 03/18/2020Last Updated: 03/18/2020]
   * [catchallenge.py](./data/catchallenge.py) [Create cat challenge dataset]
   * [create_transactional_data_or_convert_to_iid.py](./data/create_transactional_data_or_convert_to_iid.py) [Example code to generate and convert transactional data to i.i.d. data.]
   * [creditcard.py](./data/creditcard.py) [Modify credit card dataset]
@@ -83,9 +88,11 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [DATABASES](./data/databases)
     * [create_dataset_from_mongodb_collection.py](./data/databases/create_dataset_from_mongodb_collection.py) [Create dataset from MonogDB]
   * [NLP](./data/nlp)
+    * [sentiment_score.py](./data/nlp/sentiment_score.py) [Data recipe to get sentiment score using textblob]
+    * [sentiment_score_vader.py](./data/nlp/sentiment_score_vader.py) [Data recipe to get sentiment score using vader]
+    * [text_summarization.py](./data/nlp/text_summarization.py) [Data recipe to get summary of text using gensim]
     * [tokenize_chinese.py](./data/nlp/tokenize_chinese.py) [Chinese text tokenization using jieba package - https://github.com/fxsjy/jieba]
     * [topic_modeling.py](./data/nlp/topic_modeling.py) [Data recipe to perform topic modeling]
-    * [sentiment_score.py](./data/nlp/sentiment_score.py) [Data recipe to get sentiment score using textblob]
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description]
 * [MODELS](./models)
@@ -107,6 +114,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [random_forest.py](./models/algorithms/random_forest.py) [Random Forest (RandomForest) model from sklearn]
   * [CUSTOM_LOSS](./models/custom_loss)
     * [lightgbm_quantile_regression.py](./models/custom_loss/lightgbm_quantile_regression.py) [Modified version of Driverless AI's internal LightGBM implementation with for quantile regression]
+    * [lightgbm_tweedie.py](./models/custom_loss/lightgbm_tweedie.py) [Modified version of Driverless AI's internal LightGBM implementation with tweedie distribution]
     * [lightgbm_with_custom_loss.py](./models/custom_loss/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).]
     * [xgboost_with_custom_loss.py](./models/custom_loss/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).]
   * [MLI](./models/mli)
@@ -114,6 +122,8 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
       * [model_ga2m.py](./models/mli/ga2m/model_ga2m.py) [Explainable Boosting Machines (EBM), implementation of GA2M]
     * [XNN](./models/mli/xnn)
       * [model_xnn.py](./models/mli/xnn/model_xnn.py) [ Explainable neural net ]
+  * [MONOTONIC](./models/monotonic)
+    * [monotonic_models.py](./models/monotonic/monotonic_models.py) [LightGBM/XGBoostGBM/DecisionTree with user-given monotonicity constraints (1/-1/0) for original numeric features]
   * [NLP](./models/nlp)
     * [text_tfidf_model.py](./models/nlp/text_tfidf_model.py) [Text classification / regression model using TFIDF]
     * [text_tfidf_model_continuous.py](./models/nlp/text_tfidf_model_continuous.py) [Text classification model using TFIDF]

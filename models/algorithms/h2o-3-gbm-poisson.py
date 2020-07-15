@@ -8,7 +8,7 @@ from h2o.estimators.gbm import H2OGradientBoostingEstimator
 
 import numpy as np
 
-_global_modules_needed_by_name = ['h2o==3.26.0.1']
+_global_modules_needed_by_name = ['h2o==3.30.0.3']
 import h2o
 import os
 
@@ -89,7 +89,7 @@ class H2OBaseModel:
         try:
             train_kwargs = dict()
 
-            max_runtime_secs = self.params.pop('max_runtime_secs')
+            max_runtime_secs = self.params.get('max_runtime_secs', 0)
             train_kwargs = dict(max_runtime_secs=max_runtime_secs)
 
             if valid_frame is not None:
@@ -117,6 +117,10 @@ class H2OBaseModel:
         else:
             df_varimp.index = df_varimp['variable']
             df_varimp = df_varimp.iloc[:, 1]  # relative importance
+            for missing in [x for x in orig_cols if x not in list(df_varimp.index)]:
+                # h2o3 doesn't handle raw strings all the time, can hit:
+                # KeyError: "None of [Index(['0_Str:secret_ChangeTemp'], dtype='object', name='variable')] are in the [index]"
+                df_varimp[missing] = 0
             varimp = df_varimp[orig_cols].values  # order by fitted features
             varimp = np.nan_to_num(varimp)
 
@@ -130,10 +134,11 @@ class H2OBaseModel:
         X = dt.Frame(X)
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = os.path.join(user_dir(), self.id)
-        with open(model_path, "wb") as f:
+        model_file = os.path.join(model_path, "h2o_model." + str(uuid.uuid4()) + ".bin")
+        os.makedirs(model_path, exist_ok=True)
+        with open(model_file, "wb") as f:
             f.write(model)
-        model = h2o.load_model(os.path.abspath(model_path))
-        remove(model_path)
+        model = h2o.load_model(os.path.abspath(model_file))
         test_frame = h2o.H2OFrame(X.to_pandas(), column_types=self.col_types)
         preds_frame = None
 
@@ -144,7 +149,8 @@ class H2OBaseModel:
             return preds.values.ravel()
 
         finally:
-            h2o.remove(self.id)
+            remove(model_file)
+            # h2o.remove(self.id) # Cannot remove id, do multiple predictions on same model
             h2o.remove(test_frame)
             if preds_frame is not None:
                 h2o.remove(preds_frame)

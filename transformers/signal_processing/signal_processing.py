@@ -36,6 +36,7 @@ from scipy.stats import kurtosis, skew, linregress
 from statsmodels.tsa.stattools import acf, adfuller, pacf
 import math
 
+
 # tsfresh python package requires pandas<=0.23.4, which is older than pandas used in DriverlessAI
 # To avoid relying on tsfresh package and potential install issues
 # It has been decided to just copy tsfresh methods used in this recipe
@@ -127,7 +128,6 @@ def mad(x, axis=None):
 
 
 def get_features(i_f, sig_file, mfcc_size):
-
     import librosa
 
     def get_nb_events_pd(sig, level):
@@ -135,7 +135,7 @@ def get_features(i_f, sig_file, mfcc_size):
         a = pd.Series(sig).rolling(window=30).min().dropna().values
         b = pd.Series(sig).rolling(window=30).max().dropna().values
         z = np.log10(b - a + 1e-10)
-        return np.sum(z[z>level])
+        return np.sum(z[z > level])
 
     def wavelet_denoise(x, wavelet='db1', mode='hard'):
         pywt = importlib.import_module('pywt')
@@ -333,7 +333,6 @@ class MySignalProcessingTransformer(CustomTransformer):
                 print("Error in {} : {}".format(self.display_name, err_msg))
                 return np.zeros(X.shape[0])
 
-
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         # no fitting for now
         return self.transform(X)
@@ -350,8 +349,8 @@ class MyNumbaSignalProcessingTransformer(CustomTransformer):
     _modules_needed_by_name = ["numba", "progressbar2"]
 
     @staticmethod
-    def is_enabled():
-        return False
+    def can_use(accuracy, interpretability, **kwargs):
+        return False  # by default too slow unless only enabled
 
     @staticmethod
     def do_acceptance_test():
@@ -423,7 +422,7 @@ class MyNumbaSignalProcessingTransformer(CustomTransformer):
             # Datatable can select features directly on type
             if X[:, [str]].shape[1] == 0:
                 return np.zeros(X.shape[0])
-            files = X[:, [str]].to_numpy()[:,0]
+            files = X[:, [str]].to_numpy()[:, 0]
         else:
             if X[X.columns[0]].dtype != "object":
                 return np.zeros(X.shape[0])

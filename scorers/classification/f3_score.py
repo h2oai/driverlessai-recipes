@@ -19,7 +19,8 @@ class fbeta(CustomScorer):
               actual: np.array,
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
-              labels: typing.Optional[np.array] = None) -> float:
+              labels: typing.Optional[np.array] = None,
+              **kwargs) -> float:
         lb = LabelEncoder()
         labels = lb.fit_transform(labels)
         actual = lb.transform(actual)
