@@ -2,6 +2,7 @@
 
 import datatable as dt
 import numpy as np
+from h2oaicore.systemutils import arch_type
 from h2oaicore.transformer_utils import CustomTransformer
 
 
@@ -14,6 +15,10 @@ class TextNamedEntityTransformer(CustomTransformer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.ne_types = {"PERSON", "ORG", "GPE", "LOC", "PRODUCT", "EVENT", "DATE"}
+
+    @staticmethod
+    def is_enabled():
+        return arch_type != 'ppc64le'
 
     @staticmethod
     def get_default_properties():
