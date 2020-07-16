@@ -27,7 +27,7 @@ You may also want to disable the Text DAI Recipes.
 """
 import importlib
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.systemutils import small_job_pool, save_obj, load_obj, user_dir, remove
+from h2oaicore.systemutils import small_job_pool, save_obj, load_obj, user_dir, remove, arch_type
 import datatable as dt
 import numpy as np
 import pandas as pd
@@ -355,6 +355,10 @@ class MyNumbaSignalProcessingTransformer(CustomTransformer):
     @staticmethod
     def do_acceptance_test():
         return False
+
+    @staticmethod
+    def is_enabled():
+        return arch_type != 'ppc64le'
 
     @staticmethod
     def get_default_properties():
