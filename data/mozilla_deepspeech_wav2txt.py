@@ -29,6 +29,8 @@ import os
 from timeit import default_timer as timer
 import logging
 
+from h2oaicore.systemutils import arch_type
+
 try:
     from shhlex import quote
 except ImportError:
@@ -70,6 +72,9 @@ class MozillaDeepSpeechWav2Txt(BaseData):
     @staticmethod
     def create_data(X: dt.Frame = None) -> dt.Frame:
         if X is None:
+            return []
+
+        if arch_type == 'ppc64le':
             return []
 
         from deepspeech import Model
