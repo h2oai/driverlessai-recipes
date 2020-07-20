@@ -1,3 +1,4 @@
+"""Prepare data for m5 Kaggle Time-Series Forecast competition"""
 import os
 import uuid
 from collections import OrderedDict
