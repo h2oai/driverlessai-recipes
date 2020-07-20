@@ -2,7 +2,6 @@
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
-from sklearn.metrics import mean_absolute_error
 
 
 class CostMeanAbsoluteError(CustomScorer):
