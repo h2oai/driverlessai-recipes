@@ -58,7 +58,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.6](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.6)
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
-### Count: 168
+### Count: 173
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description]
 * [DATA](./data)
@@ -70,6 +70,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [airlines_multiple.py](./data/airlines_multiple.py) [Create airlines dataset]
   * [bigquery_sharded_data_pull.py](./data/bigquery_sharded_data_pull.py) [Pull data >1Gb from GCP Bigquery using sharding functionality.Based on:    https://cloud.google.com/bigquery/docs/exporting-data#exporting_table_data    https://cloud.google.com/storage/docs/reference/libraries#using_the_client_libraryAuthor: Travis CoutureCreated: 03/18/2020Last Updated: 03/18/2020]
   * [catchallenge.py](./data/catchallenge.py) [Create cat challenge dataset]
+  * [covidtracking_daily_by_states.py](./data/covidtracking_daily_by_states.py) [Upload daily Covid Tracking (https://covidtracking.com) US States   cases, hospitalization, recovery, test and death data ]
   * [create_transactional_data_or_convert_to_iid.py](./data/create_transactional_data_or_convert_to_iid.py) [Example code to generate and convert transactional data to i.i.d. data.]
   * [creditcard.py](./data/creditcard.py) [Modify credit card dataset]
   * [data_template.py](./data/data_template.py) [Custom data recipe base class]
@@ -77,10 +78,12 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [ieee_data_puddle.py](./data/ieee_data_puddle.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection]
   * [kaggle_bosch.py](./data/kaggle_bosch.py) [Create Bosch competition datasets with leak]
   * [kaggle_ieee_fraud.py](./data/kaggle_ieee_fraud.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection]
+  * [kaggle_m5.py](./data/kaggle_m5.py) [Prepare data for m5 Kaggle Time-Series Forecast competition]
   * [keywords_data.py](./data/keywords_data.py) [Check and match a list of words from a specific string column]
   * [load_sas7bdat.py](./data/load_sas7bdat.py) [Data Recipe to load a single sas file__version__ = 0.1authored by @mtanco (Michelle Tanco)Required User Defined Inputs: name of file to load]
   * [mnist.py](./data/mnist.py) [Prep and upload the MNIST datasset]
   * [mozilla_deepspeech_wav2txt.py](./data/mozilla_deepspeech_wav2txt.py) [Speech to text using Mozilla's DeepSpeechSettings for this recipe:Assing MODEL_PATH global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.General requirements to .wav's:1 channel (mono)16 bit16000 frequency]
+  * [nytimes_covid19_cases_deaths_by_states.py](./data/nytimes_covid19_cases_deaths_by_states.py) [Upload daily COVID-19 cases and deaths in US by states from NY Times github]
   * [seattle_rain_modify.py](./data/seattle_rain_modify.py) [Transpose the Monthly Seattle Rain Inches data set for Time Series use cases]
   * [seattle_rain_upload.py](./data/seattle_rain_upload.py) [Upload Monthly Seattle Rain Inches data set from data provided by the City of Seattle]
   * [ts_fill_n_cluster.py](./data/ts_fill_n_cluster.py) [Data Recipe to fill missing values in TS data and then create new data sets from TS Clustering]
@@ -254,11 +257,14 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [strlen_transformer.py](./transformers/string/strlen_transformer.py) [Returns the string length of categorical values]
     * [to_string_transformer.py](./transformers/string/to_string_transformer.py) [Converts numbers to strings]
     * [user_agent_transformer.py](./transformers/string/user_agent_transformer.py) [A best effort transformer to determine browser device characteristics from a user-agent string]
+  * [SURVIVAL](./transformers/survival)
+    * [dummy-pretransformer.py](./transformers/survival/dummy-pretransformer.py) [Dummy Pre-Transformer to use as a template for custom pre-transformer recipes.   This transformer consumes all features at once, adds 'pre:' to the names and passes   them down to transformer level and GA as-is.]
+    * [h2o-3-coxph-pretransformer.py](./transformers/survival/h2o-3-coxph-pretransformer.py) [Pre-transformer utilizing survival analysis modeling using CoxPH (Cox proportional hazard)   using H2O-3 CoxPH function.   It adds risk score produced by CoxPH model and drops stop_column feature used for   survival modeling along with actual target as event.]
   * [TARGETENCODING](./transformers/targetencoding)
     * [ExpandingMean.py](./transformers/targetencoding/ExpandingMean.py) [CatBoost-style target encoding. See https://youtu.be/d6UMEmeXB6o?t=818 for short explanation]
     * [leaky_mean_target_encoder.py](./transformers/targetencoding/leaky_mean_target_encoder.py) [Example implementation of a out-of-fold target encoder (leaky, not recommended)]
   * [TIMESERIES](./transformers/timeseries)
-    * [auto_arima_forecast.py](./transformers/timeseries/auto_arima_forecast.py) [Auto ARIMA transformer is a time series transformer that predicts target using ARIMA models]
+    * [auto_arima_forecast.py](./transformers/timeseries/auto_arima_forecast.py) [Auto ARIMA transformer is a time series transformer that predicts target using ARIMA models.]
     * [general_time_series_transformer.py](./transformers/timeseries/general_time_series_transformer.py) [Demonstrates the API for custom time-series transformers.]
     * [parallel_auto_arima_forecast.py](./transformers/timeseries/parallel_auto_arima_forecast.py) [Parallel Auto ARIMA transformer is a time series transformer that predicts target using ARIMA models.In this implementation, Time Group Models are fitted in parallel]
     * [parallel_prophet_forecast.py](./transformers/timeseries/parallel_prophet_forecast.py) [Parallel FB Prophet transformer is a time series transformer that predicts target using FBProphet models.]
