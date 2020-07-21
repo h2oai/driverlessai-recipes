@@ -7,6 +7,7 @@ import typing
 class RmseWithXScorer(CustomScorer):
     _regression = True
     _needs_X = True
+    _maximize = False
 
     def score(
             self,
