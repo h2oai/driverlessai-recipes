@@ -59,7 +59,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
-### Count: 173
+### Count: 174
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description]
 * [DATA](./data)
@@ -172,6 +172,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [median_absolute_error.py](./scorers/regression/median_absolute_error.py) [Median Absolute Error for regression]
     * [pearson_correlation.py](./scorers/regression/pearson_correlation.py) [Pearson Correlation Coefficient for regression]
     * [quantile_loss.py](./scorers/regression/quantile_loss.py) [Quantile Loss regression]
+    * [rmse_with_x.py](./scorers/regression/rmse_with_x.py) [Custom RMSE Scorer that also gets X (original features) - for demo/testing purposes only]
     * [top_decile.py](./scorers/regression/top_decile.py) [Median Absolute Error for predictions in the top decile]
 * [TRANSFORMERS](./transformers)
   * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [Example how to debug a transformer outside of Driverless AI (optional)]
