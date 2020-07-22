@@ -3,18 +3,17 @@
 # For example, use when working with multi-nominal classifier and want 
 # to see if binomial model may be preferred or compliment use case.
 
-old_target_name = 'outcome_type'
-new_target_name = 'is_adoption_target'
-value_to_map_to_true = 'ADOPTION'
+old_target_name = 'Score'
+new_target_name = 'isScorePos'
+value_to_map_to_true = 3
 binary_outcomes = (False, True)
 drop_old_target = False
 
-# setup filter
-binary_outcome_filter = (dt.f[old_target_name] == value_to_map_to_true)
+# update with new target
+X[:, dt.update(isScorePos = dt.ifelse(dt.f[old_target_name] >= value_to_map_to_true, 
+                                      binary_outcomes[1], 
+                                      binary_outcomes[0]))]
 
-# create new target
-X[binary_outcome_filter, new_target_name] = binary_outcomes[1]
-X[~binary_outcome_filter, new_target_name] = binary_outcomes[0]
 
 # drop old target
 if drop_old_target:
