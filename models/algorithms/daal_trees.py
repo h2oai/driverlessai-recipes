@@ -5,7 +5,7 @@ from h2oaicore.models import CustomModel
 import numpy as np
 from h2oaicore.systemutils import arch_type
 from sklearn.preprocessing import LabelEncoder
-if not arch_type == 'ppc64le':
+if arch_type != 'ppc64le':
     import daal4py as d4p
 
 
@@ -84,10 +84,16 @@ class DaalBaseModel(object):
 class DaalTreeModel(DaalBaseModel, CustomModel):
     _display_name = "DaalTree"
     _description = "Decision Tree Model based on Intel DAAL (https://intelpython.github.io/daal4py/algorithms.html)"
-    _train_func_class = d4p.gbt_classification_training
-    _predict_func_class = d4p.gbt_classification_prediction
-    _train_func_regress = d4p.gbt_regression_training
-    _predict_func_regress = d4p.gbt_regression_prediction
+    if arch_type != 'ppc64le':
+        _train_func_class = d4p.gbt_classification_training
+        _predict_func_class = d4p.gbt_classification_prediction
+        _train_func_regress = d4p.gbt_regression_training
+        _predict_func_regress = d4p.gbt_regression_prediction
+    else:
+        _train_func_class = None
+        _predict_func_class = None
+        _train_func_regress = None
+        _predict_func_regress = None
 
     def set_default_params(self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs):
         self.params = {
@@ -114,10 +120,16 @@ class DaalTreeModel(DaalBaseModel, CustomModel):
 class DaalForestModel(DaalBaseModel, CustomModel):
     _display_name = "DaalForest"
     _description = "Decision Forest Model based on Intel DAAL (https://intelpython.github.io/daal4py/algorithms.html)"
-    _train_func_class = d4p.decision_forest_classification_training
-    _predict_func_class = d4p.decision_forest_classification_prediction
-    _train_func_regress = d4p.decision_forest_regression_training
-    _predict_func_regress = d4p.decision_forest_regression_prediction
+    if arch_type != 'ppc64le':
+        _train_func_class = d4p.decision_forest_classification_training
+        _predict_func_class = d4p.decision_forest_classification_prediction
+        _train_func_regress = d4p.decision_forest_regression_training
+        _predict_func_regress = d4p.decision_forest_regression_prediction
+    else:
+        _train_func_class = None
+        _predict_func_class = None
+        _train_func_regress = None
+        _predict_func_regress = None
 
     def set_default_params(self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs):
         self.params = dict(nClasses=self.num_classes,
