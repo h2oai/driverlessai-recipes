@@ -90,11 +90,13 @@ class CovidtrackingDailyStateData(CustomData):
 
         # determine threshold to split train and test based on forecast horizon
         dates = dt.unique(us_states[:, date_col])
-        split_date = dates[-forecast_len:, :, dt.sort(date_col)][0, 0]
+        split_date = dates[-(forecast_len + 1):, :, dt.sort(date_col)][0, 0]
+        test_date = dates[-1, :, dt.sort(date_col)][0, 0]
 
         # split data to honor forecast horizon in test set
         df = us_states[date_col].to_pandas()
-        train = us_states[df[date_col] < split_date, :]
-        test = us_states[df[date_col] >= split_date, :]
+        train = us_states[df[date_col] <= split_date, :]
+        test = us_states[df[date_col] > split_date, :]
 
-        return {"covidtracking_daily_us_states_train": train, "covidtracking_daily_us_states_test": test}
+        return {f"covidtracking_daily_{split_date}_by_us_states_train": train,
+                f"covidtracking_daily_{test_date}_by_us_states_test": test}
