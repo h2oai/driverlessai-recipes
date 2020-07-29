@@ -1,4 +1,26 @@
-"""Data recipe to transform input audio to mel spectrograms"""
+"""Data recipe to transform input audio to Mel spectrograms
+
+This data recipe makes the following steps:
+1. Reads audio file
+2. Converts audio file to the Mel spectrogram
+3. Save Mel spectrogram to .png image
+4. Upload image dataset to DAI
+
+Recipe is based on the Kaggle Freesound Audio Tagging 2019 challenge:
+https://www.kaggle.com/c/freesound-audio-tagging-2019
+
+To use the recipe follow the next steps:
+1. Download a subsample of the audio dataset from here:
+http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/freesound_audio.zip
+2. Unzip it and specify the path to the dataset in the DATA_DIR global variable
+3. Upload the dataset into Driverless AI using the Add Data Recipe option
+
+The transformed dataset is also available and could be directly uploaded to Driverless AI:
+http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/freesound_images.zip
+
+"""
+
+DATA_DIR = "/path/to/freesound_audio/"
 
 import cv2
 import os
@@ -18,12 +40,14 @@ class AudioToMelSpectogram:
     https://github.com/lRomul/argus-freesound/blob/master/src/audio.py
     """
 
-    def __init__(self):
+    def __init__(
+        self, min_seconds=2, sampling_rate=44100, n_mels=128, hop_length=345 * 2
+    ):
         # Audio hyperparameters
-        self.min_seconds = 2
-        self.sampling_rate = 44100
-        self.n_mels = 128
-        self.hop_length = 345 * 2
+        self.min_seconds = min_seconds
+        self.sampling_rate = sampling_rate
+        self.n_mels = n_mels
+        self.hop_length = hop_length
         self.n_fft = self.n_mels * 20
         self.fmin = 20
         self.fmax = self.sampling_rate // 2
@@ -78,13 +102,14 @@ class AudioDataset(CustomData):
     """
 
     @staticmethod
-    def create_data(X=None):
+    def create_data():
 
-        # Path to labels. First column is image name, second column is label
-        path_to_labels = "/path/to/labels.csv"
+        # Path to the directory with audios
+        path_to_files = os.path.join(DATA_DIR, "audio/")
+        # Path to a .csv with labels. First column is audio name, second column is label
+        path_to_labels = os.path.join(DATA_DIR, "labels.csv")
 
-        # Data directory
-        path_to_files = "/path/to/audio/"
+        # Create output directory
         output_path = os.path.join(path_to_files, "mel_spectrograms/")
         os.makedirs(output_path, exist_ok=True)
 
