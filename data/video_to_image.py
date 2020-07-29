@@ -1,4 +1,26 @@
-"""Data recipe to transform input video to images"""
+"""Data recipe to transform input video to the images.
+
+This data recipe makes the following steps:
+1. Reads video file
+2. Samples N uniform frames from the video file
+3. Detects all faces on each frame
+4. Crops the faces and saves them as images
+
+Recipe is based on the Kaggle Deepfake Detection Challenge:
+https://www.kaggle.com/c/deepfake-detection-challenge
+
+To use the recipe follow the next steps:
+1. Download a small subsample of the video dataset from here:
+http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/deepfake.zip
+2. Unzip it and specify the path to the dataset in the DATA_DIR global variable
+3. Upload the dataset into Driverless AI using the Add Data Recipe option
+
+The transformed dataset is also available and could be directly uploaded to Driverless AI:
+http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/deepfake_frames.zip
+
+"""
+
+DATA_DIR = "/path/to/deepfake/"
 
 import cv2
 import os
@@ -117,26 +139,26 @@ class VideoDataset(CustomData):
     """
 
     @staticmethod
-    def create_data(X=None):
+    def create_data():
+        # Path to the directory with videos
+        files_dir = os.path.join(DATA_DIR, "videos/")
+        # Path to a .csv with labels. First column is video name, second column is label
+        path_to_labels = os.path.join(DATA_DIR, "labels.csv")
 
-        # Path to a .csv with labels. First column is path to the video, second column is label
-        path_to_labels = "/path/to/labels.csv"
-        files_dir = os.path.split(path_to_labels)[0]
-
+        # Create output directory
         output_path = os.path.join(files_dir, "video_frames/")
         os.makedirs(output_path, exist_ok=True)
 
         # Read data
         df = pd.read_csv(path_to_labels)
-        video2label = dict(
-            zip(df.iloc[:, 0].map(lambda x: os.path.split(x)[-1]), df.iloc[:, 1])
-        )
+        video2label = dict(zip(df.iloc[:, 0], df.iloc[:, 1]))
 
         # Convert video to image frames and save them
         vid2frames = VideoToFrames()
 
         video_faces = {}
-        for path in df.iloc[:, 0]:
+        for video_id in df.iloc[:, 0]:
+            path = os.path.join(files_dir, video_id)
             image_paths = vid2frames.video_to_frames(
                 video_path=path, output_path=output_path
             )
