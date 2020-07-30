@@ -15,6 +15,7 @@ import datatable as dt
 import numpy as np
 import pandas as pd
 from h2oaicore.systemutils import user_dir
+from datatable import f, g, join, by, sort, update, shift, isna
 
 
 class NYTimesCovid19DailyCasesDeathsByCountiesData(CustomData):
@@ -31,6 +32,7 @@ class NYTimesCovid19DailyCasesDeathsByCountiesData(CustomData):
     ]:
         # define date column and forecast horizon
         date_col = 'date'
+        group_by_cols = ["state", "county"]
         forecast_len = 7
 
         # get COVID19 data from NYTimes github
@@ -47,6 +49,21 @@ class NYTimesCovid19DailyCasesDeathsByCountiesData(CustomData):
         # us_states[:, dt.update(pop=dt.g.pop, pop100k=dt.g.pop / 100000,
         #                        cases100k=dt.f.cases / (dt.g.pop / 100000),
         #                        deaths100k=dt.f.deaths / (dt.g.pop / 100000)), dt.join(us_states_pop)]
+
+        # produce lag of 1 unit and add as new feature for each shift column
+        series_cols = ["cases", "deaths"]
+        aggs = {f"{col}_yesterday": shift(f[col]) for col in series_cols}
+        us_counties[:, update(**aggs), sort(date_col), by(group_by_cols)]
+
+        # update NA lags
+        aggs = {f"{col}_yesterday": 0 for col in series_cols}
+        us_counties[isna(f[f"{series_cols[0]}_yesterday"]), update(**aggs)]
+
+        aggs = {f"{col}_daily": f[col] - f[f"{col}_yesterday"] for col in series_cols}
+        us_counties[:, update(**aggs), sort(date_col), by(group_by_cols)]
+
+        for col in series_cols:
+            del us_counties[:, f[f"{col}_yesterday"]]
 
         # determine threshold to split train and test based on forecast horizon
         dates = dt.unique(us_counties[:, date_col])

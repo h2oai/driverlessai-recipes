@@ -13,6 +13,7 @@ import datatable as dt
 import numpy as np
 import pandas as pd
 import requests
+from datatable import f, g, join, by, sort, update, shift, isna, count
 
 
 class CovidtrackingDailyStateData(CustomData):
@@ -29,6 +30,7 @@ class CovidtrackingDailyStateData(CustomData):
     ]:
         # define date column and forecast horizon
         date_col = 'date'
+        group_by_cols = ["state"]
         forecast_len = 7
 
         # state codes lookup table
@@ -74,18 +76,29 @@ class CovidtrackingDailyStateData(CustomData):
         us_states = us_states[:, list(set(us_states.names) - set(deprecated))]
         us_states.names = {'state': 'code'}
 
-        us_states[:, dt.update( state=dt.g.state, pop=dt.g.pop, pop100k=dt.g.pop / 100000,
-                                positive100k=dt.f.positive / (dt.g.pop / 100000),
-                                negative100k=dt.f.negative / (dt.g.pop / 100000),
-                                hospitalizedCumulative100k=dt.f.hospitalizedCumulative / (dt.g.pop / 100000),
-                                inIcuCumulative100k=dt.f.inIcuCumulative / (dt.g.pop / 100000),
-                                onVentilatorCumulative100k=dt.f.onVentilatorCumulative / (dt.g.pop / 100000),
-                                recovered100k=dt.f.recovered / (dt.g.pop / 100000),
-                                death100k=dt.f.death / (dt.g.pop / 100000)), dt.join(us_states_pop)]
+        series_cols = ["positive", "negative", "hospitalizedCumulative", "inIcuCumulative",
+                       "onVentilatorCumulative", "recovered", "death"]
+        aggs = {f"{col}100k": f[col] / (g.pop / 100000) for col in series_cols}
+        us_states[:, dt.update(state = g.state, pop = g.pop, pop100k = g.pop / 10000, **aggs), join(us_states_pop)]
         us_states = us_states[~dt.isna(dt.f.state), :]
 
+        # produce lag of 1 unit and add as new feature for each shift column
+        series_cols.extend([col + "100k" for col in series_cols])
+        aggs = {f"{col}_yesterday": shift(f[col]) for col in series_cols}
+        us_states[:, update(**aggs), sort(date_col), by(group_by_cols)]
+
+        # update NA lags
+        aggs = {f"{col}_yesterday": 0 for col in series_cols}
+        us_states[isna(f[f"{series_cols[0]}_yesterday"]), update(**aggs)]
+
+        aggs = {f"{col}_daily": f[col] - f[f"{col}_yesterday"] for col in series_cols}
+        us_states[:, update(**aggs), sort(date_col), by(group_by_cols)]
+
+        for col in series_cols:
+            del us_states[:, f[f"{col}_yesterday"]]
+
         # validate dataset
-        if us_states[:, dt.count(), dt.by(dt.f.state, dt.f.date)][dt.f.count>1, :].shape[0] > 1:
+        if us_states[:, count(), by(dt.f.state, f.date)][f.count>1, :].shape[0] > 1:
             raise ValueError("Found duplicate elements for the same date and state.")
 
         # determine threshold to split train and test based on forecast horizon
