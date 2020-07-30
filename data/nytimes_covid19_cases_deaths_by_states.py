@@ -11,6 +11,7 @@ import datatable as dt
 import numpy as np
 import pandas as pd
 from h2oaicore.systemutils import user_dir
+from datatable import f, g, join, by, sort, update, shift, isna
 
 
 class NYTimesCovid19DailyCasesDeathsByStatesData(CustomData):
@@ -27,6 +28,7 @@ class NYTimesCovid19DailyCasesDeathsByStatesData(CustomData):
     ]:
         # define date column and forecast horizon
         date_col = 'date'
+        group_by_cols = ["state"]
         forecast_len = 7
 
         # get COVID19 data from NYTimes github
@@ -39,9 +41,25 @@ class NYTimesCovid19DailyCasesDeathsByStatesData(CustomData):
         us_states_pop.key = "state"
 
         # augment data with state population figures and create adjusted case and death counts
-        us_states[:, dt.update(pop=dt.g.pop, pop100k=dt.g.pop / 100000,
-                               cases100k=dt.f.cases / (dt.g.pop / 100000),
-                               deaths100k=dt.f.deaths / (dt.g.pop / 100000)), dt.join(us_states_pop)]
+        series_cols = ["cases", "deaths"]
+        aggs = {f"{col}100k": dt.f[col] / (dt.g.pop / 100000) for col in series_cols}
+        us_states[:, dt.update(pop = g.pop, pop100k = g.pop / 10000, **aggs), join(us_states_pop)]
+
+        # produce lag of 1 unit and add as new feature for each column in the list
+        series_cols.extend([col + "100k" for col in series_cols])
+        aggs = {f"{col}_yesterday": shift(f[col]) for col in series_cols}
+        us_states[:, update(**aggs), sort(date_col), by(group_by_cols)]
+
+        # update NA lags
+        aggs = {f"{col}_yesterday": 0 for col in series_cols}
+        us_states[isna(f[f"{series_cols[0]}_yesterday"]), update(**aggs)]
+
+        # compute daily values by differentiating
+        aggs = {f"{col}_daily": f[col] - f[f"{col}_yesterday"] for col in series_cols}
+        us_states[:, update(**aggs), sort(date_col), by(group_by_cols)]
+
+        for col in series_cols:
+            del us_states[:, f[f"{col}_yesterday"]]
 
         # determine threshold to split train and test based on forecast horizon
         dates = dt.unique(us_states[:, date_col])
