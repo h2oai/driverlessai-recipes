@@ -2,6 +2,16 @@
 # columnar structure, e.g. each file contains one month of train data.
 # For more details see docs on datatable's Frame.rbind() here:
 # https://datatable.readthedocs.io/en/latest/api/frame.html#datatable.Frame.rbind
+#
+# Specification:
+# Inputs:
+#   X: datatable - primary dataset
+#   files_to_bind: list of datatables - datasets to bind with
+# Parameters:
+#   None
+# Output:
+#   dataset containing all rows from primary and the list datasets
+new_dataset_name = "new_dataset_name_after_rbind"
 
 # find locations of the dataset files by going to DETAILS and look on top under dataset name
 files_to_bind = ["./tmp/ff318940-c7b0-11ea-bec7-0242ac110002/e_jitter_2.csv.zip.1594937390.6086378.bin",
@@ -16,4 +26,4 @@ for file_name in files_to_bind:
         raise ValueError("Datasets must have equal number of columns")
     X.rbind(X2)
 
-return {"new_dataset_name": X}
+return {new_dataset_name: X}
