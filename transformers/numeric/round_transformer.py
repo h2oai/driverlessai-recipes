@@ -9,7 +9,7 @@ class MyRoundTransformer(CustomTransformer):
 
     @staticmethod
     def get_parameter_choices():
-        return {"decimals": [1, 2, 4]}
+        return {"decimals": [2,3,4]}
 
     @property
     def display_name(self):
