@@ -43,8 +43,7 @@ class MyRoundTransformer(CustomTransformer):
             ocolC = MojoColumn(name=col.name, dtype=np.float64)
             ocolD = MojoColumn(name=col.name, dtype=np.float64)
             ocol_frame = MojoFrame(columns=[ocolB, ocolC, ocolD])
-            mojo += MjT_CustomOp(iframe=MojoFrame(columns=[col]), oframe=ocol_frame,
-                            group_uuid=group_uuid, group_name=group_name, self.get_parameter_choices)
+            mojo += MjT_CustomOp(iframe=MojoFrame(columns=[col]), oframe=ocol_frame, group_uuid=group_uuid, group_name=group_name, self.get_parameter_choices)
             oframe += ocolB
             oframe += ocolC
             oframe += ocolD
