@@ -45,12 +45,15 @@ class NYTimesCovid19DailyCasesDeathsByStatesData(CustomData):
         aggs = {f"{col}100k": dt.f[col] / (dt.g.pop / 100000) for col in series_cols}
         us_states[:, dt.update(pop = g.pop, pop100k = g.pop / 10000, **aggs), join(us_states_pop)]
 
+        # remove rows without state defined (resulted in unmatched rows after left outer join)
+        del us_states[isna(f.pop), :]
+
         # produce lag of 1 unit and add as new feature for each column in the list
         series_cols.extend([col + "100k" for col in series_cols])
         aggs = {f"{col}_yesterday": shift(f[col]) for col in series_cols}
         us_states[:, update(**aggs), sort(date_col), by(group_by_cols)]
 
-        # update NA lags
+        # update NA lags to 0
         aggs = {f"{col}_yesterday": 0 for col in series_cols}
         us_states[isna(f[f"{series_cols[0]}_yesterday"]), update(**aggs)]
 
@@ -58,8 +61,13 @@ class NYTimesCovid19DailyCasesDeathsByStatesData(CustomData):
         aggs = {f"{col}_daily": f[col] - f[f"{col}_yesterday"] for col in series_cols}
         us_states[:, update(**aggs), sort(date_col), by(group_by_cols)]
 
-        for col in series_cols:
-            del us_states[:, f[f"{col}_yesterday"]]
+        # delete columns with yesterday (shift) values
+        series_cols_to_delete = [f"{col}_yesterday" for col in series_cols]
+        del us_states[:, series_cols_to_delete]
+
+        # set negative daily values to 0
+        us_states[f.cases_daily < 0, [f.cases_daily, f.cases100k_daily]] = 0
+        us_states[f.deaths_daily < 0, [f.deaths_daily, f.deaths100k_daily]] = 0
 
         # determine threshold to split train and test based on forecast horizon
         dates = dt.unique(us_states[:, date_col])

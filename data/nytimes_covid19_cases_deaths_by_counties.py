@@ -36,34 +36,48 @@ class NYTimesCovid19DailyCasesDeathsByCountiesData(CustomData):
         forecast_len = 7
 
         # get COVID19 data from NYTimes github
-        us_counties = dt.fread("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
+        us_counties = dt.fread("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv",
+                               columns={"fips": dt.str32})
 
         # get counties population
-        # TODO:
-        # us_states_pop = dt.fread(
-        #     "http://www2.census.gov/programs-surveys/popest/datasets/2010-2019/national/totals/nst-est2019-alldata.csv")
-        # us_states_pop.names = {'NAME': 'state', 'POPESTIMATE2019': 'pop'}
-        # us_states_pop.key = "state"
+        # https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/counties/totals/
+        counties_pop = dt.fread(
+            "https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/counties/totals/co-est2019-alldata.csv")
+        counties_pd = counties_pop[:, ["STATE", "COUNTY", "POPESTIMATE2019"]].to_pandas()
+        counties_pd = counties_pd.apply(lambda x: ["{:02d}".format(x[0]) + "{:03d}".format(x[1]), x.POPESTIMATE2019],
+                                        axis=1, result_type='expand')
+        counties_pd.rename(columns={0: 'fips', 1: 'pop'}, inplace=True)
+        counties_pop = dt.Frame(counties_pd)
+        counties_pop.key = "fips"
 
         # augment data with county population figures and create adjusted case and death counts
-        # us_states[:, dt.update(pop=dt.g.pop, pop100k=dt.g.pop / 100000,
-        #                        cases100k=dt.f.cases / (dt.g.pop / 100000),
-        #                        deaths100k=dt.f.deaths / (dt.g.pop / 100000)), dt.join(us_states_pop)]
+        series_cols = ["cases", "deaths"]
+        aggs = {f"{col}100k": dt.f[col] / (dt.g.pop / 100000) for col in series_cols}
+        us_counties[:, update(pop = g.pop, pop100k = g.pop / 10000, **aggs), join(counties_pop)]
+
+        # remove rows without fips defined (resulted in unmatched rows after left outer join)
+        del us_counties[isna(f.pop), :]
 
         # produce lag of 1 unit and add as new feature for each shift column
-        series_cols = ["cases", "deaths"]
+        series_cols.extend([col + "100k" for col in series_cols])
         aggs = {f"{col}_yesterday": shift(f[col]) for col in series_cols}
         us_counties[:, update(**aggs), sort(date_col), by(group_by_cols)]
 
-        # update NA lags
+        # update NA lags to 0
         aggs = {f"{col}_yesterday": 0 for col in series_cols}
         us_counties[isna(f[f"{series_cols[0]}_yesterday"]), update(**aggs)]
 
+        # compute daily values by differentiating
         aggs = {f"{col}_daily": f[col] - f[f"{col}_yesterday"] for col in series_cols}
         us_counties[:, update(**aggs), sort(date_col), by(group_by_cols)]
 
-        for col in series_cols:
-            del us_counties[:, f[f"{col}_yesterday"]]
+        # delete columns with yesterday (shift) values
+        series_cols_to_delete = [f"{col}_yesterday" for col in series_cols]
+        del us_counties[:, series_cols_to_delete]
+
+        # set negative daily values to 0
+        us_counties[f.cases_daily < 0, [f.cases_daily, f.cases100k_daily]] = 0
+        us_counties[f.deaths_daily < 0, [f.deaths_daily, f.deaths100k_daily]] = 0
 
         # determine threshold to split train and test based on forecast horizon
         dates = dt.unique(us_counties[:, date_col])
