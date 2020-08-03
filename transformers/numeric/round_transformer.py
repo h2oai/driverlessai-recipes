@@ -9,7 +9,7 @@ class MyRoundTransformer(CustomTransformer):
 
     @staticmethod
     def get_parameter_choices():
-        return {"decimals": [2,3,4]}
+        return {'op_params': {'decimals': (MojoType.INT32, [1, 2, 3])}}
 
     @property
     def display_name(self):
@@ -29,73 +29,6 @@ class MyRoundTransformer(CustomTransformer):
     from h2oaicore.mojo import MojoWriter, MojoFrame
 
     def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
-        from model2proto import Pipeline_pb2
-        import os
-        import tempfile
-        import zipfile
-
-        mojo_pipeline = Pipeline_pb2.Pipeline()
-        mojo_pipeline.mojo_version = 2
-        mojo_pipeline.uuid = "c30815f6-f6cb-475d-9f32-64d4152bce2d"
-
-        ziph = zipfile.ZipFile("transform_custome_round.mojo", mode="w",
-                               compression=zipfile.ZIP_DEFLATED)
-
-        feature_frame = mojo_pipeline.features
-        col_A = feature_frame.columns.add()
-        col_A.name = "A"
-        col_A.float64_type.SetInParent()
-
-        output_frame = mojo_pipeline.outputs
-        col_B = output_frame.columns.add()
-        col_B.name = "B"
-        col_B.float64_type.SetInParent()
-
-        col_C = output_frame.columns.add()
-        col_C.name = "C"
-        col_C.float64_type.SetInParent()
-
-        col_D = output_frame.columns.add()
-        col_D.name = "D"
-        col_D.float64_type.SetInParent()
-
-        round_decimals = Pipeline_pb2.Int32Array()
-        round_decimals.values.append(1)
-        round_decimals.values.append(2)
-        round_decimals.values.append(3)
-
-        tmp_fname = tempfile.NamedTemporaryFile().name
-
-        with open(tmp_fname, "wb") as f:
-            f.write(round_decimals.SerializeToString())
-
-        ziph.write(tmp_fname, arcname=os.path.join('mojo', 'round_decimals'),
-                   compress_type=zipfile.ZIP_STORED)
-
-        custom_tran = mojo_pipeline.transformations.add()
-        custom_tran.inputs.append("A")
-        custom_tran.outputs.append("B")
-        custom_tran.outputs.append("C")
-        custom_tran.outputs.append("D")
-        custom_op = custom_tran.custom_op
-        custom_op.transformer_name = "RoundTransform"
-
-        round_param = Pipeline_pb2.CustomParam()
-        round_param.name = "decimals"
-        decimal_arr = round_param.binary_param
-        decimal_arr.data_type = Pipeline_pb2.INT32
-        decimal_arr.file_name = os.path.join('mojo', 'round_decimals')
-        custom_op.params.append(round_param)
-
-        tmp_fname = tempfile.NamedTemporaryFile().name
-
-        with open(tmp_fname, "wb") as f:
-            f.write(mojo_pipeline.SerializeToString())
-
-        ziph.write(tmp_fname, arcname=os.path.join('mojo', 'pipeline.pb'),
-                   compress_type=zipfile.ZIP_STORED)
-
-        ziph.close()
         
         import uuid
         group_uuid = str(uuid.uuid4())
@@ -111,7 +44,7 @@ class MyRoundTransformer(CustomTransformer):
             ocolD = MojoColumn(name=col.name, dtype=np.float64)
             ocol_frame = MojoFrame(columns=[ocolB, ocolC, ocolD])
             mojo += MjT_CustomOp(iframe=MojoFrame(columns=[col]), oframe=ocol_frame,
-                            group_uuid=group_uuid, group_name=group_name)
+                            group_uuid=group_uuid, group_name=group_name, self.get_parameter_choices)
             oframe += ocolB
             oframe += ocolC
             oframe += ocolD
