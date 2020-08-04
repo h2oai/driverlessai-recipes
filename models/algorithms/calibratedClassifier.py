@@ -1,4 +1,4 @@
-""" Calibrated Classifier Model: To calibrate predictions using Platt's scaling or Isotonic regression
+""" Calibrated Classifier Model: To calibrate predictions using Platt's scaling
 """
 
 import copy
@@ -8,7 +8,7 @@ from h2oaicore.systemutils import config
 from h2oaicore.models import CustomModel, LightGBMModel
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
-from scipy.special import softmax
+from scipy.special import softmax, expit
 from sklearn.calibration import CalibratedClassifierCV
 
 class CalibratedClassifierModel:
@@ -16,7 +16,7 @@ class CalibratedClassifierModel:
     _binary = True
     _multiclass = False
     _can_use_gpu = True
-    _mojo = False
+    _mojo = True
     _description = "Calibrated Classifier Model (LightGBM)"
 
     le = LabelEncoder()
@@ -29,7 +29,7 @@ class CalibratedClassifierModel:
         for how to fix any potential issues. Disable if your recipe requires specific data or won't work on random data.
         """
         return True
-
+    
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         assert len(self.__class__.__bases__) == 3
         assert CalibratedClassifierModel in self.__class__.__bases__
@@ -39,20 +39,6 @@ class CalibratedClassifierModel:
         self.le.fit(self.labels)
         y_ = self.le.transform(y)
         
-        
-        #Stratified split with classes control - making sure all classes present in both train and test
-        unique_cls = np.unique(y_)
-        tr_indx, te_indx = [], []
-        
-        for c in unique_cls:
-            c_indx = np.argwhere(y_==c).ravel()
-            indx = np.random.permutation(c_indx)
-            start_indx = max(1, int(self.params["calib_perc"]*len(c_indx))) # at least 1 exemplar should be presented
-            tr_indx += list(indx[start_indx:])
-            te_indx += list(indx[:start_indx])
-        tr_indx = np.array(tr_indx)
-        te_indx = np.array(te_indx)
-
         whoami = [x for x in self.__class__.__bases__ if (x != CustomModel and x != CalibratedClassifierModel)][0]
 
         kwargs_classification = copy.deepcopy(self.params_base)
@@ -68,17 +54,36 @@ class CalibratedClassifierModel:
                                       transformed_features=self.transformed_features,
                                       original_user_cols=self.original_user_cols,
                                       date_format_strings=self.date_format_strings, **kwargs_classification)
+        
         eval_set_classification = None
         if eval_set is not None:
             eval_set_y = self.le.transform(eval_set[0][1])
             eval_set_classification = [(eval_set[0][0], eval_set_y.astype(int))]
+            
+        #Stratified split with classes control - making sure all classes present in both train and test
+        unique_cls = np.unique(y_)
+        tr_indx, te_indx = [], []
+
+        for c in unique_cls:
+            c_indx = np.argwhere(y_==c).ravel()
+            indx = np.random.permutation(c_indx)
+            start_indx = max(1, int(self.params["calib_perc"]*len(c_indx))) # at least 1 exemplar should be presented
+            tr_indx += list(indx[start_indx:])
+            te_indx += list(indx[:start_indx])
+        tr_indx = np.array(tr_indx)
+        te_indx = np.array(te_indx)
+
+        X_train, y_train = X[tr_indx, :], y_.astype(int)[tr_indx]
+        X_calibrate, y_calibrate = X[te_indx, :].to_pandas(), np.array(y)[te_indx].ravel()
 
         if sample_weight is not None:
             sample_weight_ = sample_weight[tr_indx]
+            sample_weight_calib = sample_weight[te_indx]
         else:
             sample_weight_ = sample_weight
+            sample_weight_calib = sample_weight
 
-        model_classification.fit(X[tr_indx, :], y_.astype(int)[tr_indx],
+        model_classification.fit(X_train, y_train,
                                  sample_weight=sample_weight_, eval_set=eval_set_classification,
                                  sample_weight_eval_set=sample_weight_eval_set, **kwargs)
 
@@ -87,9 +92,13 @@ class CalibratedClassifierModel:
         model_classification.classes_ = self.le.classes_
         calibrator = CalibratedClassifierCV(
             base_estimator=model_classification,
-            method=self.params["calib_method"],
+            method="sigmoid",
             cv='prefit')
-        calibrator.fit(X[te_indx, :].to_pandas(), np.array(y)[te_indx].ravel())
+
+        calibrator.fit(X_calibrate, y_calibrate, sample_weight = sample_weight_calib)
+        
+        self.slope = calibrator.calibrated_classifiers_[0].calibrators_[0].a_
+        self.intercept = calibrator.calibrated_classifiers_[0].calibrators_[0].b_
         # calibration
 
         varimp = model_classification.imp_features(columns=X.names)
@@ -101,28 +110,24 @@ class CalibratedClassifierModel:
 
         iters = model_classification.best_iterations
         iters = int(max(1, iters))
-        self.set_model_properties(model={
-            "models": calibrator,
-            "classes_": self.le.classes_,
-            "best_iters": iters,
-        },
+        self.set_model_properties(model=model_classification.model,
             features=list(X.names), importances=importances, iterations=iters
         )
 
     def predict(self, X, **kwargs):
         X = dt.Frame(X)
-        data, _, _, _ = self.get_model_properties()
-        model, classes_, best_iters = data["models"], data["classes_"], data["best_iters"]
-
-        model.base_estimator.best_iterations = best_iters
+        model, _, _, _ = self.get_model_properties()
         preds = model.predict_proba(X)
-
+        
+        scaled_preds = expit(-(self.slope * preds[:,1] + self.intercept))
+        preds[:,1] = scaled_preds
+        preds[:,0] = 1. - scaled_preds
         return preds
 
 from h2oaicore.mojo import MojoWriter, MojoFrame
 
 class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, CustomModel):
-    _mojo = False
+    _mojo = True
 
     @property
     def has_pred_contribs(self):
@@ -134,13 +139,54 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
 
     def set_default_params(self, **kwargs):
         super().set_default_params(**kwargs)
-        self.params["calib_method"] = "sigmoid"
         self.params["calib_perc"] = .1
 
     def mutate_params(self, **kwargs):
         super().mutate_params(**kwargs)
-        self.params["calib_method"] = np.random.choice(["isotonic", "sigmoid"])
         self.params["calib_perc"] = np.random.choice([.05, .1, .15, .2])
-
+    
     def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
-        raise NotImplementedError
+        return self.to_mojo(mojo = mojo, iframe = iframe, group_uuid=group_uuid, group_name=group_name)
+    
+    def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
+        from h2oaicore.mojo import MojoColumn
+        from h2oaicore.mojo_transformers import MjT_ConstBinaryOp, MjT_Sigmoid, MjT_AsType
+        import uuid
+        group_uuid = str(uuid.uuid4())
+        group_name = self.__class__.__name__
+        
+        _iframe = super().write_to_mojo(mojo = mojo, iframe = iframe, group_uuid=group_uuid, group_name=group_name)
+        
+        res = MojoFrame()
+        assert len(_iframe) == 1
+        
+        icol = _iframe.get_column(0)
+        
+        ocol1 = MojoColumn(name=icol.name + "_slope", dtype=icol.type)
+        oframe1 = MojoFrame(columns=[ocol1])
+        ocol2 = MojoColumn(name=icol.name + "_intercept", dtype=icol.type)
+        oframe2 = MojoFrame(columns=[ocol2])
+        ocol3 = MojoColumn(name=icol.name + "_negative", dtype=icol.type)
+        oframe3 = MojoFrame(columns=[ocol3])
+        ocol4 = MojoColumn(name=icol.name + "_calibrated", dtype="float64")
+        oframe4 = MojoFrame(columns=[ocol4])
+        ocol5 = MojoColumn(name=icol.name + "_astype", dtype=icol.type)
+        oframe5 = MojoFrame(columns=[ocol5])
+        
+
+        mojo += MjT_ConstBinaryOp(iframe=_iframe, oframe=oframe1, op="multiply", const= self.slope, pos="right",
+                                  group_uuid=group_uuid, group_name=group_name)
+        
+        mojo += MjT_ConstBinaryOp(iframe=oframe1, oframe=oframe2, op="add", const=self.intercept, pos="right",
+                                  group_uuid=group_uuid, group_name=group_name)
+        
+        mojo += MjT_ConstBinaryOp(iframe=oframe2, oframe=oframe3, op="multiply", const=-1., pos="right",
+                                  group_uuid=group_uuid, group_name=group_name)
+        
+        mojo+= MjT_Sigmoid(iframe=oframe3, oframe=oframe4, group_uuid=group_uuid, group_name=group_name)
+        mojo+= MjT_AsType(iframe=oframe4, oframe=oframe5, type = "float32", group_uuid=group_uuid, group_name=group_name)
+        
+        
+        res.cbind(oframe5)
+        
+        return res
