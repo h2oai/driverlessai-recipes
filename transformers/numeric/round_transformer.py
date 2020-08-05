@@ -1,6 +1,6 @@
 """Rounds numbers to 1, 2 or 3 decimals"""
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.mojo import MojoType
+from h2oaicore.systemutils import dtype_global
 import datatable as dt
 import numpy as np
 
