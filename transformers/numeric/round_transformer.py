@@ -50,27 +50,3 @@ class MyRoundTransformer(CustomTransformer):
             oframe += ocol
         oframe = AsType(dtype_global()).write_to_mojo(mojo, oframe, group_uuid=group_uuid, group_name=group_name)
         return oframe
-    
-    def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
-        
-        import uuid
-        group_uuid = str(uuid.uuid4())
-        group_name = self.__class__.__name__
-        from h2oaicore.mojo import MojoColumn, MojoFrame, MojoType
-        from h2oaicore.mojo_transformers import MjT_CustomOp
-        from h2oaicore.mojo_transformers_utils import AsType
-        xnew = iframe[self.input_feature_names]
-        oframe = MojoFrame()
-        for col in xnew:
-            ocolB = MojoColumn(name=col.name, dtype=np.float64)
-            ocolC = MojoColumn(name=col.name, dtype=np.float64)
-            ocolD = MojoColumn(name=col.name, dtype=np.float64)
-            ocol_frame = MojoFrame(columns=[ocolB, ocolC, ocolD])
-            mojo += MjT_CustomOp(iframe=MojoFrame(columns=[col]), oframe=ocol_frame, group_uuid=group_uuid, group_name=group_name, op_params=self.get_parameter_choices)
-            oframe += ocolB
-            oframe += ocolC
-            oframe += ocolD
-        oframe = AsType(dtype_global()).write_to_mojo(mojo, oframe,
-                                                      group_uuid=group_uuid,
-                                                      group_name=group_name)
-        return oframe
