@@ -38,7 +38,7 @@ class MyRoundTransformer(CustomTransformer):
         group_uuid = str(uuid.uuid4())
         group_name = self.__class__.__name__
         kws = dict()
-        kws["op_name"] = "MyRoundTransformer"
+        kws["op_name"] = "RoundTransform"
         custom_param = dict()
         custom_param["decimals"] = (MojoType.INT32, self.decimals)
         kws["op_params"] = custom_param
