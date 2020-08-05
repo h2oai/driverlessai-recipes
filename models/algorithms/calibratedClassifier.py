@@ -14,7 +14,7 @@ from sklearn.calibration import CalibratedClassifierCV
 class CalibratedClassifierModel:
     _regression = False
     _binary = True
-    _multiclass = False
+    _multiclass = True
     _can_use_gpu = True
     _mojo = True
     _description = "Calibrated Classifier Model (LightGBM)"
@@ -40,15 +40,21 @@ class CalibratedClassifierModel:
         y_ = self.le.transform(y)
         
         whoami = [x for x in self.__class__.__bases__ if (x != CustomModel and x != CalibratedClassifierModel)][0]
-
+        
         kwargs_classification = copy.deepcopy(self.params_base)
-        kwargs_update = dict(num_classes=2, objective='binary:logistic', eval_metric='logloss', labels=[0, 1],
-                             score_f_name='LOGLOSS')
+        kwargs_update = dict(
+            num_classes=len(self.le.classes_), 
+            labels=list(np.arange(len(self.le.classes_))),
+        )
+        #, objective='binary:logistic', eval_metric='logloss', labels=[0, 1],
+#                              score_f_name='LOGLOSS')
         kwargs_classification.update(kwargs_update)
-        kwargs_classification.pop('base_score', None)
+#         kwargs_classification.pop('base_score', None)
         for k in kwargs:
             if k in kwargs_classification:
                 kwargs[k] = kwargs_classification[k]
+                
+        
         model_classification = whoami(context=self.context,
                                       unfitted_pipeline_path=self.unfitted_pipeline_path,
                                       transformed_features=self.transformed_features,
@@ -97,8 +103,13 @@ class CalibratedClassifierModel:
 
         calibrator.fit(X_calibrate, y_calibrate, sample_weight = sample_weight_calib)
         
-        self.slope = calibrator.calibrated_classifiers_[0].calibrators_[0].a_
-        self.intercept = calibrator.calibrated_classifiers_[0].calibrators_[0].b_
+        
+        self.slope = []
+        self.intercept = []
+        
+        for c in calibrator.calibrated_classifiers_[0].calibrators_:
+            self.slope.append(c.a_)
+            self.intercept.append(c.b_)
         # calibration
 
         varimp = model_classification.imp_features(columns=X.names)
@@ -119,9 +130,15 @@ class CalibratedClassifierModel:
         model, _, _, _ = self.get_model_properties()
         preds = model.predict_proba(X)
         
-        scaled_preds = expit(-(self.slope * preds[:,1] + self.intercept))
-        preds[:,1] = scaled_preds
-        preds[:,0] = 1. - scaled_preds
+        if preds.shape[1] <= 2:
+            scaled_preds = expit(-(self.slope[0] * preds[:,1] + self.intercept[0]))
+            preds[:,1] = scaled_preds
+            preds[:,0] = 1. - scaled_preds
+        else:
+            for c in range(preds.shape[1]):
+                scaled_preds = expit(-(self.slope[c] * preds[:,c] + self.intercept[c]))
+                preds[:,c] = scaled_preds
+            preds = preds / np.sum(preds, 1).reshape(-1,1)
         return preds
 
 from h2oaicore.mojo import MojoWriter, MojoFrame
@@ -146,11 +163,13 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
         self.params["calib_perc"] = np.random.choice([.05, .1, .15, .2])
     
     def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
+#         raise NotImplementedError("No MOJO for")
         return self.to_mojo(mojo = mojo, iframe = iframe, group_uuid=group_uuid, group_name=group_name)
     
     def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
+#         raise NotImplementedError("No MOJO for")
         from h2oaicore.mojo import MojoColumn
-        from h2oaicore.mojo_transformers import MjT_ConstBinaryOp, MjT_Sigmoid, MjT_AsType
+        from h2oaicore.mojo_transformers import MjT_ConstBinaryOp, MjT_Sigmoid, MjT_AsType, MjT_Agg, MjT_BinaryOp
         import uuid
         group_uuid = str(uuid.uuid4())
         group_name = self.__class__.__name__
@@ -158,35 +177,56 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
         _iframe = super().write_to_mojo(mojo = mojo, iframe = iframe, group_uuid=group_uuid, group_name=group_name)
         
         res = MojoFrame()
-        assert len(_iframe) == 1
+#         assert len(_iframe) == 1
         
-        icol = _iframe.get_column(0)
-        
-        ocol1 = MojoColumn(name=icol.name + "_slope", dtype=icol.type)
-        oframe1 = MojoFrame(columns=[ocol1])
-        ocol2 = MojoColumn(name=icol.name + "_intercept", dtype=icol.type)
-        oframe2 = MojoFrame(columns=[ocol2])
-        ocol3 = MojoColumn(name=icol.name + "_negative", dtype=icol.type)
-        oframe3 = MojoFrame(columns=[ocol3])
-        ocol4 = MojoColumn(name=icol.name + "_calibrated", dtype="float64")
-        oframe4 = MojoFrame(columns=[ocol4])
-        ocol5 = MojoColumn(name=icol.name + "_astype", dtype=icol.type)
-        oframe5 = MojoFrame(columns=[ocol5])
-        
+        for c in range(len(_iframe)):
+            icol = _iframe.get_column(c)
 
-        mojo += MjT_ConstBinaryOp(iframe=_iframe, oframe=oframe1, op="multiply", const= self.slope, pos="right",
-                                  group_uuid=group_uuid, group_name=group_name)
+            ocol1 = MojoColumn(name=icol.name + "_slope", dtype=icol.type)
+            oframe1 = MojoFrame(columns=[ocol1])
+            ocol2 = MojoColumn(name=icol.name + "_intercept", dtype=icol.type)
+            oframe2 = MojoFrame(columns=[ocol2])
+            ocol3 = MojoColumn(name=icol.name + "_negative", dtype=icol.type)
+            oframe3 = MojoFrame(columns=[ocol3])
+            ocol4 = MojoColumn(name=icol.name + "_calibrated", dtype="float64")
+            oframe4 = MojoFrame(columns=[ocol4])
+            ocol5 = MojoColumn(name=icol.name + "_astype", dtype=icol.type)
+            oframe5 = MojoFrame(columns=[ocol5])
+
+
+            mojo += MjT_ConstBinaryOp(iframe=_iframe[c], oframe=oframe1, op="multiply", const= self.slope[c], pos="right",
+                                      group_uuid=group_uuid, group_name=group_name)
+
+            mojo += MjT_ConstBinaryOp(iframe=oframe1, oframe=oframe2, op="add", const=self.intercept[c], pos="right",
+                                      group_uuid=group_uuid, group_name=group_name)
+
+            mojo += MjT_ConstBinaryOp(iframe=oframe2, oframe=oframe3, op="multiply", const=-1., pos="right",
+                                      group_uuid=group_uuid, group_name=group_name)
+
+            mojo+= MjT_Sigmoid(iframe=oframe3, oframe=oframe4, group_uuid=group_uuid, group_name=group_name)
+            mojo+= MjT_AsType(iframe=oframe4, oframe=oframe5, type = "float32", group_uuid=group_uuid, group_name=group_name)
+
+
+            res.cbind(oframe5)
         
-        mojo += MjT_ConstBinaryOp(iframe=oframe1, oframe=oframe2, op="add", const=self.intercept, pos="right",
-                                  group_uuid=group_uuid, group_name=group_name)
-        
-        mojo += MjT_ConstBinaryOp(iframe=oframe2, oframe=oframe3, op="multiply", const=-1., pos="right",
-                                  group_uuid=group_uuid, group_name=group_name)
-        
-        mojo+= MjT_Sigmoid(iframe=oframe3, oframe=oframe4, group_uuid=group_uuid, group_name=group_name)
-        mojo+= MjT_AsType(iframe=oframe4, oframe=oframe5, type = "float32", group_uuid=group_uuid, group_name=group_name)
-        
-        
-        res.cbind(oframe5)
-        
+        if len(res) > 1:
+            res2 = MojoFrame()
+            ocol_sum = MojoColumn(name=self.__class__.__name__ + "_sum", dtype="float32")
+            oframe_sum = MojoFrame(columns=[ocol_sum])
+            mojo+= MjT_Agg(iframe=res, oframe=oframe_sum, op = "sum", group_uuid=group_uuid, group_name=group_name)
+
+            for c in range(len(res)):
+                icol = res.get_column(c)
+                ocol1 = MojoColumn(name=icol.name + "_normalized", dtype=icol.type)
+                oframe1 = MojoFrame(columns=[ocol1])
+                
+                pair = MojoFrame()
+                pair.cbind(res[c])
+                pair.cbind(oframe_sum)
+
+                mojo+= MjT_BinaryOp(iframe = pair, oframe=oframe1, op = "divide", group_uuid=group_uuid, group_name=group_name)
+                res2.cbind(oframe1)
+                
+            res = res2
+            
         return res
