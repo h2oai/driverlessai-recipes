@@ -46,10 +46,7 @@ class CalibratedClassifierModel:
             num_classes=len(self.le.classes_), 
             labels=list(np.arange(len(self.le.classes_))),
         )
-        #, objective='binary:logistic', eval_metric='logloss', labels=[0, 1],
-#                              score_f_name='LOGLOSS')
         kwargs_classification.update(kwargs_update)
-#         kwargs_classification.pop('base_score', None)
         for k in kwargs:
             if k in kwargs_classification:
                 kwargs[k] = kwargs_classification[k]
@@ -163,11 +160,9 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
         self.params["calib_perc"] = np.random.choice([.05, .1, .15, .2])
     
     def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
-#         raise NotImplementedError("No MOJO for")
         return self.to_mojo(mojo = mojo, iframe = iframe, group_uuid=group_uuid, group_name=group_name)
     
     def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
-#         raise NotImplementedError("No MOJO for")
         from h2oaicore.mojo import MojoColumn
         from h2oaicore.mojo_transformers import MjT_ConstBinaryOp, MjT_Sigmoid, MjT_AsType, MjT_Agg, MjT_BinaryOp
         import uuid
@@ -177,7 +172,6 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
         _iframe = super().write_to_mojo(mojo = mojo, iframe = iframe, group_uuid=group_uuid, group_name=group_name)
         
         res = MojoFrame()
-#         assert len(_iframe) == 1
         
         for c in range(len(_iframe)):
             icol = _iframe.get_column(c)
