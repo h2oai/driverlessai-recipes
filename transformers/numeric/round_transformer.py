@@ -45,10 +45,8 @@ class MyRoundTransformer(CustomTransformer):
         xnew = iframe[self.input_feature_names]
         oframe = MojoFrame()
         for col in xnew:
-            ocolA = MojoColumn(name=col.name, dtype=col.type)
-            ocolB = MojoColumn(name=col.name, dtype=col.type)
-            ocolC = MojoColumn(name=col.name, dtype=col.type)
-            ocol_frame = MojoFrame(columns=[ocolA, ocolB, ocolC])
+            ocol = MojoColumn(name=col.name, dtype=col.type)
+            ocol_frame = MojoFrame(columns=[ocol])
             mojo += MjT_CustomOp(MojoFrame(columns=[col]), ocol_frame, group_uuid, group_name, **kws)
             oframe += ocol_frame
         oframe = AsType(dtype_global()).write_to_mojo(mojo, oframe, group_uuid=group_uuid, group_name=group_name)
