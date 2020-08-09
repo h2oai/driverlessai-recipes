@@ -28,10 +28,10 @@ from os.path import isfile, join
 
 count = 0
 ret = []
-livecode_path = "./data/livecode/"
+livecode_path = "./data/livecode"
 livecode_files = [f for f in listdir(livecode_path) if isfile(join(livecode_path, f))]
 for f in sorted(livecode_files):
-            depth = 2
+            depth = 0
             if f not in exclude and not f.startswith("test_"):
                 if f[-3:] == ".py":
                         docstring = get_file_docstring(os.path.join(livecode_path, f)) or \
