@@ -59,7 +59,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
-### Count: 174
+### Count: 175
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description]
 * [DATA](./data)
@@ -129,6 +129,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [MONOTONIC](./models/monotonic)
     * [monotonic_models.py](./models/monotonic/monotonic_models.py) [LightGBM/XGBoostGBM/DecisionTree with user-given monotonicity constraints (1/-1/0) for original numeric features]
   * [NLP](./models/nlp)
+    * [text_binary_count_logistic.py](./models/nlp/text_binary_count_logistic.py) [Text classification model using binary count of words]
     * [text_tfidf_model.py](./models/nlp/text_tfidf_model.py) [Text classification / regression model using TFIDF]
     * [text_tfidf_model_continuous.py](./models/nlp/text_tfidf_model_continuous.py) [Text classification model using TFIDF]
   * [TIMESERIES](./models/timeseries)
