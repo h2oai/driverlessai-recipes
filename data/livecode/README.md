@@ -1,13 +1,19 @@
-# Recipes for H2O Driverless AI
+# Live Code Templates for H2O Driverless AI Datasets
 
 ## About Driverless AI and BYOR 
 See main [README](https://github.com/h2oai/driverlessai-recipes/README.md)
 
 ## About Data Recipes
 Driverless AI allows you to create a new dataset by modifying an existing dataset with a data recipe. 
-When inside **Dataset Details** page click the **Modify by Recipe** button in the top right portion of the UI, then click **Live Code** from the submenu that appears.
-The Dialog Box that appears will feature an editor to enter the code for the data recipe you want to use to modify the dataset. The list of templates below are designed
-for the live code applications with certain modifications specific to the dataset they apply to.
+When inside **Dataset Details** page:
+
+* click the **Modify by Recipe** button in the top right portion of the UI
+* click **Live Code** from the submenu that appears
+* enter the code inside the **Dialog Box** that appears featurng an editor 
+* enter the code for the data recipe you want to use to modify the dataset. 
+
+The list below contains the live code templates for various applications of data recipes. Each template is designed and documented to be applied 
+after modifications specific to a dataset it applies to.
 
 ## Reference Guide
 * [Adding a Data Recipe](http://docs.h2o.ai/driverless-ai/latest-stable/docs/userguide/custom-recipes-data-recipes.html#adding-a-data-recipe)
@@ -28,7 +34,7 @@ for the live code applications with certain modifications specific to the datase
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
 ### Count: 21
-  * [balance_data.py](./data/livecode/balance_data.py) [ Create a sampled dataset for imbalanced use cases - probably not for modeling but
+  * [balance\_data.py](./balance_data.py) [ Create a sampled dataset for imbalanced use cases - probably not for modeling but
      can be nice to better see trends in MLI PDP plots
     
      Specification:
@@ -41,7 +47,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset with downsampled majority class
     ]
-  * [bind_2_datasets.py](./data/livecode/bind_2_datasets.py) [ Livecode for binding 2 datasets' rows (rbind). Datasets should have the same
+  * [bind\_2\_datasets.py](./bind_2_datasets.py) [ Livecode for binding 2 datasets' rows (rbind). Datasets should have the same
      columnar structure, e.g. train dataset and test dataset (with target present).
      For more details see docs on datatable's Frame.rbind() here:
      https://datatable.readthedocs.io/en/latest/api/frame.html#datatable.Frame.rbind
@@ -55,12 +61,12 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset containing all rows from both datasets
     ]
-  * [bind_X_and_y.py](./data/livecode/bind_X_and_y.py) [ Livecode for binding 2 datasets with the same number of rows, e.g.
+  * [bind\_X\_and\_y.py](./bind_X_and_y.py) [ Livecode for binding 2 datasets with the same number of rows, e.g.
      one dataset with features and another dataset has target.
      Recipe won't perform any joins/mapping but rather stitch
      2 datasets' rows together.
     ]
-  * [bind_n_datasets.py](./data/livecode/bind_n_datasets.py) [ Livecode for binding multiple datasets' rows (rbind). Datasets should have the same
+  * [bind\_n\_datasets.py](./bind_n_datasets.py) [ Livecode for binding multiple datasets' rows (rbind). Datasets should have the same
      columnar structure, e.g. each file contains one month of train data.
      For more details see docs on datatable's Frame.rbind() here:
      https://datatable.readthedocs.io/en/latest/api/frame.html#datatable.Frame.rbind
@@ -74,7 +80,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset containing all rows from primary and the list datasets
     ]
-  * [compute_shift_diff_per_column.py](./data/livecode/compute_shift_diff_per_column.py) [ Compute per-column difference between current and previous (shift)
+  * [compute\_shift\_diff\_per\_column.py](./compute_shift_diff_per_column.py) [ Compute per-column difference between current and previous (shift)
      values for each time series - both by time groups (multiple time
      series) and across covariates (multivariate time series).
      Multiple time series identified by group columns while 
@@ -90,7 +96,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset augmented with shifted columns
     ]
-  * [compute_stats_by_groups_per_column.py](./data/livecode/compute_stats_by_groups_per_column.py) [ Compute per-column expressions (signed distance from the mean in this example) 
+  * [compute\_stats\_by\_groups\_per\_column.py](./compute_stats_by_groups_per_column.py) [ Compute per-column expressions (signed distance from the mean in this example) 
      for all numeric (int, float) columns with stats computed by groups and
      new column added for each original numeric feature.
      see: https://stackoverflow.com/questions/62974899/updating-or-adding-multiple-columns-with-pydatatable-in-style-of-r-datables-sd
@@ -103,7 +109,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset augmented with computed statistics
     ]
-  * [create_time_interval_partition.py](./data/livecode/create_time_interval_partition.py) [ Extract single partition based on time interval
+  * [create\_time\_interval\_partition.py](./create_time_interval_partition.py) [ Extract single partition based on time interval
      Data is called X and is a DataTable object
     
      Specification:
@@ -116,7 +122,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset containing partition interval
     ]
-  * [drop_duplicates.py](./data/livecode/drop_duplicates.py) [ Remove duplicate rows by grouping the same rows,
+  * [drop\_duplicates.py](./drop_duplicates.py) [ Remove duplicate rows by grouping the same rows,
      sorting them and then selecting first (1) or last (-1)
      row from each group
     
@@ -129,7 +135,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset after removing dups
     ]
-  * [fill_ts.py](./data/livecode/fill_ts.py) [ Add any missing Group by Date records and fill with a default value -
+  * [fill\_ts.py](./fill_ts.py) [ Add any missing Group by Date records and fill with a default value -
      additional columns will be null for the default values
     
      Specification:
@@ -143,7 +149,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset augmented with missing data
     ]
-  * [filter_columns_by_types.py](./data/livecode/filter_columns_by_types.py) [ Filter only columns of certain types. Beware that column order
+  * [filter\_columns\_by\_types.py](./filter_columns_by_types.py) [ Filter only columns of certain types. Beware that column order
      changes after filtering. For more details see f-expressions in 
      datatable docs: 
      https://datatable.readthedocs.io/en/latest/manual/f-expressions.html#f-expressions
@@ -161,7 +167,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset with columns filtered by data types
     ]
-  * [find_mli_rowids.py](./data/livecode/find_mli_rowids.py) [ Get interesting RowIDs to search for in MLI
+  * [find\_mli\_rowids.py](./find_mli_rowids.py) [ Get interesting RowIDs to search for in MLI
     
      Specification:
      Inputs:
@@ -171,7 +177,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset with selected rows and ids
     ]
-  * [impute_X.py](./data/livecode/impute_X.py) [ Live code recipe for imputing all missing values
+  * [impute\_X.py](./impute_X.py) [ Live code recipe for imputing all missing values
      in a dataset
      If you don't want certain data type to be filled just 
      change its filler's value to None
@@ -186,7 +192,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset with filled values
     ]
-  * [insert_unique_id.py](./data/livecode/insert_unique_id.py) [ Livecode to add (insert) new column containing unique row
+  * [insert\_unique\_id.py](./insert_unique_id.py) [ Livecode to add (insert) new column containing unique row
      identifier. New dataset will be identical to its source
      plus inserted first column containing unique ids from 0 to N-1
     
@@ -198,7 +204,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset augmented with id column
     ]
-  * [join_X_left_outer_Y.py](./data/livecode/join_X_left_outer_Y.py) [ Livecode for joining 2 datasets, e.g.
+  * [join\_X\_left\_outer\_Y.py](./join_X_left_outer_Y.py) [ Livecode for joining 2 datasets, e.g.
      one dataset with transactions and another dataset has extended set of features.
      find location of the dataset file by going to DETAILS where it's displayed
      on top under dataset name
@@ -212,7 +218,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset containing all rows from both datasets
     ]
-  * [map_target_to_binary_outcome.py](./data/livecode/map_target_to_binary_outcome.py) [ Maps multi-nominal target (outcome) to binomial target column by
+  * [map\_target\_to\_binary\_outcome.py](./map_target_to_binary_outcome.py) [ Maps multi-nominal target (outcome) to binomial target column by
      binding new column to a dataset (new dataset will be created).
      For example, use when working with multi-nominal classifier and want 
      to see if binomial model may be preferred or compliment use case.
@@ -229,7 +235,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset containing all rows from both datasets
     ]
-  * [melt_X.py](./data/livecode/melt_X.py) [ Change dataset format from wide to long using melt function
+  * [melt\_X.py](./melt_X.py) [ Change dataset format from wide to long using melt function
      Identify id columns and value columns to use Pandas melt 
      function
     
@@ -245,7 +251,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset containing all rows from both datasets
     ]
-  * [pivot_X.py](./data/livecode/pivot_X.py) [ Change dataset format from long to wide using pivot function
+  * [pivot\_X.py](./pivot_X.py) [ Change dataset format from long to wide using pivot function
      Identify id columns and value columns to use Pandas pivot 
      function
     
@@ -259,7 +265,7 @@ for the live code applications with certain modifications specific to the datase
      Output:
        dataset containing all rows from both datasets
     ]
-  * [rename_column_names.py](./data/livecode/rename_column_names.py) [ Rename column name(s) in the dataset
+  * [rename\_column\_names.py](./rename_column_names.py) [ Rename column name(s) in the dataset
     
      Specification:
      Inputs:
@@ -267,7 +273,7 @@ for the live code applications with certain modifications specific to the datase
      Parameters:
        column_rename_map: dictionary - dictionary mapping old column names to new ones
     ]
-  * [sample_X.py](./data/livecode/sample_X.py) [ Random sample of rows from X
+  * [sample\_X.py](./sample_X.py) [ Random sample of rows from X
     
      Specification:
      Inputs:
@@ -276,7 +282,7 @@ for the live code applications with certain modifications specific to the datase
        fraction: float - fraction of rows to sample from 'X' (must be between 0 and 1)
        random_seed: int - random seed to control for reproducibility
     ]
-  * [split_by_datetime.py](./data/livecode/split_by_datetime.py) [ Data is called X and is a DataTable object
+  * [split\_by\_datetime.py](./split_by_datetime.py) [ Data is called X and is a DataTable object
     
      Specification:
      Inputs:
@@ -285,7 +291,7 @@ for the live code applications with certain modifications specific to the datase
        date_col: string - name of temporal column
        split_date: date/time - temporal value to split dataset on
     ]
-  * [split_dataset_by_partition_column.py](./data/livecode/split_dataset_by_partition_column.py) [ Split dataset by partition id (column): results in as many partitions (datasets)
+  * [split\_dataset\_by\_partition\_column.py](./split_dataset_by_partition_column.py) [ Split dataset by partition id (column): results in as many partitions (datasets)
      as there are values in parition column
     
      Specification:
