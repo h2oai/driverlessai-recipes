@@ -92,6 +92,7 @@ class MyData(CustomData):
                 
                 event_categories = list(event_categories)
                 
+                # Create a string indicating the categories included in the definition of a similar event
                 event_prefix = "previous_"
                 for item in event_categories:
                     event_prefix += str(item.replace(' ', '')) + '_'
@@ -110,6 +111,7 @@ class MyData(CustomData):
                         AA = AA[AA[event_categories[jj]] == unique_categories.iloc[ii, jj]]
                     split_set[tuple(unique_categories.iloc[ii,:])] = AA
     
+                # Try to calculate the mean
                 def mean(x):
                     x = list(x)
                     try:
