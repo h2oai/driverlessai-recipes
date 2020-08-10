@@ -70,7 +70,7 @@ class process_tweets:
 
     @staticmethod 
     def fix_username(text):
-        text = re.sub(r"^@[a-zA-Z0-9]+","@username",text)
+        text = re.sub(r"@[a-zA-Z0-9]+","@username",text)
         return text
     
     def preprocess(self,text):
