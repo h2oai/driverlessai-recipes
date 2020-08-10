@@ -1,13 +1,13 @@
-"""Manually add features based on the average target value for similar events to a dataset"""
+"""Manually add features based on the average target value for similar events"""
 
 """
 
 This recipe adds the average value of the target for recent similar events (where similar events have the same 
-values for the categorical variables on the event list).
+values for the categorical variables in the event list).
 
 Settings for Driverless AI:
 1. Update folder_path to the data file and the filename.
-2. Edit the seconds ahead list so that it lists the number of seconds ahead of time,
+2. Edit the seconds ahead list so that it lists the number of seconds ahead of time
 that predictions must be made.  A separate file, with separate predict ahead intervals will be 
 created for each value on the list. For instance [24*3600, 7*24*3600] would create separate files
 with day ahead and week ahead features.
@@ -74,7 +74,7 @@ class MyData(CustomData):
             return answer
 
         
-        # Create datasets with minimum features calculated the given number of days ahead
+        # Create datasets with features calculated the given number of days ahead
         dataset_dict = {}
         for seconds_ahead in seconds_ahead_list:
             
