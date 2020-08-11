@@ -6,7 +6,7 @@
 # Inputs:
 #   X: datatable - primary data set
 # Parameters:
-#   columns: list of column names - columns to cast to numeric. If None (default) then all character columns
+#   columns: list - columns to cast to numeric. If None (default) then all character columns
 #   threshold: numeric - threshold for percentage of allowed non-numeric values per column before conversion
 #   name_suffix: string - suffix to add to the name of new numeric column converted from the original
 # Output:
@@ -18,7 +18,9 @@ import numpy as np
 # percent of values allowed to dismiss as non-numeric (missing) after conversion
 columns = None
 threshold = 0.01
-name_suffix = '_to_numeric'
+name_suffix = '_num'
+
+new_dataset_name = "new_dataset_name_after_casting_to_num"
 
 # select columns to cast and convert to pandas frame
 if columns is None:
@@ -37,4 +39,4 @@ for c in columns:
     if percent_of_non_numeric <= threshold:
         X[c + name_suffix] = pd.to_numeric(df[c], errors='coerce')
 
-return X
+return {new_dataset_name: X}

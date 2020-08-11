@@ -12,15 +12,15 @@ def get_file_docstring(filepath):
         if not first_char == '#':
             break
         else:
-            docstring += line[1:]
+            docstring += line[1:] + "\n"
     return docstring
 
 def print_offset(depth, str_content, ret):
     for i, line in enumerate(str_content.split("\n")):
         if i == 0:
-            ret.append(sep * depth + "* " + line)
+            ret.append(sep * depth + "* " + line + "  \n")
         else:
-            ret.append(sep * depth + "  " + line)
+            ret.append(sep * depth + "  " + line + "  \n")
 
 import os
 from os import listdir
