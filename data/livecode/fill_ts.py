@@ -12,12 +12,13 @@
 # Output:
 #   dataset augmented with missing data
 
-
 # Column names in our dataset
 ts_col = "Date"
 group_by_cols = ["Store", "Dept"]
 target_col = "Weekly_Sales"
 default_missing_value = 0
+
+new_dataset_name = "new_dataset_name_after_filling_ts"
 
 # check the datatype of user-defined input variables
 if not isinstance(ts_col, str):
@@ -57,4 +58,4 @@ df_filled = pd.merge(df, all_vals, how="outer")
 # fill all nulls with default value - this is appropriate for TS experiments, even if there were existing nulls
 df_filled[target_col] = df_filled[target_col].fillna(0)
 
-return df_filled
+return {new_dataset_name: df_filled}

@@ -20,6 +20,9 @@ target_col = "Known_Fraud"
 times = 5
 random_seed = 123
 
+new_dataset_name = "new_dataset_name_with_downsampled_majority"
+
+# counts by target groups
 g = X[:, {"count": count()}, by(target_col)]
 if not g.shape[1] == 2:
     raise ValueError("Not a binary target - target column must contain exactly 2 values.")
@@ -34,11 +37,13 @@ target_majority = g[f.count == n_majority, target_col][0,0]
 if times * n_minority >= n_majority:
     raise ValueError("Downsampling coefficient `times` is too large: downsampled dataset results in inflated majority class.")
 
+# downsample with pandas frame
 df_majority = X[f[target_col] == target_majority, :].to_pandas()
 df_majority_downsampled = resample(df_majority,
                                    replace=False,
                                    n_samples=n_minority * times,
                                    random_state=random_seed)
 
-return rbind(X[f[target_col] == target_minority, :],
-             dt.Frame(df_majority_downsampled))
+return {new_dataset_name:
+            rbind(X[f[target_col] == target_minority, :],
+                  dt.Frame(df_majority_downsampled))}
