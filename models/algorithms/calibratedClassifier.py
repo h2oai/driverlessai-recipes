@@ -141,7 +141,14 @@ class CalibratedClassifierModel:
         elif self.params["calib_method"] in ["spline"]:
             import ml_insights as mli
             self.calib_method = "spline"
-            spline = mli.SplineCalib(penalty = 'l2', solver = 'liblinear', reg_param_vec='default', cv_spline = 3, knot_sample_size = 30)
+            spline = mli.SplineCalib(
+                penalty = 'l2', 
+                solver = 'liblinear', 
+                reg_param_vec='default', 
+                cv_spline = 3, random_state = 4451,
+                knot_sample_size = 30,
+                add_knots = np.linspace(0,1,11),
+            )
             
             preds = model_classification.predict_proba(X_calibrate)
             
@@ -515,7 +522,7 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
                 results = [ones, inp] + results
                 
                 assert len(results) == len(self.calib_basis_coef_vec[c].ravel()), "Something went wrong :("
-                
+                #linear model
                 results2 =  MojoFrame()
                 for i, (frame_, const_) in enumerate(zip(results, self.calib_basis_coef_vec[c].ravel())):
                     res_fr = _get_new_col(icol.name + f"_logits_{i}")
@@ -526,6 +533,7 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
                 ocol_logits_sum = _get_new_col(icol.name + f"_logits_sum")
                 mojo+= MjT_Agg(iframe=results2, oframe=ocol_logits_sum, op = "sum", group_uuid=group_uuid, group_name=group_name)
                 
+                #sigmoid
                 ocol_spline_sigmoid = _get_new_col(icol.name + f"_spline_sigmoid", type_ = "float64")
                 mojo+= MjT_Sigmoid(iframe=ocol_logits_sum, oframe=ocol_spline_sigmoid, group_uuid=group_uuid, group_name=group_name)
                 ocol_spline_sigmoid_astype = _get_new_col(icol.name + f"_spline_sigmoid_astype")
@@ -538,7 +546,7 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
                 
             else:
                 raise RuntimeError('Unknown calibration method in to_mojo()')
-            
+        #normalization
         if len(res) > 1:
             res2 = MojoFrame()
             oframe_sum = _get_new_col(self.__class__.__name__ + "_sum")
