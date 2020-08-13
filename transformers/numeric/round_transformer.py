@@ -24,3 +24,31 @@ class MyRoundTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         return np.round(X.to_numpy(), decimals=self.decimals)
+
+    _mojo = True
+    from h2oaicore.mojo import MojoWriter, MojoFrame, MojoType
+
+    def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
+        import uuid
+        group_uuid = str(uuid.uuid4())
+        group_name = "RoundTransformer"
+        kws = dict()
+        kws["op_name"] = "round"
+        custom_param = dict()
+        custom_param["decimals"] = (MojoType.INT32, self.decimals)
+        kws["op_params"] = custom_param
+        from h2oaicore.mojo import MojoColumn, MojoFrame
+        from h2oaicore.mojo_transformers import MjT_CustomOp
+        from h2oaicore.mojo_transformers_utils import AsType
+        xnew = iframe[self.input_feature_names]
+        oframe = MojoFrame()
+        for col in xnew:
+            ocol = MojoColumn(name=col.name, dtype=col.type)
+            ocol_frame = MojoFrame(columns=[ocol])
+            mojo += MjT_CustomOp(iframe=MojoFrame(columns=[col]), oframe=ocol_frame,
+                                 group_uuid=group_uuid, group_name=group_name, kws)
+            oframe += ocol
+        oframe = AsType(dtype_global()).write_to_mojo(mojo, oframe,
+                                                      group_uuid=group_uuid,
+                                                      group_name=group_name)
+        return oframe
