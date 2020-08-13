@@ -11,6 +11,8 @@ import numpy as np
 from scipy.special import softmax, expit
 from sklearn.calibration import CalibratedClassifierCV
 
+_global_modules_needed_by_name = ['ml_insights==0.1.4'] #for SplineCalibration
+
 class CalibratedClassifierModel:
     _regression = False
     _binary = True
@@ -70,14 +72,21 @@ class CalibratedClassifierModel:
         for c in unique_cls:
             c_indx = np.argwhere(y_==c).ravel()
             indx = np.random.permutation(c_indx)
-            start_indx = max(1, int(self.params["calib_perc"]*len(c_indx))) # at least 1 exemplar should be presented
+            if self.params["calib_method"] in ["sigmoid", "isotonic"]:
+                start_indx = max(1, int(self.params["calib_perc"]*len(c_indx))) 
+            else:
+                start_indx = max(3, int(self.params["calib_perc"]*len(c_indx))) 
+                
             tr_indx += list(indx[start_indx:])
             te_indx += list(indx[:start_indx])
         tr_indx = np.array(tr_indx)
         te_indx = np.array(te_indx)
 
         X_train, y_train = X[tr_indx, :], y_.astype(int)[tr_indx]
-        X_calibrate, y_calibrate = X[te_indx, :].to_pandas(), np.array(y)[te_indx].ravel()
+        if self.params["calib_method"] in ["sigmoid", "isotonic"]:
+            X_calibrate, y_calibrate = X[te_indx, :].to_pandas(), y[te_indx].ravel()
+        else:
+            X_calibrate, y_calibrate = X[te_indx, :].to_pandas(), y_.astype(int)[te_indx].ravel()
 
         if sample_weight is not None:
             sample_weight_ = sample_weight[tr_indx]
@@ -91,39 +100,71 @@ class CalibratedClassifierModel:
                                  sample_weight_eval_set=sample_weight_eval_set, **kwargs)
 
         # calibration
+        
         model_classification.predict_proba = model_classification.predict_simple
         model_classification.classes_ = self.le.classes_
-        calibrator = CalibratedClassifierCV(
-            base_estimator=model_classification,
-            method=self.params["calib_method"],
-            cv='prefit')
+        if self.params["calib_method"] in ["sigmoid", "isotonic"]:
+            calibrator = CalibratedClassifierCV(
+                base_estimator=model_classification,
+                method=self.params["calib_method"],
+                cv='prefit')
 
-        calibrator.fit(X_calibrate, y_calibrate, sample_weight = sample_weight_calib)
-        
-        self.calib_method = calibrator.method
-        
-        if calibrator.method == "sigmoid":
-            self.slope = []
-            self.intercept = []
+            calibrator.fit(X_calibrate, y_calibrate, sample_weight = sample_weight_calib)
 
-            for c in calibrator.calibrated_classifiers_[0].calibrators_:
-                self.slope.append(c.a_)
-                self.intercept.append(c.b_)
-                
-        elif calibrator.method == "isotonic":
-            self._necessary_X_ = []
-            self._necessary_y_ = []
+            self.calib_method = calibrator.method
+
+            if calibrator.method == "sigmoid":
+                self.slope = []
+                self.intercept = []
+
+                for c in calibrator.calibrated_classifiers_[0].calibrators_:
+                    self.slope.append(c.a_)
+                    self.intercept.append(c.b_)
+
+            elif calibrator.method == "isotonic":
+                self._necessary_X_ = []
+                self._necessary_y_ = []
+
+                self.X_min_ = []
+                self.X_max_ = []
+                for c in calibrator.calibrated_classifiers_[0].calibrators_:
+                    self._necessary_X_.append(c._necessary_X_)
+                    self._necessary_y_.append(c._necessary_y_)
+
+                    self.X_min_.append(c.X_min_)
+                    self.X_max_.append(c.X_max_)
+
+
+            else:
+                raise RuntimeError('Unknown calibration method in fit()')
+        
+        elif self.params["calib_method"] in ["spline"]:
+            import ml_insights as mli
+            self.calib_method = "spline"
+            spline = mli.SplineCalib(penalty = 'l2', solver = 'liblinear', reg_param_vec='default', cv_spline = 3, knot_sample_size = 30)
             
-            self.X_min_ = []
-            self.X_max_ = []
-            for c in calibrator.calibrated_classifiers_[0].calibrators_:
-                self._necessary_X_.append(c._necessary_X_)
-                self._necessary_y_.append(c._necessary_y_)
+            preds = model_classification.predict_proba(X_calibrate)
+            
+            for c in range(preds.shape[1]):
+                if len(np.unique(preds[:,c])) < 3: #we need at least 3 unique points to form the knots
+                    preds[:,c] = preds[:,c]+.0001*np.random.randn(len(preds[:,c]))
                 
-                self.X_min_.append(c.X_min_)
-                self.X_max_.append(c.X_max_)
-                
-        
+            spline.fit(preds, y_calibrate, verbose=False) #no weight support so far :( 
+            
+            self.calib_logodds_scale = spline.logodds_scale
+            self.calib_logodds_eps = spline.logodds_eps
+            
+            self.calib_knot_vec_tr = []
+            self.calib_basis_coef_vec = []
+            
+            if spline.n_classes>2:
+                for calib_ in spline.binary_splinecalibs:
+                    self.calib_knot_vec_tr.append(calib_.knot_vec_tr)
+                    self.calib_basis_coef_vec.append(calib_.basis_coef_vec)
+            else:
+                self.calib_knot_vec_tr.append(spline.knot_vec_tr)
+                self.calib_basis_coef_vec.append(spline.basis_coef_vec)
+            
         else:
             raise RuntimeError('Unknown calibration method in fit()')
         # calibration
@@ -140,7 +181,31 @@ class CalibratedClassifierModel:
         self.set_model_properties(model=model_classification.model,
             features=list(X.names), importances=importances, iterations=iters
         )
+    
+    @staticmethod
+    def _natural_cubic_spline_basis_expansion(xpts, knots):
+        num_knots = len(knots)
+        num_pts = len(xpts)
+        outmat = np.zeros((num_pts,num_knots))
+        outmat[:, 0] = np.ones(num_pts)
+        outmat[:, 1] = xpts
+   
+        #last knot calc
+        denom = knots[-1] - knots[-2]
+        numer = (np.maximum(xpts-knots[-2], np.zeros(num_pts)) ** 3 - 
+                            np.maximum(xpts-knots[-1], np.zeros(num_pts)) ** 3)
+        last_knot = numer/denom
 
+        #current knots calc
+        for i in range(1, num_knots-1):
+            denom = knots[-1] - knots[i-1]
+            numer = (np.maximum(xpts-knots[i-1], np.zeros(num_pts)) ** 3 - 
+                            np.maximum(xpts-knots[-1], np.zeros(num_pts)) ** 3)
+            outmat[:, i+1] =  (numer/denom) - last_knot
+        
+        return outmat
+        
+        
     def predict(self, X, **kwargs):
         from scipy import interpolate
         
@@ -151,6 +216,7 @@ class CalibratedClassifierModel:
         if preds.shape[1] <= 2:
             if self.calib_method == "sigmoid":
                 scaled_preds = expit(-(self.slope[0] * preds[:,1] + self.intercept[0]))
+            
             elif self.calib_method == "isotonic":
                 f_ = interpolate.interp1d(
                     self._necessary_X_[0], 
@@ -159,6 +225,19 @@ class CalibratedClassifierModel:
                     bounds_error='nan'
                 )
                 scaled_preds = f_(np.clip(preds[:,1], self.X_min_[0], self.X_max_[0]))
+            
+            elif self.calib_method == "spline":
+                y_in_to_use =  preds[:,1]
+                if self.calib_logodds_scale:
+                    y_in_to_use = np.minimum(1-self.calib_logodds_eps, y_in_to_use)
+                    y_in_to_use = np.maximum(self.calib_logodds_eps, y_in_to_use)
+                    y_model_tr = np.log(y_in_to_use/(1-y_in_to_use))
+                else:
+                    y_model_tr = y_in_to_use
+                scaled_preds = self._natural_cubic_spline_basis_expansion(y_model_tr, self.calib_knot_vec_tr[0])
+                scaled_preds = scaled_preds.dot(self.calib_basis_coef_vec[0].T)
+                scaled_preds = 1/(1+np.exp(-scaled_preds))
+                scaled_preds = scaled_preds.ravel()
             else:
                 raise RuntimeError('Unknown calibration method in predict()')
             preds[:,1] = scaled_preds
@@ -175,6 +254,19 @@ class CalibratedClassifierModel:
                         bounds_error='nan'
                     )
                     scaled_preds = f_(np.clip(preds[:,c], self.X_min_[c], self.X_max_[c]))
+                
+                elif self.calib_method == "spline":
+                    y_in_to_use =  preds[:,c]
+                    if self.calib_logodds_scale:
+                        y_in_to_use = np.minimum(1-self.calib_logodds_eps, y_in_to_use)
+                        y_in_to_use = np.maximum(self.calib_logodds_eps, y_in_to_use)
+                        y_model_tr = np.log(y_in_to_use/(1-y_in_to_use))
+                    else:
+                        y_model_tr = y_in_to_use
+                    scaled_preds = self._natural_cubic_spline_basis_expansion(y_model_tr, self.calib_knot_vec_tr[c])
+                    scaled_preds = scaled_preds.dot(self.calib_basis_coef_vec[c].T)
+                    scaled_preds = 1/(1+np.exp(-scaled_preds))
+                    scaled_preds = scaled_preds.ravel()
                 else:
                     raise RuntimeError('Unknown calibration method in predict()')
     
@@ -203,7 +295,7 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
     def mutate_params(self, **kwargs):
         super().mutate_params(**kwargs)
         self.params["calib_perc"] = np.random.choice([.05, .1, .15, .2])
-        self.params["calib_method"] =  np.random.choice(["isotonic", "sigmoid"])
+        self.params["calib_method"] =  np.random.choice(["isotonic", "sigmoid", "spline"])
     
     def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
         return self.to_mojo(mojo = mojo, iframe = iframe, group_uuid=group_uuid, group_name=group_name)
@@ -211,7 +303,8 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
     def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
         
         from h2oaicore.mojo import MojoColumn
-        from h2oaicore.mojo_transformers import MjT_ConstBinaryOp, MjT_Sigmoid, MjT_AsType, MjT_Agg, MjT_BinaryOp, MjT_IntervalMap, MjT_Clip
+        from h2oaicore.mojo_transformers import (MjT_ConstBinaryOp, MjT_Sigmoid, MjT_AsType, 
+                                                 MjT_Agg, MjT_BinaryOp, MjT_IntervalMap, MjT_Clip, MjT_Log)
         import uuid
         group_uuid = str(uuid.uuid4())
         group_name = self.__class__.__name__
@@ -220,21 +313,28 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
         _iframe = super().write_to_mojo(mojo = mojo, iframe = iframe, group_uuid=group_uuid, group_name=group_name)
         res = MojoFrame()
         
+        def _get_new_pair(left, right):
+            pair = MojoFrame()
+            pair.cbind(left)
+            pair.cbind(right)
+            return pair
+        
         for c in range(len(_iframe)):
             icol = _iframe.get_column(c)
             
+            def _get_new_col(name, type_ = None):
+                ocol_ = MojoColumn(name=name, dtype=icol.type if type_ is None else type_)
+                oframe_ = MojoFrame(columns=[ocol_])
+                return oframe_
+            
+            
             if self.calib_method == "sigmoid":
                 
-                ocol1 = MojoColumn(name=icol.name + "_slope", dtype=icol.type)
-                oframe1 = MojoFrame(columns=[ocol1])
-                ocol2 = MojoColumn(name=icol.name + "_intercept", dtype=icol.type)
-                oframe2 = MojoFrame(columns=[ocol2])
-                ocol3 = MojoColumn(name=icol.name + "_negative", dtype=icol.type)
-                oframe3 = MojoFrame(columns=[ocol3])
-                ocol4 = MojoColumn(name=icol.name + "_calibrated", dtype="float64")
-                oframe4 = MojoFrame(columns=[ocol4])
-                ocol5 = MojoColumn(name=icol.name + "_astype", dtype=icol.type)
-                oframe5 = MojoFrame(columns=[ocol5])
+                oframe1 = _get_new_col(icol.name + "_slope")
+                oframe2 = _get_new_col(icol.name + "_intercept")
+                oframe3 = _get_new_col(icol.name + "_negative")
+                oframe4 = _get_new_col(icol.name + "_calibrated", type_ = "float64")
+                oframe5 = _get_new_col(icol.name + "_astype")
 
 
                 mojo += MjT_ConstBinaryOp(iframe=_iframe[c], oframe=oframe1, op="multiply", const= self.slope[c], pos="right",
@@ -249,17 +349,14 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
                 mojo+= MjT_Sigmoid(iframe=oframe3, oframe=oframe4, group_uuid=group_uuid, group_name=group_name)
                 mojo+= MjT_AsType(iframe=oframe4, oframe=oframe5, type = "float32", group_uuid=group_uuid, group_name=group_name)
 
-
                 res.cbind(oframe5)
             elif self.calib_method == "isotonic":
                 X = list(self._necessary_X_[c])
                 y = list(self._necessary_y_[c])
                 if len(y) == 1:
-                    new_y = _iframe[c]
-                    ocol1 = MojoColumn(name=icol.name + "_zeroing", dtype=icol.type)
-                    oframe1 = MojoFrame(columns=[ocol1])
-                    ocol2 = MojoColumn(name=icol.name + "_addingConst", dtype=icol.type)
-                    new_y = MojoFrame(columns=[ocol2])
+                    oframe1 = _get_new_col(icol.name + "_zeroing")
+                    new_y = _get_new_col(icol.name + "_addingConst")
+                    
                     mojo += MjT_ConstBinaryOp(iframe=_iframe[c], oframe=oframe1, op="multiply", const=0, pos="right",
                                           group_uuid=group_uuid, group_name=group_name)
                     
@@ -277,12 +374,10 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
                     ocol2 = MojoColumn(name=icol.name + "_minX", dtype=icol.type)
                     ocol3 = MojoColumn(name=icol.name + "_maxY", dtype=icol.type)
                     ocol4 = MojoColumn(name=icol.name + "_minY", dtype=icol.type)
-
                     XY = MojoFrame(columns=[ocol1,ocol2,ocol3, ocol4])
                     
                     #clipping
-                    ocol_cl = MojoColumn(name=icol.name + "_clipped", dtype=icol.type)
-                    inp_clipped = MojoFrame(columns=[ocol_cl])
+                    inp_clipped = _get_new_col(icol.name + "_clipped")
                     mojo+= MjT_Clip(iframe=_iframe[c], oframe=inp_clipped, 
                                     min = self.X_min_[c], max = self.X_max_[c],
                                     group_uuid=group_uuid, group_name=group_name
@@ -297,67 +392,163 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
                     )
 
                     #interpolation
-                    ocol5 = MojoColumn(name=icol.name + "_currDiff", dtype=icol.type)
-                    curr_diff = MojoFrame(columns=[ocol5])
-                    pair = MojoFrame()
-                    pair.cbind(inp_clipped)
-                    pair.cbind(XY[1])
+                    curr_diff = _get_new_col(icol.name + "_currDiff")
+                    pair = _get_new_pair(inp_clipped, XY[1])
                     mojo+= MjT_BinaryOp(iframe = pair, oframe=curr_diff, op = "subtract", group_uuid=group_uuid, group_name=group_name)
 
-                    ocol6 = MojoColumn(name=icol.name + "_yDiff", dtype=icol.type)
-                    y_diff = MojoFrame(columns=[ocol6])
-                    pair = MojoFrame()
-                    pair.cbind(XY[2])
-                    pair.cbind(XY[3])
+                    y_diff = _get_new_col(icol.name + "_yDiff")
+                    pair = _get_new_pair(XY[2], XY[3])
                     mojo+= MjT_BinaryOp(iframe = pair, oframe=y_diff, op = "subtract", group_uuid=group_uuid, group_name=group_name)
 
-                    ocol7 = MojoColumn(name=icol.name + "_XDiff", dtype=icol.type)
-                    X_diff = MojoFrame(columns=[ocol7])
-                    pair = MojoFrame()
-                    pair.cbind(XY[0])
-                    pair.cbind(XY[1])
+                    X_diff = _get_new_col(icol.name + "_XDiff")
+                    pair = _get_new_pair(XY[0], XY[1])
                     mojo+= MjT_BinaryOp(iframe = pair, oframe=X_diff, op = "subtract", group_uuid=group_uuid, group_name=group_name)
 
-                    ocol8 = MojoColumn(name=icol.name + "_xyRatio", dtype=icol.type)
-                    xy_ratio = MojoFrame(columns=[ocol8])
-                    pair = MojoFrame()
-                    pair.cbind(y_diff)
-                    pair.cbind(X_diff)
+                    xy_ratio = _get_new_col(icol.name + "_xyRatio")
+                    pair = _get_new_pair(y_diff, X_diff)
                     mojo+= MjT_BinaryOp(iframe = pair, oframe=xy_ratio, op = "divide", eps = 1e-10, group_uuid=group_uuid, group_name=group_name)
 
-                    ocol9 = MojoColumn(name=icol.name + "_scaledCurDiff", dtype=icol.type)
-                    scaled_cur_diff = MojoFrame(columns=[ocol9])
-                    pair = MojoFrame()
-                    pair.cbind(xy_ratio)
-                    pair.cbind(curr_diff)
+                    scaled_cur_diff = _get_new_col(icol.name + "_scaledCurDiff")
+                    pair = _get_new_pair(xy_ratio, curr_diff)
                     mojo+= MjT_BinaryOp(iframe = pair, oframe=scaled_cur_diff, op = "multiply", group_uuid=group_uuid, group_name=group_name)
 
-                    ocol10 = MojoColumn(name=icol.name + "_newY", dtype=icol.type)
-                    new_y = MojoFrame(columns=[ocol10])
-                    pair = MojoFrame()
-                    pair.cbind(XY[3])
-                    pair.cbind(scaled_cur_diff)
+                    new_y = _get_new_col(icol.name + "_newY")
+                    pair = _get_new_pair(XY[3], scaled_cur_diff)
                     mojo+= MjT_BinaryOp(iframe = pair, oframe=new_y, op = "add", group_uuid=group_uuid, group_name=group_name)
                 
                 res.cbind(new_y)
+                
+            elif self.calib_method == "spline":
+                if self.calib_logodds_scale:
+                    oframe1 = _get_new_col(icol.name + "_clipped")
+                    mojo+= MjT_Clip(iframe=_iframe[c], oframe=oframe1, 
+                                    min = self.calib_logodds_eps, max = 1-self.calib_logodds_eps,
+                                    group_uuid=group_uuid, group_name=group_name
+                                   )
+                    
+                    oframe2 = _get_new_col(icol.name + "_inverse")
+                    mojo += MjT_ConstBinaryOp(iframe=oframe1, oframe=oframe2, op="subtract", const=1., pos="left",
+                                          group_uuid=group_uuid, group_name=group_name)
+                    
+                    
+                    oframe3 = _get_new_col(icol.name + "_ratio")
+                    pair = _get_new_pair(oframe1, oframe2)
+                    mojo+= MjT_BinaryOp(iframe = pair, oframe=oframe3, op = "divide", eps = 1e-10, group_uuid=group_uuid, group_name=group_name)
+                    
+                    oframe4 = _get_new_col(icol.name + "_log")
+                    mojo+= MjT_Log(iframe = oframe3, oframe=oframe4, group_uuid=group_uuid, group_name=group_name)
+                    
+                    inp = oframe4
+                else:
+                    inp = _iframe[c]
+                
+                knots = self.calib_knot_vec_tr[c]
+                num_knots = len(knots)
+                
+                #zero col
+                zeros = _get_new_col(icol.name + "_zeros")
+                mojo += MjT_ConstBinaryOp(iframe=inp, oframe=zeros, op="multiply", const=0., pos="right",
+                                          group_uuid=group_uuid, group_name=group_name)
+                
+                #ones col
+                ones = _get_new_col(icol.name + f"_ones")
+                mojo += MjT_ConstBinaryOp(iframe=zeros, oframe=ones, op="add", const=1., pos="right",
+                                          group_uuid=group_uuid, group_name=group_name)
+                
+                #last knot calc
+                denom = knots[-1] - knots[-2]
+                
+                def _to_mojo_helper(mojo, inp, val, zeros, suffix = ""):
+                    oframe5 = _get_new_col(icol.name + f"_{suffix}diff")
+                    mojo += MjT_ConstBinaryOp(iframe=inp, oframe=oframe5, op="subtract", const=val, pos="right",
+                                              group_uuid=group_uuid, group_name=group_name)
+
+                    oframe6 = _get_new_col(icol.name + f"_{suffix}max")
+                    pair = _get_new_pair(oframe5, zeros)
+                    mojo+= MjT_Agg(iframe=pair, oframe=oframe6, op = "max", group_uuid=group_uuid, group_name=group_name)
+
+                    oframe7 = _get_new_col(icol.name + f"_{suffix}pwr")
+                    oframe8 = _get_new_col(icol.name + f"_{suffix}pwr2")
+                    oframe9 = _get_new_col(icol.name + f"_{suffix}pwr3")
+                    mojo += MjT_ConstBinaryOp(iframe=oframe6, oframe=oframe7, op="multiply", const=1., pos="right",
+                                              group_uuid=group_uuid, group_name=group_name)
+                    pair = _get_new_pair(oframe6, oframe7)
+                    mojo+= MjT_BinaryOp(iframe = pair, oframe=oframe8, op = "multiply", group_uuid=group_uuid, group_name=group_name)
+                    pair = _get_new_pair(oframe8, oframe7)
+                    mojo+= MjT_BinaryOp(iframe = pair, oframe=oframe9, op = "multiply", group_uuid=group_uuid, group_name=group_name)
+                    return oframe9
+                
+                
+                last_knot2 = _to_mojo_helper(mojo = mojo, inp = inp, val = knots[-2], zeros = zeros, suffix = "last2")
+                last_knot1 = _to_mojo_helper(mojo = mojo, inp = inp, val = knots[-1], zeros = zeros, suffix = "last1")
+                
+                oframe5 = _get_new_col(icol.name + f"_last21diff")
+                pair = _get_new_pair(last_knot2, last_knot1)
+                mojo+= MjT_BinaryOp(iframe = pair, oframe=oframe5, op = "subtract", group_uuid=group_uuid, group_name=group_name)
+                
+                last_knot = _get_new_col(icol.name + f"_lastKnot")
+                mojo += MjT_ConstBinaryOp(iframe=oframe5, oframe=last_knot, op="divide", const=denom, pos="right",
+                                              group_uuid=group_uuid, group_name=group_name)
+                
+                #all knots calc
+                results = []
+                
+                for i in range(1, num_knots-1):
+                    denom = knots[-1] - knots[i-1]
+                    
+                    knot1 = _to_mojo_helper(mojo = mojo, inp = inp, val = knots[i-1], zeros = zeros, suffix = f"knot{i}m1")
+                    knot2 = _to_mojo_helper(mojo = mojo, inp = inp, val = knots[-1], zeros = zeros, suffix = f"knotm1f{i}")
+                    
+                    oframe_ = _get_new_col(icol.name + f"_knots_{i}_diff")
+                    pair = _get_new_pair(knot1, knot2)
+                    mojo+= MjT_BinaryOp(iframe = pair, oframe=oframe_, op = "subtract", group_uuid=group_uuid, group_name=group_name)
+                
+                    div_res = _get_new_col(icol.name + f"_dv_{i}")
+                    mojo += MjT_ConstBinaryOp(iframe=oframe_, oframe=div_res, op="divide", const=denom, pos="right",
+                                              group_uuid=group_uuid, group_name=group_name)
+                    
+                    diff_res = _get_new_col(icol.name + f"_diff_{i}")
+                    pair = _get_new_pair(div_res, last_knot)
+                    mojo+= MjT_BinaryOp(iframe = pair, oframe=diff_res, op = "subtract", group_uuid=group_uuid, group_name=group_name)
+                    results.append(diff_res)
+                    
+                results = [ones, inp] + results
+                
+                assert len(results) == len(self.calib_basis_coef_vec[c].ravel()), "Something went wrong :("
+                
+                results2 =  MojoFrame()
+                for i, (frame_, const_) in enumerate(zip(results, self.calib_basis_coef_vec[c].ravel())):
+                    res_fr = _get_new_col(icol.name + f"_logits_{i}")
+                    mojo += MjT_ConstBinaryOp(iframe=frame_, oframe=res_fr, op="multiply", const=const_, pos="right",
+                                              group_uuid=group_uuid, group_name=group_name)
+                    results2.cbind(res_fr)
+                
+                ocol_logits_sum = _get_new_col(icol.name + f"_logits_sum")
+                mojo+= MjT_Agg(iframe=results2, oframe=ocol_logits_sum, op = "sum", group_uuid=group_uuid, group_name=group_name)
+                
+                ocol_spline_sigmoid = _get_new_col(icol.name + f"_spline_sigmoid", type_ = "float64")
+                mojo+= MjT_Sigmoid(iframe=ocol_logits_sum, oframe=ocol_spline_sigmoid, group_uuid=group_uuid, group_name=group_name)
+                ocol_spline_sigmoid_astype = _get_new_col(icol.name + f"_spline_sigmoid_astype")
+                mojo+= MjT_AsType(
+                    iframe=ocol_spline_sigmoid, oframe=ocol_spline_sigmoid_astype, 
+                    type = "float32", 
+                    group_uuid=group_uuid, group_name=group_name
+                )
+                res.cbind(ocol_spline_sigmoid_astype)
+                
             else:
                 raise RuntimeError('Unknown calibration method in to_mojo()')
             
         if len(res) > 1:
             res2 = MojoFrame()
-            ocol_sum = MojoColumn(name=self.__class__.__name__ + "_sum", dtype="float32")
-            oframe_sum = MojoFrame(columns=[ocol_sum])
+            oframe_sum = _get_new_col(self.__class__.__name__ + "_sum")
             mojo+= MjT_Agg(iframe=res, oframe=oframe_sum, op = "sum", group_uuid=group_uuid, group_name=group_name)
 
             for c in range(len(res)):
                 icol = res.get_column(c)
-                ocol1 = MojoColumn(name=icol.name + "_normalized", dtype=icol.type)
-                oframe1 = MojoFrame(columns=[ocol1])
+                oframe1 = _get_new_col(icol.name + "_normalized")
 
-                pair = MojoFrame()
-                pair.cbind(res[c])
-                pair.cbind(oframe_sum)
-
+                pair = _get_new_pair(res[c], oframe_sum)
                 mojo+= MjT_BinaryOp(iframe = pair, oframe=oframe1, op = "divide", group_uuid=group_uuid, group_name=group_name)
                 res2.cbind(oframe1)
 
