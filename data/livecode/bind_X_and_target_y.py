@@ -6,7 +6,7 @@
 # Specification:
 # Inputs:
 #   X: datatable - primary dataset
-#   y_name: datatable - dataset to bind with
+#   y_name: string - location of the dataset containing target value
 # Parameters:
 #   target_col: string - target name
 # Output:
