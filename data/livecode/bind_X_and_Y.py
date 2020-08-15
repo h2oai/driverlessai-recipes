@@ -5,7 +5,7 @@
 # Specification:
 # Inputs:
 #   X: datatable - primary dataset
-#   Y_name: datatable - dataset to bind with
+#   Y_name: string - dataset location to bind with
 # Parameters:
 #   None
 # Output:
