@@ -1,4 +1,4 @@
-""" Calibrated Classifier Model: To calibrate predictions using Platt's scaling
+""" Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines
 """
 
 import copy
@@ -147,7 +147,6 @@ class CalibratedClassifierModel:
                 reg_param_vec='default', 
                 cv_spline = 3, random_state = 4451,
                 knot_sample_size = 30,
-                add_knots = np.linspace(0,1,11),
             )
             
             preds = model_classification.predict_proba(X_calibrate)
