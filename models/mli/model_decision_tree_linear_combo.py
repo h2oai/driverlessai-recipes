@@ -8,7 +8,7 @@ import numpy as np
 from h2oaicore.models import CustomModel
 from sklearn.preprocessing import LabelEncoder
 from h2oaicore.systemutils import physical_cores_count
-from h2oaicore.systemutils import temporary_files_path, remove, config
+from h2oaicore.systemutils import user_dir, remove, config
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdebug
 
 
@@ -46,7 +46,7 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
     def _create_tmp_folder(self, logger):
         # Create a temp folder to store files 
         # Set the default value without context available (required to pass acceptance test)
-        tmp_folder = os.path.join(temporary_files_path, "%s_DTL_model_folder" % uuid.uuid4())
+        tmp_folder = os.path.join(user_dir(), "%s_DTL_model_folder" % uuid.uuid4())
         # Make a real tmp folder when experiment is available
         if self.context and self.context.experiment_id:
             tmp_folder = os.path.join(self.context.experiment_tmp_dir, "%s_DTL_model_folder" % uuid.uuid4())
@@ -57,7 +57,7 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
         except PermissionError:
             # This not occur so log a warning
             loggerwarning(logger, "DTL was denied temp folder creation rights")
-            tmp_folder = os.path.join(temporary_files_path, "%s_DTL_model_folder" % uuid.uuid4())
+            tmp_folder = os.path.join(user_dir(), "%s_DTL_model_folder" % uuid.uuid4())
             os.mkdir(tmp_folder)
         except FileExistsError:
             # We should never be here since temp dir name is expected to be unique
@@ -66,7 +66,7 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
             os.mkdir(tmp_folder)
         except:
             # Revert to temporary file path
-            tmp_folder = os.path.join(temporary_files_path, "%s_DTL_model_folder" % uuid.uuid4())
+            tmp_folder = os.path.join(user_dir(), "%s_DTL_model_folder" % uuid.uuid4())
             os.mkdir(tmp_folder)
 
         loggerinfo(logger, "DTL temp folder {}".format(tmp_folder))
