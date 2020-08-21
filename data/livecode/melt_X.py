@@ -32,5 +32,5 @@ if value_col_regex is not None:
     value_cols = list(filter(value_col_regex.match, X.names))
 
 X_pd = X.to_pandas()
-return pd.melt(X_pd, id_cols=id_cols, value_vars=value_cols,
+return pd.melt(X_pd, id_vars=id_cols, value_vars=value_cols,
                var_name=var_name, value_name=value_name)
