@@ -33,7 +33,7 @@ after modifications specific to a dataset it applies to.
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
-### Count: 23
+### Count: 27
   * [balance\_data.py](./balance_data.py) [ Create a sampled dataset for imbalanced use cases - probably not for modeling but  
 
       
@@ -166,7 +166,7 @@ after modifications specific to a dataset it applies to.
 
       
 
-       Y_name: datatable - dataset to bind with  
+       Y_name: string - dataset location to bind with  
 
       
 
@@ -220,7 +220,7 @@ after modifications specific to a dataset it applies to.
 
       
 
-       y_name: datatable - dataset to bind with  
+       y_name: string - location of the dataset containing target value  
 
       
 
@@ -507,6 +507,86 @@ after modifications specific to a dataset it applies to.
       
 
        dataset containing partition interval  
+
+      
+
+    ]  
+
+  * [delete\_columns.py](./delete_columns.py) [ Delete columns with the names matching regular expression pattern.  
+
+      
+
+      
+
+      
+
+     Specification:  
+
+      
+
+     Inputs:  
+
+      
+
+       X: datatable - primary dataset  
+
+      
+
+     Parameters:  
+
+      
+
+       col_name_regex: str - regular expression pattern  
+
+      
+
+     Output:  
+
+      
+
+       dataset containing only column names that do not match the pattern  
+
+      
+
+    ]  
+
+  * [delete\_rows.py](./delete_rows.py) [ Delete rows based on certain condition.  
+
+      
+
+     In this case delete rows where certain column contains null values.  
+
+      
+
+      
+
+      
+
+     Specification:  
+
+      
+
+     Inputs:  
+
+      
+
+       X: datatable - primary dataset  
+
+      
+
+     Parameters:  
+
+      
+
+       col_name: str - column name  
+
+      
+
+     Output:  
+
+      
+
+       dataset containing only rows with non-null values in designated column  
 
       
 
@@ -1005,6 +1085,114 @@ after modifications specific to a dataset it applies to.
       
 
        dataset containing all rows from both datasets  
+
+      
+
+    ]  
+
+  * [melt\_to\_time\_series.py](./melt_to_time_series.py) [ Melt time series in wide format (single row) into long format supported  
+
+      
+
+     by DAI: a row represents a point in time (lag) so a column represents  
+
+      
+
+     a time series values.  
+
+      
+
+      
+
+      
+
+     Specification:  
+
+      
+
+     Inputs:  
+
+      
+
+       X: datatable - primary data set  
+
+      
+
+     Parameters:  
+
+      
+
+       id_cols: list of columns - columns to use as identifier variables  
+
+      
+
+       time_series_col_name: string - name of time series columns  
+
+      
+
+       time_series_new_name: string - name to use in melted data  
+
+      
+
+       timestamp_col_name: string - column name for time values  
+
+      
+
+     Output:  
+
+      
+
+       dataset with melted time series  
+
+      
+
+    ]  
+
+  * [parse\_string\_to\_datetime.py](./parse_string_to_datetime.py) [ Parse and convert string column to date.  
+
+      
+
+     This example converts string in the format `MMMMYY` to `MMMM-YY-DD`.  
+
+      
+
+     Please adjust code to the format you expect to find in your data.  
+
+      
+
+      
+
+      
+
+     Specification:  
+
+      
+
+     Inputs:  
+
+      
+
+       X: datatable - primary data set  
+
+      
+
+     Parameters:  
+
+      
+
+       col_name: str - column containing string to parse as date/time  
+
+      
+
+       date_col_name: str - new column to store parsed date/time  
+
+      
+
+     Output:  
+
+      
+
+       dataset with parsed date  
 
       
 
