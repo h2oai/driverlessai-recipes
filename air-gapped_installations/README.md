@@ -2,10 +2,10 @@
 
 To use custom recipes on a air-gapped environment, do the following steps.
 
-1) Download the required version of Driverless AI TAR SH installer in a Internet facing machine from the following URL: 
+1) Download the required version of DriverlessAI TAR SH installer in a Internet facing machine from the following URL: 
     https://www.h2o.ai/download/
 
-2) Run the following commands to install the Driverless AI TAR SH. Replace VERSION with your specific version.
+2) Run the following commands to install the DriverlessAI TAR SH. Replace VERSION with your specific version.
 
     chmod 755 dai-VERSION.sh
     ./dai-VERSION.sh
@@ -19,12 +19,12 @@ To use custom recipes on a air-gapped environment, do the following steps.
 4) Run the following python script, either in one of the following ways:
 
     a) To load custom recipes from a local file.
-        ./dai-env.sh python load_custom_recipe.py -username <user> -p </absolute/path/to/the/custom_recipe/file.py> >> load_custom_recipe.log
+        ./dai-env.sh python load_custom_recipe.py -username `<user>` -p `</absolute/path/to/the/custom_recipe/file.py>` >> load_custom_recipe.log
     
     b) To load custom recipes from a URL.
-        ./dai-env.sh python load_custom_recipe.py -username <user> -u <URL> >> load_custom_recipe.log
+        ./dai-env.sh python load_custom_recipe.py -username `<user>` -u `<URL>` >> load_custom_recipe.log
 
-    where <user> is the username, e.g. h2oai
+    where `<user>` is the username, e.g. jon and `<URL>` is an http link for a url.
             
 5) Once the above script was executed successfully, custom recipes and python dependencies will be installed in the  
         dai-VERSION/tmp/contrib directory.            
