@@ -4,6 +4,8 @@ from h2oaicore.recipe_server_support import server_load_all_custom_recipes
 import re
 
 #regex for validating url
+from h2oaicore.systemutils import set_username
+
 regex = re.compile(
         r'^(?:http|ftp)s?://' # http:// or https://
         r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
@@ -15,9 +17,14 @@ regex = re.compile(
 def main():
 
     agr_parser = argparse.ArgumentParser(description='Load custom recipes',
-                                         usage='./dai-env.sh python load_custom_recipe.py [options] -path or -url')
+                                         usage='./dai-env.sh python load_custom_recipe.py [options] -path or -url or -username')
 
-# Creating a mutially exclusive group, so user need to provide either a path or a url of the recipe.
+    # required argument
+    agr_parser.add_argument('-username',
+                            type=str,
+                            help='The user name for installing custom recipes')
+
+    # Creating a mutually exclusive group, so user need to provide either a path or a url of the recipe.
     args_group = agr_parser.add_mutually_exclusive_group(required=True)
     args_group.add_argument('-path',
                            type=str,
@@ -30,6 +37,9 @@ def main():
     args = agr_parser.parse_args()
 
     print(args.__dict__)
+
+    set_username(username=args.username)
+
     if args.path:
         if not os.path.isfile(args.path):
             print("Not a valid file path")
