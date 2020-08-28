@@ -25,12 +25,14 @@ import scipy
 
 from h2oaicore.systemutils import config
 from h2oaicore.transformer_utils import CustomTransformer
+from h2oaicore.separators import extra_prefix, orig_feat_prefix, col_sep
 from sklearn.decomposition import NMF
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 
 
 class RecH2OMFTransformer(CustomTransformer):
+    _allow_transform_to_modify_output_feature_names = True
     _multiclass = False
     _can_use_gpu = True
     _mf_type = "h2o4gpu"
@@ -145,6 +147,18 @@ class RecH2OMFTransformer(CustomTransformer):
             factorization = NMF(n_components=self._n_components, alpha=self._alpha, max_iter=self._max_iter)
             self.user_matrix = factorization.fit_transform(X_train_user_item_matrix)
             self.item_matrix = factorization.components_.T
+
+        # output feature names
+        if self.__class__._mf_type == "h2o4gpu":
+            self._output_feature_names = [(f"{self.display_name}{orig_feat_prefix}{self.user_col}{col_sep}"
+                                          f"{self.item_col}[n_components={self._n_components},"
+                                          f"lambda={self._lambda},batches={self._batches},max_iter={self._max_iter}]")]
+        elif self.__class__._mf_type == "nmf":
+            self._output_feature_names = [(f"{self.display_name}{orig_feat_prefix}{self.user_col}{col_sep}"
+                                          f"{self.item_col}[n_components={self._n_components},"
+                                          f"alpha={self._alpha},max_iter={self._max_iter}]")]
+        # output feature descriptions
+        self._feature_desc = [f"Recommender transformer ({self.__class__._mf_type}): " + self._output_feature_names[0]]
 
         return preds
 
