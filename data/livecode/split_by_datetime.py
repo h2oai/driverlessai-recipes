@@ -1,4 +1,5 @@
-# Data is called X and is a DataTable object
+# Split dataset into two partitions by time given
+# date/time value.
 #
 # Specification:
 # Inputs:
@@ -10,11 +11,12 @@
 date_col = "Date"  # date column name
 split_date = "2013-01-01"  # before this is train, starting with this is test
 
-new_dataset_name = "new_dataset_name_after_split"
+new_partition_before_name = "new_dataset_before_split_time"
+new_partition_after_name = "new_dataset_after_split_time"
 
 # Change date column from DataTable to Pandas
 df = X[date_col].to_pandas()
 train = X[df[date_col] < split_date, :]
 test = X[df[date_col] >= split_date, :]
 
-return {"my_train_data": train, "my_test_data": test}
+return {new_partition_before_name: train, new_partition_after_name: test}
