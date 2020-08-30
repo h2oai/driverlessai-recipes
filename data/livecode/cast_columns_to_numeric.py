@@ -25,7 +25,7 @@ nrows = X.nrows
 if nrows == 0:
     return None
 
-# select columns to cast and convert to pandas frame
+# select columns to cast
 if columns is None:
     columns = X[:, dt.f[str]].names
 temp = X[:, columns]
