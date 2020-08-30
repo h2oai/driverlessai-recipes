@@ -1,4 +1,5 @@
 """Rounds numbers to 1, 2 or 3 decimals"""
+from h2oaicore.systemutils import dtype_global
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
@@ -26,9 +27,10 @@ class MyRoundTransformer(CustomTransformer):
         return np.round(X.to_numpy(), decimals=self.decimals)
 
     _mojo = True
-    from h2oaicore.mojo import MojoWriter, MojoFrame, MojoType
 
+    from h2oaicore.mojo import MojoWriter, MojoFrame
     def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
+        from h2oaicore.mojo import MojoColumn, MojoFrame, MojoType
         import uuid
         group_uuid = str(uuid.uuid4())
         group_name = "RoundTransformer"
@@ -37,7 +39,6 @@ class MyRoundTransformer(CustomTransformer):
         custom_param = dict()
         custom_param["decimals"] = (MojoType.INT32, self.decimals)
         kws["op_params"] = custom_param
-        from h2oaicore.mojo import MojoColumn, MojoFrame
         from h2oaicore.mojo_transformers import MjT_CustomOp
         from h2oaicore.mojo_transformers_utils import AsType
         xnew = iframe[self.input_feature_names]
@@ -46,7 +47,7 @@ class MyRoundTransformer(CustomTransformer):
             ocol = MojoColumn(name=col.name, dtype=col.type)
             ocol_frame = MojoFrame(columns=[ocol])
             mojo += MjT_CustomOp(iframe=MojoFrame(columns=[col]), oframe=ocol_frame,
-                                 group_uuid=group_uuid, group_name=group_name, kws)
+                                 group_uuid=group_uuid, group_name=group_name, **kws)
             oframe += ocol
         oframe = AsType(dtype_global()).write_to_mojo(mojo, oframe,
                                                       group_uuid=group_uuid,
