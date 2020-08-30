@@ -5,7 +5,7 @@ import datatable as dt
 import numpy as np
 from h2oaicore.models import CustomTensorFlowModel
 from sklearn.preprocessing import LabelEncoder
-from h2oaicore.systemutils import physical_cores_count, loggerdata
+from h2oaicore.systemutils import physical_cores_count, loggerdata, load_obj_bytes
 from h2oaicore.systemutils import user_dir, remove, config
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdebug
 import functools
@@ -451,5 +451,5 @@ class CustomXNNModel(CustomTensorFlowModel):
                 self.did_get_model = True
                 assert self.model_bytes is not None
                 self.pre_get_model()
-                self.model = self.picfunc().loads(self.model_bytes)
+                self.model = load_obj_bytes(self.model_bytes)
             return self.model
