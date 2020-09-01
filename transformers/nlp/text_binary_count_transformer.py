@@ -1,4 +1,4 @@
-"""Explaionable Text transformer that uses binary counts of words using sklearn's CountVectorizer"""
+"""Explainable Text transformer that uses binary counts of words using sklearn's CountVectorizer"""
 
 import datatable as dt
 import numpy as np
