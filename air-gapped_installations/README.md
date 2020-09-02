@@ -27,6 +27,20 @@ To use custom recipes on a air-gapped environment, do the following steps.
     where `<user>` is the username, e.g. jon and `<URL>` is an http link for a url.
             
 5) Once the above script was executed successfully, custom recipes and python dependencies will be installed in the  
-        dai-VERSION/tmp/contrib directory.            
+        dai-VERSION/`<data_directory>`/`<user>`contrib directory, where `<data_directory>` is `tmp` by default.
     
-6) Zip the dai-VERSION/tmp/contrib directory, move it to the air-gapped machine and unzip there into the DAI tmp directory.
+6) Zip the dai-VERSION/`<data_directory>`/`<user>`/contrib directory, e.g.
+
+    cd dai-VERSION/`<data_directory>`/
+
+    zip -r user_contrib.zip `<user>`/contrib
+
+    scp user_contrib.zip `<remote_user>`@`<remote_system>`:`<path to data_directory on remote system>`
+
+7) On server, unzip zip file and set permissions if necessary, e.g.
+
+    cd `<dai data_directory>`
+
+    unzip user_contrib.zip
+
+    chmod -R u+rwx dai:dai `<user>`/contrib
