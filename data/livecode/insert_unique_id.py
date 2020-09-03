@@ -15,7 +15,7 @@ column_name = "rowid"
 
 new_dataset_name = "new_dataset_name_with_id"
 
-X_id = dt.Frame(list(range(X.shape[0])), names=[column_name])
-X_id.cbind(X)
+key_column_arg = {column_name: range(1, X.nrows+1)}
+X[:, dt.update(**key_column_arg)]
 
-return {new_dataset_name: X_id}
+return {new_dataset_name: X}
