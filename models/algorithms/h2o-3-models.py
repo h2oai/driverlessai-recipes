@@ -82,6 +82,9 @@ class H2OBaseModel:
         # TODO:
         # self.params['monotone_constraints']
 
+        # have to enforce in case mutation was 1-by-1 instead of all
+        self.params['nbins_top_level'] = max(self.params['nbins_top_level'], self.params['nbins'])
+
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         X = dt.Frame(X)
 
