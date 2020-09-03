@@ -1,4 +1,4 @@
-# **Air-gapped Installation of Custom Recipes**
+# Air-gapped Installation of Custom Recipes
 
 Air gapping is a network security measure employed on one or more computers 
 to ensure that a secure computer network is physically isolated from unsecured networks, 
