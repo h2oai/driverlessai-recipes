@@ -1,4 +1,4 @@
-#### **Air-gapped Installation of Custom Recipes**
+# **Air-gapped Installation of Custom Recipes**
 
 Air gapping is a network security measure employed on one or more computers 
 to ensure that a secure computer network is physically isolated from unsecured networks, 
@@ -6,7 +6,7 @@ such as the public Internet or an unsecured local area network.
 
 This documentation will guide you through the installation of Custom Recipes in such air-gapped environment.
 
-##### Prerequisite 
+## Prerequisite 
 - There are two DAI installations involved here. One is an **Air-Gapped DAI** and second is an **Internet-Facing DAI**. They will be referred this way in this doc to avoid confusion.
 - First you need to install DAI in an air gapped environment *ie. in a computer isolated from internet*. 
 This DAI can be installed in any Package Type (TAR SH, Docker, DEB etc.) available in https://www.h2o.ai/download/ 
@@ -18,7 +18,7 @@ This DAI can be installed in any Package Type (TAR SH, Docker, DEB etc.) availab
 ```
 ---
 
-##### Installation Guide 
+## Installation Guide 
 Follow along these steps to use custom recipes for DAI in an air-gapped environment:
 
 *Note: following steps need to be performed in Internet Facing DAI*
