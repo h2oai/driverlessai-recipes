@@ -65,14 +65,14 @@ Follow along these steps to use custom recipes for DAI in an air-gapped environm
         `dai-VERSION/tmp/contrib` directory.            
     
 - Zip the `dai-VERSION/tmp/contrib` directory and move it to the air-gapped machine and unzip there into the DAI `tmp` directory.
-    ```
-    cd dai-VERSION/tmp/
-    zip -r contrib.zip contrib
-    scp contrib.zip <remote_user>@<remote_system>:<path to data_directory on remote system>
-    ```
+```
+  cd dai-VERSION/tmp/
+  zip -r contrib.zip contrib
+  scp contrib.zip <remote_user>@<remote_system>:<path to data_directory on remote system>
+```
 - Now in the **Air-gapped Machine**, unzip the file and set permissions if necessary, e.g.
-    ```
-    cd <dai data_directory>
-    unzip contrib.zip
-    chmod -R u+rwx contrib
-    ```
+```
+  cd <dai data_directory>
+  unzip contrib.zip
+  chmod -R u+rwx contrib
+```
