@@ -266,10 +266,11 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
         self.params['col_sample_rate'] = float(np.random.choice([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
         self.params['sample_rate'] = float(np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
         self.params['col_sample_rate_per_tree'] = float(np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
-        self.params['nbins_top_level'] = int(np.random.choice([32, 64, 128, 256, 512, 1024, 2048, 4096]))
 
         self.params["min_rows"] = float(np.random.choice([1, 5, 10, 20, 50, 100]))
         self.params['nbins'] = int(np.random.choice([16, 32, 64, 128, 256]))
+        self.params['nbins_top_level'] = int(np.random.choice([32, 64, 128, 256, 512, 1024, 2048, 4096]))
+        self.params['nbins_top_level'] = max(self.params['nbins_top_level'], self.params['nbins'])
         self.params['nbins_cats'] = int(
             np.random.choice([8, 16, 32, 64, 128, 256, 512, 512, 512, 1024, 1024, 1024, 1024, 2048, 4096]))
 
@@ -278,9 +279,10 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
         self.params['histogram_type'] = str(
             np.random.choice(['auto', 'auto', 'auto', 'auto', 'uniform_adaptive', 'random']))
 
+        # "one_hot_explicit" too slow in general
         self.params['categorical_encoding'] = str(
             np.random.choice(["auto", "auto", "auto", "auto", "auto", "auto",
-                              "enum", "one_hot_explicit", "binary", "eigen",
+                              "enum", "binary", "eigen",
                               "label_encoder", "sort_by_response", "enum_limited"]))
 
 
