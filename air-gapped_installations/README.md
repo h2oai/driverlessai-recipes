@@ -16,7 +16,6 @@ This DAI can be installed in any Package Type (TAR SH, Docker, DEB etc.) availab
   cd driverlessai-recipes
   git checkout rel-VERSION # eg. git checkout rel-1.9.0 for DAI 1.9.0
 ```
----
 
 ## Installation Guide 
 Follow along these steps to use custom recipes for DAI in an air-gapped environment:
