@@ -21,6 +21,7 @@ class H2OBaseModel:
     _is_reproducible = False  # since using max_runtime_secs - disable that if need reproducible models
     _check_stall = False  # avoid stall check. h2o runs as server, and is not a child for which we check CPU/GPU usage
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+    _mutate_all = 'auto'
 
     _class = NotImplemented
 
@@ -39,13 +40,27 @@ class H2OBaseModel:
         if not os.path.isdir(self.my_log_dir):
             os.makedirs(self.my_log_dir, exist_ok=True)
 
-    def set_default_params(self,
-                           accuracy=None, time_tolerance=None, interpretability=None,
-                           **kwargs):
-        max_runtime_secs = 600
-        if accuracy is not None and time_tolerance is not None:
-            max_runtime_secs = accuracy * (time_tolerance + 1) * 10  # customize here to your liking
-        self.params = dict(max_runtime_secs=max_runtime_secs)
+    def set_default_params(self, logger=None, num_classes=None, seed=1234, disable_gpus=False,
+                           score_f_name: str = None,
+                           lossguide=False,
+                           monotonicity_constraints=False, silent=None, accuracy=10,
+                           time_tolerance=10,
+                           interpretability=1, min_child_weight=1.0, params_orig=None, ensemble_level=0,
+                           train_shape=(1, 1), valid_shape=(1, 1), labels=None, **kwargs):
+        self.params = self.get_gbm_main_params_evolution(None, None, accuracy, num_classes, ensemble_level, train_shape,
+                                                         valid_shape)
+        self.transcribe()
+
+        if not self._is_gbm:
+            max_runtime_secs = 600
+            if accuracy is not None and time_tolerance is not None:
+                max_runtime_secs = accuracy * (time_tolerance + 1) * 10  # customize here to your liking
+            self.params = dict(max_runtime_secs=max_runtime_secs)
+
+        self.params['col_sample_rate'] = 0.7
+        self.params['sample_rate'] = 1.0
+        self.params['max_depth'] = 6
+        self.params['stopping_metric'] = 'auto'
 
     def get_iterations(self, model):
         return 0
@@ -53,8 +68,24 @@ class H2OBaseModel:
     def make_instance(self, **kwargs):
         return self.__class__._class(seed=self.random_state, **kwargs)
 
+    def transcribe(self):
+        if 'early_stopping_rounds' in self.params:
+            self.params['stopping_rounds'] = self.params.pop('early_stopping_rounds')
+        if 'early_stopping_threshold' in self.params:
+            self.params['stopping_tolerance'] = self.params.pop('early_stopping_threshold')
+
+        if 'n_estimators' in self.params:
+            self.params['ntrees'] = self.params.pop('n_estimators')
+        if 'learning_rate' in self.params:
+            self.params['learn_rate'] = self.params.pop('learning_rate')
+
+        # TODO:
+        # self.params['monotone_constraints']
+
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         X = dt.Frame(X)
+
+        self.transcribe()
 
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = None
@@ -100,7 +131,7 @@ class H2OBaseModel:
             params = copy.deepcopy(self.params)
             if not isinstance(self, H2OAutoMLModel):
                 # AutoML needs max_runtime_secs in initializer, all others in train() method
-                max_runtime_secs = params.pop('max_runtime_secs')
+                max_runtime_secs = params.pop('max_runtime_secs', 0)
                 train_kwargs = dict(max_runtime_secs=max_runtime_secs)
             if valid_frame is not None:
                 train_kwargs['validation_frame'] = valid_frame
@@ -217,6 +248,10 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
     _display_name = "H2O GBM"
     _description = "H2O-3 Gradient Boosting Machine"
     _class = H2OGradientBoostingEstimator
+    _is_gbm = True
+    _fit_by_iteration = True
+    _fit_iteration_name = 'ntrees'
+    _predict_by_iteration = False
 
     @property
     def has_pred_contribs(self):
@@ -227,15 +262,26 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
 
     def mutate_params(self,
                       **kwargs):
-        max_iterations = min(kwargs['n_estimators'],
-                             config.max_nestimators) if 'n_estimators' in kwargs else config.max_nestimators
-        max_iterations = min(kwargs['iterations'], max_iterations) if 'iterations' in kwargs else max_iterations
-        self.params['ntrees'] = max_iterations
-        self.params['stopping_rounds'] = int(np.random.choice([5, 10, 20]))
-        self.params['learn_rate'] = max(1. / self.params['ntrees'], 0.005)
-        self.params['max_depth'] = int(np.random.choice(range(2, 11)))
+        self.params['max_depth'] = int(np.random.choice([2, 3, 4, 5, 5, 6, 6, 6, 8, 8, 8, 9, 9, 10, 10, 11, 12]))
         self.params['col_sample_rate'] = float(np.random.choice([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
         self.params['sample_rate'] = float(np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
+        self.params['col_sample_rate_per_tree'] = float(np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
+        self.params['nbins_top_level'] = int(np.random.choice([32, 64, 128, 256, 512, 1024, 2048, 4096]))
+
+        self.params["min_rows"] = float(np.random.choice([1, 5, 10, 20, 50, 100]))
+        self.params['nbins'] = int(np.random.choice([16, 32, 64, 128, 256]))
+        self.params['nbins_cats'] = int(
+            np.random.choice([8, 16, 32, 64, 128, 256, 512, 512, 512, 1024, 1024, 1024, 1024, 2048, 4096]))
+
+        self.params['learn_rate_annealing'] = float(np.random.choice([0.99, 0.999, 1.0, 1.0]))
+
+        self.params['histogram_type'] = str(
+            np.random.choice(['auto', 'auto', 'auto', 'auto', 'uniform_adaptive', 'random']))
+
+        self.params['categorical_encoding'] = str(
+            np.random.choice(["auto", "auto", "auto", "auto", "auto", "auto",
+                              "enum", "one_hot_internal", "one_hot_explicit", "binary", "eigen",
+                              "label_encoder", "sort_by_response", "enum_limited"]))
 
 
 from h2o.estimators.random_forest import H2ORandomForestEstimator
@@ -261,6 +307,7 @@ class H2ORFModel(H2OBaseModel, CustomModel):
         self.params['ntrees'] = max_iterations
         self.params['stopping_rounds'] = int(np.random.choice([5, 10, 20]))
         self.params['max_depth'] = int(np.random.choice(range(2, 11)))
+        self.params['nbins'] = int(np.random.choice([16, 32, 64, 128, 256]))
         self.params['sample_rate'] = float(np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
 
 
