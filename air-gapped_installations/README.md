@@ -57,7 +57,7 @@ Follow along these steps to use custom recipes for DAI in an air-gapped environm
   
   For example to load [catboost recipe](https://github.com/h2oai/driverlessai-recipes/blob/rel-1.8.8/models/algorithms/catboost.py) from url we do:
     ```
-    ./dai-env.sh python load_custom_recipe.py -u https://github.com/h2oai/driverlessai-recipes/blob/rel-1.8.8/models/algorithms/daal_trees.py >> load_custom_recipe.log
+    ./dai-env.sh python load_custom_recipe.py -u https://github.com/h2oai/driverlessai-recipes/blob/rel-1.8.8/models/algorithms/catboost.py >> load_custom_recipe.log
     ```
   **Note:** you can check the `load_custom_recipe.log` file to see if the operation was successful.
             
