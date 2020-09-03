@@ -280,7 +280,7 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
 
         self.params['categorical_encoding'] = str(
             np.random.choice(["auto", "auto", "auto", "auto", "auto", "auto",
-                              "enum", "one_hot_internal", "one_hot_explicit", "binary", "eigen",
+                              "enum", "one_hot_explicit", "binary", "eigen",
                               "label_encoder", "sort_by_response", "enum_limited"]))
 
 
