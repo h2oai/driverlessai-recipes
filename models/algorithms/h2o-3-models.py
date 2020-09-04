@@ -57,10 +57,10 @@ class H2OBaseModel:
                 max_runtime_secs = accuracy * (time_tolerance + 1) * 10  # customize here to your liking
             self.params = dict(max_runtime_secs=max_runtime_secs)
 
-        self.params['col_sample_rate'] = 0.7
-        self.params['sample_rate'] = 1.0
-        self.params['max_depth'] = 6
-        self.params['stopping_metric'] = 'auto'
+            self.params['col_sample_rate'] = 0.7
+            self.params['sample_rate'] = 1.0
+            self.params['max_depth'] = 6
+            self.params['stopping_metric'] = 'auto'
 
     def get_iterations(self, model):
         return 0
