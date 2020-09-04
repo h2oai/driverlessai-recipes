@@ -47,20 +47,27 @@ class H2OBaseModel:
                            time_tolerance=10,
                            interpretability=1, min_child_weight=1.0, params_orig=None, ensemble_level=0,
                            train_shape=(1, 1), valid_shape=(1, 1), labels=None, **kwargs):
-        self.params = self.get_gbm_main_params_evolution(None, None, accuracy, num_classes, ensemble_level, train_shape,
-                                                         valid_shape)
-        self.transcribe()
 
-        if not self._is_gbm:
-            max_runtime_secs = 600
-            if accuracy is not None and time_tolerance is not None:
-                max_runtime_secs = accuracy * (time_tolerance + 1) * 10  # customize here to your liking
-            self.params = dict(max_runtime_secs=max_runtime_secs)
+        self.params = {}
+
+        if self._is_gbm:
+            self.params.update(self.get_gbm_main_params_evolution(None, None,
+                                                             accuracy, num_classes,
+                                                             ensemble_level, train_shape,
+                                                             valid_shape))
+            self.transcribe()
 
             self.params['col_sample_rate'] = 0.7
             self.params['sample_rate'] = 1.0
             self.params['max_depth'] = 6
             self.params['stopping_metric'] = 'auto'
+
+        if not self._is_gbm:
+            # don't limit time for gbm
+            max_runtime_secs = 600
+            if accuracy is not None and time_tolerance is not None:
+                max_runtime_secs = accuracy * (time_tolerance + 1) * 10  # customize here to your liking
+            self.params['max_runtime_secs'] = max_runtime_secs
 
     def get_iterations(self, model):
         return 0
