@@ -1,11 +1,13 @@
 """H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB/AutoML)
 """
 import copy
+import sys
+import traceback
 
 from h2oaicore.models import CustomModel
 import datatable as dt
 import uuid
-from h2oaicore.systemutils import config, user_dir, remove
+from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError
 import numpy as np
 
 _global_modules_needed_by_name = ['h2o==3.30.0.3']
@@ -162,12 +164,22 @@ class H2OBaseModel:
 
             orig_cols = cols_to_train  # not training on offset
 
-            # Models that can use an offset column
-            if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
-                model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col,
-                            **train_kwargs)
-            else:
-                model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
+            try:
+                # Models that can use an offset column
+                if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
+                    model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col,
+                                **train_kwargs)
+                else:
+                    model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
+            except Exception as e:
+                print(str(e))
+                t, v, tb = sys.exc_info()
+                ex = ''.join(traceback.format_exception(t, v, tb))
+                if 'Training data must have at least 2 features' in str(ex) and X.ncols != 0:
+                    # if had non-zero features but h2o-3 saw as constant, ignore h2o-3 in that case
+                    raise IgnoreEntirelyError
+                else:
+                    raise
 
             if isinstance(model, H2OAutoML):
                 model = model.leader
