@@ -140,6 +140,9 @@ class VideoDataset(CustomData):
 
     @staticmethod
     def create_data():
+        if not os.path.exists(DATA_DIR):
+            return []
+
         # Path to the directory with videos
         files_dir = os.path.join(DATA_DIR, "videos/")
         # Path to a .csv with labels. First column is video name, second column is label
