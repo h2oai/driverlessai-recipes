@@ -5,6 +5,7 @@ from h2oaicore.models import CustomModel
 import numpy as np
 from h2oaicore.systemutils import arch_type
 from sklearn.preprocessing import LabelEncoder
+
 if arch_type != 'ppc64le':
     import daal4py as d4p
 

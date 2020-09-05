@@ -93,7 +93,6 @@ class VideoToFrames:
 
                     # For each detected face
                     for face_id, box in enumerate(faces):
-
                         # Get face coordinates
                         c0_start, c0_end, c1_start, c1_end = self.get_face_coordinates(
                             frame_orig, box

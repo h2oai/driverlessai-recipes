@@ -32,7 +32,7 @@ temp = X[:, columns]
 
 for c in columns:
     # count nulls before casting
-    null_count = temp[dt.isna(dt.f[c]),:].nrows
+    null_count = temp[dt.isna(dt.f[c]), :].nrows
     # cast
     temp[c] = float
     # compute fraction of non-numeric values

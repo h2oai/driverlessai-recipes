@@ -271,7 +271,7 @@ class CatBoostModel(CustomModel):
 
         if logger is not None:
             loggerdata(logger, "CatBoost parameters: params_base : %s params: %s catboost_params: %s" % (
-            str(self.params_base), str(self.params), str(params)))
+                str(self.params_base), str(self.params), str(params)))
 
         if self.num_classes == 1:
             model = CatBoostRegressor(**params)

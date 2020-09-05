@@ -11,7 +11,7 @@
 #   forecast_len: integer - length of last partition measured in temporal units used in X
 
 date_col = "Date"  # date column name
-forecast_len = 7   # length in temporal units (e.g. days)
+forecast_len = 7  # length in temporal units (e.g. days)
 
 new_partition_before_name = "new_dataset_before_split_time"
 new_partition_after_name = "new_dataset_after_split_time"

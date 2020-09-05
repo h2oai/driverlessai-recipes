@@ -14,7 +14,7 @@
 from datatable import by, sort
 
 # column(s) that define duplicate rows:
-key_cols = ['county','state','fips']
+key_cols = ['county', 'state', 'fips']
 # column(s) (e.g. time) to sort rows within each group
 sort_cols = ['date']
 

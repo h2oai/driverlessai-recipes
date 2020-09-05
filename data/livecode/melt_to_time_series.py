@@ -15,6 +15,7 @@
 
 import re
 import pandas as pd
+
 # for testing
 # X = dt.fread("~/Downloads/benchmark-bond-trade-price-challenge/train.csv")
 
@@ -34,10 +35,11 @@ value_cols = list(filter(time_series_regex.match, X.names))
 
 # metl using pandas
 X_pd = X.to_pandas()
-X_melt = pd.melt(X_pd, id_vars=id_cols, value_vars=value_cols, var_name=timestamp_col_name, value_name=time_series_new_name)
+X_melt = pd.melt(X_pd, id_vars=id_cols, value_vars=value_cols, var_name=timestamp_col_name,
+                 value_name=time_series_new_name)
 
 # replace times series lag names with integers as time
-X_melt[timestamp_col_name] = X_melt[timestamp_col_name].str.replace(time_series_col_name,'')
+X_melt[timestamp_col_name] = X_melt[timestamp_col_name].str.replace(time_series_col_name, '')
 X_melt[timestamp_col_name] = pd.to_numeric(X_melt[timestamp_col_name])
 
 return {new_dataset_name: X_melt}

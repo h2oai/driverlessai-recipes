@@ -24,6 +24,6 @@ if len(values) > MAX_PARTITIONS:
 result = {}
 for val in values:
     partition = X[dt.f[partition_col_name] == val, :]
-    result.update({dataset_name_prefix  + str(val): partition})
+    result.update({dataset_name_prefix + str(val): partition})
 
 return result
