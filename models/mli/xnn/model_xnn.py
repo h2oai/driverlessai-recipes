@@ -270,18 +270,7 @@ class CustomXNNModel(CustomTensorFlowModel):
                                  beta1=self.params["beta_1"], beta2=self.params["beta_1"],
                                  dec=self.params["decay"], ams=self.params["amsgrad"], is_categorical=self.is_cat)
 
-        # Replace missing values with a value smaller than all observed values
-        self.min = dict()
-        for col in X.names:
-            XX = X[:, col]
-            self.min[col] = XX.min1()
-            if self.min[col] is None or np.isnan(self.min[col]):
-                self.min[col] = -1e10
-            else:
-                self.min[col] -= 1
-            XX.replace(None, self.min[col])
-            X[:, col] = XX
-            assert X[dt.isna(dt.f[col]), col].nrows == 0
+        X = self.basic_impute(X)
         X = X.to_numpy()
 
         inputs = {'main_input': X}
@@ -425,16 +414,33 @@ class CustomXNNModel(CustomTensorFlowModel):
                                   importances=importances.tolist(),
                                   iterations=self.params['n_estimators'])
 
+    def basic_impute(self, X):
+        # scikit extra trees internally converts to np.float32 during all operations,
+        # so if float64 datatable, need to cast first, in case will be nan for float32
+        from h2oaicore.systemutils import update_precision
+        X = update_precision(X, data_type=np.float32, override_with_data_type=True, fixup_almost_numeric=True)
+        # Replace missing values with a value smaller than all observed values
+        self.min = dict()
+        for col in X.names:
+            XX = X[:, col]
+            if col not in self.min:
+                self.min[col] = XX.min1()
+                if self.min[col] is None or np.isnan(self.min[col]) or np.isinf(self.min[col]):
+                    self.min[col] = -1e10
+                else:
+                    self.min[col] -= 1
+            XX.replace([None,  np.inf, -np.inf], self.min[col])
+            X[:, col] = XX
+            assert X[dt.isna(dt.f[col]), col].nrows == 0
+        return X
+
     def predict(self, X, **kwargs):
         np.random.seed(self.random_state)
 
         X = dt.Frame(X)
-        for col in X.names:
-            XX = X[:, col]
-            XX.replace(None, self.min[col])
-            X[:, col] = XX
-        model, _, _, _ = self.get_model_properties()
+        X = self.basic_impute(X)
         X = X.to_numpy()
+        model, _, _, _ = self.get_model_properties()
 
         preds = model.predict(X)
 
