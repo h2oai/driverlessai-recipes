@@ -706,7 +706,7 @@ class OOBImpute(object):
         # print("LR: types number of columns: %d : %d %d %d %d" % (len(X.names), len(X[:, [float]].names), len(X[:, [int]].names), len(X[:, [bool]].names), len(X[:, [str]].names)))
         for col in X[:, [float]].names:
             XX = X[:, col]
-            XX.replace(None, np.nan)
+            XX.replace([None, np.inf, -np.inf], np.nan)
             X[:, col] = XX
         if self._impute_num_type == 'oob':
             # Replace missing values with a value smaller than all observed values
@@ -714,11 +714,11 @@ class OOBImpute(object):
             for col in X[:, [float]].names:
                 XX = X[:, col]
                 self.min[col] = XX.min1()
-                if self.min[col] is None or np.isnan(self.min[col]):
+                if self.min[col] is None or np.isnan(self.min[col]) or np.isinf(self.min[col]):
                     self.min[col] = -1e10
                 else:
                     self.min[col] -= 1
-                XX.replace(None, self.min[col])
+                XX.replace([None,  np.inf, -np.inf], self.min[col])
                 X[:, col] = XX
                 assert X[dt.isna(dt.f[col]), col].nrows == 0
         if self._impute_int_type == 'oob':
@@ -727,21 +727,21 @@ class OOBImpute(object):
             for col in X[:, [int]].names:
                 XX = X[:, col]
                 self.min_int[col] = XX.min1()
-                if self.min_int[col] is None or np.isnan(self.min_int[col]):
+                if self.min_int[col] is None or np.isnan(self.min_int[col]) or np.isinf(self.min[col]):
                     self.min_int[col] = 0
-                XX.replace(None, self.min_int[col])
+                XX.replace([None,  np.inf, -np.inf], self.min_int[col])
                 X[:, col] = XX
                 assert X[dt.isna(dt.f[col]), col].nrows == 0
         if self._impute_bool_type == 'oob':
             for col in X[:, [bool]].names:
                 XX = X[:, col]
-                XX.replace(None, self._oob_bool)
+                XX.replace([None,  np.inf, -np.inf], self._oob_bool)
                 X[:, col] = XX
                 assert X[dt.isna(dt.f[col]), col].nrows == 0
         if self._impute_cat_type == 'oob':
             for col in X[:, [str]].names:
                 XX = X[:, col]
-                XX.replace(None, self._oob_cat)
+                XX.replace([None,  np.inf, -np.inf], self._oob_cat)
                 X[:, col] = XX
                 assert X[dt.isna(dt.f[col]), col].nrows == 0
         return X
@@ -750,22 +750,22 @@ class OOBImpute(object):
         if self._impute_num_type == 'oob':
             for col in X[:, [float]].names:
                 XX = X[:, col]
-                XX.replace(None, self.min[col])
+                XX.replace([None,  np.inf, -np.inf], self.min[col])
                 X[:, col] = XX
         if self._impute_int_type == 'oob':
             for col in X[:, [int]].names:
                 XX = X[:, col]
-                XX.replace(None, self.min_int[col])
+                XX.replace([None,  np.inf, -np.inf], self.min_int[col])
                 X[:, col] = XX
         if self._impute_bool_type == 'oob':
             for col in X[:, [bool]].names:
                 XX = X[:, col]
-                XX.replace(None, self._oob_bool)
+                XX.replace([None,  np.inf, -np.inf], self._oob_bool)
                 X[:, col] = XX
         if self._impute_cat_type == 'oob':
             for col in X[:, [str]].names:
                 XX = X[:, col]
-                XX.replace(None, self._oob_cat)
+                XX.replace([None,  np.inf, -np.inf], self._oob_cat)
                 X[:, col] = XX
         return X
 
