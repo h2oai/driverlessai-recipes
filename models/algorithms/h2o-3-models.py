@@ -54,9 +54,9 @@ class H2OBaseModel:
 
         if self._is_gbm:
             self.params.update(self.get_gbm_main_params_evolution(None, None,
-                                                             accuracy, num_classes,
-                                                             ensemble_level, train_shape,
-                                                             valid_shape))
+                                                                  accuracy, num_classes,
+                                                                  ensemble_level, train_shape,
+                                                                  valid_shape))
             self.transcribe()
 
             self.params['col_sample_rate'] = 0.7

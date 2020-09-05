@@ -3,7 +3,6 @@
    https://github.com/nytimes/covid-19-data
 """
 
-
 # Contributors: Gregory Kanevsky - gregory@h2o.ai
 # Created: July 27th, 2020
 # Last Updated:
@@ -53,7 +52,7 @@ class NYTimesCovid19DailyCasesDeathsByCountiesData(CustomData):
         # augment data with county population figures and create adjusted case and death counts
         series_cols = ["cases", "deaths"]
         aggs = {f"{col}100k": dt.f[col] / (dt.g.pop / 100000) for col in series_cols}
-        us_counties[:, update(pop = g.pop, pop100k = g.pop / 10000, **aggs), join(counties_pop)]
+        us_counties[:, update(pop=g.pop, pop100k=g.pop / 10000, **aggs), join(counties_pop)]
 
         # remove rows without fips defined (resulted in unmatched rows after left outer join)
         del us_counties[isna(f.pop), :]

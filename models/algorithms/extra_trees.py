@@ -71,7 +71,7 @@ class ExtraTreesModel(CustomModel):
                     self.min[col] = -1e10
                 else:
                     self.min[col] -= 1
-            XX.replace([None,  np.inf, -np.inf], self.min[col])
+            XX.replace([None, np.inf, -np.inf], self.min[col])
             X[:, col] = XX
             assert X[dt.isna(dt.f[col]), col].nrows == 0
         return X

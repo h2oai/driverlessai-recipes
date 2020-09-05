@@ -17,7 +17,6 @@ from google.cloud import bigquery
 from google.cloud import storage
 from functools import reduce
 
-
 # Please fill before usage
 # Note that this information is logged in Driverless AI logs.
 

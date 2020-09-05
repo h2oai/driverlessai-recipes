@@ -327,5 +327,3 @@ class CustomTimeSeriesTransformer(CustomTransformer):
         :return: self
         """
         return self
-
-

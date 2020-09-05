@@ -28,14 +28,15 @@ if not g.shape[1] == 2:
     raise ValueError("Not a binary target - target column must contain exactly 2 values.")
 
 # find sizes and target values for minority and majority class partitions
-n_minority = g[:, min(f.count)][0,0]
-n_majority = g[:, max(f.count)][0,0]
-target_minority = g[f.count == n_minority, target_col][0,0]
-target_majority = g[f.count == n_majority, target_col][0,0]
+n_minority = g[:, min(f.count)][0, 0]
+n_majority = g[:, max(f.count)][0, 0]
+target_minority = g[f.count == n_minority, target_col][0, 0]
+target_majority = g[f.count == n_majority, target_col][0, 0]
 
 # validate that times indeed downsamples majority class
 if times * n_minority >= n_majority:
-    raise ValueError("Downsampling coefficient `times` is too large: downsampled dataset results in inflated majority class.")
+    raise ValueError(
+        "Downsampling coefficient `times` is too large: downsampled dataset results in inflated majority class.")
 
 # downsample with pandas frame
 df_majority = X[f[target_col] == target_majority, :].to_pandas()

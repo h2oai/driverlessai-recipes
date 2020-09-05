@@ -14,8 +14,8 @@ from h2o.estimators.coxph import H2OCoxProportionalHazardsEstimator
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.separators import extra_prefix, orig_feat_prefix
 
-class DummyIdentityPreTransformer(CustomTransformer):
 
+class DummyIdentityPreTransformer(CustomTransformer):
     # only works with binomial problem for now
     _regression = True
     _binary = True
@@ -34,7 +34,6 @@ class DummyIdentityPreTransformer(CustomTransformer):
         return dict(col_type="all", min_cols="all", max_cols="all", relative_importance=1)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None, **kwargs):
-
         X_original = X
 
         # Get the logger if it exists
@@ -53,7 +52,4 @@ class DummyIdentityPreTransformer(CustomTransformer):
         return X_original
 
     def transform(self, X: dt.Frame):
-
         return X
-
-

@@ -59,7 +59,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
-### Count: 175
+### Count: 182
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description]
 * [DATA](./data)
@@ -69,6 +69,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [airlines_joined_data_flights_in_out.py](./data/airlines_joined_data_flights_in_out.py) [Create augmented airlines datasets]
   * [airlines_joined_data_flights_in_out_regression.py](./data/airlines_joined_data_flights_in_out_regression.py) [Create augmented airlines datasets for regression]
   * [airlines_multiple.py](./data/airlines_multiple.py) [Create airlines dataset]
+  * [audio_to_image.py](./data/audio_to_image.py) [Data recipe to transform input audio to Mel spectrogramsThis data recipe makes the following steps:1. Reads audio file2. Converts audio file to the Mel spectrogram3. Save Mel spectrogram to .png image4. Upload image dataset to DAIRecipe is based on the Kaggle Freesound Audio Tagging 2019 challenge:https://www.kaggle.com/c/freesound-audio-tagging-2019To use the recipe follow the next steps:1. Download a subsample of the audio dataset from here:http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/freesound_audio.zip2. Unzip it and specify the path to the dataset in the DATA_DIR global variable3. Upload the dataset into Driverless AI using the Add Data Recipe optionThe transformed dataset is also available and could be directly uploaded to Driverless AI:http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/freesound_images.zip]
   * [bigquery_sharded_data_pull.py](./data/bigquery_sharded_data_pull.py) [Pull data >1Gb from GCP Bigquery using sharding functionality.Based on:    https://cloud.google.com/bigquery/docs/exporting-data#exporting_table_data    https://cloud.google.com/storage/docs/reference/libraries#using_the_client_libraryAuthor: Travis CoutureCreated: 03/18/2020Last Updated: 03/18/2020]
   * [catchallenge.py](./data/catchallenge.py) [Create cat challenge dataset]
   * [covidtracking_daily_by_states.py](./data/covidtracking_daily_by_states.py) [Upload daily Covid Tracking (https://covidtracking.com) US States   cases, hospitalization, recovery, test and death data ]
@@ -84,10 +85,13 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [load_sas7bdat.py](./data/load_sas7bdat.py) [Data Recipe to load a single sas file__version__ = 0.1authored by @mtanco (Michelle Tanco)Required User Defined Inputs: name of file to load]
   * [mnist.py](./data/mnist.py) [Prep and upload the MNIST datasset]
   * [mozilla_deepspeech_wav2txt.py](./data/mozilla_deepspeech_wav2txt.py) [Speech to text using Mozilla's DeepSpeechSettings for this recipe:Assing MODEL_PATH global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.General requirements to .wav's:1 channel (mono)16 bit16000 frequency]
+  * [nytimes_covid19_cases_deaths_by_counties.py](./data/nytimes_covid19_cases_deaths_by_counties.py) [Upload daily COVID-19 cases and deaths in US by counties - NY Times github   Source:  nytimes/covid-19-data Coronavirus (Covid-19) Data in the United States   https://github.com/nytimes/covid-19-data]
   * [nytimes_covid19_cases_deaths_by_states.py](./data/nytimes_covid19_cases_deaths_by_states.py) [Upload daily COVID-19 cases and deaths in US by states from NY Times github]
+  * [owid_covid19_cases_deaths_by_countries.py](./data/owid_covid19_cases_deaths_by_countries.py) [Upload daily COVID-19 cases and deaths by countries]
   * [seattle_rain_modify.py](./data/seattle_rain_modify.py) [Transpose the Monthly Seattle Rain Inches data set for Time Series use cases]
   * [seattle_rain_upload.py](./data/seattle_rain_upload.py) [Upload Monthly Seattle Rain Inches data set from data provided by the City of Seattle]
   * [ts_fill_n_cluster.py](./data/ts_fill_n_cluster.py) [Data Recipe to fill missing values in TS data and then create new data sets from TS Clustering]
+  * [video_to_image.py](./data/video_to_image.py) [Data recipe to transform input video to the images.This data recipe makes the following steps:1. Reads video file2. Samples N uniform frames from the video file3. Detects all faces on each frame4. Crops the faces and saves them as imagesRecipe is based on the Kaggle Deepfake Detection Challenge:https://www.kaggle.com/c/deepfake-detection-challengeTo use the recipe follow the next steps:1. Download a small subsample of the video dataset from here:http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/deepfake.zip2. Unzip it and specify the path to the dataset in the DATA_DIR global variable3. Upload the dataset into Driverless AI using the Add Data Recipe optionThe transformed dataset is also available and could be directly uploaded to Driverless AI:http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/deepfake_frames.zip]
   * [wav2txt.py](./data/wav2txt.py) [Speech to text using Azure Cognitive ServicesSettings for this recipe:Assing AZURE_SERVICE_KEY and AZURE_SERVICE_REGION global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.]
   * [DATABASES](./data/databases)
     * [create_dataset_from_mongodb_collection.py](./data/databases/create_dataset_from_mongodb_collection.py) [Create dataset from MonogDB]
@@ -97,12 +101,13 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [text_summarization.py](./data/nlp/text_summarization.py) [Data recipe to get summary of text using gensim]
     * [tokenize_chinese.py](./data/nlp/tokenize_chinese.py) [Chinese text tokenization using jieba package - https://github.com/fxsjy/jieba]
     * [topic_modeling.py](./data/nlp/topic_modeling.py) [Data recipe to perform topic modeling]
+    * [twitter_preprocessing_recipe.py](./data/nlp/twitter_preprocessing_recipe.py) [Preprocess the tweets by normalising username, removing unnecessatry punctuations, exapanding the hashtags]
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description]
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.]
   * [ALGORITHMS](./models/algorithms)
-    * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling or Isotonic regression]
+    * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines]
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.]
     * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL]
     * [extra_trees.py](./models/algorithms/extra_trees.py) [Extremely Randomized Trees (ExtraTrees) model from sklearn]
@@ -164,6 +169,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
       * [quadratic_weighted_kappa.py](./scorers/classification/multiclass/quadratic_weighted_kappa.py) [Qudratic Weighted Kappa]
   * [REGRESSION](./scorers/regression)
     * [WAPE_scorer.py](./scorers/regression/WAPE_scorer.py) [Weighted Absoluted Percent Error]
+    * [asymmetric_mae.py](./scorers/regression/asymmetric_mae.py) [MAE with a penalty that differs for positive and negative errors]
     * [cosh_loss.py](./scorers/regression/cosh_loss.py) [Hyperbolic Cosine Loss]
     * [explained_variance.py](./scorers/regression/explained_variance.py) [Explained Variance. Fraction of variance that is explained by the model.]
     * [largest_error.py](./scorers/regression/largest_error.py) [Largest error for regression problems. Highly sensitive to outliers.]
@@ -217,6 +223,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [NLP](./transformers/nlp)
     * [continuous_TextTransformer.py](./transformers/nlp/continuous_TextTransformer.py) [please add description]
     * [fuzzy_text_similarity_transformers.py](./transformers/nlp/fuzzy_text_similarity_transformers.py) [Row-by-row similarity between two text columns based on FuzzyWuzzy]
+    * [text_binary_count_transformer.py](./transformers/nlp/text_binary_count_transformer.py) [Explainable Text transformer that uses binary counts of words using sklearn's CountVectorizer]
     * [text_char_tfidf_count_transformers.py](./transformers/nlp/text_char_tfidf_count_transformers.py) [Character level TFIDF and Count followed by Truncated SVD on text columns]
     * [text_embedding_similarity_transformers.py](./transformers/nlp/text_embedding_similarity_transformers.py) [Row-by-row similarity between two text columns based on pretrained Deep Learning embedding space]
     * [text_lang_detect_transformer.py](./transformers/nlp/text_lang_detect_transformer.py) [Detect the language for a text value using Google's 'langdetect' package]
