@@ -61,7 +61,8 @@ class ExtraTreesModel(CustomModel):
         from h2oaicore.systemutils import update_precision
         X = update_precision(X, data_type=np.float32, override_with_data_type=True, fixup_almost_numeric=True)
         # Replace missing values with a value smaller than all observed values
-        self.min = dict()
+        if not hasattr(self, 'min'):
+            self.min = dict()
         for col in X.names:
             XX = X[:, col]
             if col not in self.min:
