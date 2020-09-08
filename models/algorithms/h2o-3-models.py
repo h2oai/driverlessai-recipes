@@ -221,7 +221,10 @@ class H2OBaseModel:
         # Replace -inf/inf values with a value smaller/larger than all observed values
         if not hasattr(self, 'min'):
             self.min = dict()
+        numeric_cols = list(X[:, float, bool, int].names)
         for col in X.names:
+            if col not in numeric_cols:
+                continue
             XX = X[:, col]
             if col not in self.min:
                 self.min[col] = XX.min1()
@@ -234,6 +237,8 @@ class H2OBaseModel:
         if not hasattr(self, 'max'):
             self.max = dict()
         for col in X.names:
+            if col not in numeric_cols:
+                continue
             XX = X[:, col]
             if col not in self.max:
                 self.max[col] = XX.max1()
