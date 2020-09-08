@@ -727,7 +727,7 @@ class OOBImpute(object):
             for col in X[:, [int]].names:
                 XX = X[:, col]
                 self.min_int[col] = XX.min1()
-                if self.min_int[col] is None or np.isnan(self.min_int[col]) or np.isinf(self.min[col]):
+                if self.min_int[col] is None or np.isnan(self.min_int[col]) or np.isinf(self.min_int[col]):
                     self.min_int[col] = 0
                 XX.replace([None, np.inf, -np.inf], self.min_int[col])
                 X[:, col] = XX
