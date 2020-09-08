@@ -97,7 +97,7 @@ class H2OBaseModel:
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         X = dt.Frame(X)
-
+        X = self.inf_impute(X)
         self.transcribe()
 
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
@@ -217,9 +217,38 @@ class H2OBaseModel:
                                   importances=varimp,
                                   iterations=self.get_iterations(model))
 
+    def inf_impute(self, X):
+        # Replace -inf/inf values with a value smaller/larger than all observed values
+        if not hasattr(self, 'min'):
+            self.min = dict()
+        for col in X.names:
+            XX = X[:, col]
+            if col not in self.min:
+                self.min[col] = XX.min1()
+                if np.isinf(self.min[col]):
+                    self.min[col] = -1e10
+                else:
+                    self.min[col] -= 1
+            XX.replace(-np.inf, self.min[col])
+            X[:, col] = XX
+        if not hasattr(self, 'max'):
+            self.max = dict()
+        for col in X.names:
+            XX = X[:, col]
+            if col not in self.max:
+                self.max[col] = XX.max1()
+                if np.isinf(self.max[col]):
+                    self.max[col] = 1e10
+                else:
+                    self.max[col] += 1
+            XX.replace(np.inf, self.max[col])
+            X[:, col] = XX
+        return X
+
     def predict(self, X, **kwargs):
         model, _, _, _ = self.get_model_properties()
         X = dt.Frame(X)
+        X = self.inf_impute(X)
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = os.path.join(user_dir(), self.id)
         model_file = os.path.join(model_path, "h2o_model." + str(uuid.uuid4()) + ".bin")
