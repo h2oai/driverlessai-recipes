@@ -137,7 +137,7 @@ class LogisticRegressionModel(CustomModel):
         # _modules_needed_by_name.extend(['git+https://github.com/h2oai/target_encoding#egg=target_encoding'])
 
     # whether to show debug prints and write munged view to disk
-    _debug = True
+    _debug = False
     # wehther to cache feature results, only by transformer instance and X shape, so risky to use without care.
     _cache = False
 
