@@ -77,7 +77,7 @@ class H2OBaseModel:
     def make_instance(self, **kwargs):
         return self.__class__._class(seed=self.random_state, **kwargs)
 
-    def transcribe(self):
+    def transcribe(self, X=None):
         if 'early_stopping_rounds' in self.params:
             self.params['stopping_rounds'] = self.params.pop('early_stopping_rounds')
         if 'early_stopping_threshold' in self.params:
@@ -94,11 +94,13 @@ class H2OBaseModel:
         # have to enforce in case mutation was 1-by-1 instead of all
         if 'nbins_top_level' in self.params and 'nbins' in self.params:
             self.params['nbins_top_level'] = max(self.params['nbins_top_level'], self.params['nbins'])
+        if 'min_rows' in self.params and X is not None:
+            self.params["min_rows"] = min(self.params["min_rows"], max(1, int(0.5 * X.nrows)))
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         X = dt.Frame(X)
         X = self.inf_impute(X)
-        self.transcribe()
+        self.transcribe(X=X)
 
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = None
@@ -228,10 +230,13 @@ class H2OBaseModel:
             XX = X[:, col]
             if col not in self.min:
                 self.min[col] = XX.min1()
-                if np.isinf(self.min[col]):
+                try:
+                    if np.isinf(self.min[col]):
+                        self.min[col] = -1e10
+                    else:
+                        self.min[col] -= 1
+                except TypeError:
                     self.min[col] = -1e10
-                else:
-                    self.min[col] -= 1
             XX.replace(-np.inf, self.min[col])
             X[:, col] = XX
         if not hasattr(self, 'max'):
@@ -242,10 +247,13 @@ class H2OBaseModel:
             XX = X[:, col]
             if col not in self.max:
                 self.max[col] = XX.max1()
-                if np.isinf(self.max[col]):
+                try:
+                    if np.isinf(self.max[col]):
+                        self.max[col] = 1e10
+                    else:
+                        self.max[col] += 1
+                except TypeError:
                     self.max[col] = 1e10
-                else:
-                    self.max[col] += 1
             XX.replace(np.inf, self.max[col])
             X[:, col] = XX
         return X
