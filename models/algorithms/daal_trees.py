@@ -3,8 +3,11 @@
 import datatable as dt
 from h2oaicore.models import CustomModel
 import numpy as np
+from h2oaicore.systemutils import arch_type
 from sklearn.preprocessing import LabelEncoder
-import daal4py as d4p
+
+if not arch_type == 'ppc64le':
+    import daal4py as d4p
 
 
 class DaalBaseModel(object):
@@ -138,7 +141,12 @@ def _setup_recipe():
 
     from h2oaicore.systemutils import arch_type
     if arch_type == "ppc64le":
-        raise RuntimeError("Cannot use daal on PPC")
+        if config.hard_asserts:
+            # in CI testing just ignore
+            return True
+        else:
+            # for user use, raise
+            raise RuntimeError("Cannot use daal on PPC")
 
     daal_is_installed_path = os.path.join(config.data_directory, config.contrib_env_relative_directory, "daal")
     daal_is_installed_file = os.path.join(daal_is_installed_path, "daal_is_installed")
