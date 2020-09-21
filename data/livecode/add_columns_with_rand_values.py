@@ -13,11 +13,14 @@ import numpy as np
 
 col_count = 1
 random_column_names = ["random_columm_int"]
-min_max_values = (0, 100)
+value_range = (0, 100)
 
 new_dataset_name = "new_dataset_with_random_column"
 
-rcol = dt.Frame(np.random.randint(min_max_values[0], min_max_values[1], size=(X.shape[0], 1)))
+if col_count != len(random_column_names):
+  raise ValueError("Number of column names must be equal to number of columns.")
+
+rcol = dt.Frame(np.random.randint(value_range[0], value_range[1], size=(X.shape[0], col_count)))
 rcol.names = random_column_names
 X.cbind(rcol)
 
