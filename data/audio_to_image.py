@@ -41,7 +41,7 @@ class AudioToMelSpectogram:
     """
 
     def __init__(
-        self, min_seconds=2, sampling_rate=44100, n_mels=128, hop_length=345 * 2
+            self, min_seconds=2, sampling_rate=44100, n_mels=128, hop_length=345 * 2
     ):
         # Audio hyperparameters
         self.min_seconds = min_seconds
@@ -103,7 +103,6 @@ class AudioDataset(CustomData):
 
     @staticmethod
     def create_data():
-
         # Path to the directory with audios
         path_to_files = os.path.join(DATA_DIR, "audio/")
         # Path to a .csv with labels. First column is audio name, second column is label

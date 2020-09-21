@@ -15,12 +15,14 @@ def get_file_docstring(filepath):
             docstring += line[1:] + "\n"
     return docstring
 
+
 def print_offset(depth, str_content, ret):
     for i, line in enumerate(str_content.split("\n")):
         if i == 0:
             ret.append(sep * depth + "* " + line + "  \n")
         else:
             ret.append(sep * depth + "  " + line + "  \n")
+
 
 import os
 from os import listdir
@@ -31,14 +33,14 @@ ret = []
 livecode_path = "./data/livecode"
 livecode_files = [f for f in listdir(livecode_path) if isfile(join(livecode_path, f))]
 for f in sorted(livecode_files):
-            depth = 0
-            if f not in exclude and not f.startswith("test_"):
-                if f[-3:] == ".py":
-                        docstring = get_file_docstring(os.path.join(livecode_path, f)) or \
-                                    "please add description"
-                        what = "[" + f.replace("_", "\_") + "](" + "./" + f + ")"
-                        print_offset(depth + 1, "%s [%s]" % (what, docstring), ret)
-                        count += 1
+    depth = 0
+    if f not in exclude and not f.startswith("test_"):
+        if f[-3:] == ".py":
+            docstring = get_file_docstring(os.path.join(livecode_path, f)) or \
+                        "please add description"
+            what = "[" + f.replace("_", "\_") + "](" + "./" + f + ")"
+            print_offset(depth + 1, "%s [%s]" % (what, docstring), ret)
+            count += 1
 
 print("""# Live Code Templates for H2O Driverless AI Datasets
 

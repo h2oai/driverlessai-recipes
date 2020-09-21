@@ -15,7 +15,7 @@ column_name = "rowid"
 
 new_dataset_name = "new_dataset_name_with_id"
 
-key_column_arg = {column_name: range(1, X.nrows+1)}
+key_column_arg = {column_name: range(1, X.nrows + 1)}
 X[:, dt.update(**key_column_arg)]
 
 return {new_dataset_name: X}

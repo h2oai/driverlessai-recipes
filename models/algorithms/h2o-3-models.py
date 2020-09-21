@@ -1,11 +1,13 @@
 """H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB/AutoML)
 """
 import copy
+import sys
+import traceback
 
 from h2oaicore.models import CustomModel
 import datatable as dt
 import uuid
-from h2oaicore.systemutils import config, user_dir, remove
+from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError
 import numpy as np
 
 _global_modules_needed_by_name = ['h2o==3.30.0.3']
@@ -47,20 +49,27 @@ class H2OBaseModel:
                            time_tolerance=10,
                            interpretability=1, min_child_weight=1.0, params_orig=None, ensemble_level=0,
                            train_shape=(1, 1), valid_shape=(1, 1), labels=None, **kwargs):
-        self.params = self.get_gbm_main_params_evolution(None, None, accuracy, num_classes, ensemble_level, train_shape,
-                                                         valid_shape)
-        self.transcribe()
+
+        self.params = {}
+
+        if self._is_gbm:
+            self.params.update(self.get_gbm_main_params_evolution(None, None,
+                                                                  accuracy, num_classes,
+                                                                  ensemble_level, train_shape,
+                                                                  valid_shape))
+            self.transcribe()
+
+            self.params['col_sample_rate'] = 0.7
+            self.params['sample_rate'] = 1.0
+            self.params['max_depth'] = 6
+            self.params['stopping_metric'] = 'auto'
 
         if not self._is_gbm:
+            # don't limit time for gbm
             max_runtime_secs = 600
             if accuracy is not None and time_tolerance is not None:
                 max_runtime_secs = accuracy * (time_tolerance + 1) * 10  # customize here to your liking
-            self.params = dict(max_runtime_secs=max_runtime_secs)
-
-        self.params['col_sample_rate'] = 0.7
-        self.params['sample_rate'] = 1.0
-        self.params['max_depth'] = 6
-        self.params['stopping_metric'] = 'auto'
+            self.params['max_runtime_secs'] = max_runtime_secs
 
     def get_iterations(self, model):
         return 0
@@ -68,7 +77,7 @@ class H2OBaseModel:
     def make_instance(self, **kwargs):
         return self.__class__._class(seed=self.random_state, **kwargs)
 
-    def transcribe(self):
+    def transcribe(self, X=None):
         if 'early_stopping_rounds' in self.params:
             self.params['stopping_rounds'] = self.params.pop('early_stopping_rounds')
         if 'early_stopping_threshold' in self.params:
@@ -83,12 +92,15 @@ class H2OBaseModel:
         # self.params['monotone_constraints']
 
         # have to enforce in case mutation was 1-by-1 instead of all
-        self.params['nbins_top_level'] = max(self.params['nbins_top_level'], self.params['nbins'])
+        if 'nbins_top_level' in self.params and 'nbins' in self.params:
+            self.params['nbins_top_level'] = max(self.params['nbins_top_level'], self.params['nbins'])
+        if 'min_rows' in self.params and X is not None:
+            self.params["min_rows"] = min(self.params["min_rows"], max(1, int(0.5 * X.nrows)))
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         X = dt.Frame(X)
-
-        self.transcribe()
+        X = self.inf_impute(X)
+        self.transcribe(X=X)
 
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = None
@@ -154,12 +166,22 @@ class H2OBaseModel:
 
             orig_cols = cols_to_train  # not training on offset
 
-            # Models that can use an offset column
-            if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
-                model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col,
-                            **train_kwargs)
-            else:
-                model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
+            try:
+                # Models that can use an offset column
+                if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
+                    model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col,
+                                **train_kwargs)
+                else:
+                    model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
+            except Exception as e:
+                print(str(e))
+                t, v, tb = sys.exc_info()
+                ex = ''.join(traceback.format_exception(t, v, tb))
+                if 'Training data must have at least 2 features' in str(ex) and X.ncols != 0:
+                    # if had non-zero features but h2o-3 saw as constant, ignore h2o-3 in that case
+                    raise IgnoreEntirelyError
+                else:
+                    raise
 
             if isinstance(model, H2OAutoML):
                 model = model.leader
@@ -197,9 +219,49 @@ class H2OBaseModel:
                                   importances=varimp,
                                   iterations=self.get_iterations(model))
 
+    def inf_impute(self, X):
+        # Replace -inf/inf values with a value smaller/larger than all observed values
+        if not hasattr(self, 'min'):
+            self.min = dict()
+        numeric_cols = list(X[:, [float, bool, int]].names)
+        for col in X.names:
+            if col not in numeric_cols:
+                continue
+            XX = X[:, col]
+            if col not in self.min:
+                self.min[col] = XX.min1()
+                try:
+                    if np.isinf(self.min[col]):
+                        self.min[col] = -1e10
+                    else:
+                        self.min[col] -= 1
+                except TypeError:
+                    self.min[col] = -1e10
+            XX.replace(-np.inf, self.min[col])
+            X[:, col] = XX
+        if not hasattr(self, 'max'):
+            self.max = dict()
+        for col in X.names:
+            if col not in numeric_cols:
+                continue
+            XX = X[:, col]
+            if col not in self.max:
+                self.max[col] = XX.max1()
+                try:
+                    if np.isinf(self.max[col]):
+                        self.max[col] = 1e10
+                    else:
+                        self.max[col] += 1
+                except TypeError:
+                    self.max[col] = 1e10
+            XX.replace(np.inf, self.max[col])
+            X[:, col] = XX
+        return X
+
     def predict(self, X, **kwargs):
         model, _, _, _ = self.get_model_properties()
         X = dt.Frame(X)
+        X = self.inf_impute(X)
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = os.path.join(user_dir(), self.id)
         model_file = os.path.join(model_path, "h2o_model." + str(uuid.uuid4()) + ".bin")

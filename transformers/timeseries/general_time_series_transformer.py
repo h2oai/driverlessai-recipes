@@ -6,6 +6,7 @@ import numpy as np
 
 class GeneralTimeSeriesTransformer(CustomTimeSeriesTransformer):
     _causal_recipe_allowed = False  # need self.encoder only available in lag time series recipe mode
+
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         # FIXME - use the following attributes
         # self.encoder

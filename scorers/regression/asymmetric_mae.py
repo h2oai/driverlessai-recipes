@@ -17,17 +17,15 @@ class CostMeanAbsoluteError(CustomScorer):
               predicted: np.array,
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
-        
-        
         # Specify the per unit cost of over or underestimating
         per_unit_cost_of_underestimating = 2.0
         per_unit_cost_of_overestimating = 0.5
-        
+
         cost_function = np.abs(actual - predicted)
-        
-        cost_function[predicted > actual] = cost_function[predicted > actual] * per_unit_cost_of_overestimating 
-        cost_function[predicted < actual] = cost_function[predicted < actual] * per_unit_cost_of_underestimating     
-        
+
+        cost_function[predicted > actual] = cost_function[predicted > actual] * per_unit_cost_of_overestimating
+        cost_function[predicted < actual] = cost_function[predicted < actual] * per_unit_cost_of_underestimating
+
         mean_cost = sum(cost_function) / len(cost_function)
-        
+
         return mean_cost

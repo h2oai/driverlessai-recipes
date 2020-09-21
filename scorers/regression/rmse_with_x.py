@@ -4,6 +4,7 @@ import numpy as np
 import datatable as dt
 import typing
 
+
 class RmseWithXScorer(CustomScorer):
     _regression = True
     _needs_X = True
@@ -19,4 +20,3 @@ class RmseWithXScorer(CustomScorer):
             **kwargs) -> float:
         assert X  # for testing
         return RmseScorer().score(actual, predicted, sample_weight, labels, **kwargs)
-

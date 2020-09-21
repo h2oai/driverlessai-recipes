@@ -22,12 +22,12 @@ binary_outcomes = (False, True)
 drop_old_target = False
 
 # update with new target
-X[:, dt.update(isScorePos = dt.ifelse(dt.f[target_name] >= value_to_map_to_true,
-                                      binary_outcomes[1], 
-                                      binary_outcomes[0]))]
+X[:, dt.update(isScorePos=dt.ifelse(dt.f[target_name] >= value_to_map_to_true,
+                                    binary_outcomes[1],
+                                    binary_outcomes[0]))]
 
 # drop old target
 if drop_old_target:
-  del X[:, target_name]
+    del X[:, target_name]
 
 return X  # return dt.Frame, pd.DataFrame, np.ndarray or a list of those
