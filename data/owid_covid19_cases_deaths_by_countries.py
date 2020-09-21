@@ -1,8 +1,10 @@
-"""Upload daily COVID-19 cases and deaths by countries"""
+"""Upload daily COVID-19 cases and deaths by countries
+   Source: Our World in Data. It is updated daily and includes data on confirmed cases, deaths, and testing.
+   https://ourworldindata.org/coronavirus-source-data"""
 
 # Contributors: Gregory Kanevsky - gregory@h2o.ai
 # Created: August 29th, 2020
-# Last Updated:
+# Last Updated: September 2d, 2020
 
 
 from typing import Union, List, Dict
