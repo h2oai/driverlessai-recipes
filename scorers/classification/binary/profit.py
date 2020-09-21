@@ -58,4 +58,4 @@ class cost_binary(CustomScorer):
         tn_profit = tn * cost * (self.__class__._is_zero_predict_zero - self.__class__._is_zero_predict_one)
 
         return (tp_profit + fn_loss + fp_loss + tn_profit) / (
-                    tn + fp + fn + tp)  # divide by total weighted count to make loss invariant of data size
+                tn + fp + fn + tp)  # divide by total weighted count to make loss invariant of data size

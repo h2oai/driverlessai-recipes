@@ -12,8 +12,8 @@
 #   dataset containing partition interval
 
 date_col = "intake_date"  # date column name
-split_date_min = "2020-02-01" # partition start date
-split_date_max = "2020-02-29" # partition end date
+split_date_min = "2020-02-01"  # partition start date
+split_date_max = "2020-02-29"  # partition end date
 
 new_dataset_name = "new_dataset_name_partition_interval"
 

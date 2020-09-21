@@ -271,7 +271,7 @@ class CatBoostModel(CustomModel):
 
         if logger is not None:
             loggerdata(logger, "CatBoost parameters: params_base : %s params: %s catboost_params: %s" % (
-            str(self.params_base), str(self.params), str(params)))
+                str(self.params_base), str(self.params), str(params)))
 
         if self.num_classes == 1:
             model = CatBoostRegressor(**params)
@@ -447,9 +447,14 @@ class CatBoostModel(CustomModel):
         if k in params and params[k].upper() == 'AUC':
             params[k] = 'AUC'
 
-        map = {'regression': 'RMSE', 'mae': 'MAE', "mape": 'MAPE', "huber": 'RMSE', "fair": 'RMSE', "rmse": "RMSE",
-               "gamma": "RMSE", "tweedie": "RMSE", "poisson": "Poisson", "quantile": "Quantile", 'binary': 'Logloss',
-               'auc': 'AUC', "xentropy": 'CrossEntropy'}
+        map = {'regression': 'RMSE', 'mse': 'RMSE', 'mae': 'MAE', "mape": 'MAPE', "huber": 'Huber', "fair": 'FairLoss',
+               "rmse": "RMSE",
+               "gamma": "RMSE",  # unsupported by catboost
+               "tweedie": "Tweedie", "poisson": "Poisson", "quantile": "Quantile",
+               'binary': 'Logloss',
+               'auc': 'AUC', "xentropy": 'CrossEntropy',
+               'multiclass': 'MultiClass'}
+
         k = 'objective'
         if k in params and params[k] in map.keys():
             params[k] = map[params[k]]
@@ -457,6 +462,19 @@ class CatBoostModel(CustomModel):
         k = 'eval_metric'
         if k in params and params[k] in map.keys():
             params[k] = map[params[k]]
+
+        if params['objective'] == 'Huber':
+            backup = float(np.random.choice(config.huber_alpha_list))
+            params['delta'] = params.pop('alpha', backup)
+        if params['objective'] == 'Quantile':
+            backup = float(np.random.choice(config.quantile_alpha))
+            params['delta'] = params.pop('alpha', backup)
+        if params['objective'] == 'Tweedie':
+            backup = float(np.random.choice(config.tweedie_variance_power_list))
+            params['tweedie_variance_power'] = params.pop('variance_power', backup)
+        if params['objective'] == 'FairLoss':
+            backup = float(np.random.choice(config.fair_c_list))
+            params['smoothness'] = params.pop('fair_c', backup)
 
         params.pop('verbose', None)
         params.pop('verbose_eval', None)

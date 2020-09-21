@@ -234,7 +234,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
                     model = None
 
                 # Find unique datetime
-                X_time = X_grp [['ds']].groupby('ds').first().reset_index()
+                X_time = X_grp[['ds']].groupby('ds').first().reset_index()
                 X_time['ds'] = pd.to_datetime(X_time['ds'], format=self.datetime_formats[self.time_column])
                 X_time = X_time.sort_values('ds')
 
@@ -359,4 +359,3 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
             )
 
         return logger
-

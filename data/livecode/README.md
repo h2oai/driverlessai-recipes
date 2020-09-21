@@ -33,7 +33,7 @@ after modifications specific to a dataset it applies to.
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
-### Count: 27
+### Count: 28
   * [balance\_data.py](./balance_data.py) [ Create a sampled dataset for imbalanced use cases - probably not for modeling but  
 
       
@@ -300,11 +300,11 @@ after modifications specific to a dataset it applies to.
 
       
 
-     Certain percentage (threshold) of non-numeric values per column allowed before casting.  
+     Fraction of non-numeric values (per column) equal or below a threshold defined is allowed before casting.  
 
       
 
-     Non-numeric values are ignored and become nulls inside new columns.  
+     Non-numeric values are ignored and mapped to null value.  
 
       
 
@@ -332,7 +332,11 @@ after modifications specific to a dataset it applies to.
 
       
 
-       threshold: numeric - threshold for percentage of allowed non-numeric values per column before conversion  
+       threshold_fraction_non_numeric: numeric - threshold for percentage of allowed non-numeric values per column before conversion  
+
+      
+
+       in_place: bool - indicates if casting to numeric takes place in place or by adding new column  
 
       
 
@@ -1316,7 +1320,11 @@ after modifications specific to a dataset it applies to.
 
     ]  
 
-  * [split\_by\_datetime.py](./split_by_datetime.py) [ Data is called X and is a DataTable object  
+  * [split\_by\_datetime.py](./split_by_datetime.py) [ Split dataset into two partitions by time given  
+
+      
+
+     date/time value.  
 
       
 
@@ -1345,6 +1353,52 @@ after modifications specific to a dataset it applies to.
       
 
        split_date: date/time - temporal value to split dataset on  
+
+      
+
+    ]  
+
+  * [split\_by\_time\_horizon.py](./split_by_time_horizon.py) [ Split dataset into two partitions by time given  
+
+      
+
+     time horizon (length) of last partition. With this  
+
+      
+
+     approach we simply count number of unique values in temporal  
+
+      
+
+     column and take the N-th from the end to be the border value.  
+
+      
+
+      
+
+      
+
+     Specification:  
+
+      
+
+     Inputs:  
+
+      
+
+       X: datatable - primary dataset  
+
+      
+
+     Parameters:  
+
+      
+
+       date_col: string - name of temporal column  
+
+      
+
+       forecast_len: integer - length of last partition measured in temporal units used in X  
 
       
 

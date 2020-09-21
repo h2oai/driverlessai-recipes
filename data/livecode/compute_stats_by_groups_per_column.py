@@ -17,7 +17,7 @@ group_by_cols = ["user_id"]
 
 new_dataset_name = "new_dataset_name_with_stats"
 
-aggs = {f"{col}_dist_from_mean" : mean(dt.f[col]) - f[col]
+aggs = {f"{col}_dist_from_mean": mean(dt.f[col]) - f[col]
         for col in X[:, f[int].extend(f[float])].names}
 
 X[:, update(**aggs), by(*group_by_cols)]

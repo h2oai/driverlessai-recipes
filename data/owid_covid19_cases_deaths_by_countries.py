@@ -13,6 +13,7 @@ import pandas as pd
 from h2oaicore.systemutils import user_dir
 from datatable import f, g, join, by, sort, update, shift, isna
 
+
 class OWIDCovid19DailyCasesDeathsByCountriesData(CustomData):
     @staticmethod
     def create_data(X: dt.Frame = None) -> Union[

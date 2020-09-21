@@ -11,7 +11,7 @@ class GA2MModel(CustomModel):
     _regression = True
     _binary = True
     _multiclass = False  # According to the `interpret` library: "Multiclass is still experimental. Subject to change per release." So, set to `True` at your own risk.
-                         # Current known issue(s): https://github.com/interpretml/interpret/issues/142
+    # Current known issue(s): https://github.com/interpretml/interpret/issues/142
     _display_name = "GA2M"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _description = (
@@ -105,18 +105,7 @@ class GA2MModel(CustomModel):
         else:
             model = ExplainableBoostingRegressor(**self.params)
 
-        # Replace missing values with a value smaller than all observed values
-        self.min = dict()
-        for col in X.names:
-            XX = X[:, col]
-            self.min[col] = XX.min1()
-            if self.min[col] is None or np.isnan(self.min[col]):
-                self.min[col] = -1e10
-            else:
-                self.min[col] -= 1
-            XX.replace(None, self.min[col])
-            X[:, col] = XX
-            assert X[dt.isna(dt.f[col]), col].nrows == 0
+        X = self.basic_impute(X)
         X = X.to_numpy()
 
         model.fit(X, y)
@@ -128,14 +117,32 @@ class GA2MModel(CustomModel):
             iterations=self.params["n_estimators"],
         )
 
-    def predict(self, X, **kwargs):
-        X = dt.Frame(X)
+    def basic_impute(self, X):
+        # scikit extra trees internally converts to np.float32 during all operations,
+        # so if float64 datatable, need to cast first, in case will be nan for float32
+        from h2oaicore.systemutils import update_precision
+        X = update_precision(X, data_type=np.float32, override_with_data_type=True, fixup_almost_numeric=True)
+        # Replace missing values with a value smaller than all observed values
+        if not hasattr(self, 'min'):
+            self.min = dict()
         for col in X.names:
             XX = X[:, col]
-            XX.replace(None, self.min[col])
+            if col not in self.min:
+                self.min[col] = XX.min1()
+                if self.min[col] is None or np.isnan(self.min[col]) or np.isinf(self.min[col]):
+                    self.min[col] = -1e10
+                else:
+                    self.min[col] -= 1
+            XX.replace([None, np.inf, -np.inf], self.min[col])
             X[:, col] = XX
-        model, _, _, _ = self.get_model_properties()
+            assert X[dt.isna(dt.f[col]), col].nrows == 0
+        return X
+
+    def predict(self, X, **kwargs):
+        X = dt.Frame(X)
+        X = self.basic_impute(X)
         X = X.to_numpy()
+        model, _, _, _ = self.get_model_properties()
         if self.num_classes == 1:
             preds = model.predict(X)
         else:

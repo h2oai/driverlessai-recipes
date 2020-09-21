@@ -23,14 +23,14 @@ shift_cols = ["cases", "deaths"]
 new_dataset_name = "new_dataset_name_with_shift"
 
 # produce lag of 1 unit and add as new feature for each shift column
-aggs = {f"{col}_yesterday" : shift(f[col]) for col in shift_cols}
+aggs = {f"{col}_yesterday": shift(f[col]) for col in shift_cols}
 X[:, update(**aggs), sort(time_col), by(*group_by_cols)]
 
 # update NA lags
-aggs = {f"{col}_yesterday" : 0 for col in shift_cols}
+aggs = {f"{col}_yesterday": 0 for col in shift_cols}
 X[isna(f[f"{shift_cols[0]}_yesterday"]), update(**aggs)]
 
-aggs = {f"{col}_daily" : f[col] - f[f"{col}_yesterday"] for col in shift_cols}
+aggs = {f"{col}_daily": f[col] - f[f"{col}_yesterday"] for col in shift_cols}
 X[:, update(**aggs), sort(time_col), by(group_by_cols)]
 
 for col in shift_cols:

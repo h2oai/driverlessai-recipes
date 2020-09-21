@@ -17,8 +17,8 @@ from h2o.estimators.coxph import H2OCoxProportionalHazardsEstimator
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.separators import extra_prefix, orig_feat_prefix
 
-class SurvivalCoxPHPreTransformer(CustomTransformer):
 
+class SurvivalCoxPHPreTransformer(CustomTransformer):
     # only works with binomial problem for now
     _regression = False
     _binary = True
@@ -85,13 +85,14 @@ class SurvivalCoxPHPreTransformer(CustomTransformer):
         X[:, survival_event] = np.array(LabelEncoder().fit_transform(y))
 
         # sanity check that target is binary
-        if X[survival_event].nunique()[0,0] != 2:
-            raise ValueError("Too many values {} in event column - must be exactly 2.".format(X[survival_event].nunique()[0,0]))
+        if X[survival_event].nunique()[0, 0] != 2:
+            raise ValueError(
+                "Too many values {} in event column - must be exactly 2.".format(X[survival_event].nunique()[0, 0]))
 
         # redress target values into 0, 1
-        event_max = X[survival_event].max()[0,0]
-        X[dt.f[survival_event]  != event_max, survival_event] = 0
-        X[dt.f[survival_event]  == event_max, survival_event] = 1
+        event_max = X[survival_event].max()[0, 0]
+        X[dt.f[survival_event] != event_max, survival_event] = 0
+        X[dt.f[survival_event] == event_max, survival_event] = 1
 
         stop_column_name = self.__class__._stop_column_name
         ignored_columns = self.__class__._ignored_columns
@@ -104,10 +105,12 @@ class SurvivalCoxPHPreTransformer(CustomTransformer):
 
         # in accpetance test simply return input X
         if stop_column_name not in X.names:
-            loggerwarning(logger, "Survival Analysis CoxPH pre-transformer found no time column '{}'.".format(stop_column_name))
+            loggerwarning(logger,
+                          "Survival Analysis CoxPH pre-transformer found no time column '{}'.".format(stop_column_name))
             return X_original
 
-        if not X[:, stop_column_name].stype in [dt.bool8, dt.int8, dt.int16, dt.int32, dt.int64, dt.float32, dt.float64]:
+        if not X[:, stop_column_name].stype in [dt.bool8, dt.int8, dt.int16, dt.int32, dt.int64, dt.float32,
+                                                dt.float64]:
             raise ValueError("Stop column `{}' type must be numeric, but found '{}'".
                              format(stop_column_name, X[:, stop_column_name].stype))
 
@@ -125,30 +128,32 @@ class SurvivalCoxPHPreTransformer(CustomTransformer):
                 task.flush()
 
         # Validate CoxPH requirements on stop column
-        if X[stop_column_name].min()[0,0] < 0:
+        if X[stop_column_name].min()[0, 0] < 0:
             X[dt.f[stop_column_name] < 0, stop_column_name] = 0
             loggerwarning(logger, "Stop column can't be negative: replaced negative values with 0.")
-        if X[stop_column_name].countna()[0,0] > 0:
+        if X[stop_column_name].countna()[0, 0] > 0:
             X[dt.isna(dt.f[stop_column_name]), stop_column_name] = 0
             loggerwarning(logger, "Stop column can't contain NULLs: replaced NULL with 0.")
 
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
-        model = H2OCoxProportionalHazardsEstimator(stop_column = stop_column_name,
+        model = H2OCoxProportionalHazardsEstimator(stop_column=stop_column_name,
                                                    ties=self.ties,
-                                                   max_iterations = self.max_iterations)
+                                                   max_iterations=self.max_iterations)
         frame = h2o.H2OFrame(X.to_pandas())
         model_path = None
         risk_frame = None
         try:
-            model.train(y=survival_event, training_frame=frame, ignored_columns = ignored_columns)
+            model.train(y=survival_event, training_frame=frame, ignored_columns=ignored_columns)
             self.id = model.model_id
             model_path = os.path.join(temporary_files_path, "h2o_model." + str(uuid.uuid4()))
             model_path = h2o.save_model(model=model, path=model_path)
             with open(model_path, "rb") as f:
                 self.raw_model_bytes = f.read()
             risk_frame = model.predict(frame)
-            X_original[:, "risk_score_coxph_{}_{}".format(self.ties, self.max_iterations)] = risk_frame.as_data_frame(header=False)
-            self._output_feature_names.append(f"{self.display_name}{orig_feat_prefix}riskscore_coxph{extra_prefix}{self.ties}_{self.max_iterations}")
+            X_original[:, "risk_score_coxph_{}_{}".format(self.ties, self.max_iterations)] = risk_frame.as_data_frame(
+                header=False)
+            self._output_feature_names.append(
+                f"{self.display_name}{orig_feat_prefix}riskscore_coxph{extra_prefix}{self.ties}_{self.max_iterations}")
             self._feature_desc.append(f"CoxPH model risk score [ties={self.ties}, max.iter={self.max_iterations}")
             return X_original
         finally:
@@ -170,8 +175,8 @@ class SurvivalCoxPHPreTransformer(CustomTransformer):
         if self.id is None:
             return X
 
-        #self._output_feature_names = list(X.names)
-        #self._feature_desc = list(X.names)
+        # self._output_feature_names = list(X.names)
+        # self._feature_desc = list(X.names)
 
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = os.path.join(temporary_files_path, self.id)
@@ -183,11 +188,11 @@ class SurvivalCoxPHPreTransformer(CustomTransformer):
         frame = h2o.H2OFrame(X.to_pandas())
         try:
             risk_frame = model.predict(frame)
-            X[:, "risk_score_coxph_{}_{}".format(self.ties, self.max_iterations)] = risk_frame.as_data_frame(header=False)
+            X[:, "risk_score_coxph_{}_{}".format(self.ties, self.max_iterations)] = risk_frame.as_data_frame(
+                header=False)
             return X
         finally:
             h2o.remove(self.id)
             h2o.remove(frame)
             if risk_frame is not None:
                 h2o.remove(risk_frame)
-

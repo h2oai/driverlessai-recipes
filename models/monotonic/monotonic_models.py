@@ -45,4 +45,3 @@ class MonotonicLightGBMModel(MonotonicModel, LightGBMModel, BaseCustomModel):
 # only supported for DAI 1.8.7.1+
 class MonotonicDecisionTreeModel(MonotonicModel, DecisionTreeModel, BaseCustomModel):
     _description = "DecisionTree with user-given monotonicity constraints on original numeric features"
-

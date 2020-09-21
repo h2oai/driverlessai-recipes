@@ -43,7 +43,7 @@ class NYTimesCovid19DailyCasesDeathsByStatesData(CustomData):
         # augment data with state population figures and create adjusted case and death counts
         series_cols = ["cases", "deaths"]
         aggs = {f"{col}100k": dt.f[col] / (dt.g.pop / 100000) for col in series_cols}
-        us_states[:, dt.update(pop = g.pop, pop100k = g.pop / 10000, **aggs), join(us_states_pop)]
+        us_states[:, dt.update(pop=g.pop, pop100k=g.pop / 10000, **aggs), join(us_states_pop)]
 
         # remove rows without state defined (resulted in unmatched rows after left outer join)
         del us_states[isna(f.pop), :]

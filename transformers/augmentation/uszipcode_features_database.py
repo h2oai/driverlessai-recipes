@@ -15,7 +15,7 @@ class USZipcodeDBTransformer(CustomTransformer):
 
     @staticmethod
     def do_acceptance_test():
-        return True
+        return False
 
     @staticmethod
     def get_default_properties():

@@ -78,7 +78,7 @@ class AirportOriginDestDTTransformer(CustomTransformer):
             p = dt.math.pi / 180
             a = 0.5 - dt.math.cos((f["dest_lat"] - f["origin_lat"]) * p) / 2 + \
                 dt.math.cos(f["origin_lat"] * p) * dt.math.cos(f["dest_lat"] * p) * (
-                            1 - dt.math.cos((f["dest_long"] - f["origin_long"]) * p)) / 2
+                        1 - dt.math.cos((f["dest_long"] - f["origin_long"]) * p)) / 2
             b = 12742 * dt.math.arcsin(dt.math.sqrt(a))  # 2*R*asin...
             all_dt["distanc_km"] = b
 

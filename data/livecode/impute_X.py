@@ -24,14 +24,14 @@ new_dataset_name = "new_dataset_name_after_filling_missing"
 
 for col in X.names:
     if fill_numeric is not None and \
-       X[col].stype in [dt.int8, dt.int16, dt.int32, dt.int64, 
-                          dt.float32, dt.float64]:
+            X[col].stype in [dt.int8, dt.int16, dt.int32, dt.int64,
+                             dt.float32, dt.float64]:
         X[dt.isna(dt.f[col]), col] = fill_numeric
     elif fill_char is not None and \
-         X[col].stype in [dt.str32, dt.str64]:
+            X[col].stype in [dt.str32, dt.str64]:
         X[dt.isna(dt.f[col]), col] = fill_char
     elif fill_bool is not None and \
-         X[col].stype == dt.bool8:
+            X[col].stype == dt.bool8:
         X[dt.isna(dt.f[col]), col] = fill_bool
-        
+
 return {new_dataset_name: X}

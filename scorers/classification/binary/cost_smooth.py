@@ -33,4 +33,4 @@ class CostBinary_smooth(CustomScorer):
             sample_weight = np.ones(actual.shape[0])
 
         return np.sum(((1 - actual) * predicted * self.__class__._fp_cost + actual * (
-                    1 - predicted) * self.__class__._fn_cost) * sample_weight) / np.sum(sample_weight)
+                1 - predicted) * self.__class__._fn_cost) * sample_weight) / np.sum(sample_weight)
