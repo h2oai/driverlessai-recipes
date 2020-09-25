@@ -1,3 +1,4 @@
+import ast
 exclude = ['.', '.idea', 'pycache', '.git', 'speech/data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py',
            '.pytest_cache', 'livecode']
 sep = '  '
@@ -10,6 +11,17 @@ def get_module_docstring(filepath):
     else:
         docstring = None
     return docstring
+
+def get_mojo_implementation_tag(filepath):
+    with open(filepath, "r") as source:
+        root = ast.parse(source.read())
+        for node in (n for n in ast.walk(root) if isinstance(n, ast.Assign)):
+            if isinstance(node.targets[0], ast.Name) and node.targets[0].id == '_mojo':
+                if isinstance(node.value, ast.NameConstant) and node.value.value:
+                    return ":hammer:"
+        else:
+            return ""
+                    
 
 
 def print_offset(depth, str_content, ret):
@@ -38,7 +50,8 @@ for dirpath, dirs, files in os.walk("."):
                         docstring = get_module_docstring(os.path.join(dirpath, f)) or \
                                     "please add description"
                         what = "[" + f + "](" + dirpath + "/" + f + ")"
-                        print_offset(depth + 1, "%s [%s]" % (what, docstring), ret)
+                        mojo_tag = get_mojo_implementation_tag(os.path.join(dirpath, f))
+                        print_offset(depth + 1, "%s [%s] %s" % (what, docstring, mojo_tag), ret)
                         count += 1
 
 print("""# Recipes for H2O Driverless AI
