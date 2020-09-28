@@ -1,11 +1,23 @@
 """Text classification model using binary count of words"""
+
+"""
+User inputs can be provided through recipe_dict in config.
+
+To enable the actual count of words instead of binary variable on count, use
+recipe_dict = "{'binary_count':False}"
+
+To enable TfidfVectorizer on words instead of CountVectorizer, use
+recipe_dict = "{'use_tfidf':True}"
+"""
+
 import random
 import numpy as np
 import scipy as sp
 import datatable as dt
 from sklearn.preprocessing import LabelEncoder
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
+from h2oaicore.systemutils import config
 from h2oaicore.models import CustomModel
 from h2oaicore.transformer_utils import CustomTransformer
 
@@ -18,6 +30,11 @@ class TextBinaryCountLogisticModel(CustomModel):
     _can_handle_non_numeric = True
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _included_transformers = ["TextOriginalTransformer"]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.binary_count = config.recipe_dict['binary_count'] if "binary_count" in config.recipe_dict else True
+        self.use_tfidf = config.recipe_dict['use_tfidf'] if "use_tfidf" in config.recipe_dict else False
 
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
@@ -45,8 +62,11 @@ class TextBinaryCountLogisticModel(CustomModel):
         for col in X.names:
             XX = X[:, col].to_pandas()
             XX = XX[col].astype(str).values.tolist()
-            count_vec = CountVectorizer(max_features=self.params["max_features"],
-                                        binary=True)
+            if not self.use_tfidf:
+                count_vec = CountVectorizer(max_features=self.params["max_features"],
+                                            binary=self.binary_count)
+            else:
+                count_vec = TfidfVectorizer(max_features=self.params["max_features"])
             XX = count_vec.fit_transform(XX)
             count_objs.append(count_vec)
             if new_X is None:
