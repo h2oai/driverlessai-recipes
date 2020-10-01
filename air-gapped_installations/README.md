@@ -1,15 +1,15 @@
 # **Air-gapped Installation of Custom Recipes**
 
-Air gapping is a network security measure employed on one or more computers 
-to ensure that a secure computer network is physically isolated from unsecured networks, 
-such as the public Internet or an unsecured local area network. 
+Air gapping is a network security measure employed on one or more computers
+to ensure that a secure computer network is physically isolated from unsecured networks,
+such as the public Internet or an unsecured local area network.
 
 This documentation will guide you through the installation of Custom Recipes in such air-gapped environment.
 
-## Prerequisite 
+## Prerequisite
 - There are two DAI installations involved here. One is in an **Air-Gapped Machine** and second is in an **Internet-Facing Machine**. They will be referred this way here to avoid confusion.
-- First you need to install DAI in an air gapped environment *ie. in a computer isolated from internet*. 
-This DAI can be installed in any Package Type (TAR SH, Docker, DEB etc.) available in https://www.h2o.ai/download/ 
+- First you need to install DAI in an air gapped environment *ie. in a computer isolated from internet*.
+This DAI can be installed in any Package Type (TAR SH, Docker, DEB etc.) available in https://www.h2o.ai/download/
 - While in the Internet Facing Machine, clone this repository for now and checkout the branch of your DAI `VERSION`
 ```
   git clone https://github.com/h2oai/driverlessai-recipes.git
@@ -17,7 +17,7 @@ This DAI can be installed in any Package Type (TAR SH, Docker, DEB etc.) availab
   git checkout rel-VERSION # eg. git checkout rel-1.9.0 for DAI 1.9.0
 ```
 
-## Installation Guide 
+## Installation Guide
 Follow along these steps to use custom recipes for DAI in an air-gapped environment:
 
 *Note: following steps need to be performed in Internet Facing Machine*
@@ -42,9 +42,9 @@ Follow along these steps to use custom recipes for DAI in an air-gapped environm
     ```
     ./dai-env.sh python load_custom_recipe.py -p </absolute/path/to/the/custom_recipe/file.py> >> load_custom_recipe.log
     ```
-  where `</absolute/path/to/the/custom_recipe/file.py>` is the path to a recipe you want to upload to DAI. 
-  
-  For example to load [daal_trees recipe](https://github.com/h2oai/driverlessai-recipes/blob/rel-1.8.8/models/algorithms/daal_trees.py) from the cloned driverlessai-recipes repo we do:
+  where `</absolute/path/to/the/custom_recipe/file.py>` is the path to a recipe you want to upload to DAI.
+
+  For example to load [daal_trees recipe](https://github.com/h2oai/driverlessai-recipes/blob/rel-1.8.9/models/algorithms/daal_trees.py) from the cloned driverlessai-recipes repo we do:
     ```
   ./dai-env.sh python load_custom_recipe.py -p /home/ubuntu/driverlessai-recipes/models/algorithms/daal_trees.py >> load_custom_recipe.log
     ```
@@ -54,16 +54,16 @@ Follow along these steps to use custom recipes for DAI in an air-gapped environm
     ./dai-env.sh python load_custom_recipe.py -u <URL> >> load_custom_recipe.log
     ```
   where `<URL>` is an http link for a url.
-  
-  For example to load [catboost recipe](https://github.com/h2oai/driverlessai-recipes/blob/rel-1.8.8/models/algorithms/catboost.py) from url we do:
+
+  For example to load [catboost recipe](https://github.com/h2oai/driverlessai-recipes/blob/rel-1.8.9/models/algorithms/catboost.py) from url we do:
     ```
-    ./dai-env.sh python load_custom_recipe.py -u https://github.com/h2oai/driverlessai-recipes/blob/rel-1.8.8/models/algorithms/catboost.py >> load_custom_recipe.log
+    ./dai-env.sh python load_custom_recipe.py -u https://github.com/h2oai/driverlessai-recipes/blob/rel-1.8.9/models/algorithms/catboost.py >> load_custom_recipe.log
     ```
   **Note:** you can check the `load_custom_recipe.log` file to see if the operation was successful.
-            
-- Once the above script was executed successfully, custom recipes and python dependencies will be installed in the  
-        `dai-VERSION/tmp/contrib` directory.            
-    
+
+- Once the above script was executed successfully, custom recipes and python dependencies will be installed in the
+        `dai-VERSION/tmp/contrib` directory.
+
 - Zip the `dai-VERSION/tmp/contrib` directory and move it to the air-gapped machine and unzip there into the DAI `tmp` directory.
 ```
   cd dai-VERSION/tmp/
