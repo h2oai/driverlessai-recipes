@@ -463,18 +463,19 @@ class CatBoostModel(CustomModel):
         if k in params and params[k] in map.keys():
             params[k] = map[params[k]]
 
-        if params['objective'] == 'Huber':
-            backup = float(np.random.choice(config.huber_alpha_list))
-            params['delta'] = params.pop('alpha', backup)
-        if params['objective'] == 'Quantile':
-            backup = float(np.random.choice(config.quantile_alpha))
-            params['delta'] = params.pop('alpha', backup)
-        if params['objective'] == 'Tweedie':
-            backup = float(np.random.choice(config.tweedie_variance_power_list))
-            params['tweedie_variance_power'] = params.pop('variance_power', backup)
-        if params['objective'] == 'FairLoss':
-            backup = float(np.random.choice(config.fair_c_list))
-            params['smoothness'] = params.pop('fair_c', backup)
+        if 'objective' in params:
+            if params['objective'] == 'Huber':
+                backup = float(np.random.choice(config.huber_alpha_list))
+                params['delta'] = params.pop('alpha', backup)
+            if params['objective'] == 'Quantile':
+                backup = float(np.random.choice(config.quantile_alpha))
+                params['delta'] = params.pop('alpha', backup)
+            if params['objective'] == 'Tweedie':
+                backup = float(np.random.choice(config.tweedie_variance_power_list))
+                params['tweedie_variance_power'] = params.pop('variance_power', backup)
+            if params['objective'] == 'FairLoss':
+                backup = float(np.random.choice(config.fair_c_list))
+                params['smoothness'] = params.pop('fair_c', backup)
 
         params.pop('verbose', None)
         params.pop('verbose_eval', None)
