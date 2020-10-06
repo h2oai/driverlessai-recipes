@@ -19,7 +19,7 @@ from itertools import permutations, combinations
 from random import sample
 
 
-class GroupAgg(CustomData):
+class SortRows(CustomData):
     @staticmethod
     def create_data(X: dt.Frame = None) -> Union[str, List[str],
                                                  dt.Frame, List[dt.Frame],
