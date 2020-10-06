@@ -10,8 +10,8 @@ import importlib
 subprocess = importlib.import_module('sub' + 'process')
 
 
-kaggle_username = "ogrellier"
-kaggle_key = "12c1536d3100077e0c91034a24bb3cc8"
+kaggle_username = "XXX"
+kaggle_key = "XXX"
 
 
 class TwoSigmaRental(CustomData):
