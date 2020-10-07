@@ -2,7 +2,7 @@
 
 import os
 
-exclude = ['.', '.idea', 'pycache', '.git', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py', '.pytest_cache', 'www']
+exclude = ['.', '.idea', 'pycache', '.git', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py', '.pytest_cache', 'www', 'livecode']
 
 def get_module_docstring(filepath):
     co = compile(open(filepath).read(), filepath, 'exec')
