@@ -59,7 +59,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
-### Count: 186
+### Count: 188
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -77,6 +77,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [creditcard.py](./data/creditcard.py) [Modify credit card dataset] 
   * [data_template.py](./data/data_template.py) [Custom data recipe base class] 
   * [feature_selection.py](./data/feature_selection.py) [please add description] 
+  * [generate_random_int_columns.py](./data/generate_random_int_columns.py) [Data recipe to add one or more columns containing random integers.] 
   * [ieee_data_puddle.py](./data/ieee_data_puddle.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection] 
   * [kaggle_bosch.py](./data/kaggle_bosch.py) [Create Bosch competition datasets with leak] 
   * [kaggle_ieee_fraud.py](./data/kaggle_ieee_fraud.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection] 
@@ -87,10 +88,11 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [mozilla_deepspeech_wav2txt.py](./data/mozilla_deepspeech_wav2txt.py) [Speech to text using Mozilla's DeepSpeechSettings for this recipe:Assing MODEL_PATH global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.General requirements to .wav's:1 channel (mono)16 bit16000 frequency] 
   * [nytimes_covid19_cases_deaths_by_counties.py](./data/nytimes_covid19_cases_deaths_by_counties.py) [Upload daily COVID-19 cases and deaths in US by counties - NY Times github   Source:  nytimes/covid-19-data Coronavirus (Covid-19) Data in the United States   https://github.com/nytimes/covid-19-data] 
   * [nytimes_covid19_cases_deaths_by_states.py](./data/nytimes_covid19_cases_deaths_by_states.py) [Upload daily COVID-19 cases and deaths in US by states from NY Times github] 
-  * [owid_covid19_cases_deaths_by_countries.py](./data/owid_covid19_cases_deaths_by_countries.py) [Upload daily COVID-19 cases and deaths by countries] 
+  * [owid_covid19_cases_deaths_by_countries.py](./data/owid_covid19_cases_deaths_by_countries.py) [Upload daily COVID-19 cases and deaths by countries   Source: Our World in Data. It is updated daily and includes data on confirmed cases, deaths, and testing.   https://ourworldindata.org/coronavirus-source-data] 
   * [seattle_rain_modify.py](./data/seattle_rain_modify.py) [Transpose the Monthly Seattle Rain Inches data set for Time Series use cases] 
   * [seattle_rain_upload.py](./data/seattle_rain_upload.py) [Upload Monthly Seattle Rain Inches data set from data provided by the City of Seattle] 
   * [ts_fill_n_cluster.py](./data/ts_fill_n_cluster.py) [Data Recipe to fill missing values in TS data and then create new data sets from TS Clustering] 
+  * [two_sigma_rental.py](./data/two_sigma_rental.py) [please add description] 
   * [video_to_image.py](./data/video_to_image.py) [Data recipe to transform input video to the images.This data recipe makes the following steps:1. Reads video file2. Samples N uniform frames from the video file3. Detects all faces on each frame4. Crops the faces and saves them as imagesRecipe is based on the Kaggle Deepfake Detection Challenge:https://www.kaggle.com/c/deepfake-detection-challengeTo use the recipe follow the next steps:1. Download a small subsample of the video dataset from here:http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/deepfake.zip2. Unzip it and specify the path to the dataset in the DATA_DIR global variable3. Upload the dataset into Driverless AI using the Add Data Recipe optionThe transformed dataset is also available and could be directly uploaded to Driverless AI:http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/deepfake_frames.zip] 
   * [wav2txt.py](./data/wav2txt.py) [Speech to text using Azure Cognitive ServicesSettings for this recipe:Assing AZURE_SERVICE_KEY and AZURE_SERVICE_REGION global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.] 
   * [DATABASES](./data/databases)
