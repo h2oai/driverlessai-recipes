@@ -1,6 +1,6 @@
 import ast
 exclude = ['.', '.idea', 'pycache', '.git', 'speech/data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py',
-           '.pytest_cache', 'livecode']
+           '.pytest_cache', 'livecode', 'www']
 sep = '  '
 
 
@@ -18,11 +18,9 @@ def get_mojo_implementation_tag(filepath):
         for node in (n for n in ast.walk(root) if isinstance(n, ast.Assign)):
             if isinstance(node.targets[0], ast.Name) and node.targets[0].id == '_mojo':
                 if isinstance(node.value, ast.NameConstant) and node.value.value:
-                    return ":hammer:"
+                    return "<kbd>MOJO Support</kbd>"
         else:
             return ""
-                    
-
 
 def print_offset(depth, str_content, ret):
     for i, line in enumerate(str_content.split("\n")):

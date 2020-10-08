@@ -45,7 +45,6 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 * [FAQ](https://github.com/h2oai/driverlessai-recipes/blob/master/FAQ.md#faq)
 * [Templates](https://github.com/h2oai/driverlessai-recipes/blob/master/FAQ.md#references)
 * [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
-* NOTE: this :hammer: emoji represents MOJO support/compatibility is available currently for this file
 
 ## Sample Recipes
 [Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
@@ -108,7 +107,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.] 
   * [ALGORITHMS](./models/algorithms)
-    * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines] :hammer:
+    * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines] <kbd>MOJO Support</kbd>
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.] 
     * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL] 
     * [extra_trees.py](./models/algorithms/extra_trees.py) [Extremely Randomized Trees (ExtraTrees) model from sklearn] 
@@ -123,10 +122,10 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [nusvm.py](./models/algorithms/nusvm.py) [Nu-SVM implementation by sklearn. For small data.] 
     * [random_forest.py](./models/algorithms/random_forest.py) [Random Forest (RandomForest) model from sklearn] 
   * [CUSTOM_LOSS](./models/custom_loss)
-    * [lightgbm_quantile_regression.py](./models/custom_loss/lightgbm_quantile_regression.py) [Modified version of Driverless AI's internal LightGBM implementation with for quantile regression] :hammer:
-    * [lightgbm_tweedie.py](./models/custom_loss/lightgbm_tweedie.py) [Modified version of Driverless AI's internal LightGBM implementation with tweedie distribution] :hammer:
-    * [lightgbm_with_custom_loss.py](./models/custom_loss/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).] :hammer:
-    * [xgboost_with_custom_loss.py](./models/custom_loss/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).] :hammer:
+    * [lightgbm_quantile_regression.py](./models/custom_loss/lightgbm_quantile_regression.py) [Modified version of Driverless AI's internal LightGBM implementation with for quantile regression] <kbd>MOJO Support</kbd>
+    * [lightgbm_tweedie.py](./models/custom_loss/lightgbm_tweedie.py) [Modified version of Driverless AI's internal LightGBM implementation with tweedie distribution] <kbd>MOJO Support</kbd>
+    * [lightgbm_with_custom_loss.py](./models/custom_loss/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).] <kbd>MOJO Support</kbd>
+    * [xgboost_with_custom_loss.py](./models/custom_loss/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).] <kbd>MOJO Support</kbd>
   * [MLI](./models/mli)
     * [model_decision_tree_linear_combo.py](./models/mli/model_decision_tree_linear_combo.py) [Decision tree plus linear model] 
     * [model_gam.py](./models/mli/model_gam.py) [Generalized Additive Model] 
@@ -138,7 +137,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [MONOTONIC](./models/monotonic)
     * [monotonic_models.py](./models/monotonic/monotonic_models.py) [LightGBM/XGBoostGBM/DecisionTree with user-given monotonicity constraints (1/-1/0) for original numeric features] 
   * [NLP](./models/nlp)
-    * [finbert.py](./models/nlp/finbert.py) [Custom Bert model which uses FinBert pretrained weights. Can easily be adapted to other pretrained models, like SciBert.] :hammer:
+    * [finbert.py](./models/nlp/finbert.py) [Custom Bert model which uses FinBert pretrained weights. Can easily be adapted to other pretrained models, like SciBert.] <kbd>MOJO Support</kbd>
     * [text_binary_count_logistic.py](./models/nlp/text_binary_count_logistic.py) [Text classification model using binary count of words] 
     * [text_tfidf_model.py](./models/nlp/text_tfidf_model.py) [Text classification / regression model using TFIDF] 
     * [text_tfidf_model_continuous.py](./models/nlp/text_tfidf_model_continuous.py) [Text classification model using TFIDF] 
@@ -226,7 +225,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [image_ocr_transformer.py](./transformers/image/image_ocr_transformer.py) [Convert a path to an image to text using OCR based on tesseract] 
     * [image_url_transformer.py](./transformers/image/image_url_transformer.py) [Convert a path to an image (JPG/JPEG/PNG) to a vector of class probabilities created by a pretrained ImageNet deeplearning model (Keras, TensorFlow).] 
   * [NLP](./transformers/nlp)
-    * [continuous_TextTransformer.py](./transformers/nlp/continuous_TextTransformer.py) [please add description] :hammer:
+    * [continuous_TextTransformer.py](./transformers/nlp/continuous_TextTransformer.py) [please add description] <kbd>MOJO Support</kbd>
     * [fuzzy_text_similarity_transformers.py](./transformers/nlp/fuzzy_text_similarity_transformers.py) [Row-by-row similarity between two text columns based on FuzzyWuzzy] 
     * [text_binary_count_transformer.py](./transformers/nlp/text_binary_count_transformer.py) [Explainable Text transformer that uses binary counts of words using sklearn's CountVectorizer] 
     * [text_char_tfidf_count_transformers.py](./transformers/nlp/text_char_tfidf_count_transformers.py) [Character level TFIDF and Count followed by Truncated SVD on text columns] 
@@ -248,10 +247,10 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [count_negative_values_transformer.py](./transformers/numeric/count_negative_values_transformer.py) [Count of negative values per row] 
     * [count_positive_values_transformer.py](./transformers/numeric/count_positive_values_transformer.py) [Count of positive values per row] 
     * [exp_diff_transformer.py](./transformers/numeric/exp_diff_transformer.py) [Exponentiated difference of two numbers] 
-    * [log_transformer.py](./transformers/numeric/log_transformer.py) [Converts numbers to their Logarithm] :hammer:
+    * [log_transformer.py](./transformers/numeric/log_transformer.py) [Converts numbers to their Logarithm] <kbd>MOJO Support</kbd>
     * [product.py](./transformers/numeric/product.py) [Products together 3 or more numeric features] 
     * [random_transformer.py](./transformers/numeric/random_transformer.py) [Creates random numbers] 
-    * [round_transformer.py](./transformers/numeric/round_transformer.py) [Rounds numbers to 1, 2 or 3 decimals] :hammer:
+    * [round_transformer.py](./transformers/numeric/round_transformer.py) [Rounds numbers to 1, 2 or 3 decimals] <kbd>MOJO Support</kbd>
     * [square_root_transformer.py](./transformers/numeric/square_root_transformer.py) [Converts numbers to the square root, preserving the sign of the original numbers] 
     * [sum.py](./transformers/numeric/sum.py) [Adds together 3 or more numeric features] 
     * [truncated_svd_all.py](./transformers/numeric/truncated_svd_all.py) [Truncated SVD for all columns] 
