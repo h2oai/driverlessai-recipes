@@ -21,10 +21,10 @@ class MyHammingLoss(CustomScorer):
               labels: typing.Optional[np.array] = None,
               **kwargs) -> float:
         lb = LabelEncoder()
+        labels = lb.fit_transform(labels)
         actual = lb.transform(actual)
         predicted = np.argmax(predicted, axis=1)
         if 'labels' in inspect.signature(hamming_loss).parameters.keys():
-            labels = lb.fit_transform(labels)
             return hamming_loss(actual, predicted, labels, sample_weight)
         else:
             # updated scikit-learn
