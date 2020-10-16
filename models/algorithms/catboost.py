@@ -3,7 +3,6 @@ import copy, os, uuid
 
 import datatable as dt
 import numpy as np
-import _pickle as pickle
 from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel, MainModel
