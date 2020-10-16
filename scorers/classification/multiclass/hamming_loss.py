@@ -1,4 +1,5 @@
 """Hamming Loss - Misclassification Rate (1 - Accuracy)"""
+import inspect
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
@@ -23,4 +24,8 @@ class MyHammingLoss(CustomScorer):
         labels = lb.fit_transform(labels)
         actual = lb.transform(actual)
         predicted = np.argmax(predicted, axis=1)
-        return hamming_loss(actual, predicted, labels, sample_weight)
+        if 'labels' in inspect.signature(hamming_loss).parameters.keys():
+            return hamming_loss(actual, predicted, labels, sample_weight)
+        else:
+            # updated scikit-learn
+            return hamming_loss(actual, predicted, sample_weight)
