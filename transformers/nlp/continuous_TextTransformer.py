@@ -4,7 +4,7 @@ from h2oaicore.transformers import TextTransformer, CPUTruncatedSVD
 import datatable as dt
 import numpy as np
 from h2oaicore.systemutils import config, remove, user_dir
-from sklearn.externals import joblib
+import joblib
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.pipeline import Pipeline
 import ast
