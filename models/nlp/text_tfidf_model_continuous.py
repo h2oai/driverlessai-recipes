@@ -10,7 +10,7 @@ from sklearn.ensemble import ExtraTreesClassifier
 from h2oaicore.models import CustomModel
 from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.systemutils import config, remove, user_dir, arch_type, get_num_gpus_for_prediction
-from sklearn.externals import joblib
+import joblib
 import copy
 import ast
 import scipy as sc
