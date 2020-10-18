@@ -23,7 +23,13 @@ class BoxCoxTransformer(CustomTransformer):
         x = self._offset + XX[~is_na]
         x = np.asarray(x)
         x[x <= 0] = 1e-3
-        self._lmbda = boxcox(x, lmbda=self._lmbda)[1]  # compute lambda
+        try:
+            self._lmbda = boxcox(x, lmbda=self._lmbda)[1]  # compute lambda
+        except ValueError as e:
+            if 'Data must not be constant' in str(e):
+                self._lmbda = None
+                return X
+            raise
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
@@ -34,6 +40,11 @@ class BoxCoxTransformer(CustomTransformer):
         x = self._offset + XX[~is_na]
         x = np.asarray(x)
         x[x <= 0] = 1e-3  # don't worry if not invertible, just ensure can transform and valid transforms are kept valid
-        ret = boxcox(x, lmbda=self._lmbda)  # apply transform with pre-computed lambda
+        try:
+            ret = boxcox(x, lmbda=self._lmbda)  # apply transform with pre-computed lambda
+        except ValueError as e:
+            if 'Data must not be constant' in str(e):
+                return X
+            raise
         XX[~is_na] = ret
         return XX
