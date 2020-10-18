@@ -17,7 +17,8 @@ class SKOPE_RULES(CustomModel):
     _multiclass = False
     _display_name = "SKOPE RULES"
     _description = "SKOPE RULES"
-    _modules_needed_by_name = ['shap', 'collections', 'scipy', 'pandas', 'matplotlib', 'sklearn', 'skope-rules']
+    # using git master because pypi is very out of date (Jan 2020) but need Sept 1-ish master with fix for updated scikit-learn
+    _modules_needed_by_name = ['shap', 'collections', 'scipy', 'pandas', 'matplotlib', 'sklearn', 'git+https://github.com/scikit-learn-contrib/skope-rules.git']
 
     @staticmethod
     def do_acceptance_test():
