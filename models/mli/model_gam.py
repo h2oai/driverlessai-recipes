@@ -111,6 +111,7 @@ class GAM(CustomModel):
             clf = LinearGAM(terms="auto", lam=self.params["lam"], max_iter=self.params["max_iter"])
             self.is_classifier = False
         
+        X = self.basic_impute(X)
         # Find the datatypes
         X = X.to_pandas()
         X.columns = orig_cols
@@ -188,13 +189,34 @@ class GAM(CustomModel):
                                   importances=importances,
                                   iterations=self.params['n_estimators'])
         
+    def basic_impute(self, X):
+        # scikit extra trees internally converts to np.float32 during all operations,
+        # so if float64 datatable, need to cast first, in case will be nan for float32
+        from h2oaicore.systemutils import update_precision
+        X = update_precision(X, data_type=np.float32, override_with_data_type=True, fixup_almost_numeric=True)
+        # Replace missing values with a value smaller than all observed values
+        if not hasattr(self, 'min'):
+            self.min = dict()
+        for col in X.names:
+            XX = X[:, col]
+            if col not in self.min:
+                self.min[col] = XX.min1()
+                if self.min[col] is None or np.isnan(self.min[col]) or np.isinf(self.min[col]):
+                    self.min[col] = -1e10
+                else:
+                    self.min[col] -= 1
+            XX.replace([None, np.inf, -np.inf], self.min[col])
+            X[:, col] = XX
+            assert X[dt.isna(dt.f[col]), col].nrows == 0
+        return X
 
     def predict(self, X, **kwargs):
         orig_cols = list(X.names)
         import pandas as pd
         
         X = dt.Frame(X)
-        
+        X = self.basic_impute(X)
+
         # Find datatypes
         X=X.to_pandas()
         X_datatypes = [str(item) for item in list(X.dtypes)]
