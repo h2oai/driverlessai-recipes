@@ -59,9 +59,11 @@ class CalibratedClassifierModel:
                                       date_format_strings=self.date_format_strings, **kwargs_classification)
 
         eval_set_classification = None
+        val_y = None
         if eval_set is not None:
             eval_set_y = self.le.transform(eval_set[0][1])
-            eval_set_classification = [(eval_set[0][0], eval_set_y.astype(int))]
+            val_y = eval_set_y.astype(int)
+            eval_set_classification = [(eval_set[0][0], val_y)]
 
         # Stratified split with classes control - making sure all classes present in both train and test
         unique_cls = np.unique(y_)
@@ -93,9 +95,18 @@ class CalibratedClassifierModel:
             sample_weight_ = sample_weight
             sample_weight_calib = sample_weight
 
+        # mimic rest of fit_base not done:
+        # get self.observed_labels
+        model_classification.check_labels_and_response(y_train, val_y=val_y)
+        model_classification.orig_cols = self.orig_cols
+        model_classification.X_shape = self.X_shape
+
         model_classification.fit(X_train, y_train,
                                  sample_weight=sample_weight_, eval_set=eval_set_classification,
                                  sample_weight_eval_set=sample_weight_eval_set, **kwargs)
+
+        model_classification.fitted = True
+        model_classification.eval_set_used_during_fit = val_y is not None
 
         # calibration
 
