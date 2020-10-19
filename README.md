@@ -19,6 +19,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 * Assume that a user with access to Driverless AI has access to the data inside that instance.
   * Apart from securing access to the instance via private networks, various methods of [authentication](http://docs.h2o.ai/driverless-ai/latest-stable/docs/userguide/authentication.html) are possible. Local authentication provides the most control over which users have access to Driverless AI.
   * Unless the `config.toml` setting `enable_dataset_downloading=false` is set, an authenticated user can download all imported datasets as .csv via direct APIs.
+
 * When recipes are enabled (`enable_custom_recipes=true`, the default), be aware that:
   * The code for the recipes runs as the same native Linux user that runs the Driverless AI application.
     * Recipes have explicit access to all data passing through the transformer/model/scorer API
@@ -31,6 +32,13 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * Run Driverless AI in a Docker container, as a certain user, with only certain ports exposed, and only certain mount points mapped
   * To disable all recipes: Set `enable_custom_recipes=false` in the config.toml, or add the environment variable `DRIVERLESS_AI_ENABLE_CUSTOM_RECIPES=0` at startup of Driverless AI. This will disable all custom transformers, models and scorers.
   * To disable new recipes: To keep all previously uploaded recipes enabled and disable the upload of any new recipes, set `enable_custom_recipes_upload=false` or `DRIVERLESS_AI_ENABLE_CUSTOM_RECIPES_UPLOAD=0` at startup of Driverless AI.
+
+* Enable automatic detection of forbidden or dangerous code constructs in a custom recipe with `custom_recipe_security_analysis_enabled = true`. Note the following:
+  * When `custom_recipe_security_analysis_enabled` is enabled, do not use modules specified in the banlist. Specify the banlist with the `custom_recipe_import_banlist` config option.
+    * For example: `custom_recipe_import_banlist = ["shlex", "plumbum", "pexpect", "envoy", "commands", "fabric", "subprocess", "os.system", "system"]` (default)
+  * Security analysis is only performed on recipes that are uploaded after the `custom_recipe_security_analysis_enabled` config option is enabled.
+  * To specify a list of modules that can be imported in custom recipes, use the `custom_recipe_import_allowlist` config option.
+  * The `custom_recipe_security_analysis_enabled` config option is disabled by default.
 
 ### Safety
 * Driverless AI automatically performs basic acceptance tests for all custom recipes unless disabled
