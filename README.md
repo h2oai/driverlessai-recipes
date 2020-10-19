@@ -36,6 +36,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 * Enable automatic detection of forbidden or dangerous code constructs in a custom recipe with `custom_recipe_security_analysis_enabled = true`. Note the following:
   * When `custom_recipe_security_analysis_enabled` is enabled, do not use modules specified in the banlist. Specify the banlist with the `custom_recipe_import_banlist` config option.
     * For example: `custom_recipe_import_banlist = ["shlex", "plumbum", "pexpect", "envoy", "commands", "fabric", "subprocess", "os.system", "system"]` (default)
+  * When `custom_recipe_security_analysis_enabled` is enabled, code is also checked for dangerous calls like `eval()`, `exec()` and other insecure calls (regex patterns) defined in `custom_recipe_method_call_banlist`. Code is also checked for other dangerous constructs defined as regex patterns in the `custom_recipe_dangerous_patterns` config setting.
   * Security analysis is only performed on recipes that are uploaded after the `custom_recipe_security_analysis_enabled` config option is enabled.
   * To specify a list of modules that can be imported in custom recipes, use the `custom_recipe_import_allowlist` config option.
   * The `custom_recipe_security_analysis_enabled` config option is disabled by default.
