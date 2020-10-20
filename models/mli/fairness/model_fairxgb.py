@@ -12,12 +12,12 @@ from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarn
 
 # Version 21
 # Adding parameter search
-class FAIRXGBOOST64(CustomModel):
+class FAIRXGBOOST68(CustomModel):
     _regression = False
     _binary = True
     _multiclass = False
-    _display_name = "Fair_XGBOOST64"
-    _description = "Fair_XGBOOST64"
+    _display_name = "Fair_XGBOOST68"
+    _description = "Fair_XGBOOST68"
     _modules_needed_by_name = ['pandas', 'sklearn', 'xgboost']
 
     @staticmethod
@@ -40,7 +40,7 @@ class FAIRXGBOOST64(CustomModel):
             reg_lambda = [0.0, 0.1, 1.0, 5.0, 10.0]
             colsample_bytree = [ 0.1*ii for ii in range(1,11)]
             subsample = [0.5, 0.8, 0.9, 1.0]
-            mu = [0.05*ii for ii in range(1, 20)]
+            mu = [0.05*ii for ii in range(1, 15)]
 
         elif accuracy >= 5:
             eta= [0.5, 0.1, 0.05]
@@ -49,7 +49,7 @@ class FAIRXGBOOST64(CustomModel):
             reg_lambda = [0.0, 0.1, 1.0, 5.0, 10.0]
             colsample_bytree = [ 0.1*ii for ii in range(2,11,2)]
             subsample = [1.0]
-            mu = [0.05*ii for ii in range(1, 20)]
+            mu = [0.05*ii for ii in range(1, 15)]
             
         else:
             eta= [0.1]
@@ -58,7 +58,7 @@ class FAIRXGBOOST64(CustomModel):
             reg_lambda = [0.0, 0.1, 1.0, 5.0, 10.0]
             colsample_bytree = [ 0.1*ii for ii in range(2,11,2)]
             subsample = [1.0]
-            mu = [0.05*ii for ii in range(1, 20)]
+            mu = [0.05*ii for ii in range(1, 15)]
 
 
         self.params["eta"] = np.random.choice(eta)
@@ -124,7 +124,7 @@ class FAIRXGBOOST64(CustomModel):
         # Must be encoded as 0/1
         self.positive_target = 0
         # Set minimum disperate impact
-        self.mean_protected_prediction_ratio_minimum =0.9
+        self.mean_protected_prediction_ratio_minimum = 1.0
         #0.9307603        
         
         orig_cols = list(X.names)
@@ -327,7 +327,10 @@ class FAIRXGBOOST64(CustomModel):
         d_train = xgb.DMatrix(X, label=y, missing=np.nan)
     
         d_valid = xgb.DMatrix(X_valid, label=y_valid, missing=np.nan)
-        
+
+
+        loggerinfo(logger, "First run") 
+        loggerinfo(logger, str(list(X.columns))) 
         
         # Initial run to find the optimal number of trees
         num_iterations=10000
@@ -335,9 +338,15 @@ class FAIRXGBOOST64(CustomModel):
 
         clf = xgb.train(params, d_train, num_iterations, watchlist, feval=fair_metric, verbose_eval=10, obj=fair2, early_stopping_rounds=10)
 
+
+
         # Second run with the full dataset and optimal number of trees
         attribute_dict = clf.attributes()
         new_iterations = int(attribute_dict['best_iteration'])
+        
+        loggerinfo(logger, "Second run") 
+        loggerinfo(logger, str(list(X_full.columns))) 
+        loggerinfo(logger, str(new_iterations))         
 
         d_train = xgb.DMatrix(X_full, label=y_full, missing=np.nan)
         watchlist = [(d_train, 'train')]
@@ -353,7 +362,11 @@ class FAIRXGBOOST64(CustomModel):
             if len(importances_dict) > 0:
                 importances_dict[self.protected] = max(importances_dict.values())
             else:
+                loggerinfo(logger, "Exception") 
+                loggerinfo(logger, str(list(X.columns)))  
                 importances_dict[self.protected] = 1
+                for col in list(X.columns):
+                    importances_dict[col] = 1
                 
         # Make sure any dropped columns are listed with 0 importance
         for col in list(X.columns):
