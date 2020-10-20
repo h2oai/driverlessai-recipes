@@ -24,6 +24,9 @@ class TwoSigmaRental(CustomData):
         from h2oaicore.systemutils_more import download
         from h2oaicore.systemutils import config
 
+        if kaggle_username == "XXX" or not kaggle_username:
+            return []
+
         os.putenv("KAGGLE_USERNAME", kaggle_username)
         os.putenv("KAGGLE_KEY", kaggle_key)
 
