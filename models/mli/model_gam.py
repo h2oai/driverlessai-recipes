@@ -7,7 +7,7 @@ import numpy as np
 from h2oaicore.models import CustomModel
 from sklearn.preprocessing import LabelEncoder
 from h2oaicore.systemutils import physical_cores_count
-from h2oaicore.systemutils import user_dir, remove, config
+from h2oaicore.systemutils import user_dir, remove, config, IgnoreError
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdebug
 
 
@@ -159,9 +159,14 @@ class GAM(CustomModel):
             for colname in self.X_numeric:
                 self.median_train[colname] = X[colname].quantile(0.5)
                 X.loc[:, colname] = X[colname].fillna(self.median_train[colname]).copy()  
-       
-        clf.fit(X, y)
-        
+
+        try:
+            clf.fit(X, y)
+        except np.linalg.LinAlgError as e:
+            raise IgnoreError("np.linalg.LinAlgError") from e
+        except pygam.utils.OptimizationError as e:
+            raise IgnoreError("pygam.utils.OptimizationError") from e
+
         p_values = np.array(clf.statistics_['p_values'])
                           
         # Plot the partial dependence plots for each feature
