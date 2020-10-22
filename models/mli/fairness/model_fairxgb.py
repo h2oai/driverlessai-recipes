@@ -12,12 +12,12 @@ from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarn
 
 # Version 21
 # Adding parameter search
-class FAIRXGBOOST68(CustomModel):
+class FAIRXGBOOST87(CustomModel):
     _regression = False
     _binary = True
     _multiclass = False
-    _display_name = "Fair_XGBOOST68"
-    _description = "Fair_XGBOOST68"
+    _display_name = "Fair_XGBOOST87"
+    _description = "Fair_XGBOOST87"
     _modules_needed_by_name = ['pandas', 'sklearn', 'xgboost']
 
     @staticmethod
@@ -110,9 +110,21 @@ class FAIRXGBOOST68(CustomModel):
         # Specify the target level considered to be a positive outcome
         self.positive_target = 0
         # Set minimum disperate impact
-        self.mean_protected_prediction_ratio_minimum = 1.0
+        self.mean_protected_prediction_ratio_minimum = 0.9
         #0.9307603"""
-        
+        """
+        # Specify the protected column
+        #self.protected_name = "SEX"
+        self.protected_name = "SEX"
+        # Specify the level of the protected group in the protected column
+        self.protected_label = 1
+        # Specify the target level considered to be a positive outcome
+        self.positive_target = 0
+        # Set minimum disperate impact
+        self.mean_protected_prediction_ratio_minimum = 1.0
+        #0.9307603
+        """
+        """
         # Specify the protected column
         # Must be encoded as 0/1
         #self.protected_name = "SEX"
@@ -124,8 +136,21 @@ class FAIRXGBOOST68(CustomModel):
         # Must be encoded as 0/1
         self.positive_target = 0
         # Set minimum disperate impact
-        self.mean_protected_prediction_ratio_minimum = 1.0
-        #0.9307603        
+        self.mean_protected_prediction_ratio_minimum = 1.0 """
+        
+        # Specify the protected column
+        # Must be encoded as 0/1
+        #self.protected_name = "SEX"
+        self.protected_name = "hispanic"
+        # Specify the level of the protected group in the protected column
+        # Must be encoded as 0/1
+        self.protected_label = 1
+        # Specify the target level considered to be a positive outcome
+        # Must be encoded as 0/1
+        self.positive_target = 0
+        # Set minimum disperate impact
+        self.mean_protected_prediction_ratio_minimum = 0.95
+
         
         orig_cols = list(X.names)
         
@@ -489,10 +514,18 @@ class FAIRXGBOOST68(CustomModel):
                 
             else:
                 
-                if np.mean(preds[protected_test == 1]) > 0:
-                    DI = np.mean(preds[protected_test == 0]) / np.mean(preds[protected_test == 1])
+                
+                if self.positive_target == 0:
+                    if np.mean(preds[protected_test == 1]) < 1.0:
+                        DI = (1.0 - np.mean(preds[protected_test == 0]))/ (1.0 - np.mean(preds[protected_test == 1]))
+                    else:
+                        DI = 1
                 else:
-                    DI = 1
+                    if np.mean(preds[protected_test == 1]) > 0.0:
+                        DI = np.mean(preds[protected_test == 0]) / np.mean(preds[protected_test == 1])
+                    else:
+                        DI = 1                        
+
                     
                 loggerinfo(logger, "DI Check")   
                 loggerinfo(logger, str(DI))   
