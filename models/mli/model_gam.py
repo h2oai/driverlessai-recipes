@@ -85,6 +85,7 @@ class GAM(CustomModel):
         import numpy as np
         from sklearn.preprocessing import OneHotEncoder
         from collections import Counter
+        import pygam
         from pygam import LinearGAM, LogisticGAM
         import matplotlib.pyplot as plt
 
