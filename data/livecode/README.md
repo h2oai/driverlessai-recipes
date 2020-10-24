@@ -33,7 +33,53 @@ after modifications specific to a dataset it applies to.
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
-### Count: 28
+### Count: 29
+  * [add\_columns\_with\_rand\_values.py](./add_columns_with_rand_values.py) [ Add one or more columns containing random integer values  
+
+      
+
+      
+
+      
+
+     Specification:  
+
+      
+
+     Inputs:  
+
+      
+
+       X: datatable - primary dataset  
+
+      
+
+     Parameters:  
+
+      
+
+       col_count: int - number of random columns to add  
+
+      
+
+       random_column_names: List[str] - names of the columns  
+
+      
+
+       min_max_values: tuple - the reange (minimum and maximum) to pick random integers from  
+
+      
+
+     Output:  
+
+      
+
+       dataset containing all rows from both datasets  
+
+      
+
+    ]  
+
   * [balance\_data.py](./balance_data.py) [ Create a sampled dataset for imbalanced use cases - probably not for modeling but  
 
       
