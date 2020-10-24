@@ -1,5 +1,5 @@
 """Returns a flag for whether a date falls on a holiday for each of Germany's Bundeslaender. """
-
+from h2oaicore.separators import orig_feat_prefix, extra_prefix
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 from h2oaicore.mojo_transformers import MjT_FillNa, MjT_Replace, MjT_BinaryOp, MjT_ConstBinaryOp, \
     MjT_IntervalMap, MjT_Agg, MjT_ImputeNa, MjT_Datepart
@@ -106,7 +106,7 @@ class GermanyLandersHolidayTransformer2(CustomTimeSeriesTransformer):
         X.drop([self.time_column, 'year', 'doy'], axis=1, inplace=True)
 
         features = [
-            f'is_DE_holiday_{prov}'
+            f'is_DE_holiday%s{prov}' % (orig_feat_prefix + orig_feat_prefix.join([self.time_column]) + extra_prefix)
             for prov in ['country', 'BW', 'BY', 'BE', 'BB', 'HB', 'HH', 'HE',
                          'MV', 'NI', 'NW', 'RP', 'SL', 'SN', 'ST', 'SH', 'TH']
         ]
@@ -152,7 +152,8 @@ class GermanyLandersHolidayTransformer2(CustomTimeSeriesTransformer):
                                  group_uuid=group_uuid, group_name=group_name,
                                  fn="dayofyear")
             dates_frame = MojoFrame(columns=[year_col, doy_col])
-            feat = f'is_DE_holiday_{prov}'
+            feat = f'is_DE_holiday%s{prov}' % (
+                        orig_feat_prefix + orig_feat_prefix.join([self.time_column] + extra_prefix))
             holi_df = self.memos[prov]
             holi_df[feat] = 1
             mout = MergeTransformer.from_frame(
