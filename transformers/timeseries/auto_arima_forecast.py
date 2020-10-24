@@ -10,6 +10,7 @@ import datatable as dt
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
+from h2oaicore.separators import orig_feat_prefix, extra_prefix
 
 
 class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
@@ -301,9 +302,9 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
 
         y_predictions.drop(tgc_wo_time, axis=1, inplace=True)
 
-        self._output_feature_names = [f'{self.display_name}_{_f}' for _f in y_predictions]
-        self._feature_desc = [f'{self.display_name}_{_f}' for _f in y_predictions]
-
+        self._output_feature_names = [f'{self.display_name}{orig_feat_prefix}{self.time_column}{extra_prefix}{_f}'
+                                      for _f in y_predictions]
+        self._feature_desc = self._output_feature_names
         return y_predictions
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):

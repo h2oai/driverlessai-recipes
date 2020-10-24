@@ -17,7 +17,6 @@ This implementation is faster than the standard parallel implementation, which t
 per time group and is able to bring similar performance.
 """
 
-import importlib
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 from h2oaicore.systemutils import (
     small_job_pool, save_obj, load_obj, user_dir, remove, max_threads, config
@@ -32,6 +31,7 @@ import importlib
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
+from h2oaicore.separators import orig_feat_prefix, extra_prefix
 
 
 class suppress_stdout_stderr(object):
@@ -514,9 +514,9 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
 
         y_predictions.drop(tgc_wo_time, axis=1, inplace=True)
 
-        self._output_feature_names = [f'{self.display_name}_{_f}' for _f in y_predictions]
-        self._feature_desc = [f'{self.display_name}_{_f}' for _f in y_predictions]
-
+        self._output_feature_names = [f'{self.display_name}{orig_feat_prefix}{self.time_column}{extra_prefix}{_f}'
+                                      for _f in y_predictions]
+        self._feature_desc = self._output_feature_names
         return y_predictions
 
     def predict_with_average_model(self, X, tgc_wo_time):
