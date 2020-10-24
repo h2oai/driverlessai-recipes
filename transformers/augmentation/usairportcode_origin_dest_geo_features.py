@@ -1,8 +1,8 @@
 """Transformer to augment US airport codes with geolocation info."""
+from h2oaicore.separators import orig_feat_prefix
 from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 import datatable as dt
-from datatable import f
 import math
 import numpy as np
 
@@ -35,7 +35,7 @@ class AirportOriginDestDTTransformer(CustomTransformer):
 
         all_names = X.names
         X = dt.Frame(X)
-        X[:, {col: dt.str64(f[col]) for col in X.names}]
+        X = X[:, {col: dt.str64(dt.f[col]) for col in X.names}]
         codes_dt = AirportOriginDestDTTransformer.make_airportcode_data()
         codes_dt.key = "iata_code"
 
@@ -43,11 +43,11 @@ class AirportOriginDestDTTransformer(CustomTransformer):
         isOrigin = False
         if ("Origin" in all_names):
             isOrigin = True
-            origin_dt = X[:, {"iata_code": f.Origin}]
+            origin_dt = X[:, {"iata_code": dt.f.Origin}]
             X_origin = origin_dt[:, :, dt.join(codes_dt)]
             del X_origin[:, "iata_code"]
             X_origin.names = ["origin_elevation_ft", "origin_long", "origin_lat"]
-            self._output_feature_names = ["{}.{}".format(self._display_name, f) for f in X_origin.names]
+            self._output_feature_names = ["{}{}{}".format(self._display_name, orig_feat_prefix, f) for f in X_origin.names]
             self._feature_desc = ['Origin Elevation Ft.', 'Origin Longitude', 'Origin Latitude']
         else:
             self._output_feature_names = []
@@ -57,17 +57,18 @@ class AirportOriginDestDTTransformer(CustomTransformer):
         isDest = False
         if ("Dest" in all_names):
             isDest = True
-            dest_dt = X[:, {"iata_code": f.Dest}]
+            dest_dt = X[:, {"iata_code": dt.f.Dest}]
             X_dest = dest_dt[:, :, dt.join(codes_dt)]
             del X_dest[:, "iata_code"]
             X_dest.names = ["dest_elevation_ft", "dest_long", "dest_lat"]
-            self._output_feature_names = self._output_feature_names + ["{}.{}".format(self._display_name, f) for f in
+            self._output_feature_names = self._output_feature_names + ["{}{}{}".format(self._display_name, orig_feat_prefix, f) for f in
                                                                        X_dest.names]
             self._feature_desc = self._feature_desc + ['Destination Elevation', 'Destination Longitude',
                                                        'Destination Latitude']
 
         # Both Origin and Destination
         if (isOrigin and isDest):
+            from datatable import f
             all_dt = dt.Frame()
             all_dt.cbind(X_origin, X_dest)
 
@@ -76,13 +77,13 @@ class AirportOriginDestDTTransformer(CustomTransformer):
             all_dt["long_diff"] = f.origin_long - f.dest_long
 
             p = dt.math.pi / 180
-            a = 0.5 - dt.math.cos((f["dest_lat"] - f["origin_lat"]) * p) / 2 + \
-                dt.math.cos(f["origin_lat"] * p) * dt.math.cos(f["dest_lat"] * p) * (
-                        1 - dt.math.cos((f["dest_long"] - f["origin_long"]) * p)) / 2
+            a = 0.5 - dt.math.cos((dt.f["dest_lat"] - dt.f["origin_lat"]) * p) / 2 + \
+                dt.math.cos(dt.f["origin_lat"] * p) * dt.math.cos(dt.f["dest_lat"] * p) * (
+                        1 - dt.math.cos((dt.f["dest_long"] - dt.f["origin_long"]) * p)) / 2
             b = 12742 * dt.math.arcsin(dt.math.sqrt(a))  # 2*R*asin...
             all_dt["distanc_km"] = b
 
-            self._output_feature_names = self._output_feature_names + ["{}.{}".format(self._display_name, f) for f in
+            self._output_feature_names = self._output_feature_names + ["{}{}{}".format(self._display_name, orig_feat_prefix, f) for f in
                                                                        ['elevation_diff', 'lat_diff', 'long_diff',
                                                                         'distance_km']]
             self._feature_desc = self._feature_desc + [
@@ -96,8 +97,8 @@ class AirportOriginDestDTTransformer(CustomTransformer):
             all_dt = X_dest
         else:
             all_dt = dt.Frame(np.zeros((X.shape[0], 1)), names=["dummy"])
-            self._output_feature_names = ["dummy"]
-            self._feature_desc = ["dummy"]
+            self._output_feature_names = [self._display_name + orig_feat_prefix + str(list(X.names)[0])]
+            self._feature_desc = self._output_feature_names
 
         return all_dt
 
