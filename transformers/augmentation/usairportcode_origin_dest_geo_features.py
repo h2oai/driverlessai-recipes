@@ -96,9 +96,9 @@ class AirportOriginDestDTTransformer(CustomTransformer):
         elif (isDest and not isOrigin):
             all_dt = X_dest
         else:
-            all_dt = dt.Frame(np.zeros((X.shape[0], 1)), names=["dummy"])
             self._output_feature_names = [self._display_name + orig_feat_prefix + str(list(X.names)[0])]
             self._feature_desc = self._output_feature_names
+            all_dt = dt.Frame(np.zeros((X.shape[0], 1)), names=self._output_feature_names)
 
         return all_dt
 
