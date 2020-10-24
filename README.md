@@ -59,7 +59,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
-### Count: 188
+### Count: 190
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -88,6 +88,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [mozilla_deepspeech_wav2txt.py](./data/mozilla_deepspeech_wav2txt.py) [Speech to text using Mozilla's DeepSpeechSettings for this recipe:Assing MODEL_PATH global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.General requirements to .wav's:1 channel (mono)16 bit16000 frequency] 
   * [nytimes_covid19_cases_deaths_by_counties.py](./data/nytimes_covid19_cases_deaths_by_counties.py) [Upload daily COVID-19 cases and deaths in US by counties - NY Times github   Source:  nytimes/covid-19-data Coronavirus (Covid-19) Data in the United States   https://github.com/nytimes/covid-19-data] 
   * [nytimes_covid19_cases_deaths_by_states.py](./data/nytimes_covid19_cases_deaths_by_states.py) [Upload daily COVID-19 cases and deaths in US by states from NY Times github] 
+  * [nytimes_covid19_cases_deaths_us.py](./data/nytimes_covid19_cases_deaths_us.py) [Upload daily COVID-19 cases and deaths in US total from NY Times github] 
   * [owid_covid19_cases_deaths_by_countries.py](./data/owid_covid19_cases_deaths_by_countries.py) [Upload daily COVID-19 cases and deaths by countries   Source: Our World in Data. It is updated daily and includes data on confirmed cases, deaths, and testing.   https://ourworldindata.org/coronavirus-source-data] 
   * [seattle_rain_modify.py](./data/seattle_rain_modify.py) [Transpose the Monthly Seattle Rain Inches data set for Time Series use cases] 
   * [seattle_rain_upload.py](./data/seattle_rain_upload.py) [Upload Monthly Seattle Rain Inches data set from data provided by the City of Seattle] 
@@ -109,6 +110,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.] 
   * [ALGORITHMS](./models/algorithms)
+    * [auto_gluon.py](./models/algorithms/auto_gluon.py) [AutoGluon] 
     * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines] <kbd>✓ MOJO Enabled</kbd>
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.] 
     * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL] 
