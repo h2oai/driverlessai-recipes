@@ -2,6 +2,7 @@
 import datatable as dt
 import numpy as np
 from h2oaicore.transformer_utils import CustomTransformer
+from h2oaicore.separators import orig_feat_prefix, extra_prefix
 
 
 class TextLDATopicTransformer(CustomTransformer):
@@ -44,7 +45,8 @@ class TextLDATopicTransformer(CustomTransformer):
         new_X = [doc.split() for doc in new_X]
         new_X = [self.dictionary.doc2bow(doc) for doc in new_X]
         new_X = self.model.inference(new_X)[0]
-        self._output_feature_names = [f'{orig_col_name}_LDATopic{i}' for i in range(new_X.shape[1])]
+        self._output_feature_names = [f'{self.display_name}{orig_feat_prefix}{orig_col_name}{extra_prefix}topic{i}'
+                                      for i in range(new_X.shape[1])]
         self._feature_desc = [f'LDA Topic {i} of {self.n_topics} for {orig_col_name} column' for i in
                               range(new_X.shape[1])]
         return new_X
