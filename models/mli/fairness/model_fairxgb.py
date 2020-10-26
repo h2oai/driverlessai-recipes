@@ -10,14 +10,13 @@ from h2oaicore.systemutils import physical_cores_count
 from h2oaicore.systemutils import user_dir, remove, config
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdebug
 
-# Version 21
-# Adding parameter search
-class FAIRXGBOOST87(CustomModel):
+
+class FAIRXGBOOST(CustomModel):
     _regression = False
     _binary = True
     _multiclass = False
-    _display_name = "Fair_XGBOOST87"
-    _description = "Fair_XGBOOST87"
+    _display_name = "Fair_XGBOOST"
+    _description = "Fair_XGBOOST"
     _modules_needed_by_name = ['pandas', 'sklearn', 'xgboost']
 
     @staticmethod
@@ -40,7 +39,7 @@ class FAIRXGBOOST87(CustomModel):
             reg_lambda = [0.0, 0.1, 1.0, 5.0, 10.0]
             colsample_bytree = [ 0.1*ii for ii in range(1,11)]
             subsample = [0.5, 0.8, 0.9, 1.0]
-            mu = [0.05*ii for ii in range(1, 15)]
+            mu = [0.05*ii for ii in range(1, 14)]
 
         elif accuracy >= 5:
             eta= [0.5, 0.1, 0.05]
@@ -49,7 +48,7 @@ class FAIRXGBOOST87(CustomModel):
             reg_lambda = [0.0, 0.1, 1.0, 5.0, 10.0]
             colsample_bytree = [ 0.1*ii for ii in range(2,11,2)]
             subsample = [1.0]
-            mu = [0.05*ii for ii in range(1, 15)]
+            mu = [0.05*ii for ii in range(1, 14)]
             
         else:
             eta= [0.1]
@@ -58,7 +57,7 @@ class FAIRXGBOOST87(CustomModel):
             reg_lambda = [0.0, 0.1, 1.0, 5.0, 10.0]
             colsample_bytree = [ 0.1*ii for ii in range(2,11,2)]
             subsample = [1.0]
-            mu = [0.05*ii for ii in range(1, 15)]
+            mu = [0.05*ii for ii in range(1, 14)]
 
 
         self.params["eta"] = np.random.choice(eta)
@@ -100,62 +99,31 @@ class FAIRXGBOOST87(CustomModel):
 
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
-        
-        """
+             
+        # Specify these parameters for the dataset
+        ########################
         # Specify the protected column
-        #self.protected_name = "SEX"
-        self.protected_name = "MARRIAGE"
+        # Must be numeric
+        self.protected_name = "black"
         # Specify the level of the protected group in the protected column
-        self.protected_label = 3
-        # Specify the target level considered to be a positive outcome
-        self.positive_target = 0
-        # Set minimum disperate impact
-        self.mean_protected_prediction_ratio_minimum = 0.9
-        #0.9307603"""
-        """
-        # Specify the protected column
-        #self.protected_name = "SEX"
-        self.protected_name = "SEX"
-        # Specify the level of the protected group in the protected column
-        self.protected_label = 1
-        # Specify the target level considered to be a positive outcome
-        self.positive_target = 0
-        # Set minimum disperate impact
-        self.mean_protected_prediction_ratio_minimum = 1.0
-        #0.9307603
-        """
-        """
-        # Specify the protected column
-        # Must be encoded as 0/1
-        #self.protected_name = "SEX"
-        self.protected_name = "gender"
-        # Specify the level of the protected group in the protected column
-        # Must be encoded as 0/1
-        self.protected_label = 0
-        # Specify the target level considered to be a positive outcome
-        # Must be encoded as 0/1
-        self.positive_target = 0
-        # Set minimum disperate impact
-        self.mean_protected_prediction_ratio_minimum = 1.0 """
-        
-        # Specify the protected column
-        # Must be encoded as 0/1
-        #self.protected_name = "SEX"
-        self.protected_name = "hispanic"
-        # Specify the level of the protected group in the protected column
-        # Must be encoded as 0/1
+        # Must be numeric
         self.protected_label = 1
         # Specify the target level considered to be a positive outcome
         # Must be encoded as 0/1
         self.positive_target = 0
-        # Set minimum disperate impact
-        self.mean_protected_prediction_ratio_minimum = 0.95
-
+        # Set minimum mean protected ratio desired  
+        # (mean protected ratio = mean predictions for the protected group/mean predictions for all other groups)
+        #
+        # Try tuning this to values at or a little above
+        # the mean of the positive target for the protected group
+        # divided by the mean of the positive target for the unprotected group
+        # If it's set too large, the accuracy will be poor, so there
+        # is a limit to the debiasing that can be obtained.
+        self.mean_protected_prediction_ratio_minimum = 0.96
+        ########################
         
         orig_cols = list(X.names)
-        
-        
-        
+              
         import pandas as pd
         import numpy as np
         from sklearn.preprocessing import OneHotEncoder
@@ -169,9 +137,7 @@ class FAIRXGBOOST87(CustomModel):
             logger = make_experiment_logger(experiment_id=self.context.experiment_id,
                                                  tmp_dir=self.context.tmp_dir,
                                                  experiment_tmp_dir=self.context.experiment_tmp_dir)
-            
-
-        
+              
         # Current mu value
         mu = self.params["mu"]
         
@@ -179,13 +145,16 @@ class FAIRXGBOOST87(CustomModel):
         def fair_metric(predt: np.ndarray, dtrain: xgb.DMatrix):
             ''' FairXGB Error Metric'''
 
+            # Find the right protected group vector
             if len(predt) == len(protected_train):
                 protected_feature  = np.array(protected_train.copy())
                 
             elif len(predt) == len(protected_full):
                 protected_feature  = np.array(protected_full.copy())
+                
             elif len(predt) == len(protected_valid):
                 protected_feature  = np.array(protected_valid.copy())
+                
             else:
                 protected_feature  = 0
             
@@ -196,16 +165,15 @@ class FAIRXGBOOST87(CustomModel):
             answer += mu * (protected_feature   * np.log(sigmoid(predt)) + (1 - protected_feature) * np.log(1 - sigmoid(predt))) 
 
             return 'Fair_Metric', float(np.sum(answer)/len(answer))
-        
-
-        
+            
         def sigmoid(x):
             z = 1.0/(1.0 + np.exp(-x)) 
             return z
         
         def gradient(predt: np.ndarray, dtrain: xgb.DMatrix):
             '''Fair Xgboost Gradient'''
-            
+
+            # Find the right protected group vector            
             if len(predt) == len(protected_train):
                 protected_feature = np.array(protected_train.copy())
                 
@@ -229,9 +197,10 @@ class FAIRXGBOOST87(CustomModel):
             '''Fair Xgboost Hessian'''
 
             answer = (1 - mu) * sigmoid(predt) * (1 - sigmoid(predt))
+            
             return answer
         
-        def fair2(predt: np.ndarray,
+        def fair(predt: np.ndarray,
                         dtrain: xgb.DMatrix):
             ''' Fair xgb objective function
             '''       
@@ -265,7 +234,6 @@ class FAIRXGBOOST87(CustomModel):
         # Switch to pandas
         X = X.to_pandas()
         X.columns = orig_cols
-        
         
         # Find the protected group column if it is present
         self.protected = "none"
@@ -329,7 +297,7 @@ class FAIRXGBOOST87(CustomModel):
         y = y[0:int(0.7*len(X_full))]
 
         if self.protected != "none":
-            # The protected group should be 0 and all others 1          
+            # Set the protected group to 0 and all others 1          
             protected_full = [int(item) for item in ~(np.array(X_full[self.protected]) == self.protected_label)]
             protected_train = [int(item) for item in ~(np.array(X[self.protected]) == self.protected_label)]
             protected_valid = [int(item) for item in ~(np.array(X_valid[self.protected]) == self.protected_label)]
@@ -353,29 +321,21 @@ class FAIRXGBOOST87(CustomModel):
     
         d_valid = xgb.DMatrix(X_valid, label=y_valid, missing=np.nan)
 
-
-        loggerinfo(logger, "First run") 
-        loggerinfo(logger, str(list(X.columns))) 
-        
         # Initial run to find the optimal number of trees
         num_iterations=10000
         watchlist = [(d_train, 'train'), (d_valid, 'valid')]
 
-        clf = xgb.train(params, d_train, num_iterations, watchlist, feval=fair_metric, verbose_eval=10, obj=fair2, early_stopping_rounds=10)
+        clf = xgb.train(params, d_train, num_iterations, watchlist, feval=fair_metric, verbose_eval=10, obj=fair, early_stopping_rounds=10)
 
 
 
-        # Second run with the full dataset and optimal number of trees
+        # Second xgboost run with the full dataset and optimal number of trees
         attribute_dict = clf.attributes()
         new_iterations = int(attribute_dict['best_iteration'])
-        
-        loggerinfo(logger, "Second run") 
-        loggerinfo(logger, str(list(X_full.columns))) 
-        loggerinfo(logger, str(new_iterations))         
 
         d_train = xgb.DMatrix(X_full, label=y_full, missing=np.nan)
         watchlist = [(d_train, 'train')]
-        clf = xgb.train(params, d_train, new_iterations, watchlist, feval=fair_metric, verbose_eval=10, obj=fair2)
+        clf = xgb.train(params, d_train, new_iterations, watchlist, feval=fair_metric, verbose_eval=10, obj=fair)
   
     
         # Calculate feature importances
@@ -387,8 +347,7 @@ class FAIRXGBOOST87(CustomModel):
             if len(importances_dict) > 0:
                 importances_dict[self.protected] = max(importances_dict.values())
             else:
-                loggerinfo(logger, "Exception") 
-                loggerinfo(logger, str(list(X.columns)))  
+ 
                 importances_dict[self.protected] = 1
                 for col in list(X.columns):
                     importances_dict[col] = 1
@@ -406,6 +365,7 @@ class FAIRXGBOOST87(CustomModel):
         loggerinfo(logger, str(mu))  
         loggerinfo(logger, str(importances_dict))  
         self.is_train = True
+        
         # Set model properties
         self.set_model_properties(model=clf,
                                   features=list(importances_dict.keys()),
@@ -436,7 +396,7 @@ class FAIRXGBOOST87(CustomModel):
         X = X.to_pandas()
         
         if self.protected in list(X.columns):
-            # The protected group should be 0 and all others 1
+            # Set the protected group to 0 and all others 1
             loggerinfo(logger, "Protected test found")   
             protected_test = np.array([int(item) for item in ~(np.array(X[self.protected]) == self.protected_label)])
 
@@ -486,13 +446,12 @@ class FAIRXGBOOST87(CustomModel):
          
         d_test = xgb.DMatrix(X, missing=np.nan)
         
-        # Make sure the target value perceived as positive is coded as 1
+        # If the positive target was 0, change the final result to 1-p
         if self.positive_target == 0:
             preds = 1.0 - sigmoid(model.predict(d_test))
         else:
             preds = sigmoid(model.predict(d_test))
             
-        # Seet the penalty to which some of the probabilitiees will be set
         mean_preds = np.mean(preds)
         
         # Set a penalty value to which some probabilities will be changed
@@ -506,15 +465,14 @@ class FAIRXGBOOST87(CustomModel):
         if self.is_train:      
             # If the protected value was removed, use the maximum penalty
             # by changing all probabilities to the penalty value
-            # (the method makes no sense if the protected term is dropped)
+            # (the recipe needs to be able to use the protected values)
             if self.protected == "none":
                preds[0:len(preds)] = penalty        
                loggerinfo(logger, str(preds))    
                loggerinfo(logger, "Removal_penalty")    
                 
-            else:
-                
-                
+            else:  
+                # The mean ratio calculation for target=0 and target=1
                 if self.positive_target == 0:
                     if np.mean(preds[protected_test == 1]) < 1.0:
                         DI = (1.0 - np.mean(preds[protected_test == 0]))/ (1.0 - np.mean(preds[protected_test == 1]))
@@ -531,7 +489,7 @@ class FAIRXGBOOST87(CustomModel):
                 loggerinfo(logger, str(DI))   
     
                 if DI < self.mean_protected_prediction_ratio_minimum:
-                    # Create a penalty proportional to the disparate impact
+                    # Create a penalty proportional to the distance below the specified threshold
                     len_preds = len(preds)
                     num_penalty = min(len_preds, int((self.mean_protected_prediction_ratio_minimum-DI) / self.mean_protected_prediction_ratio_minimum * len_preds ))
 
@@ -540,6 +498,5 @@ class FAIRXGBOOST87(CustomModel):
                     loggerinfo(logger, str(num_penalty), str(num_penalty/len(preds))) 
             
         self.is_train = False     
-
 
         return preds
