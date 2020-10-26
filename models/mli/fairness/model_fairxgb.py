@@ -101,6 +101,8 @@ class FAIRXGBOOST(CustomModel):
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
              
         # Specify these parameters for the dataset
+        # Also set feature engineering effort to 0
+        # under the features section of expert settings
         ########################
         # Specify the protected column
         # Must be numeric
@@ -119,7 +121,7 @@ class FAIRXGBOOST(CustomModel):
         # divided by the mean of the positive target for the unprotected group
         # If it's set too large, the accuracy will be poor, so there
         # is a limit to the debiasing that can be obtained.
-        self.mean_protected_prediction_ratio_minimum = 0.96
+        self.mean_protected_prediction_ratio_minimum = 0.95
         ########################
         
         orig_cols = list(X.names)
@@ -339,7 +341,7 @@ class FAIRXGBOOST(CustomModel):
   
     
         # Calculate feature importances
-        importances_dict=clf.get_score(importance_type='gain')
+        importances_dict = clf.get_score(importance_type='gain')
 
         # Make sure the protected group has high feature importance
         # so that it doesn't get dropped by driverless
@@ -462,6 +464,7 @@ class FAIRXGBOOST(CustomModel):
         else:
             penalty = 1.0 - epsilon
         
+        # Only apply penalties in the training stage
         if self.is_train:      
             # If the protected value was removed, use the maximum penalty
             # by changing all probabilities to the penalty value
@@ -496,6 +499,7 @@ class FAIRXGBOOST(CustomModel):
                     preds[0:num_penalty] = penalty
                     loggerinfo(logger, "num_penalty1")                 
                     loggerinfo(logger, str(num_penalty), str(num_penalty/len(preds))) 
+            
             
         self.is_train = False     
 
