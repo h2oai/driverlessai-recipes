@@ -167,6 +167,10 @@ class GAM(CustomModel):
             raise IgnoreError("np.linalg.LinAlgError") from e
         except pygam.utils.OptimizationError as e:
             raise IgnoreError("pygam.utils.OptimizationError") from e
+        except ValueError as e:
+            if 'On entry to DLASCL parameter number' in str(e):
+                raise IgnoreError('On entry to DLASCL parameter number') from e
+            raise
 
         p_values = np.array(clf.statistics_['p_values'])
                           
