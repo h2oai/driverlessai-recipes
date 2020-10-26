@@ -1,6 +1,7 @@
 """
 Logistic Regression based upon sklearn.
 """
+import ast
 import datatable as dt
 import numpy as np
 import random
@@ -896,7 +897,8 @@ class make_features(object):
 
         #
         def hex_to_int(x):
-            x_int = int(eval('0x' + str(x)))
+
+            x_int = int(ast.literal_eval('0x' + str(x)))
             return x_int
 
         self.hexints = [None] * len(hex_strings)
