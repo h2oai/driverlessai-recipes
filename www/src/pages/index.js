@@ -13,15 +13,20 @@ class IndexPage extends React.Component  {
     this.handleCategoryFilterChange = this.handleCategoryFilterChange.bind(this)
     // Specify state handle by the page
     //   - state is a map of selected categories
+    const urlCategory =  typeof window !== 'undefined' ? window.location.hash.substring(1) : '';
     const selectionMap = props.data.allCategoriesYaml.edges.reduce((hmap, { node }) => {
-        hmap[node.category] = true
+        if (urlCategory !== "") {
+            hmap[node.category] = urlCategory === node.category
+        } else {
+            hmap[node.category] = true
+        }
         return hmap
       }, {})
     this.state = {
       selectedCategories: selectionMap
     };
   }
-  
+
   handleCategoryFilterChange = (category) => {
     this.setState((state, props) => {
       const newSelection = state.selectedCategories
@@ -44,7 +49,7 @@ class IndexPage extends React.Component  {
   }
 }
 
-export const query = 
+export const query =
     graphql`
       query {
         allCategoriesYaml {
@@ -68,7 +73,7 @@ export const query =
         }
       }
     `
- 
+
 export default IndexPage
 
 //TODO: https://twitter.com/dan_abramov/status/824308413559668744?lang=en
