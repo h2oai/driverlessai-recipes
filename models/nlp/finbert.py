@@ -6,8 +6,6 @@ import shutil
 from urllib.parse import urlparse
 
 import requests
-import torch
-from transformers import AutoConfig, AutoModelForSequenceClassification
 
 from h2oaicore.models import TextBERTModel, CustomModel
 from h2oaicore.systemutils import make_experiment_logger, temporary_files_path, atomic_move, loggerinfo
@@ -205,6 +203,8 @@ class FinBertSentimentModel(CustomBertModel):
         if os.path.exists(flag_file):
             return
 
+        import torch
+        from transformers import AutoConfig, AutoModelForSequenceClassification
         self.config = AutoConfig.from_pretrained(config_file, torchscript=True)
         self.config.num_labels = 3
         model = AutoModelForSequenceClassification.from_pretrained(model_file, config=self.config)

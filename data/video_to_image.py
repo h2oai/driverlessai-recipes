@@ -22,15 +22,11 @@ http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/deepfake_
 
 DATA_DIR = "/path/to/deepfake/"
 
-import cv2
 import os
 import shutil
 import numpy as np
 import pandas as pd
 from h2oaicore.data import CustomData
-
-_global_modules_needed_by_name = ["torchvision==0.4.1", "facenet-pytorch==2.2.9"]
-from facenet_pytorch import MTCNN
 
 
 class VideoToFrames:
@@ -38,11 +34,13 @@ class VideoToFrames:
     Transforms input video files into image frames.
     Additionally detects all faces for each frame.
     """
+    _modules_needed_by_name = ["torchvision==0.4.1", "facenet-pytorch==2.2.9"]
 
     def __init__(self, num_frames_per_video=3, face_additional_area=0.5):
         self.num_frames_per_video = num_frames_per_video
         self.face_additional_area = face_additional_area
 
+        from facenet_pytorch import MTCNN
         self.face_detection_model = MTCNN(
             image_size=224,
             margin=0,
@@ -58,6 +56,7 @@ class VideoToFrames:
         video_id = os.path.split(video_path)[-1]
 
         # Read video
+        import cv2
         orig_capture = cv2.VideoCapture(video_path)
 
         # Select only self.num_frames_per_video uniform frames
