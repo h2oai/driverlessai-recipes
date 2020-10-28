@@ -22,7 +22,6 @@ http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/freesound
 
 DATA_DIR = "/path/to/freesound_audio/"
 
-import cv2
 import os
 import shutil
 import numpy as np
@@ -118,6 +117,7 @@ class AudioDataset(CustomData):
 
         # Convert audio to melspectrogram and save as image
         wav2mel = AudioToMelSpectogram()
+        import cv2
         for idx, audio_name in enumerate(audio_filenames):
             audio_path = os.path.join(path_to_files, audio_name)
             image_path = os.path.join(output_path, f"{audio_name}.png")
