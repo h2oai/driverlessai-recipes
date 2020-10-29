@@ -30,7 +30,18 @@ class IndexPage extends React.Component  {
   handleCategoryFilterChange = (category) => {
     this.setState((state, props) => {
       const newSelection = state.selectedCategories
-      newSelection[category] = !newSelection[category]
+      var allSelected = true
+      for (const k in newSelection) allSelected &= newSelection[k]
+
+      if (allSelected) {
+          for (const k in newSelection) {
+              if (k !== category) {
+                  newSelection[k] = false
+              }
+          }
+      } else {
+        newSelection[category] = !newSelection[category]
+      }
       return ({
         selectedCategories: newSelection
       })
