@@ -1,4 +1,4 @@
-.PHONY: www clean dev up
+.PHONY: www clean dev up serve
 
 # banner
 Q ?= echo
@@ -15,6 +15,9 @@ clean:
 
 dev:
 	@gatsby develop
+
+serve: build
+	@gatsby serve
 
 up: clean build
 	@$(Q) aws s3 sync public/ s3://catalog.h2o.ai/ --acl public-read

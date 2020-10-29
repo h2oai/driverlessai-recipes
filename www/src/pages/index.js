@@ -9,11 +9,9 @@ class IndexPage extends React.Component  {
 
   constructor(props) {
     super(props);
-    // Important: Bound context of this in the handler
-    this.handleCategoryFilterChange = this.handleCategoryFilterChange.bind(this)
     // Specify state handle by the page
     //   - state is a map of selected categories
-    const urlCategory =  typeof window !== 'undefined' ? window.location.hash.substring(1) : '';
+    const urlCategory = props.location.hash.substring(1)
     const selectionMap = props.data.allCategoriesYaml.edges.reduce((hmap, { node }) => {
         if (urlCategory !== "") {
             hmap[node.category] = urlCategory === node.category
@@ -22,9 +20,12 @@ class IndexPage extends React.Component  {
         }
         return hmap
       }, {})
+    // Update state
     this.state = {
       selectedCategories: selectionMap
-    };
+    }
+    // Important: Bound context of this in the handler
+    this.handleCategoryFilterChange = this.handleCategoryFilterChange.bind(this)
   }
 
   handleCategoryFilterChange = (category) => {
