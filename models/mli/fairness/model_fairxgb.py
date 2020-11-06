@@ -29,14 +29,15 @@ class FAIRXGBOOST(CustomModel):
         self.params = dict(random_state=kwargs.get("random_state", 1234),
                            eta= 0.1, max_depth = 12, min_child_weight =2.0,
                            reg_lambda = 1.0, colsample_bytree = 0.8,
-                           subsample = 1.0, mu=0.1)
+                           subsample = 1.0, mu=0.1, reg_alpha=0)
 
     def mutate_params(self, accuracy=10, **kwargs):
         if accuracy > 8:
             eta= [0.5, 0.1, 0.05, 0.01]
             max_depth = list(range(4, 21))
             min_child_weight = [0.1, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0]
-            reg_lambda = [0.0, 0.1, 1.0, 5.0, 10.0]
+            reg_lambda = [0.0, 0.1, 1.0, 2.0, 5.0, 8.0, 10.0, 20.0]
+            reg_alpha = [0.0, 0.1, 1.0, 5.0, 10.0]
             colsample_bytree = [ 0.1*ii for ii in range(1,11)]
             subsample = [0.5, 0.8, 0.9, 1.0]
             mu = [0.05*ii for ii in range(1, 14)]
@@ -45,7 +46,8 @@ class FAIRXGBOOST(CustomModel):
             eta= [0.5, 0.1, 0.05]
             max_depth = list(range(4, 21, 2))
             min_child_weight = [0.1, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0]
-            reg_lambda = [0.0, 0.1, 1.0, 5.0, 10.0]
+            reg_lambda = [0.0, 0.1, 1.0, 2.0, 5.0, 8.0, 10.0, 20.0]
+            reg_alpha = [0.0, 0.1, 1.0]
             colsample_bytree = [ 0.1*ii for ii in range(2,11,2)]
             subsample = [1.0]
             mu = [0.05*ii for ii in range(1, 14)]
@@ -55,6 +57,7 @@ class FAIRXGBOOST(CustomModel):
             max_depth = list(range(4, 21, 2))
             min_child_weight = [0.1, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0]
             reg_lambda = [0.0, 0.1, 1.0, 5.0, 10.0]
+            reg_alpha = [0.0]
             colsample_bytree = [ 0.1*ii for ii in range(2,11,2)]
             subsample = [1.0]
             mu = [0.05*ii for ii in range(1, 14)]
@@ -63,7 +66,8 @@ class FAIRXGBOOST(CustomModel):
         self.params["eta"] = np.random.choice(eta)
         self.params["max_depth"] = np.random.choice(max_depth)
         self.params["min_child_weight"] = np.random.choice(min_child_weight)        
-        self.params["reg_lambda "] = np.random.choice(reg_lambda )        
+        self.params["reg_lambda"] = np.random.choice(reg_lambda)    
+        self.params["reg_alpha"] = np.random.choice(reg_alpha)    
         self.params["colsample_bytree"] = np.random.choice(colsample_bytree) 
         self.params["subsample"] = np.random.choice(subsample) 
         self.params["mu"] = np.random.choice(mu) 
@@ -223,6 +227,7 @@ class FAIRXGBOOST(CustomModel):
             params['max_depth'] = self.params['max_depth']
             params['min_child_weight']=self.params['min_child_weight']
             params['reg_lambda']=self.params['reg_lambda']
+            params['reg_alpha']=self.params['reg_alpha']
             params['colsample_bytree']=self.params['colsample_bytree']
             params['subsample']=self.params['subsample']
             params['silent'] = 1
