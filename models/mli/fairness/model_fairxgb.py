@@ -26,7 +26,7 @@ class FAIRXGBOOST(CustomModel):
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
 
-        self.params = dict(random_state=kwargs.get("random_state", 1234),
+        self.params = dict(random_state=kwargs.get("random_state", 24),
                            eta= 0.1, max_depth = 12, min_child_weight =2.0,
                            reg_lambda = 1.0, colsample_bytree = 0.8,
                            subsample = 1.0, mu=0.1, reg_alpha=0)
@@ -104,28 +104,28 @@ class FAIRXGBOOST(CustomModel):
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
              
-        # Specify these parameters for the dataset
+        # Specify these parameters for the dataset.
+        #
         # Also set feature engineering effort to 0
-        # under the features section of expert settings
+        # under the features section of expert settings.
         ########################
-        # Specify the protected column
-        # Must be numeric
+        # Specify the protected column.
+        # The protected column must be numeric.
         self.protected_name = "black"
         # Specify the level of the protected group in the protected column
-        # Must be numeric
         self.protected_label = 1
         # Specify the target level considered to be a positive outcome
         # Must be encoded as 0/1
         self.positive_target = 0
-        # Set minimum mean protected ratio desired  
+        # Set minimum mean protected ratio needed to avoid a penalty 
         # (mean protected ratio = mean predictions for the protected group/mean predictions for all other groups)
         #
         # Try tuning this to values at or a little above
         # the mean of the positive target for the protected group
-        # divided by the mean of the positive target for the unprotected group
+        # divided by the mean of the positive target for the unprotected group.
         # If it's set too large, the accuracy will be poor, so there
         # is a limit to the debiasing that can be obtained.
-        self.mean_protected_prediction_ratio_minimum = 0.95
+        self.mean_protected_prediction_ratio_minimum = 0.92
         ########################
         
         orig_cols = list(X.names)
@@ -150,7 +150,8 @@ class FAIRXGBOOST(CustomModel):
                 
         def fair_metric(predt: np.ndarray, dtrain: xgb.DMatrix):
             ''' FairXGB Error Metric'''
-
+            # predt is the prediction array 
+            
             # Find the right protected group vector
             if len(predt) == len(protected_train):
                 protected_feature  = np.array(protected_train.copy())
@@ -178,6 +179,7 @@ class FAIRXGBOOST(CustomModel):
         
         def gradient(predt: np.ndarray, dtrain: xgb.DMatrix):
             '''Fair Xgboost Gradient'''
+            # predt is the prediction array 
 
             # Find the right protected group vector            
             if len(predt) == len(protected_train):
@@ -201,13 +203,13 @@ class FAIRXGBOOST(CustomModel):
         
         def hessian(predt: np.ndarray, dtrain: xgb.DMatrix):
             '''Fair Xgboost Hessian'''
+            # predt is the prediction array 
 
             answer = (1 - mu) * sigmoid(predt) * (1 - sigmoid(predt))
             
             return answer
         
-        def fair(predt: np.ndarray,
-                        dtrain: xgb.DMatrix):
+        def fair(predt: np.ndarray, dtrain: xgb.DMatrix):
             ''' Fair xgb objective function
             '''       
             
@@ -231,8 +233,7 @@ class FAIRXGBOOST(CustomModel):
             params['colsample_bytree']=self.params['colsample_bytree']
             params['subsample']=self.params['subsample']
             params['silent'] = 1
-            params['seed'] = 24
-
+            params['seed'] = self.params['random_state']           
         else:
             # fairxgb doesn't work for regression
             loggerinfo(logger, "PASS, no fairxgboost model")  
@@ -493,7 +494,7 @@ class FAIRXGBOOST(CustomModel):
                         DI = 1                        
 
                     
-                loggerinfo(logger, "DI Check")   
+                loggerinfo(logger, "Mean ratio Check")   
                 loggerinfo(logger, str(DI))   
     
                 if DI < self.mean_protected_prediction_ratio_minimum:
