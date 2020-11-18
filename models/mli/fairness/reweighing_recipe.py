@@ -1,7 +1,7 @@
-"""Debiasing by reweighing"""
+"""Debiasing using reweighing"""
 
 """
-This recipe performes reweighing debiasing using the AIF360 package.  
+This data recipe performs reweighing debiasing using the AIF360 package.  
 
 https://github.com/Trusted-AI/AIF360
 Kamiran, F., Calders, T. Data preprocessing techniques for classification without discrimination. 
@@ -10,16 +10,18 @@ Knowl Inf Syst 33, 1–33 (2012). https://doi.org/10.1007/s10115-011-0463-8
 The transformer splits the original data as specified and returns training, validation, and test sets
 with weights added.
 
-1. Update the folder_path and data_file variables to indicate the location of the dataset.
+1. Update the folder_path and data_file variables to indicate the location of the dataset(s).
 2. validation_test_files lists additional validation or test files that need to be updated with weights.
 3. validation_split indicates the percentiles at which the original data should be split to create a 
-validation and test set.  If it's empty, no validation and test set is created.  [0.7] would create
-a 70/30 validation test split. [0.7, 0.9] would create a 70/20/10 training, validation, and test split.
-4. target is the name of the target column
-5. protected_group_info list of lists, where each sublist contains the name of a protected column,
+validation and test set.  If it's empty, no validation or test set is created.  [0.7] would create
+a 70/30 training/validation split. [0.7, 0.9] would create a 70/20/10 training, validation, and test split.
+4. target is the name of the target column.
+5. favorable_label and unfavorable_label are the socially positive and negative target value respectively.
+6. protected_group_info list of lists, where each sublist contains the name of a protected column,
 the unprivledged level, and the privleged level.  Each of the protected columns must be binary.
+7. From the Datasets section of driverless, click on ADD DATASET and then UPLOAD DATA RECIPE to upload this file.
 
-Be sure to use the specified validation set to be used for validation when a model is run.  The weights
+Be sure to use the specified validation set to be used for validation when a model is trained.  The weights
 can cause leakage if the validation or test data is used for determining the weights.
 """
 
@@ -43,15 +45,17 @@ class MyData(CustomData):
         from aif360.datasets import BinaryLabelDataset
         from aif360.algorithms.preprocessing.reweighing import Reweighing
        
-        
-        # Test and add option of a dataset split
+    
         """
         Update the below as needed
         """
+        #########
+        #########
+        #########
         # Path to the data
         folder_path = 'tmp/'  
         # Data file
-        data_file = 'housing_train_proc.csv' # Data file
+        data_file = 'housing_train_proc.csv' 
         
         validation_test_files = ['housing_test_proc.csv']
         
@@ -59,19 +63,23 @@ class MyData(CustomData):
 
         # Target column
         target = 'high_priced'
-        # Privleged_group_info  = [[Protetected group name 1, prevleged level, unprivleged level], [Protetected group name 1, prevleged level, unprivleged level]]
+        favorable_label = 0
+        unfavorable_label = 1
+        
+        # Privleged_group_info  = [[Protetected group name 1, prevleged level, unprivleged level], [Protetected group name 2, prevleged level, unprivleged level]]
         # The protected group columns need to be binary
-        protected_group_info = [['hispanic', 1, 0], ['black', 1, 0]]
+        protected_group_info = [['hispanic', 0, 1], ['black', 0, 1]]
+        #########
+        #########
+        #########
 
         
+        # Set up protected group info
         protected_groups = [group_info[0] for group_info in protected_group_info]
        
-        #train_file = 'housing_train_proc.csv'
         train = pd.read_csv(folder_path + data_file)
-        dataset_orig = BinaryLabelDataset(df=train, label_names=[target], protected_attribute_names=protected_groups)
+        dataset_orig = BinaryLabelDataset(df=train, label_names=[target], favorable_label=favorable_label, unfavorable_label=unfavorable_label, protected_attribute_names=protected_groups)
         
-        
-        # Set up protected group info
         privileged_groups = []
         unprivileged_groups = []
         for protected_group in protected_group_info:
@@ -88,6 +96,7 @@ class MyData(CustomData):
         RW_full.fit(dataset_orig)
       
         
+        # Split the original data into train, validation, and test if applicable
         if len(validation_split) == 1:
             dataset_orig_train, dataset_orig_valid = dataset_orig.split(validation_split, shuffle=True)
         elif len(validation_split) == 2:
@@ -98,11 +107,13 @@ class MyData(CustomData):
             dataset_orig_train, dataset_orig_valid = dataset_orig_train_valid.split([validation_split[0]/(validation_split[1])], shuffle=True)
         else:
             dataset_orig_train = dataset_orig
-            
+      
+        
         # Fit weights on the training set only    
         RW = Reweighing(unprivileged_groups=unprivileged_groups, privileged_groups=privileged_groups)
         RW.fit(dataset_orig_train)
         dataset_transf_train = RW.transform(dataset_orig_train)
+        
         
         # Add the weigts to the training set
         train_df = pd.DataFrame(dataset_transf_train.features, columns=dataset_transf_train.feature_names)
@@ -132,7 +143,7 @@ class MyData(CustomData):
         # Add weights to the test files (If provided)       
         for valid_file in  validation_test_files:
             valid = pd.read_csv(folder_path + valid_file)
-            dataset_valid_orig = BinaryLabelDataset(df=valid, label_names=[target], protected_attribute_names=protected_groups)
+            dataset_valid_orig = BinaryLabelDataset(df=valid, label_names=[target], favorable_label=favorable_label, unfavorable_label=unfavorable_label, protected_attribute_names=protected_groups)
             dataset_transf_valid = RW_full.transform(dataset_valid_orig)
                     
             valid_df = pd.DataFrame(dataset_transf_valid.features, columns=dataset_transf_valid.feature_names)
