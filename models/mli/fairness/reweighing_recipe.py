@@ -33,6 +33,8 @@ from h2oaicore.data import CustomData
 from h2oaicore.systemutils import config
 
 
+_global_modules_needed_by_name = ['datetime', 'aif360', 'sklearn']  
+
 class MyData(CustomData):
     
     @staticmethod
