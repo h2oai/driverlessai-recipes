@@ -152,7 +152,6 @@ class H2OBaseModel:
                 train_kwargs['validation_frame'] = valid_frame
             if sample_weight is not None:
                 train_kwargs['weights_column'] = self.weight
-            model = self.make_instance(**params)
 
             # Don't ever use the offset column as a feature
             offset_col = None  # if no column is called offset we will pass "None" and not use this feature
@@ -166,22 +165,33 @@ class H2OBaseModel:
 
             orig_cols = cols_to_train  # not training on offset
 
-            try:
-                # Models that can use an offset column
-                if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
-                    model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col,
-                                **train_kwargs)
-                else:
-                    model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
-            except Exception as e:
-                print(str(e))
-                t, v, tb = sys.exc_info()
-                ex = ''.join(traceback.format_exception(t, v, tb))
-                if 'Training data must have at least 2 features' in str(ex) and X.ncols != 0:
-                    # if had non-zero features but h2o-3 saw as constant, ignore h2o-3 in that case
-                    raise IgnoreEntirelyError
-                else:
-                    raise
+            trials = 2
+            for trial in range(0, trials):
+                try:
+                    # Models that can use an offset column
+                    model = self.make_instance(**params)
+                    if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
+                        model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col,
+                                    **train_kwargs)
+                    else:
+                        model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
+                    break
+                except Exception as e:
+                    print(str(e))
+                    t, v, tb = sys.exc_info()
+                    ex = ''.join(traceback.format_exception(t, v, tb))
+                    if 'Training data must have at least 2 features' in str(ex) and X.ncols != 0:
+                        # if had non-zero features but h2o-3 saw as constant, ignore h2o-3 in that case
+                        raise IgnoreEntirelyError
+                    elif "min_rows: The dataset size is too small to split for min_rows" in str(e):
+                        # then h2o-3 counted as rows some reduced set, since we already protect against actual rows vs. min_rows
+                        params['min_rows'] = 1  # go down to lowest value
+                        # permit another trial
+                    else:
+                        raise
+                    if trial == trials - 1:
+                        # if at end of trials, raise no matter what
+                        raise
 
             if isinstance(model, H2OAutoML):
                 model = model.leader
