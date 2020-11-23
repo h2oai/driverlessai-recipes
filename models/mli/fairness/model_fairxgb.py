@@ -6,9 +6,8 @@ import datatable as dt
 import numpy as np
 from h2oaicore.models import CustomModel
 from sklearn.preprocessing import LabelEncoder
-from h2oaicore.systemutils import physical_cores_count
 from h2oaicore.systemutils import user_dir, remove, config
-from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdebug
+from h2oaicore.systemutils import make_experiment_logger, loggerdata, loggerwarning, loggerdebug, loggerinfo
 
 
 class FAIRXGBOOST(CustomModel):
@@ -98,7 +97,7 @@ class FAIRXGBOOST(CustomModel):
             tmp_folder = os.path.join(user_dir(), "%s_FAIRXGB_model_folder" % uuid.uuid4())
             os.mkdir(tmp_folder)
 
-        loggerinfo(logger, "FAIRXGB temp folder {}".format(tmp_folder))
+        loggerdata(logger, "FAIRXGB temp folder {}".format(tmp_folder))
         return tmp_folder
 
 
@@ -236,7 +235,7 @@ class FAIRXGBOOST(CustomModel):
             params['seed'] = self.params['random_state']           
         else:
             # fairxgb doesn't work for regression
-            loggerinfo(logger, "PASS, no fairxgboost model")  
+            loggerinfo(logger, "PASS, no fairxgboost model")
             pass
 
         # Switch to pandas
@@ -369,9 +368,9 @@ class FAIRXGBOOST(CustomModel):
         self.mean_target = np.array(sum(y)/len(y))
        
 
-        loggerinfo(logger, "End check") 
-        loggerinfo(logger, str(mu))  
-        loggerinfo(logger, str(importances_dict))  
+        loggerinfo(logger, "End fair check")
+        loggerinfo(logger, str(mu))
+        loggerdata(logger, str(importances_dict))  
         self.is_train = True
         
         # Set model properties
@@ -405,11 +404,11 @@ class FAIRXGBOOST(CustomModel):
         
         if self.protected in list(X.columns):
             # Set the protected group to 0 and all others 1
-            loggerinfo(logger, "Protected test found")   
+            loggerdebug(logger, "Protected test found")
             protected_test = np.array([int(item) for item in ~(np.array(X[self.protected]) == self.protected_label)])
 
         else:
-            loggerinfo(logger, "Protected test not found")  
+            loggerdebug(logger, "Protected test not found")
             protected_test = np.array([])
         
         if self.protected in list(X.columns):
@@ -477,8 +476,8 @@ class FAIRXGBOOST(CustomModel):
             # (the recipe needs to be able to use the protected values)
             if self.protected == "none":
                preds[0:len(preds)] = penalty        
-               loggerinfo(logger, str(preds))    
-               loggerinfo(logger, "Removal_penalty")    
+               loggerdata(logger, str(preds))
+               loggerdata(logger, "Removal_penalty")
                 
             else:  
                 # The mean ratio calculation for target=0 and target=1
@@ -494,8 +493,8 @@ class FAIRXGBOOST(CustomModel):
                         DI = 1                        
 
                     
-                loggerinfo(logger, "Mean ratio Check")   
-                loggerinfo(logger, str(DI))   
+                loggerdata(logger, "Mean ratio Check")
+                loggerdata(logger, str(DI))
     
                 if DI < self.mean_protected_prediction_ratio_minimum:
                     # Create a penalty proportional to the distance below the specified threshold
@@ -503,8 +502,8 @@ class FAIRXGBOOST(CustomModel):
                     num_penalty = min(len_preds, int((self.mean_protected_prediction_ratio_minimum-DI) / self.mean_protected_prediction_ratio_minimum * len_preds ))
 
                     preds[0:num_penalty] = penalty
-                    loggerinfo(logger, "num_penalty1")                 
-                    loggerinfo(logger, str(num_penalty), str(num_penalty/len(preds))) 
+                    loggerdata(logger, "num_penalty1")
+                    loggerdata(logger, str(num_penalty), str(num_penalty/len(preds)))
             
             
         self.is_train = False     
