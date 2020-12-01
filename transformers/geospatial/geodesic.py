@@ -30,7 +30,10 @@ class Geodesic(CustomTransformer):
             col_names_to_pick = ['pickup_latitude', 'pickup_longitude', 'dropoff_latitude', 'dropoff_longitude']
         else:
             return np.zeros(X.shape[0])
-        x = X[:, col_names_to_pick].to_pandas()  # original line
+        try:
+            x = X[:, col_names_to_pick].to_pandas()  # original line
+        except KeyError:
+            return np.zeros(X.shape[0])
         return x.apply(lambda x: geodesic((x[col_names_to_pick[0]], x[col_names_to_pick[1]]),
                                           (x[col_names_to_pick[2]], x[col_names_to_pick[3]])).miles,
                        axis=1)
