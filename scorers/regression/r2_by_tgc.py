@@ -74,8 +74,8 @@ class R2byTimeSeries(CustomScorer):
         logger = self.get_experiment_logger()
 
         # hard-coded as access to experiment parameters (such as self.tgc) not yet available
-        # tgc = ["county", "state"]
-        tgc = ["state"]
+        tgc = ["Store", "Dept"]
+        # tgc = ["state"]
         # tgc = None
 
         # enable weighted average over TS R2 scores: weighted based on TS share of rows
@@ -89,19 +89,18 @@ class R2byTimeSeries(CustomScorer):
             loggerinfo(logger, f"TS R2 computes multiple R2 on {X.nrows} rows, tgc {tgc} with weighting is {isR2AverageWeighted}.")
             none_values = [None] * X.nrows
             X = cbind(X[:, tgc], Frame(actual = actual, predicted = predicted,
-                                             sample_weight = sample_weight if sample_weight else none_values,
-                                             labels = labels if labels else none_values))
+                                       sample_weight = sample_weight if sample_weight is not None else none_values))
 
             for i in range(0, tgc_values.nrows):
                 current_tgc = tgc_values[i, :]
                 current_tgc.key = tgc
                 ts_frame = X[:, :, join(current_tgc)][~isna(f.r2), :]
                 r2_score = R2Scorer().score(ts_frame['actual'].to_numpy(), ts_frame['predicted'].to_numpy(),
-                                             ts_frame['sample_weight'].to_numpy() if sample_weight else None,
-                                             ts_frame['labels'].to_numpy() if labels else None, **kwargs)
+                                             ts_frame['sample_weight'].to_numpy() if sample_weight is not None else None,
+                                             labels, **kwargs)
                 tgc_values[i, f.r2] = r2_score
 
-                loggerinfo(logger, f"TS R2 = {r2_score} on {ts_frame.nrows}, tgc = {current_tgc[0, tgc].to_tuples()}")
+                loggerinfo(logger, f"TS R2 = {r2_score} on {ts_frame.nrows} rows, tgc = {current_tgc[0, tgc].to_tuples()}")
 
             if isR2AverageWeighted:
                 # return np.average(tgc_values["r2"].to_numpy(), weights=tgc_values["weight"].to_numpy())
