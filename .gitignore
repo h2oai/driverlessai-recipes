@@ -123,3 +123,6 @@ dmypy.json
 .pyre/
 
 .idea
+
+# OSX debris
+.DS_Store
