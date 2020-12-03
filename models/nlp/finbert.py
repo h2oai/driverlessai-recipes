@@ -53,7 +53,7 @@ def maybe_download(url, dest, logger=None):
 
     if os.path.exists(dest_tmp):
         loggerinfo(logger, f"Download has already started {url} -> {dest_tmp}. "
-                           f"Delete {dest_tmp} to download the file once more.")
+        f"Delete {dest_tmp} to download the file once more.")
         return
 
     loggerinfo(logger, f"Downloading {url} -> {dest}")
@@ -76,8 +76,8 @@ def check_correct_name(custom_name):
                                  'xlm', 'roberta', 'distilbert', 'camembert', 'ctrl', 'albert']
     assert len([model_name for model_name in allowed_pretrained_models
                 if model_name in custom_name]), f"{custom_name} needs to contain the name" \
-                                                " of the pretrained model architecture (e.g. bert or xlnet) " \
-                                                "to be able to process the model correctly."
+        " of the pretrained model architecture (e.g. bert or xlnet) " \
+        "to be able to process the model correctly."
 
 
 class CustomBertModel(TextBERTModel, CustomModel):

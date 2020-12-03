@@ -75,7 +75,8 @@ class TextBinaryCountTransformer(CustomTransformer):
                                          stop_words=self.remove_stopwords
                                          )
         X = self.count_vec.fit_transform(X).toarray()
-        self._output_feature_names = ['BinaryCount:' + curr_col + '.' + token for token in self.count_vec.get_feature_names()]
+        self._output_feature_names = ['BinaryCount:' + curr_col + '.' + token for token in
+                                      self.count_vec.get_feature_names()]
         self._feature_desc = ["Binary count of '" + token + "' found in " + curr_col for token in
                               self.count_vec.get_feature_names()]
         return X

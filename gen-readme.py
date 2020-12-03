@@ -1,4 +1,5 @@
 import ast
+
 exclude = ['.', '.idea', 'pycache', '.git', 'speech/data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py',
            '.pytest_cache', 'livecode', 'www']
 sep = '  '
@@ -12,6 +13,7 @@ def get_module_docstring(filepath):
         docstring = None
     return docstring
 
+
 def get_mojo_implementation_tag(filepath):
     with open(filepath, "r") as source:
         root = ast.parse(source.read())
@@ -21,6 +23,7 @@ def get_mojo_implementation_tag(filepath):
                     return "<kbd>✓ MOJO Enabled</kbd>"
         else:
             return ""
+
 
 def print_offset(depth, str_content, ret):
     for i, line in enumerate(str_content.split("\n")):

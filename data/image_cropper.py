@@ -5,7 +5,6 @@ DATA_DIR = "/path/to/images/"
 ## set the dimension of cropping area
 crop_dimension = (10, 240, 450, 300)
 
-
 from h2oaicore.data import CustomData
 from PIL import Image
 import pandas as pd
@@ -15,13 +14,12 @@ import shutil, os
 class CropDataset(CustomData):
     @staticmethod
     def create_data():
-
         ## images - folder containing original images
         ## cropped - folder to store cropped images
         ## labels.csv - filename consisting of labels
-        path_to_files = os.path.join(DATA_DIR, "images/") 
-        path_to_labels = os.path.join(DATA_DIR, "labels.csv") 
-        output_path = os.path.join(path_to_files, "cropped/") 
+        path_to_files = os.path.join(DATA_DIR, "images/")
+        path_to_labels = os.path.join(DATA_DIR, "labels.csv")
+        output_path = os.path.join(path_to_files, "cropped/")
         os.makedirs(output_path, exist_ok=True)
 
         df = pd.read_csv(path_to_labels)

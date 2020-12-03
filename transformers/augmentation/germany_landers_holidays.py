@@ -153,7 +153,7 @@ class GermanyLandersHolidayTransformer2(CustomTimeSeriesTransformer):
                                  fn="dayofyear")
             dates_frame = MojoFrame(columns=[year_col, doy_col])
             feat = f'is_DE_holiday%s{prov}' % (
-                        orig_feat_prefix + orig_feat_prefix.join([self.time_column] + extra_prefix))
+                    orig_feat_prefix + orig_feat_prefix.join([self.time_column] + extra_prefix))
             holi_df = self.memos[prov]
             holi_df[feat] = 1
             mout = MergeTransformer.from_frame(

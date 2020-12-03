@@ -7,6 +7,7 @@ from typing import Union, List, Dict
 from h2oaicore.data import BaseData
 from h2oaicore.data import CustomData
 
+
 class GenerateRandomColumnsData(CustomData):
 
     @staticmethod

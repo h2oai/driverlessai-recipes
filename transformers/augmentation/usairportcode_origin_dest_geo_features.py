@@ -47,7 +47,8 @@ class AirportOriginDestDTTransformer(CustomTransformer):
             X_origin = origin_dt[:, :, dt.join(codes_dt)]
             del X_origin[:, "iata_code"]
             X_origin.names = ["origin_elevation_ft", "origin_long", "origin_lat"]
-            self._output_feature_names = ["{}{}{}".format(self._display_name, orig_feat_prefix, f) for f in X_origin.names]
+            self._output_feature_names = ["{}{}{}".format(self._display_name, orig_feat_prefix, f) for f in
+                                          X_origin.names]
             self._feature_desc = ['Origin Elevation Ft.', 'Origin Longitude', 'Origin Latitude']
         else:
             self._output_feature_names = []
@@ -61,8 +62,9 @@ class AirportOriginDestDTTransformer(CustomTransformer):
             X_dest = dest_dt[:, :, dt.join(codes_dt)]
             del X_dest[:, "iata_code"]
             X_dest.names = ["dest_elevation_ft", "dest_long", "dest_lat"]
-            self._output_feature_names = self._output_feature_names + ["{}{}{}".format(self._display_name, orig_feat_prefix, f) for f in
-                                                                       X_dest.names]
+            self._output_feature_names = self._output_feature_names + [
+                "{}{}{}".format(self._display_name, orig_feat_prefix, f) for f in
+                X_dest.names]
             self._feature_desc = self._feature_desc + ['Destination Elevation', 'Destination Longitude',
                                                        'Destination Latitude']
 
@@ -83,9 +85,10 @@ class AirportOriginDestDTTransformer(CustomTransformer):
             b = 12742 * dt.math.arcsin(dt.math.sqrt(a))  # 2*R*asin...
             all_dt["distanc_km"] = b
 
-            self._output_feature_names = self._output_feature_names + ["{}{}{}".format(self._display_name, orig_feat_prefix, f) for f in
-                                                                       ['elevation_diff', 'lat_diff', 'long_diff',
-                                                                        'distance_km']]
+            self._output_feature_names = self._output_feature_names + [
+                "{}{}{}".format(self._display_name, orig_feat_prefix, f) for f in
+                ['elevation_diff', 'lat_diff', 'long_diff',
+                 'distance_km']]
             self._feature_desc = self._feature_desc + [
                 'Elevation difference between Origin and Destination',
                 'Latitude difference between Origin and Destination',

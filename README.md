@@ -59,7 +59,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
-### Count: 190
+### Count: 193
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -79,6 +79,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [feature_selection.py](./data/feature_selection.py) [please add description] 
   * [generate_random_int_columns.py](./data/generate_random_int_columns.py) [Data recipe to add one or more columns containing random integers.] 
   * [ieee_data_puddle.py](./data/ieee_data_puddle.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection] 
+  * [image_cropper.py](./data/image_cropper.py) [ Data Recipe to Crop the Cheque Image (or any Image) in a fixed dimension ] 
   * [kaggle_bosch.py](./data/kaggle_bosch.py) [Create Bosch competition datasets with leak] 
   * [kaggle_ieee_fraud.py](./data/kaggle_ieee_fraud.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection] 
   * [kaggle_m5.py](./data/kaggle_m5.py) [Prepare data for m5 Kaggle Time-Series Forecast competition] 
@@ -110,7 +111,6 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.] 
   * [ALGORITHMS](./models/algorithms)
-    * [auto_gluon.py](./models/algorithms/auto_gluon.py) [AutoGluon] 
     * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines] <kbd>✓ MOJO Enabled</kbd>
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.] 
     * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL] 
@@ -134,6 +134,9 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [model_decision_tree_linear_combo.py](./models/mli/model_decision_tree_linear_combo.py) [Decision tree plus linear model] 
     * [model_gam.py](./models/mli/model_gam.py) [Generalized Additive Model] 
     * [model_skopes_rules.py](./models/mli/model_skopes_rules.py) [Skopes rules ] 
+    * [FAIRNESS](./models/mli/fairness)
+      * [model_fairxgb.py](./models/mli/fairness/model_fairxgb.py) [Fair XGB ] 
+      * [reweighing_recipe.py](./models/mli/fairness/reweighing_recipe.py) [Debiasing using reweighing] 
     * [GA2M](./models/mli/ga2m)
       * [model_ga2m.py](./models/mli/ga2m/model_ga2m.py) [Explainable Boosting Machines (EBM), implementation of GA2M] 
     * [XNN](./models/mli/xnn)
@@ -187,6 +190,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [median_absolute_error.py](./scorers/regression/median_absolute_error.py) [Median Absolute Error for regression] 
     * [pearson_correlation.py](./scorers/regression/pearson_correlation.py) [Pearson Correlation Coefficient for regression] 
     * [quantile_loss.py](./scorers/regression/quantile_loss.py) [Quantile Loss regression] 
+    * [r2_by_tgc.py](./scorers/regression/r2_by_tgc.py) [Custom R2 scorer computes R2 on each time series, then averages them out for the final score.] 
     * [rmse_with_x.py](./scorers/regression/rmse_with_x.py) [Custom RMSE Scorer that also gets X (original features) - for demo/testing purposes only] 
     * [top_decile.py](./scorers/regression/top_decile.py) [Median Absolute Error for predictions in the top decile] 
 * [TRANSFORMERS](./transformers)
