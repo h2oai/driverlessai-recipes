@@ -18,7 +18,7 @@ value_range = (0, 100)
 new_dataset_name = "new_dataset_with_random_column"
 
 if col_count != len(random_column_names):
-  raise ValueError("Number of column names must be equal to number of columns.")
+    raise ValueError("Number of column names must be equal to number of columns.")
 
 rcol = dt.Frame(np.random.randint(value_range[0], value_range[1], size=(X.shape[0], col_count)))
 rcol.names = random_column_names

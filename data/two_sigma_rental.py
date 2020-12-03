@@ -9,7 +9,6 @@ import importlib
 
 subprocess = importlib.import_module('sub' + 'process')
 
-
 kaggle_username = "XXX"
 kaggle_key = "XXX"
 
@@ -36,13 +35,13 @@ class TwoSigmaRental(CustomData):
         sub_file_dir = os.path.join(temp_path, "kaggle_%s" % str(uuid.uuid4())[:4])
 
         cmd_train = f'kaggle competitions download ' \
-                    f'-c two-sigma-connect-rental-listing-inquiries ' \
-                    f'-f train.json.zip ' \
-                    f'-p {sub_file_dir} -q'
+            f'-c two-sigma-connect-rental-listing-inquiries ' \
+            f'-f train.json.zip ' \
+            f'-p {sub_file_dir} -q'
         cmd_test = f'kaggle competitions download ' \
-                   f'-c two-sigma-connect-rental-listing-inquiries ' \
-                   f'-f test.json.zip ' \
-                   f'-p {sub_file_dir} -q'
+            f'-c two-sigma-connect-rental-listing-inquiries ' \
+            f'-f test.json.zip ' \
+            f'-p {sub_file_dir} -q'
 
         try:
             subprocess.check_output(cmd_train.split(), timeout=120).decode("utf-8")
@@ -70,5 +69,5 @@ class TwoSigmaRental(CustomData):
             'str_features', 'nb_features', 'nb_photos', 'cat_address'
         ]
 
-        return {'two_sigma_train': dt.Frame(train[features+['interest_level']]),
+        return {'two_sigma_train': dt.Frame(train[features + ['interest_level']]),
                 'two_sigma_test': dt.Frame(test[features])}

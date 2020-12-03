@@ -171,7 +171,8 @@ class H2OBaseModel:
                     # Models that can use an offset column
                     model = self.make_instance(**params)
                     if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
-                        model.train(x=cols_to_train, y=self.target, training_frame=train_frame, offset_column=offset_col,
+                        model.train(x=cols_to_train, y=self.target, training_frame=train_frame,
+                                    offset_column=offset_col,
                                     **train_kwargs)
                     else:
                         model.train(x=train_X.names, y=self.target, training_frame=train_frame, **train_kwargs)
