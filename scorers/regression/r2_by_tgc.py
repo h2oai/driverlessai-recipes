@@ -81,10 +81,13 @@ class R2byTimeSeries(CustomScorer):
         # enable weighted average over TS R2 scores: weighted based on TS share of rows
         isR2AverageWeighted = False
 
+        # obtain a scorer for metric to use
+        scorer = self.get_scorer()
+
         if tgc is None or not all(col in X.names for col in tgc):
             loggerinfo(logger,
                        f"TS R2 computes single R2 on {X.nrows} rows as either tgc {tgc} is not defined or incorrect.")
-            return R2Scorer().score(actual, predicted, sample_weight, labels, **kwargs)
+            return scorer.score(actual, predicted, sample_weight, labels, **kwargs)
         else:
             tgc_values = X[:, {"weight": count() / X.nrows, "r2": 0.0}, by(tgc)]
             loggerinfo(logger,
@@ -97,7 +100,7 @@ class R2byTimeSeries(CustomScorer):
                 current_tgc = tgc_values[i, :]
                 current_tgc.key = tgc
                 ts_frame = X[:, :, join(current_tgc)][~isna(f.r2), :]
-                r2_score = R2Scorer().score(ts_frame['actual'].to_numpy(), ts_frame['predicted'].to_numpy(),
+                r2_score = scorer.score(ts_frame['actual'].to_numpy(), ts_frame['predicted'].to_numpy(),
                                             ts_frame['sample_weight'].to_numpy() if sample_weight is not None else None,
                                             labels, **kwargs)
                 tgc_values[i, f.r2] = r2_score
@@ -110,3 +113,6 @@ class R2byTimeSeries(CustomScorer):
                 return tgc_values[:, mean(f.r2 * f.weight)][0, 0]
             else:
                 return tgc_values[:, mean(f.r2)][0, 0]
+
+    def get_scorer(self):
+        return R2Scorer()
