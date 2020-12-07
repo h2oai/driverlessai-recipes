@@ -1,5 +1,5 @@
 """Create airlines dataset"""
-
+import uuid
 from typing import Union, List
 from h2oaicore.data import CustomData
 import datatable as dt
@@ -27,7 +27,7 @@ class AirlinesData(CustomData):
             data_file = zipfile.read()
             open(output_file, 'wb').write(data_file)
 
-        temp_path = os.path.join(user_dir(), config.contrib_relative_directory, "airlines")
+        temp_path = os.path.join(user_dir(), config.contrib_relative_directory, "airlines_%s" % str(uuid.uuid4()))
         os.makedirs(temp_path, exist_ok=True)
 
         link = AirlinesData.url
