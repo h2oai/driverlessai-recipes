@@ -20,7 +20,7 @@ class LightGBMTransformedOutcomeEstimator(BaseCustomModel, LightGBMModel):
             eval_set=None, sample_weight_eval_set=None, **kwargs):
         treatment_policy = np.mean(sample_weight)  # weights are carrying the treatment
         y = y * ((sample_weight - treatment_policy) / (treatment_policy * (1 - treatment_policy)))
-        return super().fit(X, y, None, eval_set, sample_weight_eval_set, **kwargs)
+        return super().fit(X, y, None, eval_set, None, **kwargs)
 
 
     @staticmethod

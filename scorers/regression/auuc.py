@@ -12,7 +12,7 @@ from distutils.util import strtobool
 class AUUC(CustomScorer):
     _description = "Area under uplift curve"
     _maximize = True  # whether a higher score is better
-    _perfect_score = 2.0  # the ideal score, used for early stopping once validation score achieves this value. AUUC can be slightly > 1.
+    _perfect_score = 2.0  # AUUC can be slightly > 1.
 
     _supports_sample_weight = False  # whether the scorer accepts and uses the sample_weight input
 
@@ -104,22 +104,22 @@ class AUUC(CustomScorer):
 
         lift = []
         for i, col in enumerate(model_names):
-            df = df.sort_values(col, ascending=False).reset_index(drop=True)
-            df.index = df.index + 1
+            df_sorted = df.sort_values(col, ascending=False).reset_index(drop=True)
+            df_sorted.index = df_sorted.index + 1
 
-            if treatment_effect_col in df.columns:
+            if treatment_effect_col in df_sorted.columns:
                 # When treatment_effect_col is given, use it to calculate the average treatment effects
                 # of cumulative population.
-                lift.append(df[treatment_effect_col].cumsum() / df.index)
+                lift.append(df_sorted[treatment_effect_col].cumsum() / df_sorted.index)
             else:
                 # When treatment_effect_col is not given, use outcome_col and treatment_col
                 # to calculate the average treatment_effects of cumulative population.
-                df['cumsum_tr'] = df[treatment_col].cumsum()
-                df['cumsum_ct'] = df.index.values - df['cumsum_tr']
-                df['cumsum_y_tr'] = (df[outcome_col] * df[treatment_col]).cumsum()
-                df['cumsum_y_ct'] = (df[outcome_col] * (1 - df[treatment_col])).cumsum()
+                df_sorted['cumsum_tr'] = df_sorted[treatment_col].cumsum()
+                df_sorted['cumsum_ct'] = df_sorted.index.values - df_sorted['cumsum_tr']
+                df_sorted['cumsum_y_tr'] = (df_sorted[outcome_col] * df_sorted[treatment_col]).cumsum()
+                df_sorted['cumsum_y_ct'] = (df_sorted[outcome_col] * (1 - df_sorted[treatment_col])).cumsum()
 
-                lift.append(df['cumsum_y_tr'] / df['cumsum_tr'] - df['cumsum_y_ct'] / df['cumsum_ct'])
+                lift.append(df_sorted['cumsum_y_tr'] / df_sorted['cumsum_tr'] - df_sorted['cumsum_y_ct'] / df_sorted['cumsum_ct'])
 
         lift = pd.concat(lift, join='inner', axis=1)
         lift.loc[0] = np.zeros((lift.shape[1],))
