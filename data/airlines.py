@@ -1,5 +1,5 @@
 """Create airlines dataset"""
-
+import uuid
 from typing import Union, List
 from h2oaicore.data import CustomData
 import datatable as dt
@@ -10,7 +10,7 @@ from h2oaicore.systemutils import user_dir
 
 class AirlinesData(CustomData):
     # base_url = "http://stat-computing.org/dataexpo/2009/"  # used to work, but 404 now
-    base_url = "http://www.rdatasciencecases.org/Data/Airline/"
+    url = "https://0xdata-public.s3.amazonaws.com/data_recipes_data/1987.csv.bz2"
 
     @staticmethod
     def create_data(X: dt.Frame = None) -> Union[str, List[str],
@@ -27,10 +27,10 @@ class AirlinesData(CustomData):
             data_file = zipfile.read()
             open(output_file, 'wb').write(data_file)
 
-        temp_path = os.path.join(user_dir(), config.contrib_relative_directory, "airlines")
+        temp_path = os.path.join(user_dir(), config.contrib_relative_directory, "airlines_%s" % str(uuid.uuid4()))
         os.makedirs(temp_path, exist_ok=True)
 
-        link = AirlinesData.base_url + "1987.csv.bz2"
+        link = AirlinesData.url
         file = download(link, dest_path=temp_path)
         output_file = file.replace(".bz2", "")
         print("%s %s" % (file, output_file))
