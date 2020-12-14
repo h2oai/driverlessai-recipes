@@ -1,11 +1,11 @@
 """Modified version of Driverless AI's internal LightGBM implementation with for quantile regression
 """
-from h2oaicore.models import BaseCustomModel, LightGBMModel
+from h2oaicore.models import BaseCustomModel, GLMModel
 import numpy as np
 from h2oaicore.systemutils import config
 import datatable as dt
 
-class LightGBMTransformedOutcome(BaseCustomModel, LightGBMModel):
+class GLMTransformedOutcome(BaseCustomModel, GLMModel):
     _regression = True
     _binary = False
     _multiclass = False
@@ -13,8 +13,8 @@ class LightGBMTransformedOutcome(BaseCustomModel, LightGBMModel):
     _is_reproducible = False  # might not reproduce identically on GPUs
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
-    _description = "Transformed Outcome Uplift Estimator based on LightGBM"
-    _display_name = "LightGBMTO"
+    _description = "Transformed Outcome Uplift Estimator based on GLM"
+    _display_name = "GLMTO"
 
     def fit(self, X: dt.Frame, y: np.array, sample_weight: np.array = None,
             eval_set=None, sample_weight_eval_set=None, **kwargs):
