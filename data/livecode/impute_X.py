@@ -7,14 +7,17 @@
 # Inputs:
 #   X: datatable - primary data set
 # Parameters:
-#   fill_numeric: numeric - filler for missing numeric values
+#   fill_int: integer - filler for missing integer values
+#   fill_float: numeric - filler for missing float values
 #   fill_char:  string - filler for missing string values
 #   fill_bool: bool - filler for missing logical values
 # Output:
 #   dataset with filled values
 
+# integer filler
+fill_int = 0
 # numeric filler
-fill_numeric = 0
+fill_float = 0.0
 # character filler
 fill_char = ""
 # boolean filler
@@ -22,16 +25,7 @@ fill_bool = False
 
 new_dataset_name = "new_dataset_name_after_filling_missing"
 
-for col in X.names:
-    if fill_numeric is not None and \
-            X[col].stype in [dt.int8, dt.int16, dt.int32, dt.int64,
-                             dt.float32, dt.float64]:
-        X[dt.isna(dt.f[col]), col] = fill_numeric
-    elif fill_char is not None and \
-            X[col].stype in [dt.str32, dt.str64]:
-        X[dt.isna(dt.f[col]), col] = fill_char
-    elif fill_bool is not None and \
-            X[col].stype == dt.bool8:
-        X[dt.isna(dt.f[col]), col] = fill_bool
+replacements = [fill_value for fill_value in [fill_int, fill_float, fill_char, fill_bool] if fill_value is not None]
+X.replace(None, replacements)
 
 return {new_dataset_name: X}

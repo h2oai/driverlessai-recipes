@@ -952,7 +952,11 @@ after modifications specific to a dataset it applies to.
 
       
 
-       fill_numeric: numeric - filler for missing numeric values  
+       fill_int: integer - filler for missing integer values  
+
+      
+
+       fill_float: numeric - filler for missing float values  
 
       
 
