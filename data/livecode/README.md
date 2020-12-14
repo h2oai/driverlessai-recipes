@@ -33,7 +33,7 @@ after modifications specific to a dataset it applies to.
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
-### Count: 29
+### Count: 30
   * [add\_columns\_with\_rand\_values.py](./add_columns_with_rand_values.py) [ Add one or more columns containing random integer values  
 
       
@@ -75,6 +75,68 @@ after modifications specific to a dataset it applies to.
       
 
        dataset containing all rows from both datasets  
+
+      
+
+    ]  
+
+  * [aggregate\_columns\_with\_groupby.py](./aggregate_columns_with_groupby.py) [ Compute aggregates with per-column expressions (means and sums in this example)  
+
+      
+
+     for numeric (int, float) columns by groups.  
+
+      
+
+     New frame contains computed aggregates of the columns and group by columns.  
+
+      
+
+     see: compute_stats_by_groups_per_column.py and  
+
+      
+
+          https://stackoverflow.com/questions/62974899/updating-or-adding-multiple-columns-with-pydatatable-in-style-of-r-datables-sd  
+
+      
+
+      
+
+      
+
+     Specification:  
+
+      
+
+     Inputs:  
+
+      
+
+       X: datatable - primary data set  
+
+      
+
+       mean_columns: list of str - columns to compute means on (change to the aggregates and columns of your choice)  
+
+      
+
+       sum_columns: list of str - columns to compute sums on (change to the aggregates and columns of your choice)  
+
+      
+
+     Parameters:  
+
+      
+
+       group_by_cols: list of column names - group columns to aggregate by  
+
+      
+
+     Output:  
+
+      
+
+       dataset with computed aggregates and groups  
 
       
 
@@ -1399,6 +1461,10 @@ after modifications specific to a dataset it applies to.
       
 
        split_date: date/time - temporal value to split dataset on  
+
+      
+
+       date_format: string - date format to parse date in pandas, if None then no parsing takes place  
 
       
 
