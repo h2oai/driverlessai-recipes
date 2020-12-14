@@ -1,4 +1,4 @@
-"""Modified version of Driverless AI's internal LightGBM implementation with for quantile regression
+"""Modified version of Driverless AI's internal GLM implementation with for quantile regression
 """
 from h2oaicore.models import BaseCustomModel, GLMModel
 import numpy as np
