@@ -150,9 +150,9 @@ class PortugueseBertModel(CustomBertModel):
     _model_path = os.path.join(temporary_files_path, "portuguese_bert_language_model/")
 
     # Hugging Face model for Portuguese language found here: https://huggingface.co/neuralmind/bert-base-portuguese-cased/tree/main
-    _model_link = "https://huggingface.co/neuralmind/bert-base-portuguese-cased/blob/main/pytorch_model.bin"
-    _config_link = "https://huggingface.co/neuralmind/bert-base-portuguese-cased/blob/main/config.json"
-    _vocab_link = "https://huggingface.co/neuralmind/bert-base-portuguese-cased/blob/main/vocab.txt"
+    _model_link = "https://huggingface.co/neuralmind/bert-base-portuguese-cased/resolve/main/pytorch_model.bin"
+    _config_link = "https://huggingface.co/neuralmind/bert-base-portuguese-cased/resolve/main/config.json"
+    _vocab_link = "https://huggingface.co/neuralmind/bert-base-portuguese-cased/resolve/main/vocab.txt"
 
     _mojo = True
 
