@@ -4,7 +4,7 @@ import numpy as np
 import logging
 from h2oaicore.models import CustomModel
 from sklearn.preprocessing import LabelEncoder
-from h2oaicore.systemutils import physical_cores_count
+from h2oaicore.systemutils import physical_cores_count, config
 
 
 class GA2MModel(CustomModel):
@@ -35,11 +35,13 @@ class GA2MModel(CustomModel):
             self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
     ):
         # Fill up parameters we care about
+        n_estimators = min(kwargs.get("n_estimators", 100), 1000) if not config.hard_asserts else 1
+        max_tree_splits = min(kwargs.get("max_tree_splits", 10), 200) if not config.hard_asserts else 3
         self.params = dict(
             random_state=kwargs.get("random_state", 1234),
-            n_estimators=min(kwargs.get("n_estimators", 100), 1000),
+            n_estimators=n_estimators,
             interactions=1 if self.num_classes <= 2 else 0,
-            max_tree_splits=min(kwargs.get("max_tree_splits", 10), 200),
+            max_tree_splits=max_tree_splits,
             learning_rate=max(kwargs.get("learning_rate", 0.1), 0.0001),
             n_jobs=self.params_base.get("n_jobs", max(1, physical_cores_count)),
         )
@@ -59,8 +61,8 @@ class GA2MModel(CustomModel):
             learning_rate_list = [0.03, 0.04, 0.06, 0.1, 0.12, 0.15]
 
         # Modify certain parameters for tuning
-        self.params["n_estimators"] = int(np.random.choice(estimators_list))
-        self.params["max_tree_splits"] = int(np.random.choice(max_tree_splits_list))
+        self.params["n_estimators"] = int(np.random.choice(estimators_list)) if not config.hard_asserts else 1
+        self.params["max_tree_splits"] = int(np.random.choice(max_tree_splits_list)) if not config.hard_asserts else 3
         self.params["learning_rate"] = float(np.random.choice(learning_rate_list))
 
     def get_importances(self, model, num_cols):
