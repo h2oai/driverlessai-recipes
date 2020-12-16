@@ -50,7 +50,7 @@ class GAM(CustomModel):
 
         self.params["lam"] = np.random.choice(lam)
         if config.hard_asserts:  # override if CI testing, too slow otherwise
-            max_iter = 1
+            max_iter = [1]
         self.params["max_iter"] = np.random.choice(max_iter)
 
     def _create_tmp_folder(self, logger):
