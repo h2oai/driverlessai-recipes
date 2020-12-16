@@ -27,9 +27,12 @@ class GAM(CustomModel):
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
         # Fill up parameters we care about
+        # override if CI testing, too slow otherwise
+        max_iter = 100 if not config.hard_asserts else 1
+        n_estimators = 10 if not config.hard_asserts else 1
         self.params = dict(random_state=kwargs.get("random_state", 1234),
-                           max_depth_duplication=None, n_estimators=10,
-                           lam=0.1, max_iter=100)
+                           max_depth_duplication=None, n_estimators=n_estimators,
+                           lam=0.1, max_iter=max_iter)
 
     def mutate_params(self, accuracy=10, **kwargs):
 
@@ -46,6 +49,8 @@ class GAM(CustomModel):
             max_iter = [100]
 
         self.params["lam"] = np.random.choice(lam)
+        if config.hard_asserts:  # override if CI testing, too slow otherwise
+            max_iter = 1
         self.params["max_iter"] = np.random.choice(max_iter)
 
     def _create_tmp_folder(self, logger):
