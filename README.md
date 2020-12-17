@@ -59,7 +59,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
-### Count: 193
+### Count: 197
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -76,6 +76,8 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [create_transactional_data_or_convert_to_iid.py](./data/create_transactional_data_or_convert_to_iid.py) [Example code to generate and convert transactional data to i.i.d. data.] 
   * [creditcard.py](./data/creditcard.py) [Modify credit card dataset] 
   * [data_template.py](./data/data_template.py) [Custom data recipe base class] 
+  * [data_test.py](./data/data_test.py) [Create test dataset] 
+  * [data_test_multiple.py](./data/data_test_multiple.py) [Create multiple dataset test] 
   * [feature_selection.py](./data/feature_selection.py) [please add description] 
   * [generate_random_int_columns.py](./data/generate_random_int_columns.py) [Data recipe to add one or more columns containing random integers.] 
   * [ieee_data_puddle.py](./data/ieee_data_puddle.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection] 
@@ -111,6 +113,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.] 
   * [ALGORITHMS](./models/algorithms)
+    * [auto_gluon.py](./models/algorithms/auto_gluon.py) [AutoGluon] 
     * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines] <kbd>✓ MOJO Enabled</kbd>
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.] 
     * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL] 
@@ -145,6 +148,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [monotonic_models.py](./models/monotonic/monotonic_models.py) [LightGBM/XGBoostGBM/DecisionTree with user-given monotonicity constraints (1/-1/0) for original numeric features] 
   * [NLP](./models/nlp)
     * [finbert.py](./models/nlp/finbert.py) [Custom Bert model which uses FinBert pretrained weights. Can easily be adapted to other pretrained models, like SciBert.] <kbd>✓ MOJO Enabled</kbd>
+    * [portuguese_bert.py](./models/nlp/portuguese_bert.py) [Custom Bert model pretrained on Portuguese.] <kbd>✓ MOJO Enabled</kbd>
     * [text_binary_count_logistic.py](./models/nlp/text_binary_count_logistic.py) [Text classification model using binary count of words] 
     * [text_tfidf_model.py](./models/nlp/text_tfidf_model.py) [Text classification / regression model using TFIDF] 
     * [text_tfidf_model_continuous.py](./models/nlp/text_tfidf_model_continuous.py) [Text classification model using TFIDF] 
