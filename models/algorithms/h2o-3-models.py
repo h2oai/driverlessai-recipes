@@ -315,7 +315,7 @@ class H2ONBModel(H2OBaseModel, CustomModel):
     def predict(self, X, **kwargs):
         preds = super().predict(X, **kwargs)
         preds = np.nan_to_num(preds, copy=False)  # get rid of infs
-        if self.num_classes > 1 and \
+        if self.num_classes > 2 and \
                 not np.isclose(np.sum(preds, axis=1), np.ones(preds.shape[0])).all():
             raise IgnoreEntirelyError
         return preds
