@@ -57,10 +57,12 @@ class MyData(CustomData):
         folder_path = 'tmp/'
         # Data file
         data_file = 'housing_train_proc.csv'
+        full_data_file = folder_path + data_file
 
-        train = pd.read_csv(folder_path + data_file)
-        if not os.path.isfile(train):
+        if not os.path.isfile(full_data_file):
             return []
+
+        train = pd.read_csv(full_data_file)
 
         validation_test_files = ['housing_test_proc.csv']
 
