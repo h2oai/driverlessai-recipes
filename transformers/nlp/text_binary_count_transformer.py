@@ -53,7 +53,7 @@ class TextBinaryCountTransformer(CustomTransformer):
         add repeated values to enforce non-uniformity of returned values, if desired.
         """
         return {"max_ngram": [1, 2, 3],
-                "max_tokens": [20000, 50000, 100000, None],
+                "max_tokens": [2000, 5000, 10000],  # this will be number of output features!
                 "max_df": [0.8, 0.9, 1.0],
                 "do_binary": [True],
                 "do_lowercase": [True],
