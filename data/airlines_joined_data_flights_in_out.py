@@ -22,7 +22,7 @@ from h2oaicore.systemutils import user_dir
 
 class AirlinesData(CustomData):
     # base_url = "http://stat-computing.org/dataexpo/2009/"  # used to work, but 404 now
-    base_url = "http://www.rdatasciencecases.org/Data/Airline/"
+    base_url = "https://0xdata-public.s3.amazonaws.com/data_recipes_data/"
 
     @staticmethod
     def create_data(X: dt.Frame = None) -> Union[str, List[str],
@@ -120,7 +120,7 @@ class AirlinesData(CustomData):
                       ('TailNum', 'plane-data.csv', 'tailnum')]
 
         for join_key, file, col in join_files:
-            file = download('http://stat-computing.org/dataexpo/2009/%s' % file, dest_path=temp_path)
+            file = download('https://0xdata-public.s3.amazonaws.com/data_recipes_data/%s' % file, dest_path=temp_path)
             X_join = dt.fread(file, fill=True)
             X_join.names = {col: join_key}
             X_join.names = [join_key] + [join_key + "_" + x for x in X_join.names if x != join_key]
