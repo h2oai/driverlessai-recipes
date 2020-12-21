@@ -34,7 +34,8 @@ class TextTFIDFModel(CustomModel):
             lb = LabelEncoder()
             lb.fit(self.labels)
             y = lb.transform(y)
-            model = LogisticRegression(random_state=2019)
+            # somehow seeing: solver lbfgs supports only \\'l2\\' or \\'none\\' penalties, got l1 penalty.
+            model = LogisticRegression(random_state=2019, solver='lbfgs', penalty='l2')
         else:
             model = LinearRegression()
 

@@ -10,7 +10,7 @@ from h2oaicore.systemutils import user_dir
 
 class AirlinesData(CustomData):
     # base_url = "http://stat-computing.org/dataexpo/2009/"  # used to work, but 404 now
-    base_url = "http://www.rdatasciencecases.org/Data/Airline/"
+    base_url = "https://0xdata-public.s3.amazonaws.com/data_recipes_data/"
 
     @staticmethod
     def create_data(X: dt.Frame = None) -> Union[str, List[str],

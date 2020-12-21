@@ -14,6 +14,8 @@ import shutil, os
 class CropDataset(CustomData):
     @staticmethod
     def create_data():
+        if not os.path.isdir(DATA_DIR):
+            return []
         ## images - folder containing original images
         ## cropped - folder to store cropped images
         ## labels.csv - filename consisting of labels
