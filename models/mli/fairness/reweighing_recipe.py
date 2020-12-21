@@ -57,6 +57,12 @@ class MyData(CustomData):
         folder_path = 'tmp/'
         # Data file
         data_file = 'housing_train_proc.csv'
+        full_data_file = folder_path + data_file
+
+        if not os.path.isfile(full_data_file):
+            return []
+
+        train = pd.read_csv(full_data_file)
 
         validation_test_files = ['housing_test_proc.csv']
 
@@ -77,7 +83,6 @@ class MyData(CustomData):
         # Set up protected group info
         protected_groups = [group_info[0] for group_info in protected_group_info]
 
-        train = pd.read_csv(folder_path + data_file)
         dataset_orig = BinaryLabelDataset(df=train, label_names=[target], favorable_label=favorable_label,
                                           unfavorable_label=unfavorable_label,
                                           protected_attribute_names=protected_groups)
