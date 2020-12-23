@@ -28,7 +28,7 @@ def get_value(config, key):
         return None
 
 
-class TextTFIDFModel(CustomModel):
+class TextTFIDFContinuousModel(CustomModel):
     """Text classification / regression model using TFIDF"""
     _regression = False
     _binary = True
