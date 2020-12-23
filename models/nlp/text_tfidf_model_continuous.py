@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.ensemble import ExtraTreesClassifier
 from h2oaicore.models import CustomModel
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.systemutils import config, remove, user_dir, arch_type, get_num_gpus_for_prediction
+from h2oaicore.systemutils import config, remove, user_dir, arch_type, get_num_gpus_for_prediction, IgnoreEntirelyError
 import joblib
 import copy
 import ast
@@ -273,8 +273,15 @@ class TextTFIDFModel(CustomModel):
                 **self.return_rf_params()
             ))
 
-        for m in models:
-            m.fit(new_X, y)
+        for mi, m in enumerate(models):
+            try:
+                m.fit(new_X, y)
+            except ValueError as e:
+                # general mutation as specified is not alllowed, see logistic_regression recipe.
+                # Could use restricted choices there, but for simplicity just ignore the error entirely
+                if mi == 0:
+                    raise IgnoreEntirelyError(str(e))
+                raise
 
         importances = [1] * len(orig_cols)
         self.set_model_properties(
