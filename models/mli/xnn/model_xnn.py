@@ -451,12 +451,12 @@ class CustomXNNModel(CustomTensorFlowModel):
 
         return preds
 
-    def get_model(self):
+    def get_model(self, X_shape=(1, 1), **kwargs):
         import h2oaicore.keras as keras
         with keras.utils.CustomObjectScope({'SplitLayer': SplitLayer}):
             if self.model is None:
                 self.did_get_model = True
                 assert self.model_bytes is not None
-                self.pre_get_model()
+                self.pre_get_model(X_shape=X_shape, **kwargs)
                 self.model = load_obj_bytes(self.model_bytes)
             return self.model

@@ -334,7 +334,7 @@ class TextTFIDFContinuousModel(CustomModel):
             preds = preds[0]
         return preds
 
-    def pre_get_model(self):  # copy-paste from LightGBM model class
+    def pre_get_model(self, X_shape=(1, 1), **kwargs):  # copy-paste from LightGBM model class
         from h2oaicore.lightgbm_dynamic import got_cpu_lgb, got_gpu_lgb
 
         if arch_type == 'ppc64le':
