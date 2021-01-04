@@ -104,8 +104,12 @@ class AudioDataset(CustomData):
     def create_data():
         # Path to the directory with audios
         path_to_files = os.path.join(DATA_DIR, "audio/")
+        if not os.path.isdir(path_to_files):
+            return []
         # Path to a .csv with labels. First column is audio name, second column is label
         path_to_labels = os.path.join(DATA_DIR, "labels.csv")
+        if not os.path.isfile(path_to_labels):
+            return []
 
         # Create output directory
         output_path = os.path.join(path_to_files, "mel_spectrograms/")
