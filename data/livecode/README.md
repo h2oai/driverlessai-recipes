@@ -33,7 +33,7 @@ after modifications specific to a dataset it applies to.
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
-### Count: 30
+### Count: 33
   * [add\_columns\_with\_rand\_values.py](./add_columns_with_rand_values.py) [ Add one or more columns containing random integer values  
 
       
@@ -67,6 +67,60 @@ after modifications specific to a dataset it applies to.
       
 
        min_max_values: tuple - the reange (minimum and maximum) to pick random integers from  
+
+      
+
+     Output:  
+
+      
+
+       dataset containing all rows from both datasets  
+
+      
+
+    ]  
+
+  * [aggregate\_and\_augment\_one\_to\_many.py](./aggregate_and_augment_one_to_many.py) [ Template for augmenting data based on one-to-many relationship between datasets X (e.g. header level)   
+
+      
+
+     and Y (e.g. line item). The recipe performs:  
+
+      
+
+      1. aggregates Y by X's primary key and then   
+
+      
+
+      2. augments X by joining aggregated Y's data.  
+
+      
+
+      
+
+      
+
+     Specification:  
+
+      
+
+     Inputs:  
+
+      
+
+       X: datatable - primary header level dataset  
+
+      
+
+       Y_name: string - Y dataset location to aggregate and augment X  
+
+      
+
+     Parameters:  
+
+      
+
+       primary_key_cols: list of strings - column name(s) representing X primary key  
 
       
 
@@ -1432,6 +1486,56 @@ after modifications specific to a dataset it applies to.
 
     ]  
 
+  * [split\_and\_transpose\_string.py](./split_and_transpose_string.py) [ Template to parse and split a character column using pandas str.split,   
+
+      
+
+     then assign the transposed results to individual columns.   
+
+      
+
+      
+
+      
+
+     Specification:  
+
+      
+
+     Inputs:  
+
+      
+
+       X: datatable - primary dataset  
+
+      
+
+     Parameters:  
+
+      
+
+       col_name: str - column containing string to split  
+
+      
+
+       sep: str - separator to use when splitting  
+
+      
+
+       transposed_col_names: list of str - column names with transposed values  
+
+      
+
+     Output:  
+
+      
+
+       dataset containing new columns with transposed values  
+
+      
+
+    ]  
+
   * [split\_by\_datetime.py](./split_by_datetime.py) [ Split dataset into two partitions by time given  
 
       
@@ -1557,6 +1661,56 @@ after modifications specific to a dataset it applies to.
       
 
        MAX_PARTITIONS: int - maximum number of partition datasets to create  
+
+      
+
+    ]  
+
+  * [transform\_features.py](./transform_features.py) [ Map and create new features by adding new columns or with in-place update.  
+
+      
+
+     For example, use for mapping multi-valued key to single column or  
+
+      
+
+     any other types of map (row by row) transformations.  
+
+      
+
+      
+
+      
+
+     Specification:  
+
+      
+
+     Inputs:  
+
+      
+
+       X: datatable - primary dataset  
+
+      
+
+     Parameters:  
+
+      
+
+       transformations: map - map with datatable transformation in the form of key: value pairs where key  
+
+      
+
+                        is new / existing column name and value is datatable expression for this column.  
+
+      
+
+     Output:  
+
+      
+
+       dataset containing original and transformed features  
 
       
 
