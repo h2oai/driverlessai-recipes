@@ -69,6 +69,14 @@ class CatBoostModel(CustomModel):
     def acceptance_test_timeout():
         return 20.0
 
+    @property
+    def has_pred_contribs(self):
+        return True
+
+    @property
+    def has_output_margin(self):
+        return True
+
     _modules_needed_by_name = ['catboost']
 
     def set_default_params(self,
@@ -353,7 +361,7 @@ class CatBoostModel(CustomModel):
                         eval_set = [(valid_X, valid_y)]
         return X, eval_set
 
-    def predict(self, X, **kwargs):
+    def predict(self, X, y=None, **kwargs):
         model, features, importances, iterations = self.get_model_properties()
         if not self._save_by_pickle:
             from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
@@ -374,24 +382,21 @@ class CatBoostModel(CustomModel):
 
         X, eval_set = self.process_cats(X, None, self.feature_names_fitted)
 
-        pred_contribs = kwargs.get('pred_contribs', None)
-        output_margin = kwargs.get('output_margin', None)
+        pred_contribs = kwargs.get('pred_contribs', False)
+        output_margin = kwargs.get('output_margin', False)
         fast_approx = kwargs.pop('fast_approx', False)
         if fast_approx:
-            kwargs['ntree_limit'] = min(config.fast_approx_num_trees, iterations - 1)
-            kwargs['approx_contribs'] = pred_contribs
-        else:
-            kwargs['ntree_limit'] = iterations - 1
+            iterations = min(config.fast_approx_num_trees, iterations)
 
         # implicit import
-        from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
+        from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType, Pool
         n_jobs = max(1, physical_cores_count)
-        if not pred_contribs:
+        if not pred_contribs and not output_margin:
             if self.num_classes >= 2:
                 preds = model.predict_proba(
                     data=X,
                     ntree_start=0,
-                    ntree_end=iterations - 1,
+                    ntree_end=iterations,  # index of first tree *not* to be used
                     thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
                 )
 
@@ -403,19 +408,74 @@ class CatBoostModel(CustomModel):
                 return model.predict(
                     data=X,
                     ntree_start=0,
-                    ntree_end=iterations - 1,
+                    ntree_end=iterations,  # index of first tree *not* to be used
                     thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
                 )
-        else:
-            # For Shapley, doesn't come from predict, instead:
-            return model.get_feature_importance(
-                data=X,
-                ntree_start=0,
-                ntree_end=iterations - 1,
+        elif output_margin:
+            # uses "predict" for raw for any class
+            preds = model.predict(
+                    data=X,
+                    prediction_type="RawFormulaVal",
+                    ntree_start=0,
+                    ntree_end=iterations,  # index of first tree *not* to be used
+                    thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
+                )
+            if len(preds.shape) > 1 and preds.shape[1] == 2 and self.num_classes == 2:
+                return preds[:, 1]
+            else:
+                return preds
+        elif pred_contribs:
+            # For Shapley, doesn't come from predict
+            # For regression/binary, shap is shape of (rows, features + bias)
+            # for multiclass, shap is shape of (rows, classes, features + bias)
+            data = Pool(X, label=y, cat_features=self.params['cat_features'])
+            preds_shap = model.get_feature_importance(
+                data=data,
                 thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported,
                 type=EFstrType.ShapValues
             )
-            # FIXME: Do equivalent of preds = self._predict_internal_fixup(preds, **mykwargs) or wrap-up
+            # repair broken shap sum: https://github.com/catboost/catboost/issues/1125
+            preds_raw = model.predict(
+                    data=X,
+                    prediction_type="RawFormulaVal",
+                    ntree_start=0,
+                    ntree_end=iterations,  # index of first tree *not* to be used
+                    thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
+                )
+            if self.num_classes <= 2:
+                axis = 1
+            else:
+                axis = 2
+            orig_sum = np.sum(preds_shap, axis=axis)
+            # avoid division by 0, need different trick, e.g. change baseline, to fix that case
+            if axis == 1:
+                orig_sum[orig_sum[:] == 0.0] = 1.0
+                preds_shap = preds_shap * preds_raw[:, None] / orig_sum[:, None]
+            else:
+                # each feature and each class must sum up
+                orig_sum[orig_sum[:, :] == 0.0] = 1.0
+                preds_shap = preds_shap * preds_raw[:, :, None] / orig_sum[:, :, None]
+
+            if config.hard_asserts and config.debug_daimodel_level >= 2:
+                model.save_model("catshapproblem")
+                pickle.dump((X, y, self.params['cat_features']), open("catshapproblem.pkl", "wb"))
+                preds_raw = model.predict(
+                        data=X,
+                        prediction_type="RawFormulaVal",
+                        ntree_start=0,
+                        ntree_end=iterations,  # index of first tree *not* to be used
+                        thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
+                    )
+
+                assert np.isclose(preds_raw, np.sum(preds_shap, axis=axis)).all(), "catboost shapley does not sum up correctly"
+            if axis == 1:
+                return preds_shap
+            else:
+                # DAI expects (shape rows) * (classes x (features + 1)) with "columns" as blocks of
+                # feature_0_class_0 feature_0_class_0 ... feature_0_class_1 feature_1_class_1 ...
+                return preds_shap.reshape(preds_shap.shape[0], preds_shap.shape[1]*preds_shap.shape[2])
+        else:
+            raise RuntimeError("No such case")
 
     def transcribe_and_filter_params(self, params, has_eval_set):
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
