@@ -29,6 +29,7 @@ class CatBoostModel(CustomModel):
     _can_handle_non_numeric = True
     _fit_by_iteration = True
     _fit_iteration_name = 'n_estimators'
+    _is_gbm = True  # ensure final model changes n_estimators and learning_rate and complain if early stopping didn't work.
     _predict_by_iteration = True
     _predict_iteration_name = 'ntree_end'
     _save_by_pickle = True  # if False, use catboost save/load model as intermediate binary file
@@ -40,6 +41,7 @@ class CatBoostModel(CustomModel):
     _show_task_test = False  # set to True to see how task is used to send message to GUI
 
     _min_one_hot_max_size = 4
+    _min_learning_rate_catboost = 0.01  # for catboost often for same low learning rate as xgb/lgb, too many trees
 
     def __init__(self, context=None,
                  unfitted_pipeline_path=None,
@@ -121,6 +123,9 @@ class CatBoostModel(CustomModel):
             else:
                 self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 65535)
 
+        self.params['learning_rate'] = max(config.min_learning_rate,
+                                           max(self._min_learning_rate_catboost, self.params['learning_rate']))
+
     def mutate_params(self, **kwargs):
         fake_lgbm_model = LightGBMModel(**self.input_dict)
         fake_lgbm_model.params = self.params.copy()
@@ -170,6 +175,8 @@ class CatBoostModel(CustomModel):
         # self.params['od_type']
         # self.params['od_pval']
         # self.params['od_wait']
+        self.params['learning_rate'] = max(config.min_learning_rate,
+                                           max(self._min_learning_rate_catboost, self.params['learning_rate']))
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         logger = None
@@ -620,6 +627,8 @@ class CatBoostModel(CustomModel):
         params['n_estimators'] = self.params_base.get('n_estimators', 100)
         params['learning_rate'] = self.params_base.get('learning_rate', config.min_learning_rate)
         params['learning_rate'] = min(params['learning_rate'], 0.5)  # 1.0 leads to illegal access on GPUs
+        params['learning_rate'] = max(config.min_learning_rate,
+                                           max(self._min_learning_rate_catboost, params['learning_rate']))
         if 'early_stopping_rounds' not in params and has_eval_set:
             params['early_stopping_rounds'] = 150  # temp fix
             # assert 'early_stopping_rounds' in params
