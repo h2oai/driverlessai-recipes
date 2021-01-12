@@ -41,6 +41,7 @@ class CustomModel(BaseCustomModel):
     _parallel_task = True  # if enabled, params_base['n_jobs'] will be >= 1 (adaptive to system), otherwise 1
     _can_use_gpu = False  # if enabled, will use special job scheduler for GPUs
     _can_use_multi_gpu = False  # if enabled, can get access to multiple GPUs for single transformer (experimental)
+    _get_gpu_lock = False  # whether to lock GPUs for this model before fit and predict
     _description = NotImplemented
     _check_stall = True  # whether to check for stall, should disable if separate server running task
 
@@ -107,7 +108,7 @@ class CustomModel(BaseCustomModel):
         return config.acceptance_test_timeout
 
     @staticmethod
-    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, **kwargs):
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
         """
         Return whether the model can be used given the settings and parameters that are passed in.
 
@@ -347,6 +348,7 @@ class CustomTensorFlowModel(CustomModel, TensorFlowModel):
     _tensorflow = True
     _parallel_task = True
     _can_use_gpu = True
+    _get_gpu_lock = True
     _can_use_multi_gpu = True  # conservative, force user to override
 
     def setup_keras_session(self):
