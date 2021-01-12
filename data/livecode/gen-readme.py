@@ -48,7 +48,7 @@ for f in sorted(livecode_files):
 print("""# Live Code Templates for H2O Driverless AI Datasets
 
 ## About Driverless AI and BYOR 
-See main [README](https://github.com/h2oai/driverlessai-recipes/README.md)
+See main [README](https://github.com/h2oai/driverlessai-recipes/blob/master/README.md)
 
 ## About Data Recipes
 Driverless AI allows you to create a new dataset by modifying an existing dataset with a data recipe. 
