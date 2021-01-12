@@ -39,7 +39,7 @@ for f in sorted(livecode_files):
             #docstring = get_file_docstring(os.path.join(livecode_path, f)) or \
             #            "please add description"
             with open(os.path.join(livecode_path, f)) as ff:
-                first_line = ff.readline().replace("\n", "")
+                first_line = ff.readline().replace("\n", "").replace("# ", "")
             docstring = first_line
             what = "[" + f.replace("_", "\_") + "](" + "./" + f + ")"
             print_offset(depth + 1, "%s [%s]" % (what, docstring), ret)
