@@ -1,7 +1,7 @@
 # Live Code Templates for H2O Driverless AI Datasets
 
 ## About Driverless AI and BYOR 
-See main [README](https://github.com/h2oai/driverlessai-recipes/README.md)
+See main [README](https://github.com/h2oai/driverlessai-recipes/blob/master/README.md)
 
 ## About Data Recipes
 Driverless AI allows you to create a new dataset by modifying an existing dataset with a data recipe. 
@@ -21,18 +21,6 @@ after modifications specific to a dataset it applies to.
 * [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
 
 ## Sample Recipes
-[Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)
- [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)
- [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)
- [1.8.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.1)
- [1.8.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.2)
- [1.8.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.3)
- [1.8.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.4)
- [1.8.5](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.5)
- [1.8.6](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.6)
- [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
- [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
- [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
 ### Count: 34
   * [add\_columns\_with\_rand\_values.py](./add_columns_with_rand_values.py) [Add one or more columns containing random integer values]  
 
