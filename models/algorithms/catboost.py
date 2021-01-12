@@ -132,44 +132,59 @@ class CatBoostModel(CustomModel):
         fake_lgbm_model.params_base = self.params_base.copy()
         fake_lgbm_model.params.update(fake_lgbm_model.params_base)
         kwargs['train_shape'] = kwargs.get('train_shape', (10000, 500))
+        kwargs['from_catboost'] = True
         fake_lgbm_model.mutate_params(**kwargs)
         self.params.update(fake_lgbm_model.params)
-        fake_lgbm_model.transcribe_params(params=self.params)
+        fake_lgbm_model.transcribe_params(params=self.params, **kwargs)
         self.params.update(fake_lgbm_model.lightgbm_params)
+
+        get_best = kwargs.get('get_best', True)
+        if get_best is None:
+            get_best = True
+        trial = kwargs.get('trial', False)
+        if trial is None:
+            trial = False
 
         # see what else can mutate, need to know things don't want to preserve
         uses_gpus, n_gpus = self.get_uses_gpus(self.params)
         if not uses_gpus:
-            self.params['colsample_bylevel'] = MainModel.get_one([0.3, 0.5, 0.9, 1.0])
+            colsample_bylevel_list = [0.3, 0.5, 0.9, 1.0]
+            self.params['colsample_bylevel'] = MainModel.get_one(colsample_bylevel_list, get_best=get_best, best_type="first", name="colsample_bylevel", trial=trial)
 
         if not (uses_gpus and self.num_classes > 2):
-            self.params['boosting_type'] = MainModel.get_one(['Plain', 'Ordered'])
+            boosting_type_list = ['Plain', 'Ordered']
+            self.params['boosting_type'] = MainModel.get_one(boosting_type_list, get_best=get_best, best_type="first", name="boosting_type", trial=trial)
 
         if self._can_handle_categorical:
             max_cat_to_onehot_list = [4, 10, 20, 40, config.max_int_as_cat_uniques]
-            self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list)
             if uses_gpus:
-                self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 255)
+                max_one_hot_max_size = 255
             else:
-                self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 65535)
+                max_one_hot_max_size = 65535
+            max_cat_to_onehot_list = sorted(set([min(x, max_one_hot_max_size) for x in max_cat_to_onehot_list]))
+            log = True if max(max_cat_to_onehot_list) > 1000 else False
+            self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list, get_best=get_best, best_type="max", name="one_hot_max_size", trial=trial, log=log)
 
         if not uses_gpus:
-            self.params['sampling_frequency'] = MainModel.get_one(
-                ['PerTree', 'PerTreeLevel', 'PerTreeLevel', 'PerTreeLevel'])
+            sampling_frequency_list = ['PerTree', 'PerTreeLevel', 'PerTreeLevel', 'PerTreeLevel']
+            self.params['sampling_frequency'] = MainModel.get_one(sampling_frequency_list, get_best=get_best, best_type="first", name="sampling_frequency", trial=trial)
 
         bootstrap_type_list = ['Bayesian', 'Bayesian', 'Bayesian', 'Bayesian', 'Bernoulli', 'MVS', 'Poisson', 'No']
         if not uses_gpus:
             bootstrap_type_list.remove('Poisson')
         if uses_gpus:
             bootstrap_type_list.remove('MVS')  # undocumented CPU only
-        self.params['bootstrap_type'] = MainModel.get_one(bootstrap_type_list)
+        self.params['bootstrap_type'] = MainModel.get_one(bootstrap_type_list, get_best=get_best, best_type="first", name="bootstrap_type", trial=trial)
 
-        if self.params['bootstrap_type'] in ['Poisson', 'Bernoulli']:
-            self.params['subsample'] = MainModel.get_one(
-                [0.5, 0.66, 0.66, 0.9])  # will get pop'ed if not Poisson/Bernoulli
+        # lgbm usage already sets subsample
+        #if self.params['bootstrap_type'] in ['Poisson', 'Bernoulli']:
+        #    subsample_list = [0.5, 0.66, 0.66, 0.9]
+        #    # will get pop'ed if not Poisson/Bernoulli
+        #    self.params['subsample'] = MainModel.get_one(subsample_list, get_best=get_best, best_type="first", name="subsample", trial=trial)
 
         if self.params['bootstrap_type'] in ['Bayesian']:
-            self.params['bagging_temperature'] = MainModel.get_one([0, 0.1, 0.5, 0.9, 1.0])
+            bagging_temperature_list = [0.0, 0.1, 0.5, 0.9, 1.0]
+            self.params['bagging_temperature'] = MainModel.get_one(bagging_temperature_list, get_best=get_best, best_type="first", name="bagging_temperature", trial=trial)
 
         # overfit protection different sometimes compared to early_stopping_rounds
         # self.params['od_type']
@@ -282,16 +297,16 @@ class CatBoostModel(CustomModel):
         self.acquire_gpus_function(train_shape=X.shape, valid_shape=valid_X_shape)
 
         params = copy.deepcopy(self.params)  # keep separate, since then can be pulled form lightgbm params
-        params = self.transcribe_and_filter_params(params, eval_set is not None)
+        params = self.transcribe_params(params=params, **kwargs)
 
         if logger is not None:
             loggerdata(logger, "CatBoost parameters: params_base : %s params: %s catboost_params: %s" % (
                 str(self.params_base), str(self.params), str(params)))
 
         if self.num_classes == 1:
-            model = CatBoostRegressor(**params)
+            self.model = CatBoostRegressor(**params)
         else:
-            model = CatBoostClassifier(**params)
+            self.model = CatBoostClassifier(**params)
         # Hit sometimes: Exception: catboost/libs/data_new/quantization.cpp:779: All features are either constant or ignored.
         if self.num_classes == 1:
             # assume not mae, which would use median
@@ -300,39 +315,41 @@ class CatBoostModel(CustomModel):
         else:
             baseline = None
 
-        kargs = dict(X=X, y=y,
-                     sample_weight=sample_weight,
-                     baseline=baseline,
-                     eval_set=eval_set)
+        kwargs_fit = dict(baseline=baseline, eval_set=eval_set)
         pickle_path = None
         if config.debug_daimodel_level >= 2:
             self.uuid = str(uuid.uuid4())[:6]
             pickle_path = "catboost%s.pickle" % self.uuid
-            save_obj((model, kargs), pickle_path)
+            save_obj((self.model, kwargs_fit), pickle_path)
 
-        # FIT
-        model.fit(**kargs)
+        # FIT (with migration safety before hyperopt/Optuna function added)
+        if hasattr(self, 'dask_or_hyper_or_normal_fit'):
+            self.dask_or_hyper_or_normal_fit(X, y, sample_weight=sample_weight, kwargs=kwargs, **kwargs_fit)
+        else:
+            self.model.fit(X, y, sample_weight=sample_weight, **kwargs_fit)
 
         if config.debug_daimodel_level <= 2:
             remove(pickle_path)
 
         # https://catboost.ai/docs/concepts/python-reference_catboostclassifier.html
         # need to move to wrapper
-        if model.get_best_iteration() is not None:
-            iterations = model.get_best_iteration() + 1
+        if self.model.get_best_iteration() is not None:
+            iterations = self.model.get_best_iteration() + 1
         else:
             iterations = self.params['n_estimators']
         # must always set best_iterations
         self.model_path = None
-        importances = copy.deepcopy(model.feature_importances_)
+        importances = copy.deepcopy(self.model.feature_importances_)
         if not self._save_by_pickle:
             self.uuid = str(uuid.uuid4())[:6]
             model_file = "catboost_%s.bin" % str(self.uuid)
             self.model_path = os.path.join(self.context.experiment_tmp_dir, model_file)
-            model.save_model(self.model_path)
+            self.model.save_model(self.model_path)
             with open(self.model_path, mode='rb') as f:
                 model = f.read()
-        self.set_model_properties(model=model,
+        else:
+            model = self.model
+        self.set_model_properties(model=model,  # overwrites self.model object with bytes if not using pickle
                                   features=orig_cols,
                                   importances=importances,
                                   iterations=iterations)
@@ -436,10 +453,22 @@ class CatBoostModel(CustomModel):
             # For regression/binary, shap is shape of (rows, features + bias)
             # for multiclass, shap is shape of (rows, classes, features + bias)
             data = Pool(X, label=y, cat_features=self.params['cat_features'])
+            if fast_approx:
+                # https://github.com/catboost/catboost/issues/1146
+                # https://github.com/catboost/catboost/issues/1535
+                # can't specify trees, but they have approx version
+                # Regular, Exact, or Approximate
+                shap_calc_type = "Approximate"
+            else:
+                shap_calc_type = "Regular"
+            # See also shap_mode
+            # help(CatBoostClassifier.get_feature_importance)
+            print("shap_calc_type: %s" % shap_calc_type)
             preds_shap = model.get_feature_importance(
                 data=data,
                 thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported,
-                type=EFstrType.ShapValues
+                type=EFstrType.ShapValues,
+                shap_calc_type=shap_calc_type,
             )
             # repair broken shap sum: https://github.com/catboost/catboost/issues/1125
             preds_raw = model.predict(
@@ -484,7 +513,10 @@ class CatBoostModel(CustomModel):
         else:
             raise RuntimeError("No such case")
 
-    def transcribe_and_filter_params(self, params, has_eval_set):
+    def transcribe_params(self, params=None, **kwargs):
+        if params is None:
+            params = self.params  # reference
+        has_eval_set = self.have_eval_set(kwargs)  # only needs (and does) operate at fit-time
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
         fullspec_regression = inspect.getfullargspec(CatBoostRegressor)
         kwargs_regression = {k: v for k, v in zip(fullspec_regression.args, fullspec_regression.defaults)}
@@ -531,17 +563,19 @@ class CatBoostModel(CustomModel):
             params[k] = map[params[k]]
 
         if 'objective' in params:
+            # don't randomly choose these since then model not stable GA -> final
+            # but backup shouldn't really be used AFAIK
             if params['objective'] == 'Huber':
-                backup = float(np.random.choice(config.huber_alpha_list))
+                backup = float(config.huber_alpha_list[0])
                 params['delta'] = params.pop('alpha', backup)
             if params['objective'] == 'Quantile':
-                backup = float(np.random.choice(config.quantile_alpha))
+                backup = float(config.quantile_alpha[0])
                 params['delta'] = params.pop('alpha', backup)
             if params['objective'] == 'Tweedie':
-                backup = float(np.random.choice(config.tweedie_variance_power_list))
-                params['tweedie_variance_power'] = params.pop('variance_power', backup)
+                backup = float(config.tweedie_variance_power_list[0])
+                params['tweedie_variance_power'] = params.pop('tweedie_variance_power', backup)
             if params['objective'] == 'FairLoss':
-                backup = float(np.random.choice(config.fair_c_list))
+                backup = float(config.fair_c_list[0])
                 params['smoothness'] = params.pop('fair_c', backup)
 
         params.pop('verbose', None)
