@@ -36,8 +36,11 @@ for f in sorted(livecode_files):
     depth = 0
     if f not in exclude and not f.startswith("test_"):
         if f[-3:] == ".py":
-            docstring = get_file_docstring(os.path.join(livecode_path, f)) or \
-                        "please add description"
+            #docstring = get_file_docstring(os.path.join(livecode_path, f)) or \
+            #            "please add description"
+            with open(os.path.join(livecode_path, f)) as ff:
+                first_line = ff.readline().replace("\n", "")
+            docstring = first_line
             what = "[" + f.replace("_", "\_") + "](" + "./" + f + ")"
             print_offset(depth + 1, "%s [%s]" % (what, docstring), ret)
             count += 1

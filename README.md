@@ -82,6 +82,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [generate_random_int_columns.py](./data/generate_random_int_columns.py) [Data recipe to add one or more columns containing random integers.] 
   * [ieee_data_puddle.py](./data/ieee_data_puddle.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection] 
   * [image_cropper.py](./data/image_cropper.py) [ Data Recipe to Crop the Cheque Image (or any Image) in a fixed dimension ] 
+  * [imdb_datasets.py](./data/imdb_datasets.py) [Create IMDb datasets for main titles and episodes. Main titles includes info for both movies and series,   while episodes contains series episodes details and ratings. Thus, there is one-to-many relationship   between titles (one side) and episodes (many side which may be 0)   Description: https://www.imdb.com/interfaces/   Source: https://datasets.imdbws.com/] 
   * [kaggle_bosch.py](./data/kaggle_bosch.py) [Create Bosch competition datasets with leak] 
   * [kaggle_ieee_fraud.py](./data/kaggle_ieee_fraud.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection] 
   * [kaggle_m5.py](./data/kaggle_m5.py) [Prepare data for m5 Kaggle Time-Series Forecast competition] 
@@ -113,7 +114,6 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 * [MODELS](./models)
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.] 
   * [ALGORITHMS](./models/algorithms)
-    * [auto_gluon.py](./models/algorithms/auto_gluon.py) [AutoGluon] 
     * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines] <kbd>✓ MOJO Enabled</kbd>
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.] 
     * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL] 
