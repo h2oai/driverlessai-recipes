@@ -116,6 +116,7 @@ print(" [1.8.6](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.6)")
 print(" [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)")
 print(" [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)")
 print(" [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)")
+print(" [1.9.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1)")
 print("### Count: %d" % count)
 for l in ret:
     print(l)
