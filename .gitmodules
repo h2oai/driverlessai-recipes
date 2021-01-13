@@ -1,0 +1,3 @@
+[submodule "explainers"]
+	path = explainers
+	url = https://github.com/h2oai/driverlessai-mli-recipes
