@@ -1,4 +1,5 @@
-# Copyright 2017-2020 H2O.ai, Inc. All rights reserved.
+"""PD and ICE explainer template which can be used to create example with partial dependence (global) and individual conditional explanations (local) explanations."""
+
 import json
 import os
 import random

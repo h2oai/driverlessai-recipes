@@ -1,4 +1,5 @@
-# Copyright 2017-2020 H2O.ai, Inc. All rights reserved.
+"""Scatter plot explainer template which can be used to create explainer with global and local explanations."""
+
 import json
 
 from h2oaicore.mli.oss.byor.core.explainers import CustomExplainer

@@ -1,4 +1,5 @@
-# Copyright 2017-2020 H2O.ai, Inc. All rights reserved.
+"""Decision Tree explainer which can be used to create explainer with global and local decision tree explanations."""
+
 import json
 import random
 
