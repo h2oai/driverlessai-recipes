@@ -3,7 +3,7 @@
 * [What are MLI Custom Recipes?](#what-are-mli-custom-recipes)
 * [Best Practices for MLI Recipes](#best-practices-for-mli-recipes)
 * [Resources](#resources)
-* [Recipes](#mli-recipes)
+* [MLI Recipes](#mli-recipes)
 
 ## What are MLI Custom Recipes?
 Driverless AI provides robust interpretability of machine learning models to explain modeling results in a human-readable format. In the Machine Learning Interpetability (MLI) view, Driverless AI employs a host of different techniques and methodologies for interpreting and explaining the results of its models.
