@@ -17,6 +17,10 @@
   * Scorer:
     * Maybe you want to optimize your predictions for the [top decile](https://github.com/h2oai/driverlessai-recipes/blob/master/scorers/regression/top_decile.py) for a regression problem..
     * Maybe you care about the [false discovery rate](https://github.com/h2oai/driverlessai-recipes/blob/master/scorers/classification/binary/false_discovery_rate.py) for a binary classification problem.
+  * Explainer:
+    * Create custom recipes for model interpretability, fairness, robustness, explanations
+    * Create custom plots, charts, markdown reports, etc.
+
   #### Driverless is good enough for me, I don't want to do recipes.
   Perfect. Relax and sit back. We'll keep making Driverless AI better and better with every version, so you don't have to.
   Several of the recipes in this repository will likely be included in future releases of Driverless AI out of the box, after more performance improvements and hardening.
