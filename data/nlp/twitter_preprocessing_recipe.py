@@ -1,4 +1,4 @@
-"""Preprocess the tweets by normalising username, removing unnecessatry punctuations, exapanding the hashtags"""
+"""Preprocess the tweets by normalising username, removing unnecessary punctuations, expanding the hashtags"""
 import re
 import os
 import pandas as pd
