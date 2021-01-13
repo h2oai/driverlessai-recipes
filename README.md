@@ -60,7 +60,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
  [1.9.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1)
-### Count: 205
+### Count: 197
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -110,20 +110,6 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [tokenize_chinese.py](./data/nlp/tokenize_chinese.py) [Chinese text tokenization using jieba package - https://github.com/fxsjy/jieba] 
     * [topic_modeling.py](./data/nlp/topic_modeling.py) [Data recipe to perform topic modeling] 
     * [twitter_preprocessing_recipe.py](./data/nlp/twitter_preprocessing_recipe.py) [Preprocess the tweets by normalising username, removing unnecessatry punctuations, exapanding the hashtags] 
-* [EXPLAINERS](./explainers)
-  * [DOC](./explainers/doc)
-    * [IMAGES](./explainers/doc/images)
-  * [EXPLAINERS](./explainers/explainers)
-    * [morris_sensitivity_explainer.py](./explainers/explainers/morris_sensitivity_explainer.py) [please add description] 
-    * [TEMPLATES](./explainers/explainers/templates)
-      * [template_dt_explainer.py](./explainers/explainers/templates/template_dt_explainer.py) [please add description] 
-      * [template_featimp_explainer.py](./explainers/explainers/templates/template_featimp_explainer.py) [please add description] 
-      * [template_md_explainer.py](./explainers/explainers/templates/template_md_explainer.py) [please add description] 
-      * [template_md_featimp_summary_explainer.py](./explainers/explainers/templates/template_md_featimp_summary_explainer.py) [please add description] 
-      * [template_md_vega_explainer.py](./explainers/explainers/templates/template_md_vega_explainer.py) [please add description] 
-      * [template_pd_explainer.py](./explainers/explainers/templates/template_pd_explainer.py) [please add description] 
-      * [template_scatter_plot_explainer.py](./explainers/explainers/templates/template_scatter_plot_explainer.py) [please add description] 
-  * [NOTEBOOKS](./explainers/notebooks)
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description] 
 * [MODELS](./models)
