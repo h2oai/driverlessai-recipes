@@ -114,15 +114,15 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [DOC](./explainers/doc)
     * [IMAGES](./explainers/doc/images)
   * [EXPLAINERS](./explainers/explainers)
-    * [morris_sensitivity_explainer.py](./explainers/explainers/morris_sensitivity_explainer.py) [please add description] 
+    * [morris_sensitivity_explainer.py](./explainers/explainers/morris_sensitivity_explainer.py) [Morris Sensitivity Analysis Explainer] 
     * [TEMPLATES](./explainers/explainers/templates)
-      * [template_dt_explainer.py](./explainers/explainers/templates/template_dt_explainer.py) [please add description] 
-      * [template_featimp_explainer.py](./explainers/explainers/templates/template_featimp_explainer.py) [please add description] 
-      * [template_md_explainer.py](./explainers/explainers/templates/template_md_explainer.py) [please add description] 
-      * [template_md_featimp_summary_explainer.py](./explainers/explainers/templates/template_md_featimp_summary_explainer.py) [please add description] 
-      * [template_md_vega_explainer.py](./explainers/explainers/templates/template_md_vega_explainer.py) [please add description] 
-      * [template_pd_explainer.py](./explainers/explainers/templates/template_pd_explainer.py) [please add description] 
-      * [template_scatter_plot_explainer.py](./explainers/explainers/templates/template_scatter_plot_explainer.py) [please add description] 
+      * [template_dt_explainer.py](./explainers/explainers/templates/template_dt_explainer.py) [Decision Tree explainer which can be used to create explainer with global and local decision tree explanations.] 
+      * [template_featimp_explainer.py](./explainers/explainers/templates/template_featimp_explainer.py) [Feature importance explainer template which can be used create explainer with global and local feature importance explanations.] 
+      * [template_md_explainer.py](./explainers/explainers/templates/template_md_explainer.py) [Markdown report with raster image chart explainer template which can be used to create explainer with global report explanations.] 
+      * [template_md_featimp_summary_explainer.py](./explainers/explainers/templates/template_md_featimp_summary_explainer.py) [Markdown report with summary feature importance chart explainer template which can be used to create explainer with global report explanations.] 
+      * [template_md_vega_explainer.py](./explainers/explainers/templates/template_md_vega_explainer.py) [Markdown report with Vega chart explainer template which can be used to create explainer which creates global report explanations.] 
+      * [template_pd_explainer.py](./explainers/explainers/templates/template_pd_explainer.py) [PD and ICE explainer template which can be used to create example with partial dependence (global) and individual conditional explanations (local) explanations.] 
+      * [template_scatter_plot_explainer.py](./explainers/explainers/templates/template_scatter_plot_explainer.py) [Scatter plot explainer template which can be used to create explainer with global and local explanations.] 
   * [NOTEBOOKS](./explainers/notebooks)
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description] 
