@@ -109,7 +109,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [text_summarization.py](./data/nlp/text_summarization.py) [Data recipe to get summary of text using gensim] 
     * [tokenize_chinese.py](./data/nlp/tokenize_chinese.py) [Chinese text tokenization using jieba package - https://github.com/fxsjy/jieba] 
     * [topic_modeling.py](./data/nlp/topic_modeling.py) [Data recipe to perform topic modeling] 
-    * [twitter_preprocessing_recipe.py](./data/nlp/twitter_preprocessing_recipe.py) [Preprocess the tweets by normalising username, removing unnecessatry punctuations, exapanding the hashtags] 
+    * [twitter_preprocessing_recipe.py](./data/nlp/twitter_preprocessing_recipe.py) [Preprocess the tweets by normalising username, removing unnecessary punctuations, expanding the hashtags] 
 * [EXPLAINERS](./explainers)
   * [DOC](./explainers/doc)
     * [IMAGES](./explainers/doc/images)
