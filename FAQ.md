@@ -86,6 +86,8 @@
   * sklearn API
     * Implement `score(actual, predicted, sample_weight, labels)` for computing scores and metrics from predictions and actual values
   * [Custom Scorer Recipe SDK/API Reference](scorers/scorer_template.py)
+### Custom Explainers
+  * [BYOR MLI Custom Recipes](explainers)
 ### Technical Architecture Diagram
   * [Direct Link](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
   * [Source File](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.drawio)
