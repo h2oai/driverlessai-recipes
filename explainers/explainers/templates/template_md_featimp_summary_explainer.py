@@ -1,4 +1,5 @@
-# Copyright 2017-2020 H2O.ai, Inc. All rights reserved.
+"""Markdown report with summary feature importance chart explainer template which can be used to create explainer with global report explanations."""
+
 import random
 from typing import List, Tuple
 

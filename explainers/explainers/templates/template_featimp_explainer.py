@@ -1,4 +1,5 @@
-# Copyright 2017-2020 H2O.ai, Inc. All rights reserved.
+"""Feature importance explainer template which can be used create explainer with global and local feature importance explanations."""
+
 import json
 import random
 

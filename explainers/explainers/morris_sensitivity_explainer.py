@@ -1,4 +1,5 @@
-# Copyright 2017-2020 H2O.ai, Inc. All rights reserved.
+"""Morris Sensitivity Analysis Explainer"""
+
 from functools import partial
 
 import datatable as dt
