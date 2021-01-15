@@ -42,10 +42,11 @@ When MLI user starts interpretation, model compatible explainers (from the avail
 ### What is the role of recipes?
 BYOR allows Data Scientists to bring their **own recipes** or leverage the existing, **open-source** recipes to explain models. In this way, the expertise of those creating and using the recipes is leveraged to focus on domain-specific functions to build customizations.
 ### Where can you find open-source recipes?
-The curated open-source recipes currently reside in the [Responsible ML GitHub repository](https://github.com/h2oai/responsible-ml) GitHub repository:
+The curated open-source recipes currently reside [here](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1/explainers/explainers):
 
-* [Morris sensitivity analysis](https://github.com/h2oai/h2oai/blob/dev/tests/test_mli/byor/morris_sensitivity_explainer.py) explainer
-* explainer [templates](https://github.com/h2oai/h2oai/tree/dev/h2oaicore/mli/byor/recipes/mock)
+* [Morris sensitivity analysis](https://github.com/h2oai/driverlessai-recipes/blob/rel-1.9.1/explainers/explainers/morris_sensitivity_explainer.py) explainer
+* explainer [templates](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1/explainers/explainers/templates)
+
 ## Custom Explainer
 ![overview](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.overview.png)
 
