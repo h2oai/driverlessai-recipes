@@ -38,7 +38,7 @@ class MorrisSensitivityLeExplainer(CustomExplainer, CustomDaiExplainer):
     # declaration of explanation types this explainer creates e.g. feature importance
     _explanation_types = [GlobalFeatImpExplanation]
     # Python package dependencies (can be installed using pip)
-    _modules_needed_by_name = ["interpret=0.2.2"]
+    _modules_needed_by_name = ["interpret==0.2.2"]
 
     # explainer constructor must not have any required parameters
     def __init__(self):
