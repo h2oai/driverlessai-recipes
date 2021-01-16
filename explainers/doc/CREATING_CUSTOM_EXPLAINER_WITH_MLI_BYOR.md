@@ -76,7 +76,7 @@ class MorrisSensitivityExplainer(CustomExplainer):
     _binary = True
     _global_explanation = True
     _explanation_types = [GlobalFeatImpExplanation]
-    _modules_needed_by_name = ["interpret"]
+    _modules_needed_by_name = ["gevent==1.5.0", "interpret==0.1.20"]
 
     ...
 ```
@@ -477,7 +477,7 @@ class MorrisSensitivityExplainer(CustomExplainer):
     _binary = True
     _global_explanation = True
     _explanation_types = [GlobalFeatImpExplanation]
-    _modules_needed_by_name = ["interpret"]
+    _modules_needed_by_name = ["gevent==1.5.0", "interpret==0.1.20"]
 
     def __init__(self):
         CustomExplainer.__init__(self)
