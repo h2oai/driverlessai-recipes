@@ -170,9 +170,6 @@ class Adversarial_Debiasing42(CustomTensorFlowModel):
                                                  experiment_tmp_dir=self.context.experiment_tmp_dir)
               
 
-
-        #validation_split = [0.6, 0.8]
-
         # Target column
         self.target = 'high_priced'
         self.favorable_label = 0
@@ -181,7 +178,6 @@ class Adversarial_Debiasing42(CustomTensorFlowModel):
         
         # Privleged_group_info  = [[Protetected group name 1, prevleged level, unprivleged level], [Protetected group name 2, prevleged level, unprivleged level]]
         # The protected group columns need to be binary
-        # protected_group_info = [['hispanic', 0, 1], ['black', 0, 1]]
         protected_group_info = [['hispanic', 0, 1]]
         self.protected_name = protected_group_info[0][0]
         self.protected_label = protected_group_info[0][1]
@@ -292,9 +288,6 @@ class Adversarial_Debiasing42(CustomTensorFlowModel):
                 X = pd.concat([X[self.X_numeric], pd.DataFrame(X_enc, columns=self.encoded_categories)], axis=1)
 
 
-        #if self.protected in list(X.columns):
-        #        protected_values = list(X[self.protected])
-        #        X = X.drop(self.protected, axis=1)
         # Replace missing values with a missing value code
         if len(self.X_numeric) > 0:
    
@@ -319,14 +312,8 @@ class Adversarial_Debiasing42(CustomTensorFlowModel):
         if self.positive_target == 0:
             y = 1 - y
         X_full = X.copy()
-        #y_full = y.copy()
         
         loggerinfo(logger, "Columnname encode5")     
-        #loggerinfo(logger, "Columnname encode2")  
-        #loggerinfo(logger, str(X_full.columns))          
-        #X_full[self.target] = y_full
-        
-        #dataset_orig = BinaryLabelDataset(df=X_full, label_names=[self.target], favorable_label=self.favorable_label, unfavorable_label=self.unfavorable_label, protected_attribute_names=self.protected_groups)
         
         
         X_full.index = protected_train 
@@ -410,8 +397,6 @@ class Adversarial_Debiasing42(CustomTensorFlowModel):
             loggerinfo(logger, "Protected test not found")  
             protected_test = np.array([])
         
-        #if self.protected in list(X.columns):
-        #    X = X.drop(self.protected, axis=1)
           
         # Replace missing values with a missing category
         # Replace categories that weren't in the training set with the mode
@@ -453,16 +438,7 @@ class Adversarial_Debiasing42(CustomTensorFlowModel):
             X_enc=self.enc.transform(X[self.X_categorical]).toarray()
             X = pd.concat([X[self.X_numeric], pd.DataFrame(X_enc, columns=self.encoded_categories)], axis=1) 
       
-         
-        #d_test = xgb.DMatrix(X, missing=np.nan)
-        #dataset_test = BinaryLabelDataset(df=X, label_names=[self.target], favorable_label=self.favorable_label, unfavorable_label=self.unfavorable_label, protected_attribute_names=self.protected_groups)
-        
-        
-        
-        # If the positive target was 0, change the final result to 1-p
-        #if self.positive_target == 0:
-        #    preds = 1.0 - model.predict_proba(dataset_test)
-        #else:
+
         X.index = protected_test
         preds = model.predict_proba(X)[:,1]
         # If the positive target was 0, change the final result to 1-p
