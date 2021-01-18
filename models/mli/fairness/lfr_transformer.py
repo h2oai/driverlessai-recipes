@@ -54,7 +54,7 @@ class MyData(CustomData):
         
         validation_split = [0.6, 0.8]
         
-        # Scan parameters?
+        # Add parameter scanning once the basic model works
         k=10
         Ax=0.1
         Ay=1.0
@@ -64,7 +64,6 @@ class MyData(CustomData):
 
         # Target column
         target = 'high_priced'
-        # Privleged_group_info  = [[Protetected group name 1, prevleged level, unprivleged level], [Protetected group name 1, prevleged level, unprivleged level]]
         # The protected group columns need to be binary
         # Only one privleged group is supported for this recipe
         protected_group_info = [['hispanic', 1, 0]]
@@ -89,11 +88,7 @@ class MyData(CustomData):
             unprivileged_groups.append(unprivileged_groups_dict)
         
         
-        # Fit weights on the full dataset to be used on the external test set, if given
-        #RW_full = Reweighing(unprivileged_groups=unprivileged_groups, privileged_groups=privileged_groups)
-        #RW_full.fit(dataset_orig)
-      
-        
+        # Scale data
         scale_orig_full = StandardScaler()
         dataset_orig_full.features = scale_orig_full.fit_transform(dataset_orig_full.features)
           
@@ -104,15 +99,11 @@ class MyData(CustomData):
         TR_full.fit(dataset_orig_full, maxiter=maxiter, maxfun=maxfun)       
         
         
-        
-        
         if len(validation_split) == 1:
             dataset_orig_train, dataset_orig_valid = dataset_orig.split(validation_split, shuffle=True)
         elif len(validation_split) == 2:
             dataset_orig_train_valid, dataset_orig_test = dataset_orig.split([validation_split[1]], shuffle=True)
             # Fit the weights on both the validation and test set for the test set split
-            #RW_train_valid = Reweighing(unprivileged_groups=unprivileged_groups, privileged_groups=privileged_groups)
-            #RW_train_valid.fit(dataset_orig_train_valid)
             
             scale_orig_train_valid  = StandardScaler()
             dataset_orig_train_valid.features = scale_orig_train_valid.fit_transform(dataset_orig_train_valid.features)
@@ -128,8 +119,6 @@ class MyData(CustomData):
             dataset_orig_train = dataset_orig
             
         # Fit weights on the training set only    
-        #RW = Reweighing(unprivileged_groups=unprivileged_groups, privileged_groups=privileged_groups)
-        #RW.fit(dataset_orig_train)
         
         scale_orig = StandardScaler()
         dataset_orig_train.features = scale_orig.fit_transform(dataset_orig_train.features)
@@ -145,7 +134,6 @@ class MyData(CustomData):
         # Add the weigts to the training set
         train_df = pd.DataFrame(dataset_transf_train.features, columns=dataset_transf_train.feature_names)
         train_df[target] = dataset_transf_train.labels.ravel()
-        #train_df['weights'] = dataset_transf_train.instance_weights.ravel()
         
         # Create datasets with minimum features calculated the given number of days ahead
         dataset_dict = {}
