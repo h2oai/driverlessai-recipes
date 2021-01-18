@@ -27,6 +27,8 @@ class CatBoostModel(CustomModel):
     _force_gpu = False  # force use of GPU regardless of what DAI says
     _can_handle_categorical = True
     _can_handle_non_numeric = True
+    _used_return_params = True
+    _average_return_params = True
     _fit_by_iteration = True
     _fit_iteration_name = 'n_estimators'
     _is_gbm = True  # ensure final model changes n_estimators and learning_rate and complain if early stopping didn't work.
