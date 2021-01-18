@@ -34,6 +34,7 @@ class MyImgTransformer(CustomTransformer, TensorFlowModel):
         return 'on'
 
     def __init__(self, batch_size=32, **kwargs):
+        TensorFlowModel.__init__(self, **kwargs)
         super().__init__(**kwargs)
         self.batch_size = batch_size
         self.model_name = "resnet_keras.h5p"
