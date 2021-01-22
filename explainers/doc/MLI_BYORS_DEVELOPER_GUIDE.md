@@ -146,7 +146,7 @@ This section describes how to create, deploy, run, debug and get results of cust
 explainers in **detail**. It is **structured** according to custom explainer **life-cycle** shown by activity 
 diagram below:
 
-![life-cycle](MLI_BYORS_DEVELOPER_GUIDE.explainer-life-cycle.png)
+![life-cycle](images/MLI_BYORS_DEVELOPER_GUIDE.explainer-life-cycle.png)
 
 Also you may want to check [Creating Custom Explainer with MLI BYORs](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.md)
 tutorial if you want to get started with custom explainers quickly.
@@ -192,13 +192,13 @@ in Driverless AI using [Grammar of MLI](#grammar-of-mli) UI components.
 
 ---
 
-![overview](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.overview.png)
+![overview](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.overview.png)
 
 ---
 
 Explainer must create at least one explanation. Explanation must have at least one format.
 
-![e-e-f](MLI_BYORS_DEVELOPER_GUIDE.explainer-explanation-format.png)
+![e-e-f](images/MLI_BYORS_DEVELOPER_GUIDE.explainer-explanation-format.png)
 
 **Python** base classes for explainers, explanations and formats are defined as follows:
 
@@ -213,7 +213,7 @@ Custom explainers **must** inherit from the `CustomExplainer` class which declar
 * explainer **capabilities and attributes** as [Metadata](#metadata)
 * **methods** which are invoked by custom explainers [Runtime](#runtimes)
 
-<!-- ![uml](MLI_BYORS_DEVELOPER_GUIDE.custom-explainer-uml.png) -->
+<!-- ![uml](images/MLI_BYORS_DEVELOPER_GUIDE.custom-explainer-uml.png) -->
 
 `CustomExplainer` defines the following instance attributes:
 
@@ -698,9 +698,9 @@ class ExplainerParamType(Enum):
 
 Argument values of declared parameters can be specified in **UI** when you [Run](#run) explainer(s) from selection listing:
 
-![listing](MLI_BYORS_DEVELOPER_GUIDE.params-in-listing.png)
+![listing](images/MLI_BYORS_DEVELOPER_GUIDE.params-in-listing.png)
 
-![value](MLI_BYORS_DEVELOPER_GUIDE.params-value.png)
+![value](images/MLI_BYORS_DEVELOPER_GUIDE.params-value.png)
 
 .. as well as when running the explainer using [Python Client API](#python-client-api-reference):
 
@@ -1182,7 +1182,7 @@ class TemplateDecisionTreeExplainer(CustomExplainer):
 
 This declaration enables local explanations which means that Driverless AI RPC API method can be invoked and search is shown in Driverless AI UI **atop chart** (it's hidden otherwise):
 
-![image](MLI_BYORS_DEVELOPER_GUIDE.chart-search-row.png)
+![image](images/MLI_BYORS_DEVELOPER_GUIDE.chart-search-row.png)
 
 Custom explainers can use the following **options** to provide local explanations:
 
@@ -1405,11 +1405,11 @@ Please refer to [Explainer Python API](#explainer-python-api) for more details.
 ## Deploy
 To deploy (upload from local machine or download from a URL) custom explainer recipe using **UI**, open MLI homepage by clicking `MLI` tab:
 
-![MLI tab](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.mli-byor-tab-home.png)
+![MLI tab](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.mli-byor-tab-home.png)
 
 Click `NEW INTERPRETATION` button and choose `UPLOAD MLI RECIPE` to **upload** recipe from your computer:
 
-![Upload recipe](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.mli-byor-upload-recipe.png)
+![Upload recipe](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.mli-byor-upload-recipe.png)
 
 Custom recipe will be uploaded and it will be installed along with its dependencies.
 
@@ -1546,15 +1546,15 @@ Check [Python Client API Jupyter Notebook](https://github.com/h2oai/driverlessai
 ## Run
 To **run** custom explainer, click `NEW INTERPRETATION` button on MLI homepage: 
 
-![Run](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.new-interpretation.png)
+![Run](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.new-interpretation.png)
 
 After new interpretation dialog opens, choose model, dataset and select explainer(s) you want to run:
 
-![Choose](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.set-ds-choose-explainer.png)
+![Choose](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.set-ds-choose-explainer.png)
 
 To run particular explainer only, uncheck all others, choose the explainer and click `DONE`:
 
-![Morris SA only](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.choose-explainer.png)
+![Morris SA only](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.choose-explainer.png)
 
 When ready, click `LAUNCH MLI` to run the interpretation:
 
@@ -1656,11 +1656,11 @@ Custom explainer Python API:
 
 To get explainer log - with your, explainer runtime and explainer log items - from UI, click task manager `RUNNING | FAILED | DONE` button in the upper right corner of running interpretation and hover over explainer's entry in the list of tasks:
 
-![task-manager](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.open-logs.png)
+![task-manager](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.open-logs.png)
 
 Buttons allowing to abort the explainer and get its logs will appear.
 
-![log](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.morris-logs.png)
+![log](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.morris-logs.png)
 
 Use log to determine root cause of the failure, fix it and simply re-deploy the custom explainer in the same way as it was deployed.
 
@@ -1676,7 +1676,7 @@ url: str = h2oai_client.get_explainer_run_log(explainer_id)
 h2oai_client.download(url, target_directory)
 ```
 ## Get
-![get](MLI_BYORS_DEVELOPER_GUIDE.get-explanations-ui.png)
+![get](images/MLI_BYORS_DEVELOPER_GUIDE.get-explanations-ui.png)
 
 Explanations can be viewed in Driverless AI UI as interactive charts. Any custom explainer recipe which 
 creates normalized ([Grammar of MLI](#grammar-of-mli) compatible) explanations, can show these
@@ -1938,11 +1938,11 @@ Explanations can be downloaded using Driverless AI UI as **snapshots**. Snapshot
 is Zip archive of explainer directory as shown in [Explanations Introspection](#explanations-introspection)
 directory listing.
 
-![image](MLI_BYORS_DEVELOPER_GUIDE.snapshots-1.png)
+![image](images/MLI_BYORS_DEVELOPER_GUIDE.snapshots-1.png)
 
-![image](MLI_BYORS_DEVELOPER_GUIDE.snapshots-2.png)
+![image](images/MLI_BYORS_DEVELOPER_GUIDE.snapshots-2.png)
 
-![image](MLI_BYORS_DEVELOPER_GUIDE.snapshots-3.png)
+![image](images/MLI_BYORS_DEVELOPER_GUIDE.snapshots-3.png)
 
 ---
 
@@ -1974,7 +1974,7 @@ check **directory listing** there. Make sure that you understand the following c
 * explanation types
 * explanation formats
 #### Feature Importance
-![featimp](MLI_BYORS_DEVELOPER_GUIDE.featimp-template.png)
+![featimp](images/MLI_BYORS_DEVELOPER_GUIDE.featimp-template.png)
 
 **Template** explainer:
 
@@ -2103,7 +2103,7 @@ For example:
      `false` in case of **asynchronous** [On-demand Local Explanation](#on-demand-local-explanation) 
    * ... any additional parameters
 #### PD/ICE
-![image](MLI_BYORS_DEVELOPER_GUIDE.pd-ice-template.png)
+![image](images/MLI_BYORS_DEVELOPER_GUIDE.pd-ice-template.png)
 
 **Template** explainer:
 
@@ -2286,7 +2286,7 @@ The same structure as in case of global explanation, except optional fields:
      `false` in case of **asynchronous** [On-demand Local Explanation](#on-demand-local-explanation) 
    * ... any additional parameters
 #### Markdown
-![image](MLI_BYORS_DEVELOPER_GUIDE.markdown-template.png)
+![image](images/MLI_BYORS_DEVELOPER_GUIDE.markdown-template.png)
 
 **Template** explainers:
 
@@ -2326,7 +2326,7 @@ This is an example of **Markdown report** which can be created by explainer.
 
 **Local explanation** is not supported.
 #### Decision Tree
-![image](MLI_BYORS_DEVELOPER_GUIDE.dt-template.png)
+![image](images/MLI_BYORS_DEVELOPER_GUIDE.dt-template.png)
 
 **Template** explainer:
 
@@ -2466,7 +2466,7 @@ The same structure as in case of global explanation, except optional fields:
      `false` in case of **asynchronous** [On-demand Local Explanation](#on-demand-local-explanation) 
    * ... any additional parameters
 #### Scatter Plot
-![image](MLI_BYORS_DEVELOPER_GUIDE.scatter-template.png)
+![image](images/MLI_BYORS_DEVELOPER_GUIDE.scatter-template.png)
 
 **Template** explainer:
 
@@ -2644,7 +2644,7 @@ features.
 
 Deploy and run example explainers as described in [Deploy](#deploy) and [Run](#run) sections or [Hello world!](#hello-world) example.
 ## Hello world!
-![hello](MLI_BYORS_DEVELOPER_GUIDE.example-hello-get-ui.png)
+![hello](images/MLI_BYORS_DEVELOPER_GUIDE.example-hello-get-ui.png)
 
 `Hello, World!` explainer is example of the simplest explainer.
 
@@ -3148,7 +3148,7 @@ class ExampleMetaAndAttrsExplainer(CustomExplainer, CustomDaiExplainer):
         ]
 ```
 
-![image](MLI_BYORS_DEVELOPER_GUIDE.explainer-meta.png)
+![image](images/MLI_BYORS_DEVELOPER_GUIDE.explainer-meta.png)
 ## Morris SA example
 Putting MLI BYOR examples together: Morris Sensitivity Analysis explainers demonstrates how to use a 3rd party library as MLI BYOR recipe to understand Driverless AI models.
 

@@ -48,7 +48,7 @@ The curated open-source recipes currently reside [explainers](https://github.com
 * explainer [templates](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1/explainers/explainers/templates)
 
 ## Custom Explainer
-![overview](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.overview.png)
+![overview](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.overview.png)
 
 This section describes how to implement a **custom explainer**.
 ### Morris sensitivity analysis
@@ -232,7 +232,7 @@ Finally `explain()` method must return explanations declared by the custom expla
 ```
 
 ---
-![gom](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.gom.png)
+![gom](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.gom.png)
 
 The purpose of **normalization** is to enable explanation **visualization** using interactive chart(s). MLI module of Driverless AI brings [Grammar of MLI](.) (GoM) which is a set of reusable charts which can be used in Driverless AI UI to visualize explanations. Morris sensitivity analysis explainer will use **feature importance** GoM component. This explains why data must be normalized - the component must understand the data (cannot work with unknown 3rd party formats).
 
@@ -356,11 +356,11 @@ This concludes **custom explainer implementation**. For full explainer and `expl
 ### Deploy
 To deploy custom explainer created in the previous section from **UI**, open MLI homepage by clicking `MLI` tab:
 
-![MLI tab](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.mli-byor-tab-home.png)
+![MLI tab](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.mli-byor-tab-home.png)
 
 Click `NEW INTERPRETATION` button and choose `UPLOAD MLI RECIPE` to upload recipe from your computer:
 
-![Upload recipe](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.mli-byor-upload-recipe.png)
+![Upload recipe](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.mli-byor-upload-recipe.png)
 
 Custom recipe will be uploaded and it will be installed along with its dependencies.
 
@@ -374,38 +374,38 @@ recipe:CustomRecipe = h2oai_client.upload_custom_recipe_sync(file_path)
 ### Run
 To run custom explainer, click `NEW INTERPRETATION` button on MLI homepage: 
 
-![Run](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.new-interpretation.png)
+![Run](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.new-interpretation.png)
 
 After new interpretation dialog opens, choose model, dataset and select explainer(s) you want to run:
 
-![Choose](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.set-ds-choose-explainer.png)
+![Choose](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.set-ds-choose-explainer.png)
 
 To run Morris sensitivity analysis explainer only, uncheck all others, choose the explainer and click `DONE`:
 
-![Morris SA only](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.choose-explainer.png)
+![Morris SA only](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.choose-explainer.png)
 
 When ready, click `LAUNCH MLI` to run the interpretation:
 
-![Launch](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.launch-mli.png)
+![Launch](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.launch-mli.png)
 
 When Morris sensitivity explainer finishes, the number of `DONE` explainers in the upper right corner is set to `1`:
 
-![Done](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.morris-done.png)
+![Done](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.morris-done.png)
 
 Click the explainer tile to see global feature importance explanation chart:
 
-![Chart](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.morris-gom.png)
+![Chart](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.morris-gom.png)
 
 ### Debug
 To debug custom explainer, you can use `self.logger` instance attribute to log debugging messages. This messages are stored to explainer's log.
 
 To get explainer log - with your, explainer runtime and explainer log items - from UI, click task manager `RUNNING | FAILED | DONE` button in the upper right corner of running enterpretation and hover over explainer's entry in the list of tasks:
 
-![task-manager](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.open-logs.png)
+![task-manager](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.open-logs.png)
 
 Buttons allowing to abort the explainer and get its logs will appear.
 
-![log](CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.morris-logs.png)
+![log](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.morris-logs.png)
 
 Use log to determine root cause of the failure, fix it and simply re-deploy the custom explainer in the same way as it was deployed.
 ## Conclusion
