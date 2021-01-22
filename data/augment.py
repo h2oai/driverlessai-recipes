@@ -8,8 +8,8 @@ This data recipe lets the user to augment new features to the dataset using the 
 5. The recipe submits job for the creation of new augment table. The service uses correlation to find relevance between the new features and the given target label
 6. The recipe polls the API for the completion of the table creation
 6. The recipe exports the dataset back to user's snowflake account
-7. The recipe downloads, saves the dataset from snowflake into driverlessai instance and returns the file path
-8. A new dataset is created in DAI with the augmented columns
+7. The recipe downloads, saves the dataset from snowflake into DriverlessAI instance and returns the file path
+8. A new dataset is created in DriverlessAI with the augmented columns
 
 
 Prerequisites:
