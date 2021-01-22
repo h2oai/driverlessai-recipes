@@ -605,16 +605,18 @@ class CatBoostModel(CustomModel):
             params.pop('colsample_bylevel', None)  # : 0.35
 
         if 'grow_policy' in params and params['grow_policy'] in ['Depthwise', 'SymmetricTree']:
-            if 'max_depth' in params and params['max_depth'] == -1:
+            if 'max_depth' in params and params['max_depth'] in [0, -1]:
                 params['max_depth'] = max(2, int(np.log(params.get('num_leaves', 2 ** 6))))
+                params['max_depth'] = min(params['max_depth'], 16)
         else:
             params.pop('max_depth', None)
             params.pop('depth', None)
         if 'grow_policy' in params and params['grow_policy'] == 'Lossguide':
             # if 'num_leaves' in params and params['num_leaves'] == -1:
             #    params['num_leaves'] = 2 ** params.get('max_depth', 6)
-            if 'max_leaves' in params and params['max_leaves'] == -1:
+            if 'max_leaves' in params and params['max_leaves'] in [0, -1]:
                 params['max_leaves'] = 2 ** params.get('max_depth', 6)
+            params['max_leaves'] = min(params['max_leaves'], 65536)
         else:
             params.pop('max_leaves', None)
         if 'num_leaves' in params and 'max_leaves' in params:
