@@ -19,7 +19,7 @@ For [security](doc/MLI_BYORS_DEVELOPER_GUIDE.md#security), [safety](doc/MLI_BYOR
 * Notebooks:
     * [MLI BYORs Python client in examples](notebooks/mli-byor.ipynb)
 * Documentation:
-	 * [Developer guide](https://github.com/h2oai/responsible-ml/blob/master/doc/MLI_BYORS_DEVELOPER_GUIDE.md)
+	* [Developer guide](doc/MLI_BYORS_DEVELOPER_GUIDE.md)
     * [API reference](doc/MLI_BYORS_DEVELOPER_GUIDE.md#python-client-api-reference)
     * [MLI documentation](https://docs.h2o.ai/driverless-ai/latest-stable/docs/userguide/interpreting.html)
     
