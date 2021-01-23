@@ -607,7 +607,7 @@ class CatBoostModel(CustomModel):
         if 'grow_policy' in params and params['grow_policy'] in ['Depthwise', 'SymmetricTree']:
             if 'max_depth' in params and params['max_depth'] in [0, -1]:
                 params['max_depth'] = max(2, int(np.log(params.get('num_leaves', 2 ** 6))))
-                params['max_depth'] = min(params['max_depth'], 16)
+            params['max_depth'] = min(params['max_depth'], 16)
         else:
             params.pop('max_depth', None)
             params.pop('depth', None)
