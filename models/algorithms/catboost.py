@@ -43,7 +43,7 @@ class CatBoostModel(CustomModel):
     _show_task_test = False  # set to True to see how task is used to send message to GUI
 
     _min_one_hot_max_size = 4
-    _min_learning_rate_catboost = 0.01  # for catboost often for same low learning rate as xgb/lgb, too many trees
+    _min_learning_rate_catboost = 0.005  # for catboost often for same low learning rate as xgb/lgb, too many trees
 
     def __init__(self, context=None,
                  unfitted_pipeline_path=None,
@@ -111,7 +111,7 @@ class CatBoostModel(CustomModel):
 
         for k in kwargs:
             if k in self.params:
-                self.params[k] = kwargs[k]
+                self.params[k] = copy.deepcopy(kwargs[k])
 
         # self.params['has_time'] # should use this if TS problem
 
@@ -125,8 +125,7 @@ class CatBoostModel(CustomModel):
             else:
                 self.params['one_hot_max_size'] = min(self.params['one_hot_max_size'], 65535)
 
-        self.params['learning_rate'] = max(config.min_learning_rate,
-                                           max(self._min_learning_rate_catboost, self.params['learning_rate']))
+        self.params['learning_rate'] = max(self._min_learning_rate_catboost, self.params['learning_rate'])
 
     def mutate_params(self, **kwargs):
         fake_lgbm_model = LightGBMModel(**self.input_dict)
