@@ -53,3 +53,4 @@ class QuantileRegressionLightGBMModel(BaseCustomModel, LightGBMModel):
         # Now we just need to tell LightGBM to do quantile regression
         self.params["objective"] = "quantile"
         self.params["alpha"] = QuantileRegressionLightGBMModel._quantile
+        self.params.pop('monotone_constraints', None)
