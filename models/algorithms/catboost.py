@@ -265,14 +265,13 @@ class CatBoostModel(CustomModel):
             X_names = list(dt.Frame(X).names)
             X_numeric = self.get_X_ordered_numerics(X)
             X_numeric_names = list(X_numeric.names)
-            self.set_monotone_constraints(X=X_numeric, y=y, params=self.params)
-            numeric_constraints = copy.deepcopy(self.params['monotone_constraints'])
+            _, _, constraints, self.set_monotone_constraints(X=X_numeric, y=y)
             # if non-numerics, then fix those to have 0 constraint
             self.params['monotone_constraints'] = [0] * len(X_names)
             colnumi = 0
             for coli in X_names:
                 if X_names[coli] in X_numeric_names:
-                    self.params['monotone_constraints'][coli] = numeric_constraints[colnumi]
+                    self.params['monotone_constraints'][coli] = constraints[colnumi]
                     colnumi += 1
 
         if isinstance(X, dt.Frame) and len(self.params['cat_features']) == 0:
