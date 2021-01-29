@@ -516,6 +516,8 @@ class CatBoostModel(CustomModel):
     def transcribe_params(self, params=None, **kwargs):
         if params is None:
             params = self.params  # reference
+        params = params.copy()  # don't contaminate DAI params, since we know we use lgbm-xgb as base
+
         has_eval_set = self.have_eval_set(kwargs)  # only needs (and does) operate at fit-time
         from catboost import CatBoostClassifier, CatBoostRegressor, EFstrType
         fullspec_regression = inspect.getfullargspec(CatBoostRegressor)
