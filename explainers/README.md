@@ -47,7 +47,6 @@ Explainer **templates**:
 Explainer **examples**:
 
 * [Hello, World! explainer example](explainers/examples/example_hello_world_explainer.py)
-
 * [Filter and score explainer example](explainers/examples/example_score_explainer.py)
 * [Dataset and EDA explainer example](explainers/examples/example_eda_explainer.py)
 * [Explainer parameters example](explainers/examples/example_params_explainer.py)
