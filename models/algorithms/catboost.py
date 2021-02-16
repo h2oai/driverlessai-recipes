@@ -73,7 +73,7 @@ class CatBoostModel(CustomModel):
 
     @property
     def has_pred_contribs(self):
-        return True
+        return False  # can enable if disable quantile and other objectives.  See: https://github.com/catboost/catboost/issues/1243
 
     @property
     def has_output_margin(self):
