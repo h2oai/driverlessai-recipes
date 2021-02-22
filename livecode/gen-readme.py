@@ -30,7 +30,7 @@ from os.path import isfile, join
 
 count = 0
 ret = []
-livecode_path = "./data/livecode"
+livecode_path = "./livecode"
 livecode_files = [f for f in listdir(livecode_path) if isfile(join(livecode_path, f))]
 for f in sorted(livecode_files):
     depth = 0
