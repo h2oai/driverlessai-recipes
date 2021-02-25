@@ -1,8 +1,13 @@
-"""Modified version of Driverless AI's internal LightGBM implementation with for quantile regression
+"""Modified version of Driverless AI's internal LightGBM implementation with transformed outcome transformation.
+See e.g. https://pylift.readthedocs.io/en/latest/introduction.html#the-transformed-outcome for more information.
+
+This recipe is intended to be used for creating binary classification uplift models using the transformed outcome approach.
+You need to use one of the transformed outcome uplift models along with the AUUC scorer. The `treatment` column is passed
+as a `weight` and the Driverless' task needs to be _regression_ (since after the transformation the target variable
+becomes the uplift directly).
 """
 from h2oaicore.models import BaseCustomModel, LightGBMModel
 import numpy as np
-from h2oaicore.systemutils import config
 import datatable as dt
 
 class LightGBMTransformedOutcome(BaseCustomModel, LightGBMModel):

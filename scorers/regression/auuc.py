@@ -5,9 +5,6 @@ import numpy as np
 import pandas as pd
 import datatable as dt
 from h2oaicore.metrics import CustomScorer
-from sklearn.preprocessing import LabelEncoder
-from h2oaicore.systemutils import config
-from distutils.util import strtobool
 
 class AUUC(CustomScorer):
     _description = "Area under uplift curve"
@@ -22,10 +19,11 @@ class AUUC(CustomScorer):
 
     _RANDOM_COL = 'Random'
 
-    #
-    # The following functions (except the very scorer()) are copied from https://github.com/uber/causalml/blob/master/causalml/metrics/visualize.py
-    #
-    def get_cumgain(self, df, outcome_col='y', treatment_col='w', treatment_effect_col='tau',
+    # The following functions get_cumgaim, get_cumlift, and auuc_score are directly copied from the CAUSALML package:
+    # https://github.com/uber/causalml/blob/v0.10.0/causalml/metrics/visualize.py
+    # The functions get_cumgain and get_cumlift were copied as is.
+    # The auuc_score was modified: the `tmle` parameter was removed since it is not used here.
+    def get_cumgain(df, outcome_col='y', treatment_col='w', treatment_effect_col='tau',
                     normalize=False, random_seed=42):
         """Get cumulative gains of model estimates in population.
 
@@ -62,7 +60,7 @@ class AUUC(CustomScorer):
 
         return gain
 
-    def get_cumlift(self, df, outcome_col='y', treatment_col='w', treatment_effect_col='tau',
+    def get_cumlift(df, outcome_col='y', treatment_col='w', treatment_effect_col='tau',
                     random_seed=42):
         """Get average uplifts of model estimates in cumulative population.
 
@@ -104,22 +102,23 @@ class AUUC(CustomScorer):
 
         lift = []
         for i, col in enumerate(model_names):
-            df_sorted = df.sort_values(col, ascending=False).reset_index(drop=True)
-            df_sorted.index = df_sorted.index + 1
+            sorted_df = df.sort_values(col, ascending=False).reset_index(drop=True)
+            sorted_df.index = sorted_df.index + 1
 
-            if treatment_effect_col in df_sorted.columns:
+            if treatment_effect_col in sorted_df.columns:
                 # When treatment_effect_col is given, use it to calculate the average treatment effects
                 # of cumulative population.
-                lift.append(df_sorted[treatment_effect_col].cumsum() / df_sorted.index)
+                lift.append(sorted_df[treatment_effect_col].cumsum() / sorted_df.index)
             else:
                 # When treatment_effect_col is not given, use outcome_col and treatment_col
                 # to calculate the average treatment_effects of cumulative population.
-                df_sorted['cumsum_tr'] = df_sorted[treatment_col].cumsum()
-                df_sorted['cumsum_ct'] = df_sorted.index.values - df_sorted['cumsum_tr']
-                df_sorted['cumsum_y_tr'] = (df_sorted[outcome_col] * df_sorted[treatment_col]).cumsum()
-                df_sorted['cumsum_y_ct'] = (df_sorted[outcome_col] * (1 - df_sorted[treatment_col])).cumsum()
+                sorted_df['cumsum_tr'] = sorted_df[treatment_col].cumsum()
+                sorted_df['cumsum_ct'] = sorted_df.index.values - sorted_df['cumsum_tr']
+                sorted_df['cumsum_y_tr'] = (sorted_df[outcome_col] * sorted_df[treatment_col]).cumsum()
+                sorted_df['cumsum_y_ct'] = (sorted_df[outcome_col] * (1 - sorted_df[treatment_col])).cumsum()
 
-                lift.append(df_sorted['cumsum_y_tr'] / df_sorted['cumsum_tr'] - df_sorted['cumsum_y_ct'] / df_sorted['cumsum_ct'])
+                lift.append(sorted_df['cumsum_y_tr'] / sorted_df['cumsum_tr'] - sorted_df['cumsum_y_ct'] / sorted_df[
+                    'cumsum_ct'])
 
         lift = pd.concat(lift, join='inner', axis=1)
         lift.loc[0] = np.zeros((lift.shape[1],))
