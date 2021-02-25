@@ -21,9 +21,9 @@ class AUUC(CustomScorer):
 
     # The following functions get_cumgaim, get_cumlift, and auuc_score are directly copied from the CAUSALML package:
     # https://github.com/uber/causalml/blob/v0.10.0/causalml/metrics/visualize.py
-    # The functions get_cumgain and get_cumlift were copied as is.
+    # The functions get_cumgain and get_cumlift were copied as is (only the `self` reference was added).
     # The auuc_score was modified: the `tmle` parameter was removed since it is not used here.
-    def get_cumgain(df, outcome_col='y', treatment_col='w', treatment_effect_col='tau',
+    def get_cumgain(self, df, outcome_col='y', treatment_col='w', treatment_effect_col='tau',
                     normalize=False, random_seed=42):
         """Get cumulative gains of model estimates in population.
 
@@ -60,7 +60,7 @@ class AUUC(CustomScorer):
 
         return gain
 
-    def get_cumlift(df, outcome_col='y', treatment_col='w', treatment_effect_col='tau',
+    def get_cumlift(self, df, outcome_col='y', treatment_col='w', treatment_effect_col='tau',
                     random_seed=42):
         """Get average uplifts of model estimates in cumulative population.
 
