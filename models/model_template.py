@@ -161,6 +161,7 @@ ll
 
     def mutate_params(self,
                       accuracy=10, time_tolerance=10, interpretability=1,
+                      score_f_name: str = None, trial=None,
                       **kwargs):
         """Mutate `self.params` dictionary of model parameters to be used during `fit()` and `predict()`.
 
@@ -176,6 +177,10 @@ ll
 
             interpretability (int): Interpretability setting for this experiment (1 to 10)
                 1 is most complex, 10 is most interpretable
+
+            score_f_name (str): scorer used by DAI, which mutate can use to infer best way to change parameters
+
+            trial: Optuna trial object, used to tell Optuna what chosen for mutation
 
             **kwargs (dict): Optional dictionary containing system-level information for advanced usage
 

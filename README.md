@@ -60,7 +60,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
  [1.9.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1)
-### Count: 205
+### Count: 209
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -172,6 +172,10 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [fb_prophet.py](./models/timeseries/fb_prophet.py) [Prophet by Facebook for TimeSeries with an example of parameter mutation.] 
     * [fb_prophet_parallel.py](./models/timeseries/fb_prophet_parallel.py) [Prophet by Facebook for TimeSeries with an example of parameter mutation.] 
     * [historic_mean.py](./models/timeseries/historic_mean.py) [Historic Mean for Time-Series problems. Predicts the mean of the target for each timegroup for regression problems.] 
+  * [UPLIFT](./models/uplift)
+    * [GLMTransformedOutcome.py](./models/uplift/GLMTransformedOutcome.py) [Modified version of Driverless AI's internal GLM implementation with transformed outcome transformation.See e.g. https://pylift.readthedocs.io/en/latest/introduction.html#the-transformed-outcome for more information.This recipe is intended to be used for creating binary classification uplift models using the transformed outcome approach.You need to use one of the transformed outcome uplift models along with the AUUC scorer. The `treatment` column is passedas a `weight` and the Driverless' task needs to be _regression_ (since after the transformation the target variablebecomes the uplift directly).] <kbd>✓ MOJO Enabled</kbd>
+    * [LightGBMTransformedOutcome.py](./models/uplift/LightGBMTransformedOutcome.py) [Modified version of Driverless AI's internal LightGBM implementation with transformed outcome transformation.See e.g. https://pylift.readthedocs.io/en/latest/introduction.html#the-transformed-outcome for more information.This recipe is intended to be used for creating binary classification uplift models using the transformed outcome approach.You need to use one of the transformed outcome uplift models along with the AUUC scorer. The `treatment` column is passedas a `weight` and the Driverless' task needs to be _regression_ (since after the transformation the target variablebecomes the uplift directly).] <kbd>✓ MOJO Enabled</kbd>
+    * [XGBoostTransformedOutcome.py](./models/uplift/XGBoostTransformedOutcome.py) [Modified version of Driverless AI's internal XGB implementation with transformed outcome transformation.See e.g. https://pylift.readthedocs.io/en/latest/introduction.html#the-transformed-outcome for more information.This recipe is intended to be used for creating binary classification uplift models using the transformed outcome approach.You need to use one of the transformed outcome uplift models along with the AUUC scorer. The `treatment` column is passedas a `weight` and the Driverless' task needs to be _regression_ (since after the transformation the target variablebecomes the uplift directly).] <kbd>✓ MOJO Enabled</kbd>
 * [RECIPES](./recipes)
   * [amazon.py](./recipes/amazon.py) [Recipe for Kaggle Competition: Amazon.com - Employee Access Challenge] 
 * [REFERENCE](./reference)
@@ -200,6 +204,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [REGRESSION](./scorers/regression)
     * [WAPE_scorer.py](./scorers/regression/WAPE_scorer.py) [Weighted Absoluted Percent Error] 
     * [asymmetric_mae.py](./scorers/regression/asymmetric_mae.py) [MAE with a penalty that differs for positive and negative errors] 
+    * [auuc.py](./scorers/regression/auuc.py) [Area under uplift curve] 
     * [cosh_loss.py](./scorers/regression/cosh_loss.py) [Hyperbolic Cosine Loss] 
     * [explained_variance.py](./scorers/regression/explained_variance.py) [Explained Variance. Fraction of variance that is explained by the model.] 
     * [largest_error.py](./scorers/regression/largest_error.py) [Largest error for regression problems. Highly sensitive to outliers.] 
