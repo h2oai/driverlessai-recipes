@@ -1,5 +1,5 @@
 """Transformer to augment US airport codes with geolocation info."""
-from h2oaicore.separators import orig_feat_prefix
+from h2oaicore.separators import orig_feat_prefix, extra_prefix
 from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 import datatable as dt
@@ -83,10 +83,11 @@ class AirportOriginDestDTTransformer(CustomTransformer):
                 dt.math.cos(dt.f["origin_lat"] * p) * dt.math.cos(dt.f["dest_lat"] * p) * (
                         1 - dt.math.cos((dt.f["dest_long"] - dt.f["origin_long"]) * p)) / 2
             b = 12742 * dt.math.arcsin(dt.math.sqrt(a))  # 2*R*asin...
-            all_dt["distanc_km"] = b
+            all_dt["distance_km"] = b
 
+            # give at least one original feature for attribution to original importance
             self._output_feature_names = self._output_feature_names + [
-                "{}{}{}".format(self._display_name, orig_feat_prefix, f) for f in
+                "{}{}{}{}{}".format(self._display_name, orig_feat_prefix, str(list(X.names)[0]), extra_prefix, f) for f in
                 ['elevation_diff', 'lat_diff', 'long_diff',
                  'distance_km']]
             self._feature_desc = self._feature_desc + [
