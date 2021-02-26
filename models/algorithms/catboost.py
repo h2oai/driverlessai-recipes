@@ -97,7 +97,8 @@ class CatBoostModel(CustomModel):
                        'n_estimators': n_estimators,
                        'learning_rate': learning_rate,
                        'early_stopping_rounds': early_stopping_rounds,
-                       'max_depth': 8
+                       'max_depth': 8,
+                       'grow_policy': 'depthwise',
                        }
 
         dummy = kwargs.get('dummy', False)
@@ -134,6 +135,7 @@ class CatBoostModel(CustomModel):
         for k in params_from_mutate:
             if k not in params:
                 params[k] = params_from_mutate[k]
+        self.params = copy.deepcopy(params)
 
     def mutate_params(self, **kwargs):
         fake_lgbm_model = LightGBMModel(**self.input_dict)
