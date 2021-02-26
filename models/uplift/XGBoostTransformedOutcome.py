@@ -1,3 +1,5 @@
+"""XGBoost for uplift modeling"""
+
 """Modified version of Driverless AI's internal XGB implementation with transformed outcome transformation.
 See e.g. https://pylift.readthedocs.io/en/latest/introduction.html#the-transformed-outcome for more information.
 
