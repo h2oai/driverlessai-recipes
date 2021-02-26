@@ -127,6 +127,14 @@ class CatBoostModel(CustomModel):
 
         self.params['learning_rate'] = max(self._min_learning_rate_catboost, self.params['learning_rate'])
 
+        # fill mutatable params with best for left over if default didn't fill
+        params = copy.deepcopy(self.params)
+        self.mutate_params(accuracy=accuracy, time_tolerance=time_tolerance, interpretability=interpretability, get_best=True, **kwargs)
+        params_from_mutate = copy.deepcopy(self.params)
+        for k in params_from_mutate:
+            if k not in params:
+                params[k] = params_from_mutate[k]
+
     def mutate_params(self, **kwargs):
         fake_lgbm_model = LightGBMModel(**self.input_dict)
         fake_lgbm_model.params = self.params.copy()
@@ -545,7 +553,7 @@ class CatBoostModel(CustomModel):
             params[k] = 'Depthwise' if params[k] == 'depthwise' else 'Lossguide'
 
         k = 'eval_metric'
-        if k in params and params[k].upper() == 'AUC':
+        if k in params and params[k] is not None and params[k].upper() == 'AUC':
             params[k] = 'AUC'
 
         map = {'regression': 'RMSE', 'mse': 'RMSE', 'mae': 'MAE', "mape": 'MAPE', "huber": 'Huber', "fair": 'FairLoss',
@@ -561,7 +569,7 @@ class CatBoostModel(CustomModel):
             params[k] = map[params[k]]
 
         k = 'eval_metric'
-        if k in params and params[k] in map.keys():
+        if k in params and params[k] is not None and params[k] in map.keys():
             params[k] = map[params[k]]
 
         if 'objective' in params:
