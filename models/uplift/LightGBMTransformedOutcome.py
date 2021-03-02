@@ -25,10 +25,10 @@ class LightGBMTransformedOutcome(BaseCustomModel, LightGBMModel):
 
     def fit(self, X: dt.Frame, y: np.array, sample_weight: np.array = None,
             eval_set=None, sample_weight_eval_set=None, **kwargs):
-        treatment_policy = np.mean(sample_weight)  # weights are carrying the treatment
-        y = y * ((sample_weight - treatment_policy) / (treatment_policy * (1 - treatment_policy)))
+        if sample_weight is not None:
+            treatment_policy = np.mean(sample_weight)  # weights are carrying the treatment
+            y = y * ((sample_weight - treatment_policy) / (treatment_policy * (1 - treatment_policy)))
         return super().fit(X, y, None, eval_set, None, **kwargs)
-
 
     @staticmethod
     def do_acceptance_test():
