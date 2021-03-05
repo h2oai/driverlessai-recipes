@@ -32,18 +32,19 @@ import os
 from h2oaicore.data import CustomData
 from h2oaicore.systemutils import config
 
-_global_modules_needed_by_name = ['datetime', 'aif360', 'sklearn']
-
 
 class MyData(CustomData):
 
     @staticmethod
     def create_data():
 
-        _modules_needed_by_name = ['datetime', 'aif360', 'sklearn']
+        _modules_needed_by_name = ['datetime', 'fairlearn', 'aif360', 'sklearn']
 
         import pandas as pd
 
+        from h2oaicore.tensorflow_dynamic import got_cpu_tf, got_gpu_tf
+        import tensorflow as tf
+        # above is because aif360 requires tensorflow
         from aif360.datasets import BinaryLabelDataset
         from aif360.algorithms.preprocessing.reweighing import Reweighing
 
