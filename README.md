@@ -60,6 +60,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
  [1.9.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1)
+ [1.9.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.2)
 ### Count: 209
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
