@@ -178,7 +178,8 @@ class AUUC(CustomScorer):
               labels: typing.Optional[np.array] = None,
               X: typing.Optional[dt.Frame] = None,
               **kwargs) -> float:
-        assert sample_weight is not None
+        if sample_weight is None:
+            sample_weight = np.ones(len(actual))
         assert np.any(sample_weight != 0)
         df = pd.DataFrame({
             'dai': predicted,
