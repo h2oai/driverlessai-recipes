@@ -23,16 +23,13 @@ class HistoricMeanModel(CustomTimeSeriesModel):
         return True
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
-        self.tgc = self.params_base.get('tgc')
-        self.time_column = self.params_base.get('time_column')
+        self.tgc = self.params_base['tgc']
+        self.time_column = self.params_base['time_column']
         self.encoder = self.params_base.get('encoder')
         self.nan_value = y.mean()
         self.means = {}
-        if self.tgc is None or not all([x in X.names for x in self.tgc]):
-            return
-
-        if self.time_column is None:
-            self.time_column = self.tgc[0]
+        if not all([x in X.names for x in self.tgc]):
+            raise RuntimeError("Internal error: need all time group cols (%s) in X, but only got %s" % (self.tgc, X.names))
 
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
 
