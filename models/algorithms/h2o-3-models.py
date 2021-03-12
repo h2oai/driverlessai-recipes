@@ -109,8 +109,11 @@ class H2OBaseModel:
             # NB can only handle weights of 0 / 1
             if sample_weight is not None:
                 sample_weight = (sample_weight != 0).astype(int)
-            if sample_weight_eval_set is not None:
-                sample_weight_eval_set = [(sample_weight_eval_set[0] != 0).astype(int)]
+            if sample_weight_eval_set is not None and len(sample_weight_eval_set) > 0 and sample_weight_eval_set[0] is not None:
+                sample_weight_eval_set1 = sample_weight_eval_set[0]
+                sample_weight_eval_set1[sample_weight_eval_set1 != 0] = 1
+                sample_weight_eval_set1 = sample_weight_eval_set1.astype(int)
+                sample_weight_eval_set = [sample_weight_eval_set1]
 
         train_X = h2o.H2OFrame(X.to_pandas())
         self.col_types = train_X.types
