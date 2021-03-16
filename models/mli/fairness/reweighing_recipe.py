@@ -25,6 +25,8 @@ Be sure to use the specified validation set to be used for validation when a mod
 can cause leakage if the validation or test data is used for determining the weights.
 """
 
+_global_modules_needed_by_name = ['datetime', 'fairlearn', 'aif360', 'sklearn']
+
 import datatable as dt
 import numpy as np
 import os
@@ -37,8 +39,6 @@ class MyData(CustomData):
 
     @staticmethod
     def create_data():
-
-        _modules_needed_by_name = ['datetime', 'fairlearn', 'aif360', 'sklearn']
 
         import pandas as pd
 
