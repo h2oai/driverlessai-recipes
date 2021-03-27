@@ -33,12 +33,11 @@ from h2oaicore.data import CustomData
 from h2oaicore.systemutils import config
 
 
-class MyData(CustomData):
+class MyReweightingData(CustomData):
+    _modules_needed_by_name = ['datetime', 'fairlearn', 'aif360', 'sklearn']
 
     @staticmethod
     def create_data():
-
-        _modules_needed_by_name = ['datetime', 'fairlearn', 'aif360', 'sklearn']
 
         import pandas as pd
 
@@ -61,7 +60,11 @@ class MyData(CustomData):
         full_data_file = folder_path + data_file
 
         if not os.path.isfile(full_data_file):
-            return []
+            # for testing, just return something
+            if config.hard_asserts:
+                return dt.Frame(np.array([[1, 2, 3], [4, 5, 6]]))
+            else:
+                return []
 
         train = pd.read_csv(full_data_file)
 

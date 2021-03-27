@@ -189,7 +189,7 @@ class CalibratedClassifierModel:
         varimp = varimp['LGain']
         varimp = varimp[:len(X.names)]
         varimp = varimp.reindex(X.names).values
-        importances = varimp
+        importances = varimp[:, -1]
 
         iters = model_classification.best_iterations
         iters = int(max(1, iters))

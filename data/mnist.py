@@ -10,17 +10,17 @@ import datatable as dt
 import numpy as np
 import pandas as pd
 
-_global_modules_needed_by_name = ['mnist==0.2.2']
-import mnist
+#_global_modules_needed_by_name = ['mnist==0.2.2']
+#import mnist
 
 
 class MNISTData(CustomData):
     @staticmethod
     def create_data(X: dt.Frame = None):
-        train_images = mnist.train_images()
-        train_labels = mnist.train_labels()
-        test_images = mnist.test_images()
-        test_labels = mnist.test_labels()
+        from h2oaicore.tensorflow_dynamic import got_cpu_tf, got_gpu_tf
+        import tensorflow as tf
+        mnist = tf.keras.datasets.mnist
+        (train_images, train_labels), (test_images, test_labels) = mnist.load_data()
 
         train_images = train_images.reshape((len(train_images), -1))
         test_images = test_images.reshape((len(test_images), -1))

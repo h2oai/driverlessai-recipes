@@ -74,6 +74,7 @@ class ExtremeClassifierModel:
     _mojo = False
     _description = "Extreme Classifier Model"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+    _supports_predict_shuffle_scoring = False  # override lightgbm inheritance
 
     le = LabelEncoder()
 

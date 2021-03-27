@@ -11,7 +11,7 @@ class AUUC(CustomScorer):
     _maximize = True  # whether a higher score is better
     _perfect_score = 2.0  # AUUC can be slightly > 1.
 
-    _supports_sample_weight = False  # whether the scorer accepts and uses the sample_weight input
+    _supports_sample_weight = True  # whether the scorer accepts and uses the sample_weight input
 
     _regression = True
     _binary = False
@@ -178,7 +178,9 @@ class AUUC(CustomScorer):
               labels: typing.Optional[np.array] = None,
               X: typing.Optional[dt.Frame] = None,
               **kwargs) -> float:
-
+        if sample_weight is None:
+            sample_weight = np.ones(len(actual))
+        assert np.any(sample_weight != 0)
         df = pd.DataFrame({
             'dai': predicted,
             'outcome': actual,
