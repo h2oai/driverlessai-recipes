@@ -41,7 +41,7 @@ class Adversarial_Debiasing42(CustomTensorFlowModel):
     _multiclass = False
     _display_name = "AD42"
     _description = "AD42"
-    _modules_needed_by_name = ['shap', 'scipy', 'pandas', 'matplotlib', 'AIF360', 'sklearn']
+    _modules_needed_by_name = ['shap', 'scipy', 'pandas', 'matplotlib', 'AIF360', 'sklearn', 'fairlearn']
 
     _is_reproducible = False
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
@@ -146,6 +146,7 @@ class Adversarial_Debiasing42(CustomTensorFlowModel):
               
         import pandas as pd
         import numpy as np
+        import random
         from sklearn.preprocessing import OneHotEncoder
         from collections import Counter
         
