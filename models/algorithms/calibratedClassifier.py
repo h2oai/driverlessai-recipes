@@ -21,6 +21,7 @@ class CalibratedClassifierModel:
     _can_use_gpu = True
     _mojo = True
     _description = "Calibrated Classifier Model (LightGBM)"
+    _supports_predict_shuffle_scoring = False
 
     le = LabelEncoder()
 
@@ -184,7 +185,7 @@ class CalibratedClassifierModel:
             raise RuntimeError('Unknown calibration method in fit()')
         # calibration
 
-        varimp = model_classification.imp_features(columns=X.names)
+        varimp = model_classification.imp_features(columns=X.names)[['LGain', 'LInteraction']].dropna(axis=0)
         varimp.index = varimp['LInteraction']
         varimp = varimp['LGain']
         varimp = varimp[:len(X.names)]
