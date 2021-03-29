@@ -12,6 +12,7 @@ class CustomGpuCheck(CustomModel):
 
     _can_use_gpu = True  # if enabled, will use special job scheduler for GPUs
     _get_gpu_lock = True  # whether to lock GPUs for this model before fit and predict
+    _must_use_gpu = True  # this recipe can only be used if have GPUs
     _predict_on_same_gpus_as_fit = True  # force predict to behave like fit, regardless of config.num_gpus_for_prediction
 
     @staticmethod
@@ -63,6 +64,7 @@ class CustomGpuCheck2(CustomModel):
 
     _can_use_gpu = True  # if enabled, will use special job scheduler for GPUs
     _get_gpu_lock = True  # whether to lock GPUs for this model before fit and predict
+    _must_use_gpu = True  # this recipe can only be used if have GPUs
     _predict_on_same_gpus_as_fit = True  # force predict to behave like fit, regardless of config.num_gpus_for_prediction
 
     @staticmethod
