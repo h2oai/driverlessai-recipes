@@ -162,7 +162,8 @@ class Adversarial_Debiasing42(CustomTensorFlowModel):
         import tensorflow as tf
 
               
-        sess = tf.Session()
+        #sess = tf.Session()
+        tf.compat.v1.disable_eager_execution()    
         # Get the logger if it exists
         logger = None
         if self.context and self.context.experiment_id:
