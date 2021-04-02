@@ -61,7 +61,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
  [1.9.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1)
  [1.9.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.2)
-### Count: 209
+### Count: 210
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -128,6 +128,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description] 
 * [MODELS](./models)
+  * [mock_gpu_test_model.py](./models/mock_gpu_test_model.py) [For GPU usage testing purposes.] 
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.] 
   * [ALGORITHMS](./models/algorithms)
     * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines] <kbd>✓ MOJO Enabled</kbd>
