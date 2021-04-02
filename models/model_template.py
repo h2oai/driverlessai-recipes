@@ -256,7 +256,7 @@ ll
         """
         raise NotImplemented("No fit for %s" % self.__class__.__name__)
 
-    def set_feature_importances(self, feature_importances):
+    def set_feature_importances(self, feature_importances, normalize=True):
         df_imp = pd.DataFrame()
         df_imp['fi'] = self.feature_names_fitted
         df_imp['fi_depth'] = 0
@@ -384,6 +384,7 @@ class CustomTensorFlowModel(CustomModel, TensorFlowModel):
         """
         super().pre_fit(X, y, sample_weight, eval_set, sample_weight_eval_set, **kwargs)
         from h2oaicore.tensorflow_dynamic import got_cpu_tf, got_gpu_tf
+        assert got_cpu_tf is not None and got_gpu_tf is not None
         self.setup_keras_session()
 
     @staticmethod
@@ -394,6 +395,7 @@ class CustomTensorFlowModel(CustomModel, TensorFlowModel):
             when any next call to import tensorflow [as tf] is called.
         """
         from h2oaicore.tensorflow_dynamic import got_cpu_tf, got_gpu_tf
+        assert got_cpu_tf is not None and got_gpu_tf is not None
 
 
 class CustomTimeSeriesTensorFlowModel(CustomTimeSeriesModel, CustomTensorFlowModel):

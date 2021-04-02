@@ -1,7 +1,7 @@
+"""For GPU usage testing purposes."""
+
 import os
-
 import numpy as np
-
 from h2oaicore.models import CustomModel
 
 
