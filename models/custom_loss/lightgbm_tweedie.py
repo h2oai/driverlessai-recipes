@@ -17,6 +17,10 @@ class TweedieLightGBMModel(BaseCustomModel, LightGBMModel):
     _description = "LightGBM with Tweedie distribution with tweedie variance power=%g" % _tweedie_variance_power
     _display_name = "LightGBM tweedie variance power=%g" % _tweedie_variance_power
 
+    @property
+    def has_pred_contribs(self):
+        return False  # wouldn't sum up to preds
+
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
                            **kwargs):
