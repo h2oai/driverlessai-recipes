@@ -21,7 +21,7 @@ after modifications specific to a dataset it applies to.
 * [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
 
 ## Sample Recipes
-### Count: 34
+### Count: 36
   * [add\_columns\_with\_rand\_values.py](./add_columns_with_rand_values.py) [Add one or more columns containing random integer values]  
 
   * [aggregate\_and\_augment\_one\_to\_many.py](./aggregate_and_augment_one_to_many.py) [Template for augmenting data based on one-to-many relationship between datasets X (e.g. header level) ]  
@@ -37,6 +37,8 @@ after modifications specific to a dataset it applies to.
   * [bind\_X\_and\_target\_y.py](./bind_X_and_target_y.py) [Template for binding dataset and target from another dataset with the same number of rows,]  
 
   * [bind\_n\_datasets.py](./bind_n_datasets.py) [Livecode for binding multiple datasets' rows (rbind). Datasets should have the same]  
+
+  * [bootstrap\_time\_series.py](./bootstrap_time_series.py) [Bootstrap time series (or time series bagging) by the means of randomly picking]  
 
   * [cast\_columns\_to\_numeric.py](./cast_columns_to_numeric.py) [Cast columns with mostly numeric values to new numeric columns.]  
 
@@ -79,6 +81,8 @@ after modifications specific to a dataset it applies to.
   * [rename\_column\_names.py](./rename_column_names.py) [Rename column name(s) in the dataset]  
 
   * [sample\_X.py](./sample_X.py) [Random sample of rows from X]  
+
+  * [shift\_time\_series.py](./shift_time_series.py) [Shift all time series values up by the N-th percentile value, where percentiles are]  
 
   * [split\_and\_transpose\_string.py](./split_and_transpose_string.py) [Template to parse and split a character column using pandas str.split, ]  
 
