@@ -1,4 +1,4 @@
-"""Qunatile Random Forest Regression model from skgarden"""
+"""Quantile Random Forest Regression model from skgarden"""
 import datatable as dt
 import numpy as np
 from h2oaicore.models import CustomModel
@@ -45,7 +45,6 @@ class RandomForestQuantileModel(CustomModel):
             estimators_list = [300, 500, 1000, 2000,]
             depth_list = [10, 20, 30, 50, 100,]
             samples_leaf_list = [10, 20, 30,]
-
         elif accuracy >= 5:
             estimators_list = [50, 100, 200, 300,]
             depth_list = [5, 10, 15, 25, 50,]
@@ -127,5 +126,4 @@ class RandomForestQuantileModel(CustomModel):
         X = X.to_numpy()
         model, _, _, _ = self.get_model_properties()
         preds = model.predict(X, quantile=RandomForestQuantileModel._alpha)
-
         return preds
