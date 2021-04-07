@@ -14,7 +14,7 @@ class RandomForestQuantileModel(CustomModel):
     _alpha = 0.8  # PLEASE CONFIGURE
 
     _display_name = "QuantileRandomForest alpha=%g" % _alpha
-    _description = "Qunatile Random Forest Regression"
+    _description = "Quantile Random Forest Regression"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     _modules_needed_by_name=['scikit-garden==0.1.3',] # extra packages required
