@@ -2,7 +2,6 @@
 import datatable as dt
 import numpy as np
 from h2oaicore.models import CustomModel
-from skgarden import RandomForestQuantileRegressor
 from h2oaicore.systemutils import physical_cores_count
 
 
@@ -73,7 +72,7 @@ class RandomForestQuantileModel(CustomModel):
     ):
         X = dt.Frame(X)
         orig_cols = list(X.names)
-
+        from skgarden import RandomForestQuantileRegressor
         model = RandomForestQuantileRegressor(**self.params)
         X = self.basic_impute(X)
         X = X.to_numpy()
