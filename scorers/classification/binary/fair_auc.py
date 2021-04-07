@@ -1,3 +1,5 @@
+"""Custom scorer for detecting and reducing bias in machine learning models."""
+
 """
 Custom scorer for detecting and reducing bias in machine learning models.
 Based upon  https://arxiv.org/abs/1903.04561.
