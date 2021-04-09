@@ -1,4 +1,4 @@
-"""Truncated SVD for all columns"""
+"""One-Hot Encoding for categorical columns"""
 
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
