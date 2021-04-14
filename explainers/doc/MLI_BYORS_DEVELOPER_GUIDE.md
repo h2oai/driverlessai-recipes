@@ -50,6 +50,7 @@ MLI module of Driverless AI uses the concept of **recipes** so that users can ad
             * [PD/ICE](#pd-ice)
             * [Markdown](#markdown)
             * [Decision Tree](#decision-tree)
+            * [Shapley Summary](#shapley-summary)
             * [Scatter Plot](#scatter-plot)
 * [Best Practices](#best-practices)
     * [Performance](#performance)
@@ -224,7 +225,7 @@ Custom explainers **must** inherit from the `CustomExplainer` class which declar
 * `self.logger`
 * `self.config`
 
-These instance attributes are set by `setup()` method and can be subsequently accessed using `self` to create explanations. 
+[These](#setup) instance attributes are set by [setup()](#setup) method and can be subsequently accessed using `self` to create explanations. 
 
 * Check [setup()](#setup) section for instance attributes **documentation**.
 * Check [Run](#run) section to determine order of method invocations  on RPC API procedures dispatch.
@@ -299,7 +300,7 @@ method to properly **initialize**. `CustomDaiExplainer` defines the following in
 * `self.used_features`
 * `self.enable_mojo`
 
-These instance attributes are set by `setup()` method and can be subsequently accessed using `self` to create explanations. 
+[These](#setup) instance attributes are set by [setup()](#setup) method and can be subsequently accessed using `self` to create explanations. 
 
 * **Examples:** check [DAI explainer metadata example](#dai-explainer-metadata-example) and [DAI explainer example](#dai-explainer-example) simple custom explainer.
 * Check [setup()](#setup) section for instance attributes documentation.
@@ -1167,7 +1168,7 @@ MLI BYORs runtime provides helpers to accomplish this task which are based on [C
 Find more details on normalization in [Grammar of MLI](#grammar-of-mli) section. 
 
 ### explain_local()
-Custom explainer **can** optionally implement `explain_local()` method in order to provide **local** explanations. By local explanations are meant explanations created for particular dataset row.
+Custom explainer **can** implement `explain_local()` method in order to provide **local** explanations. By local explanations are meant explanations created for particular dataset row.
 
 Custom explainer **must** declare the ability to provide local explanations:
 
@@ -1367,21 +1368,95 @@ returned as string.
 Check `template_dt_explainer.py` from [Explainer Templates](#explainer-templates) for
 example of synchronous on-demand dispatch.
 ### explain_global()
-Custom explainer **can** optionally implement `explain_global()` method to **(re)calculate** global explanation(s) **on-demand**. Such (re)calculation can be initiated using [Driverless AI RPC API](#python-client-api-reference).
+_Since: Driverless AI 1.9.2_
 
-<!--
+Custom explainer **can** implement `explain_global()` method to update explanation(s) **on-demand**. Such recalculation and/or extension of existing explanations can be initiated using [Driverless AI RPC API](#python-client-api-reference) for example as follows: 
+
+```python
+global_run_job_key = h2oai_client.update_explainer_global_result(
+    mli_key="570a95c4-66f1-11eb-a6ff-e86a64888647",
+    explainer_job_key="670a95c4-66f1-11eb-a6ff-e86a64888647",
+    params=Client.build_common_dai_explainer_params(),
+    explainer_params=json.dumps(
+        { 'features': ["AGE"] }
+    ),
+    explanation_type=(
+        explanations.PartialDependenceExplanation.explanation_type()
+    ),
+    explanation_format=(
+        representations.PartialDependenceJSonFormat.mime
+    ),
+    update_params=json.dumps(
+        {
+            UpdateGlobalExplanation.UPDATE_MODE: (
+                UpdateGlobalExplanation.OPT_MERGE
+            ),
+            UpdateGlobalExplanation.PARAMS_SOURCE: (
+                UpdateGlobalExplanation.OPT_INHERIT
+            ),
+        }
+    ),
+)
+```
+
+`update_explainer_global_result()` parameters description:
+
+* `mli_key`
+    - Key of the target MLI where to update explanation(s).
+* `explainer_job_key`
+    - Key of the target explainer (job) in which to update explanation(s).
+* `params`
+    - Optional `CommonDaiExplainerParams` to parametrize explainer run. `params` argument content can be overridden by previous (original) explainer run parameters stored on the server side by using "inherit" option in `update_params`.
+* `explainer_params`
+    - Explainer specific parameters to be used in "update" run. For instance it can be used to specify for which dataset features to add/update explanatins, with which resolution etc.
+* `explanation_type`
+    - Optional specification of the explanation type to be updated. Use `None` to requestion all explanations and/or when explainer knows what to update.
+- `explanation_format`
+    - Optional specification of the explanation format to be updated. Use `None` to requestion all explanation formats and/or when explainer knows what to update.
+- `update_params`
+    - Control how to update explanations with `update_params` dictionary like merge vs. overwrite explanations, inherit interpretation parameters vs. use `params` interpretation parameters. See `UpdateGlolbalExplanation` class for more details.
+
+
 `CustomExplainer` interface anticipates that instances of classes implementing this interface can run in different explainer runtimes/containers like Driverless AI or standalone (locally).
 
-When implementing custom explainer for Driverless AI explainer runtime, this method doesn't have to be overridden as global explanations are typically computed, normalized and persisted. Driverless AI RPC API (which can be used using [Python Client API](#python-client-api-reference)) then looks up persisted global explanations automatically.
+When implementing custom explainer for Driverless AI explainer [runtime](#runtimes), this method doesn't have to be overridden as explanations are typically computed, normalized and persisted. Driverless AI RPC API (which can be used using [Python Client API](#python-client-api-reference)) then looks up persisted global explanations automatically.
 
-_...(see explain local)..._
 
-_...(signature of explainer API)..._
+Custom explainer can get parameters passed to `explain_global()` methods by the runtime as in the example below:
 
-_...(signature of Driverless AI RPC API)..._
--->
+```python
+class MyExplainer(CustomExplainer):
 
-`explain_global()` method is **not supported** by Driverless AI `1.9.1` and older versions.
+    ...
+
+    def explain_global(self, X, y=None, **e_params) -> list:
+        """Update Partial Dependence explanation.
+
+        Parameters
+        ----------
+        X: dt.Frame
+          Dataset (whole) as datatable frame (handle).
+        y: dt.Frame
+          Optional predictions as datatable frame (handle).
+
+        Returns
+        -------
+        List[OnDemandExplanation]:
+          Update on-demand explanations.
+
+        """
+        ...
+        systemutils.loggerdebug(
+            self.logger,
+            f"\nexplain_global(): "
+            f"\n  target MLI key: {e_params.get(OnDemandExplainKey.MLI_KEY)}"
+            f"\n  target job key: {e_params.get(OnDemandExplainKey.EXPLAINER_JOB_KEY)}"
+            f"\n  MLI key       : {self.mli_key}"
+            f"\n  job key       : {self.key}"
+            f"\n  all params    : {e_params}",
+        )
+        ...
+```
 ### destroy()
 Custom explainer **can** optionally implement and override `destroy()` method to perform post explainer run **clean-up**.
 
@@ -1654,7 +1729,11 @@ Custom explainer Python API:
 * Recipe author can use `self.logger` instance attribute to log debugging messages. This messages are stored to explainer's log.
 * Explainer runtime logs explainer related **events/errors** using the same logger which ensures that log contains full explainer run trace.
 
-To get explainer log - with your, explainer runtime and explainer log items - from UI, click task manager `RUNNING | FAILED | DONE` button in the upper right corner of running interpretation and hover over explainer's entry in the list of tasks:
+To get explainer log - with your, explainer runtime and explainer log items - from UI, click task manager `RUNNING | FAILED | DONE` button in the upper right corner of (running) interpretation:
+
+![image](images/MLI_BYORS_DEVELOPER_GUIDE.debug-task-mgr.png)
+
+... and hover over explainer's entry in the list of tasks:
 
 ![task-manager](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.open-logs.png)
 
@@ -2021,6 +2100,8 @@ Example of the server-side **filesystem** directory structure:
 		"R2": 0.96
 	}, {
 		"RMSE": 0.03
+	}, {
+		"Bias": 0.34
 	}],
 	"documentation": "Feature importance explainer..."
 }
@@ -2198,8 +2279,19 @@ Example of the server-side **filesystem** directory structure:
 	        residual-pd?: num,
 	        residual-sd?: num,
             ice?: num,
-            histogram?: num,
             oor?: bool
+        }
+    ],
+    data_histogram_numerical?: [
+        {
+            x: any,
+            frequency: num,
+        }
+    ],
+    data_histogram_categorical?: [
+        {
+            x: any,
+            frequency: num,
         }
     ]
 }
@@ -2214,27 +2306,45 @@ Example of the server-side **filesystem** directory structure:
       - `ice` - local explanation ~ ICE value (optional)
       - `sd` - standard deviation
       - `residual-sd` - residual standard deviation value (optional)
-      - `histogram` - histogram value for given bin (optional)
       - `oor` - out of range indicator (bool)
+    - `data_histogram_numerical` - optional histogram data for continous features (list):
+      - `x` - value for which is histogram computed
+      - `frequency` - number of occurences within bin
+    - `data_histogram_numerical` - optional histogram data for discrete features (list):
+      - `x` - value for which is histogram computed
+      - `frequency` - number of occurences of the value
 
 For example:
 
 ```
 {
 	"data": [{
-			"bin": -2,
+			"bin": "UNSEEN",
 			"pd": 0.18315742909908295,
 			"sd": 0.1297120749950409,
-			"histogram": 5,
 			"oor": true
 		}, {
-			"bin": -1,
+			"bin": "married",
 			"pd": 0.18658745288848877,
 			"sd": 0.13090574741363525,
-			"histogram": 27,
 			"oor": false
 		}, {
+        ...
     ...
+	"data_histogram_categorical": [{
+		"x": "divorce",
+		"histogram": 69
+	}, {
+		"x": "married",
+		"histogram": 2577
+	}, {
+		"x": "other",
+		"histogram": 3
+	}, {
+		"x": "single",
+		"histogram": 2720
+	}],
+}
 ```
 
 [Open in Vega editor.](https://vega.github.io/editor/#/url/vega/N4KABGBEAkDODGALApgWwIaQFxUQFzwAdYsB6UgN2QHN0A6agSz0QFcAjOxge1IRQyUa6SgFY6AK1jcAdpAA04KAHdGAExbYwANgAMuxREgpG1fFoBM+w1ELo1axjOpbRipZDXo8mHAG0lCFAIEKgZdFRkLUgfdgAbKJtQyAp0ONZkWC0A0Eh2Jy0ARkVIQjVCLW1CugBOABY6txBIblY8AHkAMwAldGconDwAJwyQAF9FXPy5HAsSsoqcbW06OoAOAHY1ktaOnr7qAbBh0YmQKYKcJtLyooBmOm07wu0Sxngjuos6UTWLOeaiEYsDw3GoQwiWjWdEKdwsdRKamQFEY3h4MzAhV040mzWmlXmt1mtRe22a7yOhWqNT01yBILBENQWjudToa1JiORqLw6KK2LOFwxG0JizA0JqFjuZMgFK0dWqokKdRqJXpoPBkJwX0eugs1yRKLRsksAtxeUu4tF8uqG0KdreHyKKzudxqdOBGqZrm+Gw2olezUNPL5OEKohx5zxltVzQWlged1EumuctmujoukKFhFgM9jK1YBzP3duc83ONGMKkaF-OtOFZ7N0fsdlJqqwsHLV+c1zIb4mWsfLRt5JrDZqjFqrxTjRLACszekDsqdDfb8NZ3YZvcq4g2zyHwcr-Jr0arAJuYqxMIaF7TYHEWMKQ-VBb7YA2MO0jS5I9DRYnWswzuet5w7fVWy0DMGmlLcvULdsqjWBEgwrUcqwjQUzyKFDL2dVYvmXe8rEefUQLzbdvSuCU-WXI90JPLCpyKa54xwT9dElO9V0xRM3QvV8dzDaonn+X8QzHTFAOwsNlzYotvgsZUZxXT42WfF8eyoh9FJqP5xOPK5T2YsMy3kuFHmfFT72VdkNnqOC30qT9lk3VC-0k8NjPxMMZXkzs6A2L5IO1aE7T1RyhJ0aFlXWAyGPHbzLWfUCVUzd1uKOZ5AruDZl0E7SA0eDYIvciSMSsJKKoMWcrwzbQlVTHjn0Cmpm0i7S7hWOo7TotD-0w80fKLFT5KK0RRHhHY2i6Xp+i0E5kCqywLzG9sXn9aa9jmw4FpGJaxhAABdJIQhiCEZFgTpuCGd8AlCUJgge5I8AAT0II5IGu27WDiTBTueyBkAAD0IIZoi8PBWFQOgFjAABqMBIehuh6L5AGHsgdAshwIxWAAEWRSBAges5nvJkInopmJ3s+77UF+-6ScBkGwYh7wUbhgBaJGOZhtGTQx5Jsa0Iw4kJihiYpw7nqOkmyYpynmbCCJPopLnOkYOI8GQIZkDUBRlcgaRWCGHiYnQeJEiN4Y+ium67uVoIoDej7ok17XdYUKBWfBnBIAAQgD5GYYpMAADJw7AYO+boXZZoOKIwBlh65dCBWgiN8JImiBYNa1nW9YNjHjdaM3PtiBJDcB23Lvp7InbAYAXdp92C69+QfdBv2oCDkPYfKCOo5jqGYfj-Z5uT5W05CDOm6z1Xol2fPPaL6vMZN8vokr62a4u+3bobinm5pt3-Y9wvvaB7voj72Px525Ah+jkfOduKfZfl06qbO7PPtfFehd9br2SJvc2O8QFnVrgfR2x8W5nygBfDuXc2b+zvqPOgBVIQf1TvLJQJ0QAeFgKYcIcQcZgHukrQGf8Ib9UFkbVI6RKTYnTkLee1DF7+xGFXEujCMgsS-o3H+RgaH+yRD4LW+NuAYAKHgiABCPAYCGAAa3IZQzONdW7+3BK0CoJdRG4C0pCEuyAZDwG4EiLQwizqmMvjgaxyRXpWJSGkfh2p9Bz0BiYMweBnF8KOFYXQnjMaqA0IgPxrijh6CCY3FOrDG6AwQGkTIR8qGYwMZAYGAAJfMkCjCu0+uwPoxcjYXV2v7UJmgS5qGkegS0wBPDeF8C7S2PDEGMGQHEA2-t8RxOTt-BeOd-avRyQyPJ8DPpxCcMgdA4MS5lKOH4QJnddAEMBgAL11twPaGRqm1PqY0nw0QAFILXp3L6HSunHKMcyPpKc1mKyxsDFJ-gSbWJaEMDpMhfE9O4AQaR4zjbwGSdEbJuSS7rKcEiYGRRBGPSNjdL5PyoAJE6L4kuSSq7DNGaCQF4J1A7KWunfB5ylGqNSc9d5BToh63gOio2nQhgAvsYc5pxh8yAN1sA4JQMzEWKOA4n23yvb2ISVAJwhdCDcD+jrCJTDohTJkDM8GwTkgwpZZiz6YKxnnM1p07pUBelsKME4jVwKsVQBGeC9p+rrmUUhKqs6r0LDOM1dEK1OqoD+Kgo6owlTwlmpBf7bVuLzlFJkAa4oUBuCdE6LAZAyKuaFF9e0uIcQ5VuMNfKlNFy03tDsPAZgpqm4uPlTgDMaw+nEuencmeEA55Uq0VAHRrA9GDM+jIuQJi+WWNFdTWxIr2GPO8eYFl3qGxrCCcalQ6hNBjsiZUDx07IDFoaeOsAMTpbK0dUC5Jai3nttBYC6lPTimAoWdEf1gKamducZDNlEDdWXINcxHNN66kyF6MoV1JC0i0IkeLfZcg7kDI4UMy1x6m2QEVcq89idsjSgMBuh5yRNlMsJXs29LL73b1aYkG1XS1F4XOXKc5D94PnPFkTc5BMiZHTfUBr9P7qCkP-XUwDt67kksbk8l5FCD2A0RbYhVyA0WArdcMvFnyDWLTkWAFDZ0yX7uPjbKDtL6WA0ZcyktOH-Z51Ody7t5je1DpZsKnugqjASt1lKmVArS2Zug9M2ZkAc3qpLRJqAMKn22p6QUHNq7d0WpXVfPVVz-ZUclgFl1gbgtOJ8+FqAtGovLqvbFrVV9w2RrI7G+Nibk3Lo9um+dZaoAAGIABCdx8Y1AAKLaFc4VrWcR83oELW9DNRwK1VtntuuFaSXpQdgK9VA7BpWAq0++BpunbDlE5WvHlpjjMCp4wOizYrZTmds94ez66nNKpc25115qMsJZffiHLcaE3HaDV5zLZ7y0-DGAFm7cXQvPtzrcHNIImXKN2wu7RetTGNY2z97gf2ADqs6A0lvXXcHr9a+vxPhZohBxsRtjfTSXSbd6mnRHVgZg2i2e0rf7eZqxG3rNDG27KkrjmYOHeXe5hpnnMnvd84agol28uvdO4ah7G6nsvfS+69niXVIg8VlAMHf3OvRDK-oXQkvHky+QFDsJcuwwI5wdW2eoHMYnulxj8b2OmVTdZUvNo83DNGyW-yinZO7GmfJptyV0qdua5Rc5lVTPedHrO9EC70bcvXZF8G+7EaoJC+XYF1n8WCMvvjN94Y4P-ulZXZ0uI3Bv3J9+2r6Hnv4exKR3roRqm0cwYm2b3HRz-YQOJ8th3Lu1tN+plTmnaf6fe+V9TZnQW+cXI56+mPfvJPnOISxv9XDfpRFz6nz3kAyuxo2MgeyPeXeq-V3O2HAPMRz7+-jbGAa12778NsOo9Hi81rk6EOtOuwD4PGCAIAA/view)
@@ -2371,6 +2481,18 @@ Example of the server-side **filesystem** directory structure:
 		"class_B": "dt_class_B.json",
 		"class_C": "dt_class_C.json"
 	},
+	"metrics": [{
+		"cvRmse": 0.029
+	},
+	{
+		"trainRmse": 3.1	
+	}, 	
+	{
+		"r2": 3.1	
+	},	
+	{
+		"klimeNfold": 3.1	
+	}],
 }
 ```
 
@@ -2389,11 +2511,7 @@ Example of the server-side **filesystem** directory structure:
           edge_weight: num,
           leaf_path: bool,
         }
-    ],
-    trainRmse?: str,
-    cvRmse?: str,
-    r2?: str,
-    klimeNfolds?: str
+    ]
 }
 ```
 
@@ -2405,10 +2523,6 @@ Example of the server-side **filesystem** directory structure:
       - `edge_in` - human readable edge name bettwen node and parent node
       - `edge_weight` - edge weight value
       - `leaf_path` - flag for selected row path
-    - `trainRmse` - RMSE value (optional)
-    - `cvRmse` - CV RMSE value (optional)
-    - `r2` - R2 value (optional)
-    - `klimeNfolds` - number of folds value (optional)
 
 For example:
 
@@ -2465,6 +2579,204 @@ The same structure as in case of global explanation, except optional fields:
    * `synchronous_on_demand_exec` - `true` in case of **synchronous** [On-demand Local Explanation](#on-demand-local-explanation),
      `false` in case of **asynchronous** [On-demand Local Explanation](#on-demand-local-explanation) 
    * ... any additional parameters
+#### Shapley Summary
+_Since: Driverless AI 1.9.2_
+
+![shap-summary](images/MLI_BYORS_DEVELOPER_GUIDE.shapley-summary.png)
+
+**Template** explainer:
+
+* [template_summary_featimp_explainer.py](https://github.com/h2oai/driverlessai-recipes/blob/master/explainers/explainers/templates/template_summary_featimp_explainer.py)
+
+**Custom Explainers API**
+
+* explanations:
+   * `GlobalSummaryFeatImpExplanation`
+   * `LocalSummaryFeatImpExplanation`
+* representations/formats:
+   * `GlobalSummaryFeatImpJSonFormat`
+   * `GlobalSummaryFeatImpJsonDatatableFormat`
+   * `LocalSummaryFeatImpJSonFormat`
+
+Example of the server-side **filesystem** directory structure:
+
+```
+.
+├── global_feature_importance
+│   ├── application_json
+│   │   ├── explanation.json
+│   │   ├── featimp_class_A.json
+│   │   ├── featimp_class_B.json
+│   │   └── featimp_class_C.json
+│   └── ...
+├── log
+│   └── ...
+└── work
+    └── ...
+
+
+.
+├── global_summary_feature_importance
+│   ├── application_json
+│   │   ├── explanation.json
+│   │   ├── summary_feature_importance_class_0_offset_0.json
+│   │   ├── ...
+│   │   └── summary_feature_importance_class_6_offset_1.json
+│   ├── application_vnd_h2oai_json_datatable_jay
+│   │   ├── explanation.json
+│   │   ├── summary_feature_importance_class_0.jay
+│   │   ├── ...
+│   │   └── summary_feature_importance_class_6.jay
+│   └── ...
+├── log
+│   └── ...
+└── work
+    └── ...
+
+```
+
+**Index file** `explanation.json`:
+
+```json
+{
+	"documentation": "Summary Shapley feature importance explainer...",
+    "total_rows": 12,
+    "rows_per_page": 10,
+    "files": {
+        "asics_ds_trainer": {
+            "0": "summary_feature_importance_class_0_offset_0.json",
+            "10": "summary_feature_importance_class_0_offset_1.json"
+        },
+        ...
+        },
+        "specialized_29er": {
+            "0": "summary_feature_importance_class_6_offset_0.json",
+            "10": "summary_feature_importance_class_6_offset_1.json"
+        }
+    },
+    "metrics": [
+        {
+            "Global bias": -4.180208683013916
+        }
+    ]
+}
+```
+
+* `files` dictionary key is **class name**, value is **page offset**
+* page dictionary key is **page offset**, value is **file name**
+* `metrics` is dictionary of key/value pairs to be rendered atop chart
+* `total_rows` is integer value used for paging
+* `rows_per_page` is integer with the number of features per-page
+* `documentation` is shown on clicking `?` as help
+
+**Data file(s)** per-class:
+
+```
+{
+    data: [
+        {
+            feature: str,
+            shapley_value: num,
+            count: num,
+            avg_high_value: num,
+            scope: 'global' | 'local',
+        }
+    ]
+}
+```
+
+- contains Shapley values data for particular class
+- `data` - Shapley values (list)
+    - `feature` is name of feature (y-axis value)
+    - `shapley_value` is x-axis value
+    - `count` is the number of rows in x-axis (Shapley values) bin (given by x-axis chart resolution)
+    - `avg_high_value` is the average value of feature values of rows withing the bin 
+      (where binning is driven by Shapley values of the row
+    - `scope` can be `global` for global or `local` for local explanations
+
+For example:
+
+```
+{
+    "data": [
+        {
+            "feature": "avg_speed",
+            "shapley_value": -0.9384549282109822,
+            "count": 0,
+            "avg_high_value": 0.0
+        },
+        {
+            "feature": "avg_speed",
+            "shapley_value": -0.9318626367885361,
+            "count": 0,
+            "avg_high_value": 0.0
+        },
+    ...
+```
+
+[Open chart in Vega editor.](https://vega.github.io/editor/#/url/vega/N4IgJAzgxgFgpgWwIYgFwhgF0wBwqgegIDc4BzJAOjIEtMYBXAI0poHsDp5kTykSArJQBWENgDsQAGhAATONABONHJnaT0AQQAExdgBsa47Tn1tM2uAA8kCU3G0QYbAO5Gy22TQiZlTBmoSENoAZmyKJnDitAzGTGyyAJ7ayBAQlNIgbrL0aAIADPkyOEiyXtF5MrJImCioANqg4rZwaCC1TPqtMsRI+gwKaI0gIXA1DIqt6AAKmgCaAPoAjJlOSPaJC739U0syUGyxmGhFIEjEZFt9AycAvlKgo+OTbbOLKzJrG1c7aABM+0O4mOqFO50u2xuoPujzGmAmUxAb2Wqxg6y6m0hUwAzICjicZOCflD8jCRnCEa95ijPmjvli0AAWPHAglnC7Eqakh7k56I5EfEBfDGcyogA740GEjkM6E8p7wl4zamC4VwTHXKYANhZILBMs1d3lFKVSJVqPR6tFqAA7Lq2UTZdzYXyqe8LfTDagABz2qXsiFe528xX8820y0a36oACcfv1gejwYVlOV7ojnujS1OEtZ-sdQbJKdNAo9ItlSz24qBeuliZJRZNYfTQrp5a9SwB1clCetyabbpprcj1qWuO7ed7TsbrrTQ7VUahS2ZE9rAb7M9Dg9VbatFYE8brG+Ns7NLYXo51q4dBqTm9TZ-nu8Xuzt1-zt4bJ63c53I4rvrvlOhbfg+pYZu2WZxkBR7TqBJbhsOmZQn8OY1je9ZcveCHns+1p-FWuZrgWd7wc2T7-l6fxdkRGHHi6P6Pn+yFTH8460R+mFGgxYGIResp-CuHHAaRPE4RRLH-AeMHrnBYnkcxkEoVewmwSB8nbmWe5UW+qmyepIa8bhlHRn8gF6SRX4ab+Wkvv80EWZ+WFkZpEHadG2JoT2amiYZ4mKe5ULYoR6GcfRfkKbZ1rYjRoUiVZEWuUhSk4uxcU+QlxaRW5dmoNiQnpfpvlZUl-Feti0mOVxcrWUxUWytiKmFZZzm1eByWBTiunNU53GJTZOXReZPXVf2p7tWVHkOSN4UlQNHW5YyXmThlrX9XVg2yoyIXeUVmUDvNk1QoysW7S1fVzRtC3WoyaVnb1NXrRNeFbQV92jdh2XXVtlUzXJT18S9XqMk172zQdV1HVMjLdWD-2Xc9JnHcNcMGQjgNI9D02o8VEOI5JqAFIee1rejxkEwIO0rSTF14xjFOndT52PWTEkpXkd1Mw9Y2Mfj7OE29XMfS5h1A9GAi-Tj+3jfT-MCKDQvgzL5Ny7Divw3TKudXkKPq2jmts9rhPY3ruPK4buVastxHc59pVi1CWpUzbwttbLRtaozLtK7z7uW5z3sa+bAWW4Lgf68H9Velqkum9Lvta5bCvh2bCcW9aWpqyn8dGensparr2ekwbIcZybRe05Hm1eja1t0UHael7KNrO-XEeN1H0Y2l7bep7nTc1wHvc5-5ndQjaYfD8XVffTXscVyzJdj1MNrJ1Plcd9XXdZ+vi8z1DaA2oXu88-3y+H+XJ926LmNoN6ddhQ3Z9b1C3qt4-7fP7P0bej3H996PF+UxvRD3-iPL6B8fSTzAdPTe39X7zyviLSGDtgFrxgRvL+kDvQ7wwXvOB2Dj54NPoA+BwDL7EOvig2+sYH7xVgVg1BaAYzv3oZg0hkCYx-zYfgxhNCYygJ4SQiBTDYzQKEVQvmRsYyIMocgqRuUYzoIkfIv21oYy4JUW7RO6iiFaIBjo2UMYKH6NZgPLMhRibM2EfbGh2ZWGrXYSIux+RuGON4Rw0R2ZBHuJsTfAm2ZxG+MkWois+RZGmKXkAtA2ZlHBNUYYjs+RNHxO0XnJJejUkGPSRYkxWSzHn1QJWOh+SolkJiZWKxtsEk5KXJ2KprtsnmLqT4mmHjnEBOXA0n2fDOkRNKfvLxSw4ltL8dQzpKTRkhMSVmJYmSpk1OabsJYeSFlpKWTE1C3Sn6eLsQRbZn9dkBOogcpMlBsTTNqbsNi8Zzm+POZcjZRTBK3PHNYh5izCmdgiXc0ZHz1lfL+MoygK53kXM+dE55miQX3PBQCyFnY9Ewr+XCppgKTHIrBY8r5nlbmgu5v8tFCLgp4thdi4l3DKDSSxRC8pRTsSCMoFed5jJyV0rHOIygb4WVssgWOH5gEeW0r5Y1W5gqCWsuFV47E0LxWjRBby6VSK5V9gVVKux2IMXQSFfC9lS1bnaoJQIRVdjtoGvuca9VASTrmr+Za3VfLbq2vefaolerOUqqdFSk11qBX3K1D6-my5gXcoJQGq1QaYa3NDfK8NDqvGMiRTG1Vca3WOoxcysNgajZLCJkBJlFrs25Vzawgtdqi2jgEJS6lRqK37kZTW+VrqCkIoEJyxtqrm1lL5RLW5HavVdsGXY+WfbC0RpzQIaFmam11o7AIJF07VWSvjcOjN9zl1pq8VbW5i6vUbpbeyp2o6-n7u7Vu6t67Z1Zi1A2y947i1anbXeldASY6kpRVepcWpgX4vlaig9fLM7vppS+oNBdgMEv-WeuxWoMW-tVVBodATa4Qb-Z+18pbd1BkJQBrx3cd1kvvaOG0jKsNnMQwQvDnKyMkkoH8dDMSbQ-Jo1yOjDGimr2Pe8+jRGKw2mhf27DPHQM5qPlxglwnN12JtHB+5Sx2NzLoZigl8neMdjfq8uTCnf6ab+apkTxaQG3K7O8-TUmAnek5VWUz2n+lrPM0G70IzrHacmS5tTWZvTzPcwZ0c3pVk+YczmmMJT7O4bsSw054DbEBK4VFhhRyg0CPi04mLSWglheg7FuzgXwuxec9U3zFYNEpfaWl4L3nCtBeLcY0rYyFH4UsTJXLWX+aoQcZlpDbXXF1fY6hVpLWutG1QhlwblGaGoRy1VvL3WCuNJm8N5JvWPMoXyJV+brXFsBem5t3KBFQtjd6W1ypzWdtDb2-U07G3zv4THMtorVEulXZ6Yl4bub7vVdu3Nl7HTjtubO+NgmBF1s-fKxd7b13Adta2c9r1qaFt7f2fmw1sa+snOR-6tHjKUcprRx6zHK3WJ-D9X8+Hu38JAujQTh7pk-jQuTXDtHC7qefYEn8DFgmzlk5uwJXF+bOe0e51D4bJL+f3JtH1mK4n5Xekl7ev5MZJdPoV5Ln5AvWOK8J-8UVYuVda9QGxAT9zZf67Yki+DXqTc05Qpq1Dqqres6ovq-NFvsMO4R-hM1+a3kEvd+TgSNrdfvL9zzp3pHjd9cZJyhnbvI8-Jj2ciXpuQZivF5H2Vafk9Ipx16pP1vWKMi1Zn-PUklM5+w0Lo7w3KbOqzabqtVPSd9YEIyhPgvm-R5Zx7gSvb81t9Y3nx3pkR1967-7qik6CPlvr8zk9ze10ftN9u-NLGTg4fH6ZI9K-CMl4N57O3e6+s3oP9hwdwu9uPuM2P0Pm+fkmYJYP7vVFv1X7+SH8-+EgPb717voFs-3ma6-6wZT4AF9Yobf7B5gGlr95r6P4b4oT4aj5N6m4kaN4upgGd7T6-5MZoG1ooEhpjrYFG5YFD4IFIrq5r5n5V57YybS646m73wn5c59Yabe7F6kGsQ6ZsF-JwE34oRGbcGQEMGcr34y4sF373KAEcH-BOav6gEMHQqiGqpSFP6mRea3LWYEoqHwGcEYqaHyraF8GsQhYaGSF9aRaw6HK-bDZxaWEALWF7bJZ2HRb+JtYxijYA7UH4QyIfaqEoRKK+E6H2T-aQ5eECQxgg47IOHeEQ6g6uFGyeQHaeGva5SeQdaHYpHRQ9bOEJbRENT5ADbJF5HlT5AeGhGZH5FTblHFEeT5DfZRFg5ZEhFxHjL8yeSRFWGNH5GxENHxGpHZiBFGFoDBTpFFFdHlSXZVQtENYNR3Y5GpZ9HRRPZTG9GtEJHvbzFlaLGzH1GdHbETHNGrEzETEdH2HjEeQrKDEf4NQw4rF7FrGpFI53FnH7EeTo7PEuEPHRQ3KbH1ahLlQvK-HsYxRVHTH-FvG7EvFfE3GHH3HHFvGnGfHwlBTs5XFhHlR84fG5HnFBSi5YkLHQkYluKdbXEYmFHVE4mpRlFgkzK4mglHHgm4mQlImMmpSwlQnImpSInYmvG4k9FwmsnDHO74lbGEkeRe4il-G0k4iB6SnAlOpAn675TUkMnSlCn0kClql5Qp6Km775Tskslan5TckEmclCn8kcmCl5R5pylKk166nSHWnEkZE1FBQt5okVHlRtoemuk4i962l6kj4BmOkVQGk8lilukmmilmnWkWmGlXLDHL7Bl+E4hb7JlBF5T74OkpmJnkk0kJmZkqmakFmNQamWlGkv7ZkZmNRhmmlWmNRRlSklnAFVlDF5TgHpltkyqjEUm8ldTOljF9nDGoGtmkkeQTw+mUnDllnxlPIyrMnhkxkyq1nRn1liajnonjlxmLn1mMEbmekeSsGdljlBRcHHmbmnl5mqklmWaTlDl5Tegzk7lGmyH7m+nDE4J3kRk4jqFvlTkPnbl1lGkmF-n3mao9n5lzm2HnkHlBROEwXvl5TuFflLk+GgXfnDEBHoWoUrlNlQWNnAm1bYVWlLRJG9kYWoBLQQXXlPJLQDnkUxlLRXnFm0WlEoUkXhLsValLQLlAUFlLS4XsZLQEX65LSAWrncUDHEWSXUUsWFLbT0WQXyVzEIX-nbRFnln8UbGqX3nbS8USVaWCWiVzJcVaXiV4XyW3F-RyWQonSyWaW0XvHWUOWWXMUuW2WAk6UUUnRPl8WOX6UWUeVGW74nQiUhWonSX8WYnOWznyV4kxXPlRWKU0VxVuWxW2X5SmW0UVRZVxUBVCUyq5UZVhWOm3TmVCXCkJV+XyUSlVUGW0Wyl1WBV0pR5pWJUNUaXpUtWMi+X1U1X5WiVRqRUNUlU5mUWF5FUtU2lNVCX2leWMUN7DXyXulLW2XemrVTW9XNWQI9UDUhWT4bU7XzqTVHXlWiVJkzXnX2VdU7VZnzUkXH6HWiIgydXtXyVvpPU0Igx7WlVf73XcXgafUEwgxnUhUdmXVg3XVvW2WIH-X8Ujlw20UTlA38wwxbVCWcYo1GwwzBWlXrmI3yW0FY2LR7kE22VHkQ2lVnmU1jWJptXVXk2vUM0tWPknXPWvlk0s24202-mc07X+Zs1fUgV83PUWEi1C3JU2UtXwU00ZmF5M19W2VoXi3A1YUq2o0lbE03QRGC2q2g2OkFBkVKWQoFBQ3M2QIFCS3uV0oFD02K021sVa2ygFDo364FA-VjUFDc0ZkFCjU+35D62e1SXq1GyUxm320W2TGy1tmUx23bWiKUwK3x00KUyu276Uwe0+1LDe0x0mVO1eiUyB0+1WVSzQ021PHR0nlTBVpW03UJ0-Eh25RVpJ3sZVpp0G2U753ix0661yxmS92h0RWN3Wgt5G0pUm3xWl3m0J1S5d1Qgt5x2t2ZVz3V05Ur0cyZ0x2FXr2EzYh+1b1F0x2VVT0R0J21Un3J0UyNUX2t0KnD3O1R4D1N09VP0j06n30F1DUf3iyJqv0P2H1V15DTU31u1zWV0XnV2LXf3z0rXQOQMt2gPt2e1BngOwWQM52AOEzHU70SwAMQN5AXUgPp1pmoOIXyy11l0W2PVwMEMIPENIM+2Vk0OEx-WkP-nyz72YPyx4NoN5Dg1EMG0tx-0F2w1sP3mTqL1u3I3MOToMMx2Y0yP8bCPiz41iMUWTo8NkOk1qMxnzrh2X1yzU0COe0CEyO3k4Os0WOb1cOfkWOcP4OEwC04PC06NWkCBi2uNanuMUPT0p0y3GM+3IXONyNcNq2eMFnuMYMOPuP2O8PGyaP-lWxj1S2QJWz6PsZWw+On00JWySO75Wx0OOlWwhMONWzWOlNLY71WyxOIVWwJP3lOzJPW2pMnbMNOxZMGMewqXhNPJOyFNjVOwlNxNOzlPDPZ3KOOx51tOXFVMl1xyUOiKezpP66ewdMZMN09OFKez9MZmexDO1Od1tM92zM1OJND2bOQo3pNN105OT3zO+MEw3prMrMMoTPajL1tNr2fOjO1Pb2fOnMNO25VPH33PZOPPn2gudOhzPP5N30XN0qPo7NtmPr7OJPv3wupNf0YuLO-3Av1MUUxzXMLM5NgMBPItQPYskt5NFPrVtP+mUuPMoNkuYMxxRPDPYN0v4sxnfpEsPP8zfrLP5N3UMv8vUMiseyX5VMfVtNMPitJxsu1OA0ytctWmZy8tgv8tCNVOiPMulMI1ysZzSMGv5w4Has-OJNKPasAsEtE1tPaO6vDMU0Ou1NGOQsZOmPGvRzmN2uosNMc2evRgFwKuJO80BuOxONtMuPOuJMePRsNPQVhvaj+NusrNBORu+sEthNxuZvBvxvWvctEXMO1zqtQvWi1yCuOm1wwuVsFFvOHyO1FucU721zmv3m1y5sUW1z5tWm1wqtaktwlvsYtwVtjUtzVujvdPZsxktxIuYMtwZvTvDJ1u2jjPNtTOJuHwzNFtzMLylvNwV1Ts9tOWHv9sbMnsFndyzsOPdwLtHutudvHPbvdunt9sXvRXntPIkYjsZkkbjs-uvPNsfMbu2hfPAckb3vTt-Ngd73Lskavufsgu7tDsQtIf64Tx-ttkTzUujuP3Nsv14cQc9tYsfuFITzPsXsTXNvAMpu75MbfuYcUskeQpMbYc-u0tgf0tMd0pMaEf9sHVFscscfwekeEM0eVskNceQKrwYdztiuSeiKrxXtxOry3v9uyvyc0KrwdvTtKtgctlFv8NiejtasGcyfXv6sacEz8ZKeIX8aqcXsKNgeWsGfkefu2tgf2tGc-tOteeYeuuoe0ceuWf8xHw2f-lHz2efv+vBdGxHzac9uhsxe5RHzCfMdRu+dzuxsZfXsJtJdlvJsBeVtptgfK0le8cXua1Fs63NuFvAf3yDv673z0eYP3xmdxP3ysdtn3xhf3n3yReFL3zldPL3zxdan3yucDcB3LtvwNe75vzNcONvxteIVvydctfLF1faWbdDcDervMNvwTeQpvypd0q-yzeOm-wLftfHvZfXdreLeeV1fE7TeHNPejcFm-yHenfnN5eyggLndjUgJXcrez37cAdg89cUUgL9dHc65g-vfDcwc70gInfYKIdIJzcocY8XfX23crdwu-deiWaQ8xmWYw+nfouE8-zEd4--mWZfdo+o+iKPkA8ZmPnA90+Me0+9ewN1fsdU8ILk-YJMvc9Q-8d88M-M-uPTeieFeA8Sei+k-CsC9oL3fteSv7fSt1fqeK9WlOYI8De6cq93z6d1eGdy9s8mdm-Ld08We69jdGvG8+imv7eOdO84IG9HeqPu-ufu+ecW9dc+cB8tf+fY+A9Bf28ffet1eWP7fReR-De2Nx+S80JeZM+p-pfB+LdZdZ-te5cJ8DcFdh9s-Ffu+ldl87dHeVd1fVf7e1dO8has9tkhYc-3khY29t+1s70hYk9WkhZC+iIhaV90ohae8j9rbLshbp8EwsJN+YMsKt8UUsId9L+TsF+QosK99aksID-8JLvd97fAcsIp8z9btH87vF-N8Hvr8j83e5+IVcJq8P+PcN-Pfd+vev9j+cL93v-T-8wCJz8HGAiRfjGQEQr9QB4PI-kBwb6gcYBw-ThFBxgEn9-+QLZhu4UAFxN3CIAvvrj3v7-l3CT-fAbhzQH4cSB8AwfjTzwFt9cWJAv-tImo5UCl+pLG-pwi56MDQBvPBvvzxYGD9OOPA-hCL3YF99xeXA5AfQLoGKJZel-efgryEHb9le-AmfnJ0UH-8NeR-LXg3x15yCCySiL-oPyN4qDpEpvBvub2kFACreJg8AX3zt7aCnkGiLfjoJd5H83ehgxRM52cFiC3BEg3RBgIf5B8zBmA0PnIl3wRFCBbfaPg31j5H94+tgwpBET0H8JEurg3RN4KMSZ8AhD-HPhkPwH59YhG-IvsEMdLGIHBdg8vskLSHkD+E1fBvrXyP719yhSSJrF5QACiAAEQACqAAYU0AAAVAAJIAB5AAHJfIvybQrob0MGEjDIUK-cYd0P6HDDCkYQkAHMMmGLDbKYwjofMKmGFIM2qwhYdMIRabCJhBw0jscO2HrDTu5wtYYcM4TXDThCKXwW0H2E7CEUi-F4ZcL5SzCthNwnFPcNeF6p-hnwrxHsJ+EPDD0QI24XhkhFfJrWHwqERFhhEzCnh6AeEYUmv6MC0RMw74ScIBGQIz2ovLEXShf6EiwReI0RG-xaFkjgRE2e9kSPxEdt6RFIuEdSIRFA58WTImhO+1JG4iaRBMO5piNZFLCcRFwtkW0WWGcj+RkPSUW0VBG8ixRCROkUKMhSICeRoopYSyPlFLCORyolqiiJWG6idq7ww0c9RFG-CMqSI7qpaKOrWjnqSorUTDVtFfVNR6opWk6Ipj6iZRodY0Q6PLrui5YEok0SnWlFBiKYco10TbXtERiLajI0MYY39Gh0dRvo1Jp6LjFdMExlsM0eCNSaBjkxOLDMRnHDHmiEWUY4sak1jF5icmLossYsyTHRiFOqYysVZx9H1jNOWY8kZp1zGtirOIYpsSFyLHZiFOpYwcZpwrHdiQu1YkcVZzrE1jU+jY8cUbH8GFDLoXo3KEEMiSnhVx1oCPoKL7GLjexC4tcQOI7EEwYh2Q1EWmLXFjjZxp4ycSeP5gRs1GW4oxPOJvH-8Wxb46RO2L5EoCCxRiA8Z+MUTHifxRgv8V6GqFqjAJuiMCdGHqG7jDxo4JoU+MvGISPxU4oNNkSpF7ji0XfLCQhLCQAT0JOaJtnhKglhJhx944ideKIk4S7xIEnCTOJomjhg6yE7CcxLQmUTi0UdbNs+I7Br94JZEviYRM4nMTgJCoriRRPonMTqJIkisOux4koS5JjE2SR2Av7LiIYvErMBiPPEGi2JFYO-jpM0lLgCRAkpifpOElST9JYkwFJJPEmjhH2rE-CapLol2T9JykyyR2G5GmSVJWYAUYZMUmeTvxrkzyV2MEm+SLJwU3ydZOJS2ScUMkjyb5Jck4p3JkUpcOj3UmbiApWYLHhlMYhGTdguA-yXpI7AE9IJZkkqRFK+SkDHJYUtKbFIRSUCipTk7KUlIakpSvkDApqbVN2DMDvJCUpcGwK6nlSswnAsqT5IGmVTW00U9lIIKGnjSep8U1KT1NakzT2pCKKQblIfD5SYksguaf1N2AKC+pS0naaFOGlfpJph6aaYBnqmHpFpXyAwUdPulrT2UpgzaaaG2kcYOJ+0xjEFK+Q2C9px0jjBdL5ROCFJxUrMC4MekIp3BYM5qUuG95jTvpHGZ6Xyn94AzYRX0wGXMl+kIodx6M3GcDK8RRDYZ3UmJGeLemIgPpcyO6bjJWmoyUZXidIRTOeFZSlwWQ5mRePBlsycZ7KAoRuLymszdgpfRGVjLKFQzeZN0vlBBPFlSy6ZjMhmRNiQkkyzprEfIJjPRGYSapKs-4LhK1nzSdZhMxWVdIpF1EYJq2GmcSIn7oUPpqEBWUDhYnKz9ZBuVpnrKRkEQeZ+I-ifjOJEbdHZbsrbn7MBkERJZFIw-oHPRHySRZEcu2dDlfHayDc2kjmbpLhlE4PZFIkyd7PxEkiZZ6c42RNg-5RzsRFsrOXLPzkxyRcccp2WxHVkzDQersoOZAPDm1zDZQOWAYXOJFw9656I1UTnImxI9SJ8ctiOXL2zpT+ZW0wWf8Byljz3pE8g3IVKTk2zSpvcoHMQK7kzDqpTc4kZT3bn4jGpC82eYJFLkrzh5+ETqfvK5msRepmcikYNPPkpypIp0qudwOXltY+BL86vCHImwiCd5N8o+a-JPkCQNp08ymQfN2l3zSZe+NObSMfluy1Bm8-ERoJ-m0jP5QOVhvAopEPTr5tIgBTpErluyLBSCoHDq0IVtZ-p4CweY7xIXDZQZVCmgigtIXFyKRCM9+TQRwVqE8FQcpccApZkXyZCUCoHHjPIVVyIhtC-CMTNEUCRyZ3CzmffINxJ815xIpISwrEVsL-CHC9EezOkXJyIF7OfhW4RgVBzhZyi8InnPZH0KbCjCibLUPQVWLVFOIJWRIpKI1y6UnkPRQkV1k2L+RDbBRZAk8imK2ips62bPM8iWKvFf89xXYuGIOzHFFxZxb4u4kxKgoXsoRUjOCgty2iAcxJTiH34DynZwUUJRkvCX9FIleUNSVoo+kxQ4loiGKG4seIGLhR6ShIpSJ8XVKC5xigEgUqaVFLviJShlOopVF+SUlgMhlLUuiiNyslwxaARMryhtz2lHkTuZ4vFGdLUi-clpVyNQFrKpR-SlxVPIGQCzeF2pUZQ1CXlYKpRjS1IhvOmX5RzFFy5ZdFBoGbK2ilHXJakrPnlLglV8oZUsNvnvKDlFUepSqOfmnLZR-ihIrNK+WAq7lDUQTosrBW9KgFey8eX8rAW-LZFjUI5eVGUFzKgocCq5YguxWpkbl0UNBXiu6UNRjBVy16aiogXdkzZ-ZOlcOQBUuLKFBK6cgyvbJEqGoMMylWSvKi+8rlaMiFS4q4WIqZ5fy9caKpAXiqmVvikRayofKgrUiUiyVTwrRXyLYVSq3lYeV6VMzqV8c8Cuys1QYqpoMq6pUYuBUJExZFq1IlmyuXSzrV0UaxXapKWkV2VVFN1ZrI1U3QPF0ypaOcu9WKrvVnK4GJUxeWAzhKHql1dEvlXbQqlX1BJTGuSV6qnZ6lN1ZksTXBrow20KFcDEjmJqXVZSlVTIogV2U3VBkoVTtQzkVrTR-qraM0q9V1rM1x0ByQ2uBg-8w1llF1V5IdVbRBlyapGbdGNXHRxlMaqZaOsDW9qm10MHuT2uBirLW1WajZQuuOijyi12i+OVHjjXA155-a8NScurVfVV5y66GJcpjXbyz1OarNQ8uPVMhnljy7Gm8rXUfSeqW61Gj8qfWzyeqpqr6kCoPXA035s6rNeCt3XLVL1x0GFb6ul5BKDlIMbZbdVfXY1DpgG46FiuQ3QxcVMa-FWhqZBaDsNlFElZhq1UoaXVVKj9TBoIUxriFlG79cDRZV4a0abqyGfRu5WUaiN0MflTGsFUgbyaCGkmkOuhiCLuNLNWtcDHEWcap1TIdVb6qUX0bHxN6yirqrI2yLC8vG7WvxqZB8ylNJa81X+o1oTrgYtqmNfat03Y0nVRmkpYbXZWm0rNnq6ZbbRs0ibxYJE+9U3UCUdqTaoalzSPStnuaHaFm6NXhrDpWaE1gWpNVpvjmJ1gt+m8WDkq83O0w5dmvNaFos2FqSSSK2RVWlU3O1y1Qmi2lWty311HN89etXZraWBaW1pWtjXkB+52bu1Jmpun2vC1OyW86m3ejRoDFFbV60W+egstq1gbV6VW3ehZtXVpaxVGW3ZaNqlXjbWtbadraHSPV2bT1gW89SfEoDv50tECttNCn0L24qEH0ttEih22549ts8ttBiiUKM5kE+2t5XRkILrRrtpaC7dhlPSZSDlEsSlE9rOQvb9lGW0aXqFu2L5ao12zlD7jQxXbTtAG0EMpjB1A6IdwKCglDskwriIdU6e5Ejo0kQ6k0aOk7W9qg3CQ1t2O8HW9qAWUBy85GHHRlrAVHbsMFGDbRFqQ1FId89207ahqh1k7aMtOsbZtow1r52drGTnVNu50-I+da+b7XTua24a2dz6ZncTozxz4idlO5VNLuR3E6MUnqZ7RTs21UquUyujHW9oo2wFddr2jLVRsN3y7Yd+u8PObpl0m7qMRun7VruYz27xdSMydMClXxQ6xdXOiLSxrXwe78g3qBXVrv-x4ELdJuhfOgSD0RauNZaSPWHs21cLY9oem3QnovQkEVdGWwTdDs7Sa7o9nKV3GcioLe7mtYm0XXdoz0J6f05evXZnuhQF7aMRewXdHvNzV7jdCe2TMgXj0RbdV2ey7V3ua2aLe9FeXPQPspT17WMleYva7r5lD7mCUegffnuvwO7u9PycfX7pH3T6q9nelPd3rr1L6XdgMmJkwXbzz7p9He95JPqb1OykmumC-RvsBlpNb9defvUjMyZP75UvBZfdfp9X-bQdqqT-Qfq2beKewvyd5AAan0P7nNIBv-cdtP2QHgUMB7DOAav2v7PN0B9ghXvjnVN39-++-UAfP2+48DlzALVDoR0B71tEBrZi7JAP+61tRBhFiFqh20GKDKBh-UmqT1iE4DVBu3W-noMtMndvBrg8Qfd1mEhDDB1HT-h33X6ktTB0Qy-rYMR6tCfBxZmUo4PKFlDOTROQHtoOGEv9r+nLWoa9S6HADlzfLYYewzGHKDphng-IXkNbMSt-2mAmzo0OPMytUO9XWcksOsH7Dcu2w1If0NK7JDmB6-TVv+0eGlwLh-lnVoD1OGzMwR1-X2p11tI4jNeiBU81wIGFIjHsEdX7rkP+GH9Y63I0EdSNYHZlRRvw-EYKMiHBDdhy5jOtkM1H8jWzedZOCpQR4xDOYjnO0dqMItR5bRnglkdDiloyDXKQYxnB3X9GwDYx-OPuoD0jHkDqqtIwtv+3zHpj0cJbZ7v31WHejW+u-R0ZxZ77t9lRrZtetaNr6mDaxwNnepAPnG5jlxx2DdsQOF77j2oT5QHqeMN6XjaAGOJSg+OsYvd3hy5n9rXx-HRdXx1ADHBB1M7jjQJn5KCah0C7FjWB4DaAYkzgnWWOBr1Ojrb3ImW9fybE3oYf1464os+2jASZMMlilMIx8k9sdSYorJjKmdEwzu0NaZ9jOTVnSyb0xMnlcNmNk48yw0InWTPRuk8Ck+20YUjOJ6-QRrXzU6zkEpwk1s0wX1aM4FK+VWq3ZWZwst0cU3cqZNZzbLYdG3U9qe63agmNRpwNr7vNOOxmFeGzOCUoLhwbFmIqybUiev0SqXTxarA4Jqa2v65Vtp0vVae1DKqPT66t0-1u+MybAzEZ+04ppDMfTYMWpwNrkNtOaa4zs82DJ1u+NWqozEJwzSmfDO5nBtsGEpcW3ZXlsyztm+VbXH1NltgD0y2uCafrYSbbQaB+sz5ri01wpu0G2RQOzLPUH6zjBgrZpzC1pmDlM7Ps42ZXbNmW4BZluINpbglnUtLpV00jO7iJnx4OWn04DO7g1n92mZ20A4bw3dxpzFWqs+2o7NdxQjR56I1udI6NbRzPZuufJpIy7nB4+5kjJOfA5ln6jQ5qzi0arNLr6zI25c56adkTx1zK8HdbeeY6zHoL3HZY0eY2O-mQuK2nMxPFnOnGqz1x+s4+ofMQK6OZZ99XhfjksdCL75yHchdi7Aa4LUnb+VWYg30WSzCK4i2BZRU0WhxrW1eK+a7g860LApyi8l0l0CWy20pvi-OdVNHnSNLF1cwbrQs6nhLzcMhQpZriGnlL28T82abUvjxLTWlleDabkslmuN7FzTs6ZAuhnVz7psyx9KPjcXx4fptCwGd0uHxgzVl2eXFzLORmnLtoOTfWdjOuWxzmi4y9OM4upn-LPZnTV5Zkyfm8zaF4zZFbM1Hm4JeG+ruyqa6pXKzyVn-Zlf3N9d0rzZkbulcG33wSlM3VK-2flVLcyrtl4BL7OmVvxJzb8fKwloqsyGvLx3VK0ucHLmXAZl3Dq61t-jVW742c5K4eZzO-x8rp5ka0VavNjWbz0lnq-ebCsQKQE-VnI7NZytlHZr+Vn80FYfH-nkrgFiq8Ba6sfTLMEFu+FBfmsDdYLV1o7ghbGtIXdr+4-K3vLauYXkr2Fiq7haWvxz2eqVoiz9admPlBrPoX9W1YotPWjx+Vui8lYYuw2SrzFwG0jKcznWfQzJyG9uI5MY2-uvFtq-xextE8hLBNn+KJbxtFWJLY1qS0jZ6uyW2r8l4m6-CUsM3gEql5m3fBoUVXNLbN53gWZwRFWONyVoy7ddO6mWTrs8rzP1e9PC3CEOVxy9za8z5WpNFVzy-LZ8sVW-LYtg5f5lRv+Z+roVzW7Iv8w5XszbVmK6bd5sJWxrSVnM433ZUt87bGVm21ladv7n++Dt5s6PwduDap+dtkg15YX6+3WtLCEG5v19uTmWEHt5q3huP6+2SlXCR0-wi0Pc2uEQd-LcneGs23Rr-ttw9nYLNcJvbM1-23NeptxDFrBtiBWALttrWi7rtza0XY9s7Xpbg-fazbcOvR3jr5FD6VgLtuXWS7G-G633ZH73X-bj1pu-wlQsj28771m259ejvfXy78cmRKjZkRB3gTNtsG8nYhtj2Z+1F7e--xhvr3vbxJ+TUogTtKDl76Nve0YJDu43k7+Nq+5II9uk2773tim-7apsL2nZGiZe-TYfvqImbf9oxKzcAfgSOb0drmyA9gk6Xk7+l9+3HaFuD3OEotzu7PIiJB2pbiDwfvZf9ty3IHUICIh7aVvR2VbeDqYBETjsa2UHBy4xMveTM239bVD2RcULtsm3k7Ztth3nctv+3rbXl7MA4qQ4ABdW4AI8+A0AyAzQfQBACGBNAWgbQUwOYAADqNAHIDAEyD5xgwzQBAIiHgBiOsAmQBgDgGqCYBEQAACnkeYAlHKj7QAAGptA2YAAJTaAAAVNoD+AgBhHnwKAH0EGANAZHWjtoFYGgDePMgmARIDgERCGBxAYwRQJkFkBsBkARgNAKACMd1B2gSAToN0BGA0A4A+gWQG0APj3AQAigJANEERDZBcgZITR2U6CddAQnYTxEEwBKd5Oqg8TpAIk9QDJOagqTjoLU5kAhBsnuT-J0wkKfFPSnbQcp6o+KClBygZANkCUDKDuA+h4gKJzE-9DzOZnAwgIHAFWcaPZH6ARIDU8yehPwnbQRp+IGadyBWn7Tzp7UDaA9PMn-TnJ3k-QAlQRnJTsgNo7gC6PjglTvZxgEOd1OTn6AM5xc9GcfOhgRQUABADEcSO5HZgCx8o4qciPLnCTjQDc+6fpPenWTp520Foi3Bfn-j9AAcDMAxOZAxziJ0YGieZAwXUwKF7AEQCIg5gOTswC4AGE0uAASnADyeFO4nqLpJ3IC6d3PMXDzgZ885pj4vkXSAKwD4+GDhBsneYEAF0BCDHBPHwT-ZwC5kAAAvIwPICsAxIyQcrqICCBADxBsA8T1YF49qfoBAnlrzJ9q-OfWB9XyLroB8-OdSPfHWT-QPoFxdsASXgLxEGQGKdeAjXITugF0AABiEgTAAAGUaAmr65GS7DdwBpg0z9wEyBkCBvSg8rzAAABkogZAXIB06FAwu+gbQHR2QD0cSuZAyARQAAGt3Xwwcl20EDeHAcAmQEIIoHNdFuQgSAKAHABBDouhXGTzIFU7aALASoGbztwY6YCJA2grzwp1EAODyB+XRr7Z-y8SBQB+XAL9V7a-beiu53A4GQCC8oKFPy3ejot9C-Eelv0A5jyxxU5kATOt3Jb71+gEff4vCnNb+t9I-aD1O2gkwKACq5GCduEA-LlJ2O9ecyBF3CQWlyAFXerPQAj7i97u9fcauTXTTmJJB6sC+A6gvgAYDIDYAhAQgEAft0aGrCKAVn7LrNwwHdegAKw+LmQAY6Mcwf+nXrrd8h+rB+u+n+79AOdEKd6ukParkADa+CdcecX6AApzIA3dPur3L7kALe8RcwBtABAVx+45kBnuB3QodjzAFQ+PPBnRL9CO++EdGegAA)
+
+---
+
+![image](images/MLI_BYORS_DEVELOPER_GUIDE.summary-shapley-local.png)
+
+**Local explanation:**
+
+* [explain_local()](#explain-local)
+
+```json
+{
+    "documentation": "Summary feature importance explainer...",
+    "files": {
+        "class_A": {
+            "0": "dt_class_0_offset_0.json"
+        },
+        ...
+        "class_C": {
+            "0": "dt_class_2_offset_0.json"
+        }
+    },
+    "metrics": [{"Bias": 0.65}],
+    "on_demand": true,
+    "on_demand_params": {
+        "synchronous_on_demand_exec": false,
+        "features_per_page": {
+            "class_A": {
+                "0": [
+                    "BILL_AMT1",
+                    "LIMIT_BAL",
+                    "PAY_0",
+                    "PAY_2",
+                    "PAY_3",
+                    "PAY_4",
+                    "PAY_5",
+                    "PAY_6",
+                    "PAY_AMT1",
+                    "PAY_AMT4"
+                ],
+                ...
+                "20": [
+                    "EDUCATION"
+                ]
+            },
+            ...
+        }
+    }
+}
+```
+
+* `files` - same as global explanation
+* `metrics` - same as global explanation
+* `documentation` - same as global explanation
+* `on_demand` - indicate whether local explanation should be dispatched [On-demand Local Explanation](#on-demand-local-explanation) 
+  (`true`) or as [Cached Local Explanation](#cached-local-explanation) (`false`)
+   * in case of on-demand dispatch, `files` and `metrics` don't have to be set
+* `on_demand_params` - can contain **any** values which are needed in case of on-demand dispatch
+   * `synchronous_on_demand_exec` - `true` in case of **synchronous** [On-demand Local Explanation](#on-demand-local-explanation),
+     `false` in case of **asynchronous** [On-demand Local Explanation](#on-demand-local-explanation) 
+   * ... any additional parameters
+
+Local explanations are expected to return rows (features) only for one **page**.
 #### Scatter Plot
 ![image](images/MLI_BYORS_DEVELOPER_GUIDE.scatter-template.png)
 
@@ -2505,6 +2817,15 @@ Example of the server-side **filesystem** directory structure:
 		"class_B": "scatter_class_B.json",
 		"class_C": "scatter_class_C.json"
 	},
+	metrics: [{
+	    	"bias": 0.23,
+	}, {
+		"clusterName": "cluster 1",
+	}, {
+	 	"R2": 0.56,
+	}, {
+		"RMSE": 0.289,
+	}]
 	"documentation": "Scatter plot explainer..."
 }
 ```
@@ -2530,15 +2851,11 @@ Example of the server-side **filesystem** directory structure:
             ]
         }
     ],
-    bias: str,
-    clusterName: str,
-    R2: num,
-    RMSE: num,
+    bias: str
 }
 ```
 
 - contains scatter plot data per class (per-cluster):
-   - `clusterName` - name of cluster or just `global` for global value
    - `data` value (list):
        - `rowId` - unique row ID
        - `responseVariable` - response variable value
@@ -2548,9 +2865,7 @@ Example of the server-side **filesystem** directory structure:
        - `reasonCode ` reason code (list)
           - `label` - feature's name
           - `value` - feature's value
-   - `bias` - R2 value
-   - `R2` - R2 value
-   - `RMSE` - RMSE value
+   - `bias` - bias value
 
 For example:
 
@@ -3002,7 +3317,7 @@ class ExampleCustomExplanationExplainer(CustomExplainer, CustomDaiExplainer):
         "Explainer example which shows how to define custom explanation."
     )
     _regression = True
-    _explanation_types = [TextCustomExplanationFormat]
+    _explanation_types = [MyCustomExplanation]
 
     def __init__(self):
         CustomExplainer.__init__(self)
