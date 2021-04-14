@@ -42,7 +42,7 @@ When MLI user starts interpretation, model compatible explainers (from the avail
 ### What is the role of recipes?
 BYOR allows Data Scientists to bring their **own recipes** or leverage the existing, **open-source** recipes to explain models. In this way, the expertise of those creating and using the recipes is leveraged to focus on domain-specific functions to build customizations.
 ### Where can you find open-source recipes?
-The curated open-source recipes currently reside [here](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1/explainers/explainers):
+The curated open-source recipes currently reside [explainers](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1/explainers/explainers) section of Driverless AI recipes GitHub repository:
 
 * [Morris sensitivity analysis](https://github.com/h2oai/driverlessai-recipes/blob/rel-1.9.1/explainers/explainers/morris_sensitivity_explainer.py) explainer
 * explainer [templates](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1/explainers/explainers/templates)
@@ -76,7 +76,7 @@ class MorrisSensitivityExplainer(CustomExplainer):
     _binary = True
     _global_explanation = True
     _explanation_types = [GlobalFeatImpExplanation]
-    _modules_needed_by_name = ["interpret"]
+    _modules_needed_by_name = ["gevent==1.5.0", "interpret==0.1.20"]
 
     ...
 ```
@@ -100,43 +100,7 @@ When implementing explainer, the following methods are invoked through the expla
 * `destroy()` ... **OPTIONAL**
     * Post explainer explain method clean up.
 
-
-
-
-
-
-
-
-
-
-When implementing explainer the following methods must be implemented and override (abstract) parent methods:
-
-
-
 These methods are invoked by recipe runtime through the explainer **lifecycle**.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #### Constructor
 Explainer **must** implement default constructor which **cannot** have required parameters:
 
@@ -435,7 +399,7 @@ Click the explainer tile to see global feature importance explanation chart:
 ### Debug
 To debug custom explainer, you can use `self.logger` instance attribute to log debugging messages. This messages are stored to explainer's log.
 
-To get explainer log - with your, explainer runtime and explainer messages - from UI, click task manager `RUNNING | FAILED | DONE` button in the upper right corner of running enterpretation and hover over explainer's entry in the list of tasks:
+To get explainer log - with your, explainer runtime and explainer log items - from UI, click task manager `RUNNING | FAILED | DONE` button in the upper right corner of running enterpretation and hover over explainer's entry in the list of tasks:
 
 ![task-manager](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.open-logs.png)
 
@@ -477,7 +441,7 @@ class MorrisSensitivityExplainer(CustomExplainer):
     _binary = True
     _global_explanation = True
     _explanation_types = [GlobalFeatImpExplanation]
-    _modules_needed_by_name = ["interpret"]
+    _modules_needed_by_name = ["gevent==1.5.0", "interpret==0.1.20"]
 
     def __init__(self):
         CustomExplainer.__init__(self)
