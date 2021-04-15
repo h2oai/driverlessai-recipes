@@ -19,20 +19,14 @@ For [security](doc/MLI_BYORS_DEVELOPER_GUIDE.md#security), [safety](doc/MLI_BYOR
 * Notebooks:
     * [MLI BYORs Python client in examples](notebooks/mli-byor.ipynb)
 * Documentation:
-	 * [Developer guide](https://github.com/h2oai/responsible-ml/blob/master/doc/MLI_BYORS_DEVELOPER_GUIDE.md)
-    * [API reference](doc/MLI_BYORS_DEVELOPER_GUIDE.md#python-client-api-reference)
+	* [Developer guide](doc/MLI_BYORS_DEVELOPER_GUIDE.md)
+    * [API reference](doc/api)
     * [MLI documentation](https://docs.h2o.ai/driverless-ai/latest-stable/docs/userguide/interpreting.html)
     
 ## MLI Recipes
 **IID** explainers:
 
 * [Morris sensitivity analysis](explainers/morris_sensitivity_explainer.py)
-
-<!--
-**Time series** explainers:
-
-* .
--->
 
 Explainer **templates**:
 
@@ -43,3 +37,15 @@ Explainer **templates**:
 * [Markdown report with Vega charts template](explainers/templates/template_md_vega_explainer.py)
 * [Markdown feature importance summary explainer template](explainers/templates/template_md_featimp_summary_explainer.py)
 * [Scatter plot explainer template](explainers/templates/template_scatter_plot_explainer.py)
+
+Explainer **examples**:
+
+* [Hello, World! explainer example](explainers/examples/example_hello_world_explainer.py)
+* [Filter and score explainer example](explainers/examples/example_score_explainer.py)
+* [Dataset and EDA explainer example](explainers/examples/example_eda_explainer.py)
+* [Explainer parameters example](explainers/examples/example_params_explainer.py)
+* [Explainer logging example](explainers/examples/example_logging_explainer.py)
+* [Explainer persistence example](explainers/examples/example_persistence_explainer.py)
+* [Explainer compatibility check example](explainers/examples/example_compatibility_check_explainer.py)
+* [Custom explanation example](explainers/examples/example_custom_explanation_explainer.py)
+* [Driverless AI metadata explainer example](explainers/examples/example_dai_metadata_explainer.py)
