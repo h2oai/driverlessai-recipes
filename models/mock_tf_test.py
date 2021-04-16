@@ -1,6 +1,5 @@
 
 """For GPU usage testing purposes."""
-from __future__ import print_function
 
 import numpy as np
 from h2oaicore.models import CustomModel
