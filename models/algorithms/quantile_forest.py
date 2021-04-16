@@ -16,7 +16,7 @@ class RandomForestQuantileModel(CustomModel):
     _description = "Quantile Random Forest Regression"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
-    _modules_needed_by_name=['scikit-garden==0.1.3',] # extra packages required
+    _modules_needed_by_name=['scikit-garden==0.1.3']
 
     def set_default_params(
         self, 
@@ -72,6 +72,7 @@ class RandomForestQuantileModel(CustomModel):
     ):
         X = dt.Frame(X)
         orig_cols = list(X.names)
+        self.pre_get_model()
         from skgarden import RandomForestQuantileRegressor
         model = RandomForestQuantileRegressor(**self.params)
         X = self.basic_impute(X)
@@ -126,3 +127,9 @@ class RandomForestQuantileModel(CustomModel):
         model, _, _, _ = self.get_model_properties()
         preds = model.predict(X, quantile=RandomForestQuantileModel._alpha)
         return preds
+
+    def pre_get_model(self, X_shape=(1, 1), **kwargs):
+        # work-around use of old code that applies only for scikit-learn <=0.22 and runs from sklearn.externals import six
+        import six
+        import sys
+        sys.modules['sklearn.externals.six'] = six
