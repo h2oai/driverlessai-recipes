@@ -42,10 +42,10 @@ When MLI user starts interpretation, model compatible explainers (from the avail
 ### What is the role of recipes?
 BYOR allows Data Scientists to bring their **own recipes** or leverage the existing, **open-source** recipes to explain models. In this way, the expertise of those creating and using the recipes is leveraged to focus on domain-specific functions to build customizations.
 ### Where can you find open-source recipes?
-The curated open-source recipes currently reside [explainers](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1/explainers/explainers) section of Driverless AI recipes GitHub repository:
+The curated open-source recipes currently reside [explainers](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.2/explainers/explainers) section of Driverless AI recipes GitHub repository:
 
-* [Morris sensitivity analysis](https://github.com/h2oai/driverlessai-recipes/blob/rel-1.9.1/explainers/explainers/morris_sensitivity_explainer.py) explainer
-* explainer [templates](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1/explainers/explainers/templates)
+* [Morris sensitivity analysis](https://github.com/h2oai/driverlessai-recipes/blob/rel-1.9.2/explainers/explainers/morris_sensitivity_explainer.py) explainer
+* explainer [templates](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.2/explainers/explainers/templates)
 
 ## Custom Explainer
 ![overview](images/CREATING_CUSTOM_EXPLAINER_WITH_MLI_BYOR.overview.png)
