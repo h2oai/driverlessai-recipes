@@ -16,5 +16,5 @@ class MyDateTimeTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        return pd.to_datetime(X.to_pandas().iloc[:, 0],
-                              format=self.datetime_formats[self.input_feature_names[0]]).astype(np.int)
+        X = pd.to_datetime(X.to_pandas().iloc[:, 0], format=self.datetime_formats[self.input_feature_names[0]])
+        return X.fillna(pd.Timedelta(seconds=0)).astype(np.int)
