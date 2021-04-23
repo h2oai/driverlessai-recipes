@@ -20,6 +20,6 @@ class MyDateTimeDiffTransformer(CustomTransformer):
         col2 = X.names[1]
         pd_t1 = X[:, col1].to_pandas().iloc[:, 0]
         pd_t2 = X[:, col2].to_pandas().iloc[:, 0]
-        time1 = pd.to_datetime(pd_t1, format=self.datetime_formats[col1]).fillna(pd.Timedelta(seconds=0)).astype(np.int64)
-        time2 = pd.to_datetime(pd_t2, format=self.datetime_formats[col2]).fillna(pd.Timedelta(seconds=0)).astype(np.int64)
+        time1 = pd.to_datetime(pd_t1, format=self.datetime_formats[col1]).fillna(pd.Timestamp(year=1970, month=1, day=1)).astype(np.int64)
+        time2 = pd.to_datetime(pd_t2, format=self.datetime_formats[col2]).fillna(pd.Timestamp(year=1970, month=1, day=1)).astype(np.int64)
         return time1 - time2
