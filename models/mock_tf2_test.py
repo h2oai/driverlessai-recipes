@@ -3,6 +3,7 @@
 
 import numpy as np
 from h2oaicore.models import CustomModel
+from h2oaicore.models_utils import import_tensorflow
 
 
 class CustomTFGPUCheck(CustomModel):
@@ -16,6 +17,9 @@ class CustomTFGPUCheck(CustomModel):
     _must_use_gpu = True  # this recipe can only be used if have GPUs
     _predict_on_same_gpus_as_fit = True  # force predict to behave like fit, regardless of config.num_gpus_for_prediction
     _modules_needed_by_name = ['tensorflow==2.4.1']
+
+    def is_enabled(self):
+        return False  # out of date for now, need to do e.g. tf 2.5 or some  new iteration once it is released
 
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
@@ -39,8 +43,7 @@ class CustomTFGPUCheck(CustomModel):
         "/gpu:0": The first GPU of your machine
         '''
         import numpy as np
-        import tensorflow.compat.v1 as tf
-        tf.disable_v2_behavior()
+        tf = import_tensorflow()
         import datetime
 
         # Processing Units logs
