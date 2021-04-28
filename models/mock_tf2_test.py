@@ -18,7 +18,8 @@ class CustomTFGPUCheck(CustomModel):
     _predict_on_same_gpus_as_fit = True  # force predict to behave like fit, regardless of config.num_gpus_for_prediction
     _modules_needed_by_name = ['tensorflow==2.4.1']
 
-    def is_enabled(self):
+    @staticmethod
+    def is_enabled():
         return False  # out of date for now, need to do e.g. tf 2.5 or some  new iteration once it is released
 
     def set_default_params(self,
