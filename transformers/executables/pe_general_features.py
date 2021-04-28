@@ -5,7 +5,7 @@ import numpy as np
 
 
 class PEGeneralFeatures(CustomTransformer):
-    _modules_needed_by_name = ['lief==0.9.0']
+    _modules_needed_by_name = ['lief==0.11.4']
     _regression = True
     _binary = True
     _multiclass = True
