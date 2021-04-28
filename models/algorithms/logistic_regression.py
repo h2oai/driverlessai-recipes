@@ -525,7 +525,7 @@ class LogisticRegressionModel(CustomModel):
                 '%s__max_iter' % estimator_name: max_iter_range,
             }
             grid_clf = GridSearchCV(model, param_grid, n_jobs=self.params['n_jobs'],
-                                    cv=3, iid=True, refit=True, scoring=scorer)
+                                    cv=3, refit=True, scoring=scorer)
             fitkwargs = dict()
             fitkwargs["%s__sample_weight" % estimator_name] = sample_weight
             grid_clf.fit(X, y, **fitkwargs)
@@ -540,7 +540,7 @@ class LogisticRegressionModel(CustomModel):
                 'columntransformer__pipeline__simpleimputer__strategy': ['mean', 'median'],
                 '%s__C' % estimator_name: [0.1, 0.5, 1.0],
             }
-            grid_clf = GridSearchCV(model, param_grid, cv=10, iid=False)
+            grid_clf = GridSearchCV(model, param_grid, cv=10)
             fitkwargs = dict()
             fitkwargs["%s__sample_weight" % estimator_name] = sample_weight
             grid_clf.fit(X, y, **fitkwargs)
