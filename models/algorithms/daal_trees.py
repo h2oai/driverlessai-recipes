@@ -20,7 +20,8 @@ class DaalBaseModel(object):
     @staticmethod
     def is_enabled():
         from h2oaicore.systemutils import arch_type
-        return not (arch_type == "ppc64le")
+        #return not (arch_type == "ppc64le")
+        return False  # WIP until figure out how to support on py38
 
     def dt_to_numpy(self, X, y=None):
         if isinstance(X, dt.Frame):
@@ -168,11 +169,11 @@ def _setup_recipe():
         os.makedirs(daal_temp_path, exist_ok=True)
         prefix = "https://anaconda.org/intel"
         try:
-            file1 = download("%s/daal4py/2019.4/download/linux-64/daal4py-2019.4-py36h7b7c402_6.tar.bz2" % prefix,
+            file1 = download("%s/daal4py/2021.2.0/download/linux-64/daal4py-2021.2.0-py38_intel_358.tar.bz2" % prefix,
                              dest_path=daal_temp_path)
-            file2 = download("%s/impi_rt/2019.4/download/linux-64/impi_rt-2019.4-intel_243.tar.bz2" % prefix,
+            file2 = download("%s/impi_rt/2021.2.0/download/linux-64/impi_rt-2021.2.0-intel_215.tar.bz2" % prefix,
                              dest_path=daal_temp_path)
-            file3 = download("%s/daal/2019.4/download/linux-64/daal-2019.4-intel_243.tar.bz2" % prefix,
+            file3 = download("%s/daal/2021.2.0/download/linux-64/daal-2021.2.0-intel_358.tar.bz2" % prefix,
                              dest_path=daal_temp_path)
             file4 = download("https://github.com/intel/daal/releases/download/2019_u4/l_daal_oss_p_2019.4.007.tgz",
                              dest_path=daal_temp_path)
