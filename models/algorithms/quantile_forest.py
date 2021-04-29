@@ -17,6 +17,8 @@ class RandomForestQuantileModel(CustomModel):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     _modules_needed_by_name=['scikit-garden==0.1.3']
+    # pre-built:
+    # _modules_needed_by_name = ['https://s3.amazonaws.com/artifacts.h2o.ai/deps/dai/recipes/scikit_garden-0.1.3-cp38-cp38-linux_x86_64.whl']
 
     def set_default_params(
         self, 
@@ -133,3 +135,5 @@ class RandomForestQuantileModel(CustomModel):
         import six
         import sys
         sys.modules['sklearn.externals.six'] = six
+        import sklearn
+        sys.modules['sklearn.ensemble.forest'] = sklearn.ensemble._forest
