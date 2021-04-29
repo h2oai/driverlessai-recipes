@@ -91,7 +91,7 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
     _binary = False
     _multiclass = False
     # some package dependencies are best sequential to overcome known issues
-    _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.4.post2']
+    _modules_needed_by_name = ['convertdate', 'pystan==3.0.2', 'fbprophet==0.7.1']
     _included_model_classes = None  # ["gblinear"] for strong trends - can extrapolate
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 

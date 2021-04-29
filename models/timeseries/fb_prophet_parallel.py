@@ -63,7 +63,7 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
     def do_acceptance_test():
         return False
 
-    _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.4.post2']
+    _modules_needed_by_name = ['convertdate', 'pystan==3.0.2', 'fbprophet==0.7.1']
 
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
