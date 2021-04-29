@@ -3,6 +3,7 @@
 
 import numpy as np
 from h2oaicore.models import CustomModel
+from h2oaicore.models_utils import import_tensorflow
 
 
 class CustomTFGPUCheck(CustomModel):
@@ -37,9 +38,8 @@ class CustomTFGPUCheck(CustomModel):
         "/cpu:0": The CPU of your machine.
         "/gpu:0": The first GPU of your machine
         '''
-        from h2oaicore.tensorflow_dynamic import got_gpu_tf, got_cpu_tf
+        tf = import_tensorflow()
         import numpy as np
-        import tensorflow as tf
         import datetime
 
         # Processing Units logs
