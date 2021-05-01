@@ -91,7 +91,20 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
     _binary = False
     _multiclass = False
     # some package dependencies are best sequential to overcome known issues
-    _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.4.post2']
+    froms3 = True
+    if froms3:
+        _root_path = "https://s3.amazonaws.com/artifacts.h2o.ai/deps/dai/recipes"
+        _suffix = "-cp36-cp36m-linux_x86_64.whl"
+        _modules_needed_by_name = [
+        '%s/setuptools_git-1.2%s' % (_root_path, _suffix),
+        '%s/lunardate-0.2.0%s' % (_root_path, _suffix),
+        '%s/convertdate-2.3.2%s' % (_root_path, _suffix),
+        '%s/PyMeeus-0.5.11%s' % (_root_path, _suffix),
+        '%s/pystan-2.18.0.0%s' % (_root_path, _suffix),
+        '%s/fbprophet-0.4.post2%s' % (_root_path, _suffix),
+         ]
+    else:
+        _modules_needed_by_name = ['convertdate', 'pystan==2.18', 'fbprophet==0.4.post2']
     _included_model_classes = None  # ["gblinear"] for strong trends - can extrapolate
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
