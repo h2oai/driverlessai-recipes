@@ -26,6 +26,10 @@ class CalibratedClassifierModel:
     le = LabelEncoder()
 
     @staticmethod
+    def is_enabled():
+        return False  # WIP until figure out how to support on py38
+
+    @staticmethod
     def do_acceptance_test():
         """
         Return whether to do acceptance tests during upload of recipe and during start of Driverless AI.
