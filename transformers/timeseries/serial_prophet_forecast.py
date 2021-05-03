@@ -31,7 +31,20 @@ class MySerialProphetTransformer(CustomTimeSeriesTransformer):
     _binary = False
     _multiclass = False
     # some package dependencies are best sequential to overcome known issues
-    _modules_needed_by_name = ['convertdate', 'pystan==2.19.1.1', 'fbprophet==0.7.1']
+    froms3 = True
+    if froms3:
+        _root_path = "https://s3.amazonaws.com/artifacts.h2o.ai/deps/dai/recipes"
+        _suffix = "-cp38-cp38-linux_x86_64.whl"
+        _modules_needed_by_name = [
+        '%s/setuptools_git-1.2%s' % (_root_path, _suffix),
+        '%s/LunarCalendar-0.0.9%s' % (_root_path, _suffix),
+        '%s/ephem-3.7.7.1%s' % (_root_path, _suffix),
+        '%s/cmdstanpy-0.9.5%s' % (_root_path, _suffix),
+        '%s/pystan-2.19.1.1%s' % (_root_path, _suffix),
+        '%s/fbprophet-0.7.1%s' % (_root_path, _suffix),
+         ]
+    else:
+        _modules_needed_by_name = ['holidays==0.11.1', 'convertdate', 'lunarcalendar', 'pystan==2.19.1.1', 'fbprophet==0.7.1']
     # _modules_needed_by_name = ['fbprophet']
     _included_model_classes = None  # ["gblinear"] for strong trends - can extrapolate
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
