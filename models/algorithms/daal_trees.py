@@ -154,6 +154,7 @@ def _setup_recipe():
     import shutil
 
     from h2oaicore.systemutils import arch_type  # don't remove this import, setup_recipe parsed-out separately
+    return True  # WIP: Disable daal for now in general, just leave recipe floating there for migration purposes
     if arch_type == "ppc64le":
         if config.hard_asserts:
             # in CI testing just ignore
