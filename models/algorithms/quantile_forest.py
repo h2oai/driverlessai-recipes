@@ -20,6 +20,14 @@ class RandomForestQuantileModel(CustomModel):
     # pre-built:
     # _modules_needed_by_name = ['https://s3.amazonaws.com/artifacts.h2o.ai/deps/dai/recipes/scikit_garden-0.1.3-cp38-cp38-linux_x86_64.whl']
 
+    @staticmethod
+    def do_acceptance_test():
+        return False
+
+    @staticmethod
+    def is_enabled():
+        return False  # scikit-garden is from 2017 and no longer compatible with new sklearn despite attempts to make it work
+
     def set_default_params(
         self, 
         accuracy=None, 
@@ -135,5 +143,7 @@ class RandomForestQuantileModel(CustomModel):
         import six
         import sys
         sys.modules['sklearn.externals.six'] = six
-        import sklearn
-        sys.modules['sklearn.ensemble.forest'] = sklearn.ensemble._forest
+        from sklearn import ensemble
+        sys.modules['sklearn.ensemble.forest'] = ensemble._forest
+        from sklearn import tree
+        sys.modules['sklearn.tree.tree'] = tree._tree
