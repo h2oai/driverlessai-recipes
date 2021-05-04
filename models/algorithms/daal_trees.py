@@ -6,7 +6,11 @@ import numpy as np
 from h2oaicore.systemutils import arch_type
 from sklearn.preprocessing import LabelEncoder
 
-if arch_type != 'ppc64le' and False:  # WIP until figure out how to support on py38
+
+enable_daal = arch_type != 'ppc64le' and False  # WIP until figure out how to support on py38
+
+
+if enable_daal:
     import daal4py as d4p
 
 
@@ -86,7 +90,7 @@ class DaalBaseModel(object):
 class DaalTreeModel(DaalBaseModel, CustomModel):
     _display_name = "DaalTree"
     _description = "Decision Tree Model based on Intel DAAL (https://intelpython.github.io/daal4py/algorithms.html)"
-    if arch_type != 'ppc64le':
+    if enable_daal:
         _train_func_class = d4p.gbt_classification_training
         _predict_func_class = d4p.gbt_classification_prediction
         _train_func_regress = d4p.gbt_regression_training
@@ -122,7 +126,7 @@ class DaalTreeModel(DaalBaseModel, CustomModel):
 class DaalForestModel(DaalBaseModel, CustomModel):
     _display_name = "DaalForest"
     _description = "Decision Forest Model based on Intel DAAL (https://intelpython.github.io/daal4py/algorithms.html)"
-    if arch_type != 'ppc64le':
+    if enable_daal:
         _train_func_class = d4p.decision_forest_classification_training
         _predict_func_class = d4p.decision_forest_classification_prediction
         _train_func_regress = d4p.decision_forest_regression_training
