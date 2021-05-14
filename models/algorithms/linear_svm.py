@@ -56,7 +56,7 @@ class linsvc(BaseEstimator, ClassifierMixin):
 class LinearSVMModel(CustomModel):
     _regression = True
     _binary = True
-    _multiclass = False  # WIP
+    _multiclass = True
 
     _display_name = "LinearSVM"
     _description = "Linear Support Vector Machine with the Liblinear method + Calibration for probabilities"
