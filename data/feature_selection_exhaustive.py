@@ -25,7 +25,7 @@ from sklearn.linear_model import LogisticRegression
 # Please edit these before usage (default values are for credit card dataset)
 TARGET_COLUMN = 'default payment next month'
 ESTIMATOR = LogisticRegression()
-MIN_FEATURES = 5
+MIN_FEATURES = 10
 MAX_FEATURES = 15
 SCORING = 'accuracy'
 CV = 5
