@@ -45,15 +45,15 @@ class ExhaustiveFeatureSelection(CustomData):
         y = X[TARGET_COLUMN].values
         X.drop(TARGET_COLUMN, axis=1, inplace=True)
 
-        sfs = EFS(ESTIMATOR, 
+        efs = EFS(ESTIMATOR, 
            min_features=MIN_FEATURES, 
            max_features=MAX_FEATURES, 
            scoring=SCORING,
            cv=CV,
            n_jobs=-1)
 
-        sfs.fit(X, y)
+        efs.fit(X, y)
 
-        X_fs = X.iloc[:, list(sfs.best_idx_)]
+        X_fs = X.iloc[:, list(efs.best_idx_)]
 
         return X_fs
