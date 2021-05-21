@@ -6,7 +6,7 @@ from h2oaicore.data import CustomData
 class FreshEnvData(CustomData):
     # Specify the python package dependencies.  Will be installed in order of list
     # Below caches the env into "id" folder
-    #isolate_env = dict(pyversion="3.6", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.1.5"], cache_env=True, file=__file__, id="myrecipe12345")
+    #isolate_env = dict(pyversion="3.6", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.1.5"], cache_env=True, id="myrecipe12345")
     # Below does not cache the env
     isolate_env = dict(pyversion="3.8", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.1.5"])
     @staticmethod
