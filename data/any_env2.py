@@ -5,7 +5,7 @@ import functools
 
 
 def wrap_create(pyversion="3.6", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=[],
-                cache_env=False, file=None,
+                cache_env=False, file=None, id=None,
                 **kwargs_wrapper):
     """ Decorate a function to create_data in popen in isolated env
     """
@@ -15,7 +15,7 @@ def wrap_create(pyversion="3.6", install_h2oaicore=False, install_datatable=True
         def wrapper(*args, **kwargs):
             return create_data_popen(func, *args, **kwargs, pyversion=pyversion, install_h2oaicore=install_h2oaicore,
                                      install_datatable=install_datatable, modules_needed_by_name=modules_needed_by_name,
-                                     cache_env=cache_env, file=file,
+                                     cache_env=cache_env, file=file, id=id,
                                      **kwargs_wrapper)
 
         return wrapper
@@ -24,17 +24,19 @@ def wrap_create(pyversion="3.6", install_h2oaicore=False, install_datatable=True
 
 
 def create_data_popen(func, *args, pyversion="3.6", install_h2oaicore=False, install_datatable=True,
-                      modules_needed_by_name=[], cache_env=False, file=None,
+                      modules_needed_by_name=[], cache_env=False, file=None, id=None,
                       X=None, **kwargs):
     print(
-        "Recipe %s running pyversion=%s install_h2oaicore=%s install_datatable=%s modules_needed_by_name=%s cache_env=%s" % (
+        "Recipe %s running pyversion=%s install_h2oaicore=%s install_datatable=%s modules_needed_by_name=%s cache_env=%s id=%s" % (
         file, pyversion, install_h2oaicore, install_datatable,
-        modules_needed_by_name, cache_env))
+        modules_needed_by_name, cache_env, id))
     import os
     from h2oaicore.data import DataContribLoader
     env_dir_orig = DataContribLoader()._env_dir
     base_orig = os.path.basename(file).replace(".py", "")
-    env_path = os.path.abspath(os.path.join(env_dir_orig, "recipe_env_%s" % base_orig))
+    if id is None:
+        id = base_orig
+    env_path = os.path.abspath(os.path.join(env_dir_orig, "recipe_env_%s" % id))
     use_cache = os.path.isdir(env_path) and cache_env
     if use_cache:
         print("Using cache at %s for recipe %s" % (env_path, file))
@@ -108,7 +110,8 @@ class FreshEnvData(CustomData):
     @staticmethod
     # Specify the python package dependencies.  Will be installed in order of list
     # NOTE: Keep @wrap_create on a single line
-    @wrap_create(pyversion="3.6", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.1.5"], cache_env=True, file=__file__)
+    # NOTE: If want to share cache across recipes, can set cache_env=True and set file=<some unique identifier, like myrecipe12345>
+    @wrap_create(pyversion="3.6", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.1.5"], cache_env=True, file=__file__, id="myrecipe12345")
     def create_data(X=None):
         import os
         import datatable as dt
