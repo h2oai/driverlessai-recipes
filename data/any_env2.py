@@ -93,8 +93,7 @@ class FreshEnvData(CustomData):
     @staticmethod
     # Specify the python package dependencies.  Will be installed in order of list
     # NOTE: Keep @wrap_create on a single line
-    @wrap_create(pyversion="3.6", install_h2oaicore=False, install_datatable=True,
-                 modules_needed_by_name=["pandas==1.1.5"])
+    @wrap_create(pyversion="3.6", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.1.5"])
     def create_data(X=None):
         import os
         import datatable as dt
