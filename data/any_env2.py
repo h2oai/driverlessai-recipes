@@ -5,6 +5,7 @@ import functools
 
 
 def wrap_create(pyversion="3.6", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=[],
+                cache_env=False, file=None,
                 **kwargs_wrapper):
     """ Decorate a function to create_data in popen in isolated env
     """
@@ -14,6 +15,7 @@ def wrap_create(pyversion="3.6", install_h2oaicore=False, install_datatable=True
         def wrapper(*args, **kwargs):
             return create_data_popen(func, *args, **kwargs, pyversion=pyversion, install_h2oaicore=install_h2oaicore,
                                      install_datatable=install_datatable, modules_needed_by_name=modules_needed_by_name,
+                                     cache_env=cache_env, file=file,
                                      **kwargs_wrapper)
 
         return wrapper
@@ -22,18 +24,27 @@ def wrap_create(pyversion="3.6", install_h2oaicore=False, install_datatable=True
 
 
 def create_data_popen(func, *args, pyversion="3.6", install_h2oaicore=False, install_datatable=True,
-                      modules_needed_by_name=[],
+                      modules_needed_by_name=[], cache_env=False, file=None,
                       X=None, **kwargs):
+    print(
+        "Recipe %s running pyversion=%s install_h2oaicore=%s install_datatable=%s modules_needed_by_name=%s cache_env=%s" % (
+        file, pyversion, install_h2oaicore, install_datatable,
+        modules_needed_by_name, cache_env))
     import os
     from h2oaicore.data import DataContribLoader
-    env_dir = DataContribLoader()._env_dir
-    env_path = os.path.abspath(os.path.join(env_dir, "recipe_env"))
+    env_dir_orig = DataContribLoader()._env_dir
+    base_orig = os.path.basename(file).replace(".py", "")
+    env_path = os.path.abspath(os.path.join(env_dir_orig, "recipe_env_%s" % base_orig))
+    use_cache = os.path.isdir(env_path) and cache_env
+    if use_cache:
+        print("Using cache at %s for recipe %s" % (env_path, file))
     os.makedirs(env_path, exist_ok=True)
     X_file = os.path.abspath(os.path.join(env_path, "X.jay"))
     Y_file = os.path.abspath(os.path.join(env_path, "Y.jay"))
 
     if X is not None:
         X.to_jay(X_file)
+        print("X.names: %s" % (list(X.names)))
 
     python_script_file = os.path.abspath(os.path.join(env_path, "script.py"))
     with open(os.path.abspath(__file__), "rt") as src:
@@ -54,16 +65,20 @@ def create_data_popen(func, *args, pyversion="3.6", install_h2oaicore=False, ins
     with open(script_name, "wt") as f:
         print("set -o pipefail", file=f)
         print("set -ex", file=f)
-        print("virtualenv -p python%s %s" % (pyversion, env_path), file=f)
+        if not use_cache:
+            print("virtualenv -p python%s %s" % (pyversion, env_path), file=f)
         print("source %s/bin/activate" % env_path, file=f)
-        template_dir = os.environ.get("H2OAI_SCORER_TEMPLATE_DIR", os.path.join(os.getcwd(), 'h2oai_scorer'))
-        if install_h2oaicore:
-            print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'license-*'), file=f)
-            print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'h2oaicore-*'), file=f)
-        if install_datatable:
-            print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'datatable-*'), file=f)
-        for pkg in modules_needed_by_name:
-            print("%s/bin/pip install %s --ignore-installed" % (env_path, pkg), file=f)
+        print("unset PYTHONPATH", file=f)
+        print("unset PYTHONUSERBASE", file=f)
+        if not use_cache:
+            template_dir = os.environ.get("H2OAI_SCORER_TEMPLATE_DIR", os.path.join(os.getcwd(), 'h2oai_scorer'))
+            if install_h2oaicore:
+                print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'license-*'), file=f)
+                print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'h2oaicore-*'), file=f)
+            if install_datatable:
+                print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'datatable-*'), file=f)
+            for pkg in modules_needed_by_name:
+                print("%s/bin/pip install %s --ignore-installed" % (env_path, pkg), file=f)
         print("cd %s" % os.path.dirname(python_script_file), file=f)
         script_module_name = os.path.basename(python_script_file.replace(".py", ""))
         print(
@@ -74,8 +89,6 @@ def create_data_popen(func, *args, pyversion="3.6", install_h2oaicore=False, ins
 
     syntax = [script_name]
     from h2oaicore.systemutils import FunnelPopen
-    os.environ.pop('PYTHONPATH', None)
-    os.environ.pop('PYTHONUSERBASE', None)
     with FunnelPopen(syntax, shell=True) as fp:
         fp.launch().read()
 
@@ -85,6 +98,8 @@ def create_data_popen(func, *args, pyversion="3.6", install_h2oaicore=False, ins
     from h2oaicore.systemutils import remove
     remove(X_file)
     remove(Y_file)
+    if not cache_env:
+        remove(env_path)
 
     return Y
 
@@ -93,7 +108,7 @@ class FreshEnvData(CustomData):
     @staticmethod
     # Specify the python package dependencies.  Will be installed in order of list
     # NOTE: Keep @wrap_create on a single line
-    @wrap_create(pyversion="3.6", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.1.5"])
+    @wrap_create(pyversion="3.6", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.1.5"], cache_env=True, file=__file__)
     def create_data(X=None):
         import os
         import datatable as dt
