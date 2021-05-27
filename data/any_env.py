@@ -11,7 +11,7 @@ class FreshEnvData(CustomData):
     @staticmethod
     def create_data_popen(X=None):
         # Specify the python package dependencies.  Will be installed in order of list
-        pyversion = "3.6"
+        pyversion = "3.8"
         _install_h2oaicore = False
         _install_datatable = True
         _modules_needed_by_name = ["pandas==1.1.5"]
@@ -42,6 +42,7 @@ class FreshEnvData(CustomData):
         with open(script_name, "wt") as f:
             print("set -o pipefail", file=f)
             print("set -ex", file=f)
+            print("mkdir -p %s" % env_path, file=f)
             print("virtualenv -p python%s %s" % (pyversion, env_path), file=f)
             print("source %s/bin/activate" % env_path, file=f)
             template_dir = os.environ.get("H2OAI_SCORER_TEMPLATE_DIR", os.path.join(os.getcwd(), 'h2oai_scorer'))
