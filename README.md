@@ -61,16 +61,19 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
  [1.9.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1)
  [1.9.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.2)
-### Count: 210
+### Count: 233
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns] 
-  * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.] 
   * [airlines.py](./data/airlines.py) [Create airlines dataset] 
   * [airlines_joined_data_flights_in_out.py](./data/airlines_joined_data_flights_in_out.py) [Create augmented airlines datasets] 
   * [airlines_joined_data_flights_in_out_regression.py](./data/airlines_joined_data_flights_in_out_regression.py) [Create augmented airlines datasets for regression] 
   * [airlines_multiple.py](./data/airlines_multiple.py) [Create airlines dataset] 
+  * [any_env.py](./data/any_env.py) [Modify dataset with arbitrary env] 
+  * [any_env2.py](./data/any_env2.py) [Modify dataset with arbitrary env] 
+  * [any_env3.py](./data/any_env3.py) [Modify dataset with arbitrary env] 
+  * [any_env4.py](./data/any_env4.py) [Modify dataset with arbitrary env] 
   * [audio_to_image.py](./data/audio_to_image.py) [Data recipe to transform input audio to Mel spectrogramsThis data recipe makes the following steps:1. Reads audio file2. Converts audio file to the Mel spectrogram3. Save Mel spectrogram to .png image4. Upload image dataset to DAIRecipe is based on the Kaggle Freesound Audio Tagging 2019 challenge:https://www.kaggle.com/c/freesound-audio-tagging-2019To use the recipe follow the next steps:1. Download a subsample of the audio dataset from here:http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/freesound_audio.zip2. Unzip it and specify the path to the dataset in the DATA_DIR global variable3. Upload the dataset into Driverless AI using the Add Data Recipe optionThe transformed dataset is also available and could be directly uploaded to Driverless AI:http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/freesound_images.zip] 
   * [bigquery_sharded_data_pull.py](./data/bigquery_sharded_data_pull.py) [Pull data >1Gb from GCP Bigquery using sharding functionality.Based on:    https://cloud.google.com/bigquery/docs/exporting-data#exporting_table_data    https://cloud.google.com/storage/docs/reference/libraries#using_the_client_libraryAuthor: Travis CoutureCreated: 03/18/2020Last Updated: 03/18/2020] 
   * [catchallenge.py](./data/catchallenge.py) [Create cat challenge dataset] 
@@ -81,6 +84,10 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [data_test.py](./data/data_test.py) [Create test dataset] 
   * [data_test_multiple.py](./data/data_test_multiple.py) [Create multiple dataset test] 
   * [feature_selection.py](./data/feature_selection.py) [please add description] 
+  * [feature_selection_backward.py](./data/feature_selection_backward.py) [Backward Feature Selection using an sklearn estimator.] 
+  * [feature_selection_bidirectional.py](./data/feature_selection_bidirectional.py) [Bidirectional Feature Selection using an sklearn estimator.] 
+  * [feature_selection_exhaustive.py](./data/feature_selection_exhaustive.py) [Exhaustive Feature Selection using an sklearn estimator.] 
+  * [feature_selection_forward.py](./data/feature_selection_forward.py) [Forward Feature Selection using an sklearn estimator.] 
   * [generate_random_int_columns.py](./data/generate_random_int_columns.py) [Data recipe to add one or more columns containing random integers.] 
   * [ieee_data_puddle.py](./data/ieee_data_puddle.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection] 
   * [image_cropper.py](./data/image_cropper.py) [ Data Recipe to Crop the Cheque Image (or any Image) in a fixed dimension ] 
@@ -90,6 +97,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [kaggle_m5.py](./data/kaggle_m5.py) [Prepare data for m5 Kaggle Time-Series Forecast competition] 
   * [keywords_data.py](./data/keywords_data.py) [Check and match a list of words from a specific string column] 
   * [load_sas7bdat.py](./data/load_sas7bdat.py) [Data Recipe to load a single sas file__version__ = 0.1authored by @mtanco (Michelle Tanco)Required User Defined Inputs: name of file to load] 
+  * [marketbasketanalysis.py](./data/marketbasketanalysis.py) [Run Market Basket AnalysisSettings for this recipe:MBA_ORDER_COLUMN: Column name of ordersMBA_PRODUCT_COLUMN: Column name of productsMBA_MIN_SUPPORT: Minimum support level of itemsetsMBA_MAX_LEN: Maximum number of products in itemsetsMBA_METRIC: Metric used for ruleset cutoffMBA_MIN_THRESHOLD: Threshold value to apply on metricMore details available here: http://rasbt.github.io/mlxtend/api_subpackages/mlxtend.frequent_patternsModel used is fpgrowthSample dataset to try on: https://www.kaggle.com/c/instacart-market-basket-analysis] 
   * [mnist.py](./data/mnist.py) [Prep and upload the MNIST datasset] 
   * [mozilla_deepspeech_wav2txt.py](./data/mozilla_deepspeech_wav2txt.py) [Speech to text using Mozilla's DeepSpeechSettings for this recipe:Assing MODEL_PATH global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.General requirements to .wav's:1 channel (mono)16 bit16000 frequency] 
   * [nytimes_covid19_cases_deaths_by_counties.py](./data/nytimes_covid19_cases_deaths_by_counties.py) [Upload daily COVID-19 cases and deaths in US by counties - NY Times github   Source:  nytimes/covid-19-data Coronavirus (Covid-19) Data in the United States   https://github.com/nytimes/covid-19-data] 
@@ -111,10 +119,20 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [tokenize_chinese.py](./data/nlp/tokenize_chinese.py) [Chinese text tokenization using jieba package - https://github.com/fxsjy/jieba] 
     * [topic_modeling.py](./data/nlp/topic_modeling.py) [Data recipe to perform topic modeling] 
     * [twitter_preprocessing_recipe.py](./data/nlp/twitter_preprocessing_recipe.py) [Preprocess the tweets by normalising username, removing unnecessary punctuations, expanding the hashtags] 
+  * [UNSUPERVISED](./data/unsupervised)
+    * [DBScanClustering.py](./data/unsupervised/DBScanClustering.py) [Data Recipe to perform DBScan Clustering.] 
+    * [IsolationForestRecipe.py](./data/unsupervised/IsolationForestRecipe.py) [Data Recipe to perform Isolation Forest Clustering on a dataset.] 
+    * [KMeansClustering.py](./data/unsupervised/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.] 
+    * [Kmeans_with_adjusted_mutual_info_score.py](./data/unsupervised/Kmeans_with_adjusted_mutual_info_score.py) [Kmeans Clustering with Adjusted Mutual Info Score to evaluate cluster quality.] 
+    * [Kmeans_with_fowlkes_mallows_score.py](./data/unsupervised/Kmeans_with_fowlkes_mallows_score.py) [Data Recipe to perform KMeans Clustering with Fowlkes Mallows Score.] 
+    * [Kmeans_with_homogeneity_score.py](./data/unsupervised/Kmeans_with_homogeneity_score.py) [Data Recipe to perform KMeans Clustering on a dataset with homogenity score to evaluate cluster quality.] 
+    * [KmodesRecipe.py](./data/unsupervised/KmodesRecipe.py) [Data Recipe to perform KModes Clustering on a dataset.] 
 * [EXPLAINERS](./explainers)
   * [DOC](./explainers/doc)
+    * [API](./explainers/doc/api)
     * [IMAGES](./explainers/doc/images)
   * [EXPLAINERS](./explainers/explainers)
+    * [ale_explainer.py](./explainers/explainers/ale_explainer.py) [Accumulated Local Effects (ALE) explainerNote:This example repurposes the Partial Dependence format render data. As such, the label"Average Prediction of {response}" is used for the y-axis instead of "ALE of {response}".] 
     * [morris_sensitivity_explainer.py](./explainers/explainers/morris_sensitivity_explainer.py) [Morris Sensitivity Analysis Explainer] 
     * [TEMPLATES](./explainers/explainers/templates)
       * [template_dt_explainer.py](./explainers/explainers/templates/template_dt_explainer.py) [Decision Tree explainer which can be used to create explainer with global and local decision tree explanations.] 
@@ -129,6 +147,8 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description] 
 * [MODELS](./models)
   * [mock_gpu_test_model.py](./models/mock_gpu_test_model.py) [For GPU usage testing purposes.] 
+  * [mock_tf2_test.py](./models/mock_tf2_test.py) [For GPU usage testing purposes.] 
+  * [mock_tf_test.py](./models/mock_tf_test.py) [For GPU usage testing purposes.] 
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.] 
   * [ALGORITHMS](./models/algorithms)
     * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines] <kbd>✓ MOJO Enabled</kbd>
@@ -144,9 +164,11 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [linear_svm.py](./models/algorithms/linear_svm.py) [Linear Support Vector Machine (SVM) implementation by sklearn. For small data.] 
     * [logistic_regression.py](./models/algorithms/logistic_regression.py) [Logistic Regression based upon sklearn.] 
     * [nusvm.py](./models/algorithms/nusvm.py) [Nu-SVM implementation by sklearn. For small data.] 
+    * [quantile_forest.py](./models/algorithms/quantile_forest.py) [Quantile Random Forest Regression model from skgarden] 
     * [random_forest.py](./models/algorithms/random_forest.py) [Random Forest (RandomForest) model from sklearn] 
   * [CUSTOM_LOSS](./models/custom_loss)
     * [lightgbm_quantile_regression.py](./models/custom_loss/lightgbm_quantile_regression.py) [Modified version of Driverless AI's internal LightGBM implementation with for quantile regression] <kbd>✓ MOJO Enabled</kbd>
+    * [lightgbm_train_valid_loss_gap.py](./models/custom_loss/lightgbm_train_valid_loss_gap.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).] <kbd>✓ MOJO Enabled</kbd>
     * [lightgbm_tweedie.py](./models/custom_loss/lightgbm_tweedie.py) [Modified version of Driverless AI's internal LightGBM implementation with tweedie distribution] <kbd>✓ MOJO Enabled</kbd>
     * [lightgbm_with_custom_loss.py](./models/custom_loss/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).] <kbd>✓ MOJO Enabled</kbd>
     * [xgboost_with_custom_loss.py](./models/custom_loss/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).] <kbd>✓ MOJO Enabled</kbd>
@@ -195,12 +217,14 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
       * [cost.py](./scorers/classification/binary/cost.py) [Using hard-coded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `(x * FP + y * FN) / N`] 
       * [cost_access_to_data.py](./scorers/classification/binary/cost_access_to_data.py) [Same as CostBinary, but provides access to full Data] 
       * [cost_smooth.py](./scorers/classification/binary/cost_smooth.py) [Using hard-coded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `(1 - y_true) * y_pred * fp_cost + y_true * (1 - y_pred) * fn_cost`] 
+      * [fair_auc.py](./scorers/classification/binary/fair_auc.py) [Custom scorer for detecting and reducing bias in machine learning models.] 
       * [false_discovery_rate.py](./scorers/classification/binary/false_discovery_rate.py) [Weighted False Discovery Rate: `FP / (FP + TP)` at threshold for optimal F1 Score.] 
       * [logloss_with_costs.py](./scorers/classification/binary/logloss_with_costs.py) [Logloss with costs associated with each type of 4 outcomes - typically applicable to fraud use case] 
       * [marketing_campaign.py](./scorers/classification/binary/marketing_campaign.py) [Computes the mean profit per outbound marketing letter, given a fraction of the population addressed, and fixed cost and reward] 
       * [profit.py](./scorers/classification/binary/profit.py) [Uses domain information about user behavior to calculate the profit or loss of a model.] 
     * [MULTICLASS](./scorers/classification/multiclass)
       * [hamming_loss.py](./scorers/classification/multiclass/hamming_loss.py) [Hamming Loss - Misclassification Rate (1 - Accuracy)] 
+      * [linear_weighted_kappa.py](./scorers/classification/multiclass/linear_weighted_kappa.py) [Cohen’s Kappa with linear weights] 
       * [map@k.py](./scorers/classification/multiclass/map@k.py) [Mean Average Precision @ k (MAP@k)] 
       * [quadratic_weighted_kappa.py](./scorers/classification/multiclass/quadratic_weighted_kappa.py) [Qudratic Weighted Kappa] 
   * [REGRESSION](./scorers/regression)
@@ -282,6 +306,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [count_positive_values_transformer.py](./transformers/numeric/count_positive_values_transformer.py) [Count of positive values per row] 
     * [exp_diff_transformer.py](./transformers/numeric/exp_diff_transformer.py) [Exponentiated difference of two numbers] 
     * [log_transformer.py](./transformers/numeric/log_transformer.py) [Converts numbers to their Logarithm] <kbd>✓ MOJO Enabled</kbd>
+    * [ohe.py](./transformers/numeric/ohe.py) [One-Hot Encoding for categorical columns] 
     * [product.py](./transformers/numeric/product.py) [Products together 3 or more numeric features] 
     * [random_transformer.py](./transformers/numeric/random_transformer.py) [Creates random numbers] 
     * [round_transformer.py](./transformers/numeric/round_transformer.py) [Rounds numbers to 1, 2 or 3 decimals] <kbd>✓ MOJO Enabled</kbd>

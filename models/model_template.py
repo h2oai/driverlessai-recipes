@@ -354,7 +354,6 @@ class CustomTensorFlowModel(CustomModel, TensorFlowModel):
     _parallel_task = True
     _can_use_gpu = True
     _get_gpu_lock = True
-    _can_use_multi_gpu = True  # conservative, force user to override
 
     def setup_keras_session(self):
         """

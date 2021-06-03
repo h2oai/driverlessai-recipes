@@ -1,6 +1,6 @@
-"""
-Bidirectional Feature Selection using an sklearn estimator.
+"""Bidirectional Feature Selection using an sklearn estimator."""
 
+"""
 Settings for this recipe:
 
 TARGET_COLUMN: Column name of target variable

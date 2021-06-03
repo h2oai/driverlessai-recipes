@@ -1,6 +1,6 @@
-"""
-Forward Feature Selection using an sklearn estimator.
+"""Forward Feature Selection using an sklearn estimator."""
 
+"""
 Settings for this recipe:
 
 TARGET_COLUMN: Column name of target variable

@@ -1,6 +1,6 @@
-"""
-Exhaustive Feature Selection using an sklearn estimator.
+"""Exhaustive Feature Selection using an sklearn estimator."""
 
+"""
 Settings for this recipe:
 
 TARGET_COLUMN: Column name of target variable
