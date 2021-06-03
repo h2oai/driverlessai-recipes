@@ -40,8 +40,8 @@ class LightGBMTrainValidScoreGap(BaseCustomModel, LightGBMModel):
                 return
 
             # goal is to find the new best_iterations, from 1...self.best_iterations
-            max_n = self.best_iterations
-            min_n = 1
+            max_n = max(self.best_iterations, 1)
+            min_n = 0
             step_n = max(1, (max_n - min_n) // 20)  # try up to 20 steps from 1 to N trees
 
             mykwargs = {}
