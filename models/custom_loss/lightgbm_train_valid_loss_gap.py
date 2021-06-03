@@ -44,7 +44,6 @@ class LightGBMTrainValidLossGap(BaseCustomModel, LightGBMModel):
             min_n = 1
             step_n = max(1, (max_n - min_n) // 20)  # try up to 20 steps from 1 to N trees
 
-            best_n = min_n
             mykwargs = {}
             mykwargs['output_margin'] = False
             mykwargs['pred_contribs'] = False
@@ -53,6 +52,9 @@ class LightGBMTrainValidLossGap(BaseCustomModel, LightGBMModel):
             valid_X = eval_set[0][0]
             valid_y = eval_set[0][1]
             valid_w = sample_weight_eval_set[0] if sample_weight_eval_set else None
+            best_n = None
+            best_train_score = None
+            best_valid_score = None
             for n in range(min_n, max_n, step_n):
                 mykwargs[self._predict_iteration_name] = n  # fix number of trees for predict
                 train_pred = self.predict_model_wrapper(X, **mykwargs)
@@ -60,14 +62,16 @@ class LightGBMTrainValidLossGap(BaseCustomModel, LightGBMModel):
                 valid_pred = self.predict_model_wrapper(valid_X, **mykwargs)
                 score_valid = scorer.score_base(actual=valid_y, predicted=valid_pred,
                                                 sample_weight=valid_w, labels=self.labels)
-                if np.abs(score_train - score_valid) < max_abs_deviation:
+                if np.abs(score_train - score_valid) < max_abs_deviation or n == min_n:
                     # use the largest number n that satisfies this condition
                     best_n = n
+                    best_train_score = score_train
+                    best_valid_score = score_valid
                 else:
                     # optimization: assume monotonic cross-over
                     break 
 
-            print("Changing optimal iterations from %d to %d to keep train/valid %s loss gap below %f" %
-                        (max_n, best_n, scorer.display_name, max_abs_deviation))
+            print("Changing optimal iterations from %d to %d to keep train/valid %s gap below %f: train: %f, valid: %f" %
+                        (max_n, best_n, scorer.display_name, max_abs_deviation, best_train_score, best_valid_score))
             self.best_iterations = best_n
             self._predict_by_iteration = True  # restore default behavior
