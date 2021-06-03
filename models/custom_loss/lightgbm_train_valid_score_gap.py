@@ -19,7 +19,7 @@ class LightGBMTrainValidLossGap(BaseCustomModel, LightGBMModel):
     _mojo = True
     # Give the display name and description that will be shown in the UI
     _display_name = "LGBMTrainValidLossGap"
-    _description = "LightGBM with custom early stopping based on difference between train and valid loss"
+    _description = "LightGBM with custom early stopping based on absolute difference between train and valid score"
     _is_reproducible = True  # not be exactly reproducible on GPUs
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
@@ -31,7 +31,7 @@ class LightGBMTrainValidLossGap(BaseCustomModel, LightGBMModel):
 
         # customize - start
         scorer = LogLossScorer() if self.num_classes >= 2 else RmseScorer()  # other choices: AucScorer, F1Scorer, etc.
-        max_abs_deviation = 0.02  # stop as soon as loss for train (not holdout) and valid deviate by more than this value
+        max_abs_deviation = 0.02  # stop as soon as score for train (not holdout) and valid deviate by more than this value
         # customize - end
             
         if eval_set and self.best_iterations and self._predict_by_iteration:
