@@ -31,7 +31,7 @@ class LightGBMTrainValidLossGap(BaseCustomModel, LightGBMModel):
 
         # customize - start
         scorer = LogLossScorer() if self.num_classes >= 2 else RmseScorer()  # other choices: AucScorer, F1Scorer, etc.
-        max_abs_deviation = 0.02  # stop as soon as logloss for train (not holdout) and valid deviate by more than this value
+        max_abs_deviation = 0.02  # stop as soon as loss for train (not holdout) and valid deviate by more than this value
         # customize - end
             
         if eval_set and self.best_iterations and self._predict_by_iteration:
@@ -67,7 +67,7 @@ class LightGBMTrainValidLossGap(BaseCustomModel, LightGBMModel):
                     # optimization: assume monotonic cross-over
                     break 
 
-            print("Changing optimal iterations from %d to %d due to custom train/valid logloss threshold" %
-                        (max_n, best_n))
+            print("Changing optimal iterations from %d to %d to keep train/valid %s loss gap below %f" %
+                        (max_n, best_n, scorer.display_name, max_abs_deviation))
             self.best_iterations = best_n
             self._predict_by_iteration = True  # restore default behavior
