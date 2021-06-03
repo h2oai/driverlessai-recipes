@@ -5,7 +5,7 @@ from h2oaicore.metrics import LogLossScorer, RmseScorer
 import numpy as np
 
 
-class LightGBMTrainValidLossGap(BaseCustomModel, LightGBMModel):
+class LightGBMTrainValidScoreGap(BaseCustomModel, LightGBMModel):
     """Custom model class that re-uses DAI LightGBMModel
     The class inherits :
       - BaseCustomModel that really is just a tag. It's there to make sure DAI knows it's a custom model and not
@@ -18,7 +18,7 @@ class LightGBMTrainValidLossGap(BaseCustomModel, LightGBMModel):
     _multiclass = True
     _mojo = True
     # Give the display name and description that will be shown in the UI
-    _display_name = "LGBMTrainValidLossGap"
+    _display_name = "LGBMTrainValidScoreGap"
     _description = "LightGBM with custom early stopping based on absolute difference between train and valid score"
     _is_reproducible = True  # not be exactly reproducible on GPUs
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
