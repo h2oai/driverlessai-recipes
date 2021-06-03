@@ -168,7 +168,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * [random_forest.py](./models/algorithms/random_forest.py) [Random Forest (RandomForest) model from sklearn] 
   * [CUSTOM_LOSS](./models/custom_loss)
     * [lightgbm_quantile_regression.py](./models/custom_loss/lightgbm_quantile_regression.py) [Modified version of Driverless AI's internal LightGBM implementation with for quantile regression] <kbd>✓ MOJO Enabled</kbd>
-    * [lightgbm_train_valid_loss_gap.py](./models/custom_loss/lightgbm_train_valid_loss_gap.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).] <kbd>✓ MOJO Enabled</kbd>
+    * [lightgbm_train_valid_score_gap.py](./models/custom_loss/lightgbm_train_valid_score_gap.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).] <kbd>✓ MOJO Enabled</kbd>
     * [lightgbm_tweedie.py](./models/custom_loss/lightgbm_tweedie.py) [Modified version of Driverless AI's internal LightGBM implementation with tweedie distribution] <kbd>✓ MOJO Enabled</kbd>
     * [lightgbm_with_custom_loss.py](./models/custom_loss/lightgbm_with_custom_loss.py) [Modified version of Driverless AI's internal LightGBM implementation with a custom objective function (used for tree split finding).] <kbd>✓ MOJO Enabled</kbd>
     * [xgboost_with_custom_loss.py](./models/custom_loss/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).] <kbd>✓ MOJO Enabled</kbd>
