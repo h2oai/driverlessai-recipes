@@ -21,7 +21,7 @@ after modifications specific to a dataset it applies to.
 * [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
 
 ## Sample Recipes
-### Count: 36
+### Count: 37
   * [add\_columns\_with\_rand\_values.py](./add_columns_with_rand_values.py) [Add one or more columns containing random integer values]  
 
   * [aggregate\_and\_augment\_one\_to\_many.py](./aggregate_and_augment_one_to_many.py) [Template for augmenting data based on one-to-many relationship between datasets X (e.g. header level) ]  
@@ -45,6 +45,8 @@ after modifications specific to a dataset it applies to.
   * [compute\_shift\_diff\_per\_column.py](./compute_shift_diff_per_column.py) [Compute per-column difference between current and previous (shift)]  
 
   * [compute\_stats\_by\_groups\_per\_column.py](./compute_stats_by_groups_per_column.py) [Compute per-column expressions (signed distance from the mean in this example) ]  
+
+  * [concat\_columns.py](./concat_columns.py) [Consolidate multiple columns into single text column by concatenating]  
 
   * [create\_time\_interval\_partition.py](./create_time_interval_partition.py) [Extract single partition based on time interval]  
 
