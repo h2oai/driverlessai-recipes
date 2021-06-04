@@ -26,9 +26,9 @@ class GBMTrainValidScoreGap:
     def post_fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         # determine the largest number of trees (from 1 to N, where N is what DAI would normally do) that
 
-        # abs(training_score - valid_score) < abs-threshold IF abs-threshold > 0 ELSE true
+        # abs(training_score - valid_score) <= abs-threshold IF abs-threshold > 0 ELSE true
         # AND
-        # abs(training_score - valid_score) < rel-threshold * abs(training_score) IF rel-threshold > 0 ELSE true
+        # abs(training_score - valid_score) <= rel-threshold * abs(training_score) IF rel-threshold > 0 ELSE true
 
         # To enable, set at least one of the two configurations by pasting the following (with modifications) into
         # "Add to config.toml via toml string" under Expert Settings -> Experiment:
