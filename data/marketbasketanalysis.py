@@ -1,6 +1,4 @@
 """
-Run Market Basket Analysis
-
 Settings for this recipe:
 
 MBA_ORDER_COLUMN: Column name of orders
@@ -9,6 +7,7 @@ MBA_MIN_SUPPORT: Minimum support level of itemsets
 MBA_MAX_LEN: Maximum number of products in itemsets
 MBA_METRIC: Metric used for ruleset cutoff
 MBA_MIN_THRESHOLD: Threshold value to apply on metric
+SEPARATOR: Separator used to distinguish products
 
 More details available here: http://rasbt.github.io/mlxtend/api_subpackages/mlxtend.frequent_patterns
 Model used is fpgrowth
@@ -29,6 +28,15 @@ MBA_MIN_SUPPORT = 0.0005
 MBA_MAX_LEN = 4
 MBA_METRIC = 'confidence'
 MBA_MIN_THRESHOLD = 0.1
+SEPARATOR = ' | '
+
+
+def _clean_frozenset(text: frozenset, separator: str = SEPARATOR) -> str:
+        """
+        Convert frozenset into a string with separator.
+        """
+
+        return separator.join(list(text))
 
 
 class MarketBasketAnalysis(CustomData):
@@ -68,5 +76,8 @@ class MarketBasketAnalysis(CustomData):
             metric=MBA_METRIC,
             min_threshold=MBA_MIN_THRESHOLD
         )
+
+        df_mba['antecedents'] = df_mba.antecedents.apply(_clean_frozenset)
+        df_mba['consequents'] = df_mba.consequents.apply(_clean_frozenset)
 
         return df_mba
