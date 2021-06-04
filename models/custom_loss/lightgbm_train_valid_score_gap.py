@@ -48,7 +48,7 @@ class GBMTrainValidScoreGap:
 
             # goal is to find the new best_iterations, from 1...self.best_iterations
             max_n = max(self.best_iterations, 1)
-            min_n = 0
+            min_n = 1
             step_n = max(1, (max_n - min_n) // 20)  # try up to 20 steps from 1 to N trees
 
             mykwargs = {'output_margin': False, 'pred_contribs': False}
