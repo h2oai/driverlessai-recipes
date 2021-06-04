@@ -13,7 +13,7 @@ class LightGBMTrainValidScoreGap(BaseCustomModel, LightGBMModel):
       - LightGBMModel object so that the custom model inherits all the properties and methods, especially for params
       mutation
     """
-    _regression = True
+    _regression = False  # target transformer not supported - 1.10 LTS will support this feature natively for GBMs, until then only classification supported
     _binary = True
     _multiclass = True
     _mojo = True
