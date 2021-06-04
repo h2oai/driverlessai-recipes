@@ -1,3 +1,5 @@
+"""Market basket analysis"""
+
 """
 Settings for this recipe:
 
