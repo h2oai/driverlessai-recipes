@@ -382,8 +382,7 @@ class CustomTensorFlowModel(CustomModel, TensorFlowModel):
            Ensures later import tensorflow uses correct CPU/GPU version
         """
         super().pre_fit(X, y, sample_weight, eval_set, sample_weight_eval_set, **kwargs)
-        from h2oaicore.tensorflow_dynamic import got_cpu_tf, got_gpu_tf
-        assert got_cpu_tf is not None and got_gpu_tf is not None
+        import_tensorflow()
         self.setup_keras_session()
 
     @staticmethod
@@ -393,8 +392,7 @@ class CustomTensorFlowModel(CustomModel, TensorFlowModel):
             Ensures correct CPU or GPU version of tensorflow used automatically,
             when any next call to import tensorflow [as tf] is called.
         """
-        from h2oaicore.tensorflow_dynamic import got_cpu_tf, got_gpu_tf
-        assert got_cpu_tf is not None and got_gpu_tf is not None
+        import_tensorflow()
 
 
 class CustomTimeSeriesTensorFlowModel(CustomTimeSeriesModel, CustomTensorFlowModel):

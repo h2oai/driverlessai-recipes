@@ -61,7 +61,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
  [1.9.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1)
  [1.9.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.2)
-### Count: 233
+### Count: 242
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -134,6 +134,16 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [EXPLAINERS](./explainers/explainers)
     * [ale_explainer.py](./explainers/explainers/ale_explainer.py) [Accumulated Local Effects (ALE) explainerNote:This example repurposes the Partial Dependence format render data. As such, the label"Average Prediction of {response}" is used for the y-axis instead of "ALE of {response}".] 
     * [morris_sensitivity_explainer.py](./explainers/explainers/morris_sensitivity_explainer.py) [Morris Sensitivity Analysis Explainer] 
+    * [EXAMPLES](./explainers/explainers/examples)
+      * [example_compatibility_check_explainer.py](./explainers/explainers/examples/example_compatibility_check_explainer.py) [please add description] 
+      * [example_custom_explanation_explainer.py](./explainers/explainers/examples/example_custom_explanation_explainer.py) [please add description] 
+      * [example_dai_metadata_explainer.py](./explainers/explainers/examples/example_dai_metadata_explainer.py) [please add description] 
+      * [example_eda_explainer.py](./explainers/explainers/examples/example_eda_explainer.py) [please add description] 
+      * [example_hello_world_explainer.py](./explainers/explainers/examples/example_hello_world_explainer.py) [please add description] 
+      * [example_logging_explainer.py](./explainers/explainers/examples/example_logging_explainer.py) [please add description] 
+      * [example_params_explainer.py](./explainers/explainers/examples/example_params_explainer.py) [please add description] 
+      * [example_persistence_explainer.py](./explainers/explainers/examples/example_persistence_explainer.py) [please add description] 
+      * [example_score_explainer.py](./explainers/explainers/examples/example_score_explainer.py) [please add description] 
     * [TEMPLATES](./explainers/explainers/templates)
       * [template_dt_explainer.py](./explainers/explainers/templates/template_dt_explainer.py) [Decision Tree explainer which can be used to create explainer with global and local decision tree explanations.] 
       * [template_featimp_explainer.py](./explainers/explainers/templates/template_featimp_explainer.py) [Feature importance explainer template which can be used create explainer with global and local feature importance explanations.] 

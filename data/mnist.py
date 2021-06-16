@@ -17,8 +17,8 @@ import pandas as pd
 class MNISTData(CustomData):
     @staticmethod
     def create_data(X: dt.Frame = None):
-        from h2oaicore.tensorflow_dynamic import got_cpu_tf, got_gpu_tf
-        import tensorflow as tf
+        from h2oaicore.models_utils import import_tensorflow
+        tf = import_tensorflow()
         mnist = tf.keras.datasets.mnist
         (train_images, train_labels), (test_images, test_labels) = mnist.load_data()
 

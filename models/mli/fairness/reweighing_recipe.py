@@ -40,9 +40,8 @@ class MyReweightingData(CustomData):
     def create_data():
 
         import pandas as pd
-
-        from h2oaicore.tensorflow_dynamic import got_cpu_tf, got_gpu_tf
-        import tensorflow as tf
+        from h2oaicore.models_utils import import_tensorflow
+        tf = import_tensorflow()
         # above is because aif360 requires tensorflow
         from aif360.datasets import BinaryLabelDataset
         from aif360.algorithms.preprocessing.reweighing import Reweighing

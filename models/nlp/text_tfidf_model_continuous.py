@@ -259,7 +259,8 @@ class TextTFIDFContinuousModel(CustomModel):
 
         models = [LogisticRegression(**self.return_lin_params())]
         if self.params["add_rf"]:
-            from h2oaicore.lightgbm_dynamic import got_cpu_lgb, got_gpu_lgb
+            from h2oaicore.lightgbm_dynamic import import_lightgbm
+            lgbm = import_lightgbm()
             import lightgbm as lgbm
             models.append(lgbm.LGBMClassifier(
                 boosting_type='rf',
@@ -335,7 +336,8 @@ class TextTFIDFContinuousModel(CustomModel):
         return preds
 
     def pre_get_model(self, X_shape=(1, 1), **kwargs):  # copy-paste from LightGBM model class
-        from h2oaicore.lightgbm_dynamic import got_cpu_lgb, got_gpu_lgb
+        from h2oaicore.lightgbm_dynamic import import_lightgbm
+        lgbm = import_lightgbm()
 
         if arch_type == 'ppc64le':
             # ppc has issues with this, so force ppc to only keep same architecture

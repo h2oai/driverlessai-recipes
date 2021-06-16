@@ -127,8 +127,8 @@ class CustomXNNModel(CustomTensorFlowModel):
         # Get column names
         orig_cols = list(X.names)
 
-        from h2oaicore.tensorflow_dynamic import got_cpu_tf, got_gpu_tf
-        import tensorflow as tf
+        from h2oaicore.models_utils import import_tensorflow
+        tf = import_tensorflow()
         import shap
         import scipy
         import pandas as pd
