@@ -372,7 +372,10 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
 
     def convert_to_prophet(self, X):
         # Change date feature name to match Prophet requirement
-        return X[:, self.tgc].to_pandas().rename(columns={self.time_column: "ds"})
+        XX = X[:, self.tgc].to_pandas()
+        XX[self.time_column] = self.time_column_to_datetime(X)   
+        XX.rename(columns={self.time_column: "ds"}, inplace=True)
+        return XX
 
     @staticmethod
     def _transform_async(model_path, X_path, nan_value, tmp_folder):
