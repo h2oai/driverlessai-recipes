@@ -1,4 +1,6 @@
-"""Create IMDb datasets for main titles and episodes. Main titles includes info for both movies and series,
+"""Create titles and episodes datasets from IMDB tables"""
+
+"""Create IMDb datasets for main titles and episodes. Main titles include info for both movies and series,
    while episodes contains series episodes details and ratings. Thus, there is one-to-many relationship
    between titles (one side) and episodes (many side which may be 0)
    Description: https://www.imdb.com/interfaces/
