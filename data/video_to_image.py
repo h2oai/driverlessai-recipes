@@ -1,5 +1,6 @@
-"""Data recipe to transform input video to the images.
+"""Data recipe to transform input video to the images"""
 
+"""
 This data recipe makes the following steps:
 1. Reads video file
 2. Samples N uniform frames from the video file
@@ -17,7 +18,6 @@ http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/deepfake.
 
 The transformed dataset is also available and could be directly uploaded to Driverless AI:
 http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/deepfake_frames.zip
-
 """
 
 DATA_DIR = "/path/to/deepfake/"
@@ -34,6 +34,7 @@ class VideoToFrames:
     Transforms input video files into image frames.
     Additionally detects all faces for each frame.
     """
+
     _modules_needed_by_name = ["torchvision==0.4.1", "facenet-pytorch==2.2.9"]
 
     def __init__(self, num_frames_per_video=3, face_additional_area=0.5):
@@ -41,6 +42,7 @@ class VideoToFrames:
         self.face_additional_area = face_additional_area
 
         from facenet_pytorch import MTCNN
+
         self.face_detection_model = MTCNN(
             image_size=224,
             margin=0,
@@ -57,6 +59,7 @@ class VideoToFrames:
 
         # Read video
         import cv2
+
         orig_capture = cv2.VideoCapture(video_path)
 
         # Select only self.num_frames_per_video uniform frames
