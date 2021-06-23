@@ -21,7 +21,7 @@ after modifications specific to a dataset it applies to.
 * [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
 
 ## Sample Recipes
-### Count: 37
+### Count: 38
   * [add\_columns\_with\_rand\_values.py](./add_columns_with_rand_values.py) [Add one or more columns containing random integer values]  
 
   * [aggregate\_and\_augment\_one\_to\_many.py](./aggregate_and_augment_one_to_many.py) [Template for augmenting data based on one-to-many relationship between datasets X (e.g. header level) ]  
@@ -41,6 +41,8 @@ after modifications specific to a dataset it applies to.
   * [bootstrap\_time\_series.py](./bootstrap_time_series.py) [Bootstrap time series (or time series bagging) by the means of randomly picking]  
 
   * [cast\_columns\_to\_numeric.py](./cast_columns_to_numeric.py) [Cast columns with mostly numeric values to new numeric columns.]  
+
+  * [compute\_rowwise\_stats\_by\_column\_groups.py](./compute_rowwise_stats_by_column_groups.py) [Compute row-wise aggregates, usually applicable when dataset contains time]  
 
   * [compute\_shift\_diff\_per\_column.py](./compute_shift_diff_per_column.py) [Compute per-column difference between current and previous (shift)]  
 
