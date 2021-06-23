@@ -1,5 +1,6 @@
-"""Data recipe to transform input audio to Mel spectrograms
+"""Data recipe to transform input audio to Mel spectrograms"""
 
+"""
 This data recipe makes the following steps:
 1. Reads audio file
 2. Converts audio file to the Mel spectrogram
@@ -17,7 +18,6 @@ http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/freesound
 
 The transformed dataset is also available and could be directly uploaded to Driverless AI:
 http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/freesound_images.zip
-
 """
 
 DATA_DIR = "/path/to/freesound_audio/"
@@ -40,7 +40,7 @@ class AudioToMelSpectogram:
     """
 
     def __init__(
-            self, min_seconds=2, sampling_rate=44100, n_mels=128, hop_length=345 * 2
+        self, min_seconds=2, sampling_rate=44100, n_mels=128, hop_length=345 * 2
     ):
         # Audio hyperparameters
         self.min_seconds = min_seconds
@@ -122,6 +122,7 @@ class AudioDataset(CustomData):
         # Convert audio to melspectrogram and save as image
         wav2mel = AudioToMelSpectogram()
         import cv2
+
         for idx, audio_name in enumerate(audio_filenames):
             audio_path = os.path.join(path_to_files, audio_name)
             image_path = os.path.join(output_path, f"{audio_name}.png")
