@@ -53,8 +53,6 @@ class GermanyLandersHolidayTransformer2(CustomTimeSeriesTransformer):
         holidays_df = pd.DataFrame(hdays, columns=[self.time_column], dtype='datetime64[ns]')
         holidays_df['year'] = holidays_df[self.time_column].dt.year
         holidays_df['doy'] = holidays_df[self.time_column].dt.dayofyear
-        holidays_df.sort_values(by=['year', 'doy']).drop_duplicates(subset=['year'], keep='first').reset_index(
-            drop=True)
         holidays_df.drop(self.time_column, axis=1, inplace=True)
         self.memos['country'] = holidays_df
 
@@ -68,8 +66,6 @@ class GermanyLandersHolidayTransformer2(CustomTimeSeriesTransformer):
             holidays_df = pd.DataFrame(hdays, columns=[self.time_column], dtype='datetime64[ns]')
             holidays_df['year'] = holidays_df[self.time_column].dt.year
             holidays_df['doy'] = holidays_df[self.time_column].dt.dayofyear
-            holidays_df.sort_values(by=['year', 'doy']).drop_duplicates(subset=['year'], keep='first').reset_index(
-                drop=True)
             holidays_df.drop(self.time_column, axis=1, inplace=True)
             self.memos[prov] = holidays_df
 

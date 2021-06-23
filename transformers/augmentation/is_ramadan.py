@@ -39,7 +39,6 @@ class RamadanTransformer(CustomTimeSeriesTransformer):
         self.memo = pd.DataFrame(hramadan, columns=[self.time_column], dtype='datetime64[ns]')
         self.memo['year'] = self.memo[self.time_column].dt.year
         self.memo['doy'] = self.memo[self.time_column].dt.dayofyear
-        self.memo.sort_values(by=['year', 'doy']).drop_duplicates(subset=['year'], keep='first').reset_index(drop=True)
         self.memo.drop(self.time_column, axis=1, inplace=True)
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
