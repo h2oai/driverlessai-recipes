@@ -1,3 +1,5 @@
+"""Split dataset into 2 partitions based on time horizon of test set"""
+
 # Split dataset into two partitions by time given
 # time horizon (length) of last partition. With this
 # approach we simply count number of unique values in temporal

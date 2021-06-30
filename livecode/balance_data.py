@@ -1,3 +1,5 @@
+"""Downsample majority class in imbalanced dataset"""
+
 # Create a sampled dataset for imbalanced use cases - probably not for modeling but
 # can be nice to better see trends in MLI PDP plots
 #

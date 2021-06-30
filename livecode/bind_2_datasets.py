@@ -1,4 +1,6 @@
-# Livecode for binding 2 datasets' rows (rbind). Datasets should have the same
+"""Bind 2 datasets by rows (union)"""
+
+# Binds 2 datasets' rows using rbind. Datasets should have the same
 # columnar structure, e.g. train dataset and test dataset (with target present).
 # For more details see docs on datatable's Frame.rbind() here:
 # https://datatable.readthedocs.io/en/latest/api/frame.html#datatable.Frame.rbind

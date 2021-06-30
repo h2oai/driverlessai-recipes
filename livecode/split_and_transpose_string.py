@@ -1,4 +1,6 @@
-# Template to parse and split a character column using pandas str.split, 
+"""Split character value containing list into multiple columns"""
+
+# Parse and split a character column using pandas str.split,
 # then assign the transposed results to individual columns. 
 #
 # Specification:

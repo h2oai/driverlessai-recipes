@@ -1,3 +1,5 @@
+"""Melt (unpivot) dataset"""
+
 # Change dataset format from wide to long using melt function
 # Identify id columns and value columns to use Pandas melt 
 # function

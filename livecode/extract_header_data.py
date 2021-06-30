@@ -1,4 +1,6 @@
-# Extract header data from detailed (line item level) dataset by filtering top level 
+"""Extract header (top level) data and drop the rest"""
+
+# Extract header data from detailed (line item level) dataset by filtering top level
 # columns and then removing duplicate rows.
 #
 # Specification:

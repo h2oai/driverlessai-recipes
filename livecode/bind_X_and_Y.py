@@ -1,6 +1,8 @@
-# Template for binding columns from 2 datasets with the same number of rows.
+"""Bind 2 datasets' columns (cbind)"""
+
+# Bind columns from 2 datasets with the same number of rows.
 # Recipe won't perform any joins/mapping but rather stitch 2 datasets together into wider dataset with
-# the same number of rows and columns from both.
+# the same number of rows and combined columns from both.
 #
 # Specification:
 # Inputs:

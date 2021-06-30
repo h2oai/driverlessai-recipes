@@ -1,3 +1,5 @@
+"""Parse string column and convert to date time type"""
+
 # Parse and convert string column to date.
 # This example converts string in the format `MMMMYY` to `MMMM-YY-DD`.
 # Please adjust code to the format you expect to find in your data.

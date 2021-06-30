@@ -1,5 +1,5 @@
-# Get interesting RowIDs to search for in MLI
-#
+"""Get interesting RowIDs to search for in MLI"""
+
 # Specification:
 # Inputs:
 #   X: datatable - primary data set

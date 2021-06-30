@@ -1,3 +1,5 @@
+"""Augment dataset with columns containing random values"""
+
 # Add one or more columns containing random integer values
 #
 # Specification:

@@ -22,79 +22,79 @@ after modifications specific to a dataset it applies to.
 
 ## Sample Recipes
 ### Count: 38
-  * [add\_columns\_with\_rand\_values.py](./add_columns_with_rand_values.py) [Add one or more columns containing random integer values]  
+  * [add\_columns\_with\_rand\_values.py](./add_columns_with_rand_values.py) ["""Augment dataset with columns containing random values"""]  
 
-  * [aggregate\_and\_augment\_one\_to\_many.py](./aggregate_and_augment_one_to_many.py) [Template for augmenting data based on one-to-many relationship between datasets X (e.g. header level) ]  
+  * [aggregate\_and\_augment\_one\_to\_many.py](./aggregate_and_augment_one_to_many.py) ["""Augment data based on one-to-many relationship by means of aggregate and join"""]  
 
-  * [aggregate\_columns\_with\_groupby.py](./aggregate_columns_with_groupby.py) [Compute aggregates with per-column expressions (means and sums in this example)]  
+  * [aggregate\_columns\_with\_groupby.py](./aggregate_columns_with_groupby.py) ["""Group by and aggregate dataset"""]  
 
-  * [balance\_data.py](./balance_data.py) [Create a sampled dataset for imbalanced use cases - probably not for modeling but]  
+  * [balance\_data.py](./balance_data.py) ["""Downsample majority class in imbalanced dataset"""]  
 
-  * [bind\_2\_datasets.py](./bind_2_datasets.py) [Livecode for binding 2 datasets' rows (rbind). Datasets should have the same]  
+  * [bind\_2\_datasets.py](./bind_2_datasets.py) ["""Bind 2 datasets by rows (union)"""]  
 
-  * [bind\_X\_and\_Y.py](./bind_X_and_Y.py) [Template for binding columns from 2 datasets with the same number of rows.]  
+  * [bind\_X\_and\_Y.py](./bind_X_and_Y.py) ["""Bind 2 datasets' columns (cbind)"""]  
 
-  * [bind\_X\_and\_target\_y.py](./bind_X_and_target_y.py) [Template for binding dataset and target from another dataset with the same number of rows,]  
+  * [bind\_X\_and\_target\_y.py](./bind_X_and_target_y.py) ["""Bind dataset and target from another dataset (cbind)"""]  
 
-  * [bind\_n\_datasets.py](./bind_n_datasets.py) [Livecode for binding multiple datasets' rows (rbind). Datasets should have the same]  
+  * [bind\_n\_datasets.py](./bind_n_datasets.py) ["""Bind multiple datasets by rows (union)"""]  
 
-  * [bootstrap\_time\_series.py](./bootstrap_time_series.py) [Bootstrap time series (or time series bagging) by the means of randomly picking]  
+  * [bootstrap\_time\_series.py](./bootstrap_time_series.py) ["""Bootstrap time series data (bagging and adding) - experimental"""]  
 
-  * [cast\_columns\_to\_numeric.py](./cast_columns_to_numeric.py) [Cast columns with mostly numeric values to new numeric columns.]  
+  * [cast\_columns\_to\_numeric.py](./cast_columns_to_numeric.py) ["""Cast columns to numeric values. Columns may have small fraction of non-numeric values"""]  
 
-  * [compute\_rowwise\_stats\_by\_column\_groups.py](./compute_rowwise_stats_by_column_groups.py) [Compute row-wise aggregates, usually applicable when dataset contains time]  
+  * [compute\_rowwise\_stats\_by\_column\_groups.py](./compute_rowwise_stats_by_column_groups.py) ["""Compute rowwise aggregates"""]  
 
-  * [compute\_shift\_diff\_per\_column.py](./compute_shift_diff_per_column.py) [Compute per-column difference between current and previous (shift)]  
+  * [compute\_shift\_diff\_per\_column.py](./compute_shift_diff_per_column.py) ["""Compute shift differences between consecutive rows"""]  
 
-  * [compute\_stats\_by\_groups\_per\_column.py](./compute_stats_by_groups_per_column.py) [Compute per-column expressions (signed distance from the mean in this example) ]  
+  * [compute\_stats\_by\_groups\_per\_column.py](./compute_stats_by_groups_per_column.py) ["""Compute new features based on aggregates, e.g. distance from mean"""]  
 
-  * [concat\_columns.py](./concat_columns.py) [Consolidate multiple columns into single text column by concatenating]  
+  * [concat\_columns.py](./concat_columns.py) ["""Concatenate columns"""]  
 
-  * [create\_time\_interval\_partition.py](./create_time_interval_partition.py) [Extract single partition based on time interval]  
+  * [create\_time\_interval\_partition.py](./create_time_interval_partition.py) ["""Create dataset partition based on time interval"""]  
 
-  * [delete\_columns.py](./delete_columns.py) [Delete columns with the names matching regular expression pattern.]  
+  * [delete\_columns.py](./delete_columns.py) ["""Delete columns based on regex pattern"""]  
 
-  * [delete\_rows.py](./delete_rows.py) [Delete rows based on certain condition.]  
+  * [delete\_rows.py](./delete_rows.py) ["""Delete rows based on condition(s)"""]  
 
-  * [drop\_duplicates.py](./drop_duplicates.py) [Remove duplicate rows by grouping the same rows,]  
+  * [drop\_duplicates.py](./drop_duplicates.py) ["""Remove duplicate rows"""]  
 
-  * [extract\_header\_data.py](./extract_header_data.py) [Extract header data from detailed (line item level) dataset by filtering top level ]  
+  * [extract\_header\_data.py](./extract_header_data.py) ["""Extract header (top level) data and drop the rest"""]  
 
-  * [fill\_ts.py](./fill_ts.py) [Add any missing Group by Date records and fill with a default value -]  
+  * [fill\_ts.py](./fill_ts.py) ["""Fill in missing time series rows based on time groups"""]  
 
-  * [filter\_columns\_by\_types.py](./filter_columns_by_types.py) [Filter only columns of certain types. Beware that column order]  
+  * [filter\_columns\_by\_types.py](./filter_columns_by_types.py) ["""Filter dataset columns by type"""]  
 
-  * [find\_mli\_rowids.py](./find_mli_rowids.py) [Get interesting RowIDs to search for in MLI]  
+  * [find\_mli\_rowids.py](./find_mli_rowids.py) ["""Get interesting RowIDs to search for in MLI"""]  
 
-  * [impute\_X.py](./impute_X.py) [Live code recipe for imputing all missing values]  
+  * [impute\_X.py](./impute_X.py) ["""Impute missing values"""]  
 
-  * [insert\_unique\_id.py](./insert_unique_id.py) [Livecode to add (insert) new column containing unique row]  
+  * [insert\_unique\_id.py](./insert_unique_id.py) ["""Add unique row id to a dataset"""]  
 
-  * [join\_X\_left\_outer\_Y.py](./join_X_left_outer_Y.py) [Livecode for joining 2 datasets, e.g.]  
+  * [join\_X\_left\_outer\_Y.py](./join_X_left_outer_Y.py) ["""Join two datasets"""]  
 
-  * [map\_target\_to\_binary\_outcome.py](./map_target_to_binary_outcome.py) [Maps multi-nominal target (outcome) to binomial target column by]  
+  * [map\_target\_to\_binary\_outcome.py](./map_target_to_binary_outcome.py) ["""Add new target column with binary label derived from multi-nominal target based on pre-defined rule"""]  
 
-  * [melt\_X.py](./melt_X.py) [Change dataset format from wide to long using melt function]  
+  * [melt\_X.py](./melt_X.py) ["""Melt (unpivot) dataset"""]  
 
-  * [melt\_to\_time\_series.py](./melt_to_time_series.py) [Melt time series in wide format (single row) into long format supported]  
+  * [melt\_to\_time\_series.py](./melt_to_time_series.py) ["""Melt (unpivot) time series in wide format to H2O standard long time series format"""]  
 
-  * [parse\_string\_to\_datetime.py](./parse_string_to_datetime.py) [Parse and convert string column to date.]  
+  * [parse\_string\_to\_datetime.py](./parse_string_to_datetime.py) ["""Parse string column and convert to date time type"""]  
 
-  * [pivot\_X.py](./pivot_X.py) [Change dataset format from long to wide using pivot function]  
+  * [pivot\_X.py](./pivot_X.py) ["""Pivot dataset"""]  
 
-  * [rename\_column\_names.py](./rename_column_names.py) [Rename column name(s) in the dataset]  
+  * [rename\_column\_names.py](./rename_column_names.py) [""" Rename column name(s) in the dataset"""]  
 
-  * [sample\_X.py](./sample_X.py) [Random sample of rows from X]  
+  * [sample\_X.py](./sample_X.py) [""" Randomly sample rows from dataset"""]  
 
-  * [shift\_time\_series.py](./shift_time_series.py) [Shift all time series values up by the N-th percentile value, where percentiles are]  
+  * [shift\_time\_series.py](./shift_time_series.py) ["""Manipulate time series values based on time series characteristics"""]  
 
-  * [split\_and\_transpose\_string.py](./split_and_transpose_string.py) [Template to parse and split a character column using pandas str.split, ]  
+  * [split\_and\_transpose\_string.py](./split_and_transpose_string.py) ["""Split character value containing list into multiple columns"""]  
 
-  * [split\_by\_datetime.py](./split_by_datetime.py) [Split dataset into two partitions by time given]  
+  * [split\_by\_datetime.py](./split_by_datetime.py) ["""Split dataset into 2 partitions based on date"""]  
 
-  * [split\_by\_time\_horizon.py](./split_by_time_horizon.py) [Split dataset into two partitions by time given]  
+  * [split\_by\_time\_horizon.py](./split_by_time_horizon.py) ["""Split dataset into 2 partitions based on time horizon of test set"""]  
 
-  * [split\_dataset\_by\_partition\_column.py](./split_dataset_by_partition_column.py) [Split dataset by partition id (column): results in as many partitions (datasets)]  
+  * [split\_dataset\_by\_partition\_column.py](./split_dataset_by_partition_column.py) ["""Split dataset by partition column - will result in as many partitions as there are values in the partition column"""]  
 
-  * [transform\_features.py](./transform_features.py) [Map and create new features by adding new columns or with in-place update.]  
+  * [transform\_features.py](./transform_features.py) ["""Transform dataset features"""]  
 

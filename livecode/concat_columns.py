@@ -1,3 +1,5 @@
+"""Concatenate columns"""
+
 # Consolidate multiple columns into single text column by concatenating
 # them and adding column name as a prefix.
 #

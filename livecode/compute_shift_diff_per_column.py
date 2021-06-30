@@ -1,3 +1,5 @@
+"""Compute shift differences between consecutive rows"""
+
 # Compute per-column difference between current and previous (shift)
 # values for each time series - both by time groups (multiple time
 # series) and across covariates (multivariate time series).

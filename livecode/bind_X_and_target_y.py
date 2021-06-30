@@ -1,4 +1,6 @@
-# Template for binding dataset and target from another dataset with the same number of rows,
+"""Bind dataset and target from another dataset (cbind)"""
+
+# Bind dataset and target from another dataset with the same number of rows,
 # e.g. one dataset has features and another contains target.
 # Recipe won't perform any joins/mapping but rather stitch 2 datasets together into wider dataset with
 # the same number of rows and columns from 1st dataset plus target from another.

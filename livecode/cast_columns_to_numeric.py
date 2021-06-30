@@ -1,3 +1,5 @@
+"""Cast columns to numeric values. Columns may have small fraction of non-numeric values"""
+
 # Cast columns with mostly numeric values to new numeric columns.
 # Fraction of non-numeric values (per column) equal or below a threshold defined is allowed before casting.
 # Non-numeric values are ignored and mapped to null value.

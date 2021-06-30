@@ -1,5 +1,5 @@
-# Rename column name(s) in the dataset
-#
+""" Rename column name(s) in the dataset"""
+
 # Specification:
 # Inputs:
 #   X: datatable - primary dataset

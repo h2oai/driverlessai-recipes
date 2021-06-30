@@ -1,5 +1,6 @@
-# Live code recipe for imputing all missing values
-# in a dataset
+"""Impute missing values"""
+
+# Imputing all missing values in a dataset
 # If you don't want certain data type to be filled just 
 # change its filler's value to None
 #

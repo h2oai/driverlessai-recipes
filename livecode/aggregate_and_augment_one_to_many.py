@@ -1,7 +1,10 @@
-# Template for augmenting data based on one-to-many relationship between datasets X (e.g. header level) 
-# and Y (e.g. line item). The recipe performs:
-#  1. aggregates Y by X's primary key and then 
-#  2. augments X by joining aggregated Y's data.
+"""Augment data based on one-to-many relationship by means of aggregate and join"""
+
+# Template for augmenting data based on one-to-many relationship. For example,
+# dataset X representing customers and dataset Y containing their orders.
+# Then recipe will:
+#  1. aggregate Y by X's primary key and then
+#  2. left join X with Y and augment X with aggregated Y's data.
 #
 # Specification:
 # Inputs:

@@ -1,5 +1,7 @@
-# Livecode for binding multiple datasets' rows (rbind). Datasets should have the same
-# columnar structure, e.g. each file contains one month of train data.
+"""Bind multiple datasets by rows (union)"""
+
+# Binds mulitple datasets' rows using rbind. Datasets should have the same
+# Datasets should have the same structure, e.g. each file contains one month of train data.
 # For more details see docs on datatable's Frame.rbind() here:
 # https://datatable.readthedocs.io/en/latest/api/frame.html#datatable.Frame.rbind
 #

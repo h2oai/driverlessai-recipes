@@ -1,5 +1,5 @@
-# Random sample of rows from X
-#
+""" Randomly sample rows from dataset"""
+
 # Specification:
 # Inputs:
 #   X: datatable - primary dataset

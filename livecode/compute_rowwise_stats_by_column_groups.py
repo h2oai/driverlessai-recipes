@@ -1,3 +1,5 @@
+"""Compute rowwise aggregates"""
+
 # Compute row-wise aggregates, usually applicable when dataset contains time
 # series data as enumerated columns, e.g. "PAY_1, PAY_2, ..., PAY_6" in
 # the Kaggle Credit Card Default dataset.

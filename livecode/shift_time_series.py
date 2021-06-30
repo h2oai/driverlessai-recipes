@@ -1,3 +1,5 @@
+"""Manipulate time series values based on time series characteristics"""
+
 # Shift all time series values up by the N-th percentile value, where percentiles are
 # computed per tgc values. This transformation usually applies in case when
 # 0s are present in time series.

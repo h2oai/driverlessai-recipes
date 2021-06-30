@@ -1,3 +1,5 @@
+"""Fill in missing time series rows based on time groups"""
+
 # Add any missing Group by Date records and fill with a default value -
 # additional columns will be null for the default values
 #

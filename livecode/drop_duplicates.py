@@ -1,3 +1,5 @@
+"""Remove duplicate rows"""
+
 # Remove duplicate rows by grouping the same rows,
 # sorting them and then selecting first (1) or last (-1)
 # row from each group

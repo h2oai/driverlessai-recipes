@@ -1,3 +1,5 @@
+"""Filter dataset columns by type"""
+
 # Filter only columns of certain types. Beware that column order
 # changes after filtering. For more details see f-expressions in 
 # datatable docs: 

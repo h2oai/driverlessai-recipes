@@ -1,4 +1,6 @@
-# Livecode for joining 2 datasets, e.g.
+"""Join two datasets"""
+
+# Template for joining 2 datasets, e.g.
 # one dataset with transactions and another dataset has extended set of features.
 # find location of the dataset file by going to DETAILS where it's displayed
 # on top under dataset name

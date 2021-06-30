@@ -1,3 +1,5 @@
+"""Add new target column with binary label derived from multi-nominal target based on pre-defined rule"""
+
 # Maps multi-nominal target (outcome) to binomial target column by
 # binding new column to a dataset (new dataset will be created).
 # For example, use when working with multi-nominal classifier and want 

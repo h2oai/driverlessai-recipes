@@ -1,3 +1,5 @@
+"""Create dataset partition based on time interval"""
+
 # Extract single partition based on time interval
 # Data is called X and is a DataTable object
 #

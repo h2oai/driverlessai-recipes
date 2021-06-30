@@ -1,3 +1,5 @@
+"""Split dataset into 2 partitions based on date"""
+
 # Split dataset into two partitions by time given
 # date/time value.
 #

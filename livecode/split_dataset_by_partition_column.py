@@ -1,3 +1,5 @@
+"""Split dataset by partition column - will result in as many partitions as there are values in the partition column"""
+
 # Split dataset by partition id (column): results in as many partitions (datasets)
 # as there are values in parition column
 #

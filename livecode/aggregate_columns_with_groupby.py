@@ -1,3 +1,5 @@
+"""Group by and aggregate dataset"""
+
 # Compute aggregates with per-column expressions (means and sums in this example)
 # for numeric (int, float) columns by groups.
 # New frame contains computed aggregates of the columns and group by columns.

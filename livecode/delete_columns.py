@@ -1,3 +1,5 @@
+"""Delete columns based on regex pattern"""
+
 # Delete columns with the names matching regular expression pattern.
 #
 # Specification:

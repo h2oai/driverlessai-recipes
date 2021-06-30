@@ -1,4 +1,6 @@
-# Change dataset format from long to wide using pivot function
+"""Pivot dataset"""
+
+# Change dataset format from long to wide using pivot function.
 # Identify id columns and value columns to use Pandas pivot 
 # function
 #

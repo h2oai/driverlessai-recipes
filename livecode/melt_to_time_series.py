@@ -1,3 +1,5 @@
+"""Melt (unpivot) time series in wide format to H2O standard long time series format"""
+
 # Melt time series in wide format (single row) into long format supported
 # by DAI: a row represents a point in time (lag) so a column represents
 # a time series values.

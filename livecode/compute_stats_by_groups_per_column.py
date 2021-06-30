@@ -1,4 +1,6 @@
-# Compute per-column expressions (signed distance from the mean in this example) 
+"""Compute new features based on aggregates, e.g. distance from mean"""
+
+# Compute per-column expressions (signed distance from the mean in this example)
 # for all numeric (int, float) columns with stats computed by groups and
 # new column added for each original numeric feature.
 # see: https://stackoverflow.com/questions/62974899/updating-or-adding-multiple-columns-with-pydatatable-in-style-of-r-datables-sd

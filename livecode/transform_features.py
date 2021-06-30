@@ -1,3 +1,5 @@
+"""Transform dataset features"""
+
 # Map and create new features by adding new columns or with in-place update.
 # For example, use for mapping multi-valued key to single column or
 # any other types of map (row by row) transformations.

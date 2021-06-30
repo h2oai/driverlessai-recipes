@@ -1,4 +1,6 @@
-# Livecode to add (insert) new column containing unique row
+"""Add unique row id to a dataset"""
+
+# Add (insert) new column containing unique row
 # identifier. New dataset will be identical to its source
 # plus inserted first column containing unique ids from 0 to N-1
 #

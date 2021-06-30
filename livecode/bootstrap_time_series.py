@@ -1,3 +1,5 @@
+"""Bootstrap time series data (bagging and adding) - experimental"""
+
 # Bootstrap time series (or time series bagging) by the means of randomly picking
 # time series pairs and add them up, then adding resulting time series
 # to the original dataset.

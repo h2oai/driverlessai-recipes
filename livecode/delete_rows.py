@@ -1,3 +1,5 @@
+"""Delete rows based on condition(s)"""
+
 # Delete rows based on certain condition.
 # In this case delete rows where certain column contains null values.
 #
