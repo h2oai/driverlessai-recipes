@@ -43,6 +43,9 @@ class AggregateRowwiseByColumnGroups(CustomData):
         Dict[str, np.ndarray],  # {data set names : np arrays}
         Dict[str, pd.DataFrame],  # {data set names : pd frames}
     ]:
+        if X is None:
+            return []
+
         columns = None  # columns = ["PAY_AMT", "BILL_AMT", "PAY_"]
         ranges = None  # [(1, 6), (1, 6), (2, 6)]
         black_listed_columns = []
