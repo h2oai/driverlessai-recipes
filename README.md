@@ -19,12 +19,25 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
 * Assume that a user with access to Driverless AI has access to the data inside that instance.
   * Apart from securing access to the instance via private networks, various methods of [authentication](http://docs.h2o.ai/driverless-ai/latest-stable/docs/userguide/authentication.html) are possible. Local authentication provides the most control over which users have access to Driverless AI.
   * Unless the `config.toml` setting `enable_dataset_downloading=false` is set, an authenticated user can download all imported datasets as .csv via direct APIs.
-
 * When recipes are enabled (`enable_custom_recipes=true`, the default), be aware that:
   * The code for the recipes runs as the same native Linux user that runs the Driverless AI application.
     * Recipes have explicit access to all data passing through the transformer/model/scorer API
     * Recipes have implicit access to system resources such as disk, memory, CPUs, GPUs, network, etc.
   * A H2O-3 Java process is started in the background, for use by all recipes using H2O-3. Anyone with access to the Driverless AI instance can browse the file system, see models and data through the H2O-3 interface.
+
+* Enable automatic detection of forbidden or dangerous code constructs in a custom recipe with `custom_recipe_security_analysis_enabled = tr
+ue`. Note the following:
+  * When `custom_recipe_security_analysis_enabled` is enabled, do not use modules specified in the banlist. Specify the banlist with the `cu
+stom_recipe_import_banlist` config option.
+    * For example: `custom_recipe_import_banlist = ["shlex", "plumbum", "pexpect", "envoy", "commands", "fabric", "subprocess", "os.system",
+ "system"]` (default)
+  * When `custom_recipe_security_analysis_enabled` is enabled, code is also checked for dangerous calls like `eval()`, `exec()` and other in
+secure calls (regex patterns) defined in `custom_recipe_method_call_banlist`. Code is also checked for other dangerous constructs defined as
+regex patterns in the `custom_recipe_dangerous_patterns` config setting.
+  * Security analysis is only performed on recipes that are uploaded after the `custom_recipe_security_analysis_enabled` config option is en
+abled.
+  * To specify a list of modules that can be imported in custom recipes, use the `custom_recipe_import_allowlist` config option.
+  * The `custom_recipe_security_analysis_enabled` config option is disabled by default.
 
 * Best ways to control access to Driverless AI and custom recipes:
   * Control access to the Driverless AI instance
@@ -32,14 +45,6 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * Run Driverless AI in a Docker container, as a certain user, with only certain ports exposed, and only certain mount points mapped
   * To disable all recipes: Set `enable_custom_recipes=false` in the config.toml, or add the environment variable `DRIVERLESS_AI_ENABLE_CUSTOM_RECIPES=0` at startup of Driverless AI. This will disable all custom transformers, models and scorers.
   * To disable new recipes: To keep all previously uploaded recipes enabled and disable the upload of any new recipes, set `enable_custom_recipes_upload=false` or `DRIVERLESS_AI_ENABLE_CUSTOM_RECIPES_UPLOAD=0` at startup of Driverless AI.
-
-* Enable automatic detection of forbidden or dangerous code constructs in a custom recipe with `custom_recipe_security_analysis_enabled = true`. Note the following:
-  * When `custom_recipe_security_analysis_enabled` is enabled, do not use modules specified in the banlist. Specify the banlist with the `custom_recipe_import_banlist` config option.
-    * For example: `custom_recipe_import_banlist = ["shlex", "plumbum", "pexpect", "envoy", "commands", "fabric", "subprocess", "os.system", "system"]` (default)
-  * When `custom_recipe_security_analysis_enabled` is enabled, code is also checked for dangerous calls like `eval()`, `exec()` and other insecure calls (regex patterns) defined in `custom_recipe_method_call_banlist`. Code is also checked for other dangerous constructs defined as regex patterns in the `custom_recipe_dangerous_patterns` config setting.
-  * Security analysis is only performed on recipes that are uploaded after the `custom_recipe_security_analysis_enabled` config option is enabled.
-  * To specify a list of modules that can be imported in custom recipes, use the `custom_recipe_import_allowlist` config option.
-  * The `custom_recipe_security_analysis_enabled` config option is disabled by default.
 
 ### Safety
 * Driverless AI automatically performs basic acceptance tests for all custom recipes unless disabled
@@ -71,7 +76,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.9.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1)
  [1.9.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.2)
  [1.9.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.3)
-### Count: 242
+### Count: 244
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -84,7 +89,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [any_env2.py](./data/any_env2.py) [Modify dataset with arbitrary env] 
   * [any_env3.py](./data/any_env3.py) [Modify dataset with arbitrary env] 
   * [any_env4.py](./data/any_env4.py) [Modify dataset with arbitrary env] 
-  * [audio_to_image.py](./data/audio_to_image.py) [Data recipe to transform input audio to Mel spectrogramsThis data recipe makes the following steps:1. Reads audio file2. Converts audio file to the Mel spectrogram3. Save Mel spectrogram to .png image4. Upload image dataset to DAIRecipe is based on the Kaggle Freesound Audio Tagging 2019 challenge:https://www.kaggle.com/c/freesound-audio-tagging-2019To use the recipe follow the next steps:1. Download a subsample of the audio dataset from here:http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/freesound_audio.zip2. Unzip it and specify the path to the dataset in the DATA_DIR global variable3. Upload the dataset into Driverless AI using the Add Data Recipe optionThe transformed dataset is also available and could be directly uploaded to Driverless AI:http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/freesound_images.zip] 
+  * [audio_to_image.py](./data/audio_to_image.py) [Data recipe to transform input audio to Mel spectrograms] 
   * [bigquery_sharded_data_pull.py](./data/bigquery_sharded_data_pull.py) [Pull data >1Gb from GCP Bigquery using sharding functionality.Based on:    https://cloud.google.com/bigquery/docs/exporting-data#exporting_table_data    https://cloud.google.com/storage/docs/reference/libraries#using_the_client_libraryAuthor: Travis CoutureCreated: 03/18/2020Last Updated: 03/18/2020] 
   * [catchallenge.py](./data/catchallenge.py) [Create cat challenge dataset] 
   * [covidtracking_daily_by_states.py](./data/covidtracking_daily_by_states.py) [Upload daily Covid Tracking (https://covidtracking.com) US States   cases, hospitalization, recovery, test and death data ] 
@@ -101,7 +106,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [generate_random_int_columns.py](./data/generate_random_int_columns.py) [Data recipe to add one or more columns containing random integers.] 
   * [ieee_data_puddle.py](./data/ieee_data_puddle.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection] 
   * [image_cropper.py](./data/image_cropper.py) [ Data Recipe to Crop the Cheque Image (or any Image) in a fixed dimension ] 
-  * [imdb_datasets.py](./data/imdb_datasets.py) [Create IMDb datasets for main titles and episodes. Main titles includes info for both movies and series,   while episodes contains series episodes details and ratings. Thus, there is one-to-many relationship   between titles (one side) and episodes (many side which may be 0)   Description: https://www.imdb.com/interfaces/   Source: https://datasets.imdbws.com/] 
+  * [imdb_datasets.py](./data/imdb_datasets.py) [Create titles and episodes datasets from IMDB tables] 
   * [kaggle_bosch.py](./data/kaggle_bosch.py) [Create Bosch competition datasets with leak] 
   * [kaggle_ieee_fraud.py](./data/kaggle_ieee_fraud.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection] 
   * [kaggle_m5.py](./data/kaggle_m5.py) [Prepare data for m5 Kaggle Time-Series Forecast competition] 
@@ -114,11 +119,12 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [nytimes_covid19_cases_deaths_by_states.py](./data/nytimes_covid19_cases_deaths_by_states.py) [Upload daily COVID-19 cases and deaths in US by states from NY Times github] 
   * [nytimes_covid19_cases_deaths_us.py](./data/nytimes_covid19_cases_deaths_us.py) [Upload daily COVID-19 cases and deaths in US total from NY Times github] 
   * [owid_covid19_cases_deaths_by_countries.py](./data/owid_covid19_cases_deaths_by_countries.py) [Upload daily COVID-19 cases and deaths by countries   Source: Our World in Data. It is updated daily and includes data on confirmed cases, deaths, and testing.   https://ourworldindata.org/coronavirus-source-data] 
+  * [rowwise_aggregates_by_column_groups.py](./data/rowwise_aggregates_by_column_groups.py) [Augments dataset by computing rowwise aggregates by column groups] 
   * [seattle_rain_modify.py](./data/seattle_rain_modify.py) [Transpose the Monthly Seattle Rain Inches data set for Time Series use cases] 
   * [seattle_rain_upload.py](./data/seattle_rain_upload.py) [Upload Monthly Seattle Rain Inches data set from data provided by the City of Seattle] 
   * [ts_fill_n_cluster.py](./data/ts_fill_n_cluster.py) [Data Recipe to fill missing values in TS data and then create new data sets from TS Clustering] 
   * [two_sigma_rental.py](./data/two_sigma_rental.py) [please add description] 
-  * [video_to_image.py](./data/video_to_image.py) [Data recipe to transform input video to the images.This data recipe makes the following steps:1. Reads video file2. Samples N uniform frames from the video file3. Detects all faces on each frame4. Crops the faces and saves them as imagesRecipe is based on the Kaggle Deepfake Detection Challenge:https://www.kaggle.com/c/deepfake-detection-challengeTo use the recipe follow the next steps:1. Download a small subsample of the video dataset from here:http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/deepfake.zip2. Unzip it and specify the path to the dataset in the DATA_DIR global variable3. Upload the dataset into Driverless AI using the Add Data Recipe optionThe transformed dataset is also available and could be directly uploaded to Driverless AI:http://h2o-public-test-data.s3.amazonaws.com/bigdata/server/Image Data/deepfake_frames.zip] 
+  * [video_to_image.py](./data/video_to_image.py) [Data recipe to transform input video to the images] 
   * [wav2txt.py](./data/wav2txt.py) [Speech to text using Azure Cognitive ServicesSettings for this recipe:Assing AZURE_SERVICE_KEY and AZURE_SERVICE_REGION global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.] 
   * [DATABASES](./data/databases)
     * [create_dataset_from_mongodb_collection.py](./data/databases/create_dataset_from_mongodb_collection.py) [Create dataset from MonogDB] 
@@ -269,6 +275,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * [transformer_template.py](./transformers/transformer_template.py) [Template base class for a custom transformer recipe.] 
   * [AUGMENTATION](./transformers/augmentation)
     * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [Returns a flag for whether a date falls on a holiday for each of Germany's Bundeslaender. ] 
+    * [holidays_this_week.py](./transformers/augmentation/holidays_this_week.py) [Returns the amount of US holidays for a given week] 
     * [ipaddress_features.py](./transformers/augmentation/ipaddress_features.py) [Parses IP addresses and networks and extracts its properties.] 
     * [is_ramadan.py](./transformers/augmentation/is_ramadan.py) [Returns a flag for whether a date falls on Ramadan in Saudi Arabia] 
     * [singapore_public_holidays.py](./transformers/augmentation/singapore_public_holidays.py) [Flag for whether a date falls on a public holiday in Singapore.] 
