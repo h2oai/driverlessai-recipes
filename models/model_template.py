@@ -412,10 +412,10 @@ class CustomUnsupervisedModel(UnsupervisedModel, CustomModel):
 
     # pick one of the following four presets, or make your own pretransformer
     # needed to convert original data into form the transformer below can handle
-    _included_pretransformers = ['StdFreqPreTransformer']  # standardizes numerics, frequency-encodes categoricals, drops rest
-    # _included_pretransformers = ['OrigPreTransformer']  # pass-through numerics, drops rest
-    # _included_pretransformers = ['OrigOHEPreTransformer']  # pass-through numerics, one-hot-encodes categoricals, drops rest
-    # _included_pretransformers = ['OrigFreqPreTransformer']  # pass-through numerics, frequency-encodes categoricals, drops rest
+    _included_pretransformers = ['StdFreqPreTransformer']  # standardize numerics, frequency-encode categoricals, drop rest
+    # _included_pretransformers = ['OrigPreTransformer']  # pass-through numerics, drop rest
+    # _included_pretransformers = ['OrigOHEPreTransformer']  # pass-through numerics, one-hot-encode categoricals, drop rest
+    # _included_pretransformers = ['OrigFreqPreTransformer']  # pass-through numerics, frequency-encode categoricals, drop rest
 
     # select exactly one Transformer that doesn't require y (e.g., a CustomUnsupervisedTransformer) to do the unsupervised learning
     # This transformer will do the fit_transform/transform for unsupervised learning, the model is just a wrapper
