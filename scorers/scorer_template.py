@@ -15,6 +15,7 @@ class CustomScorer(BaseScorer):
     _supports_sample_weight = True  # whether the scorer accepts and uses the sample_weight input
 
     """Please enable the problem types this scorer applies to"""
+    _unsupervised = False  # ignores actual, uses predicted and X to compute metrics
     _regression = False
     _binary = False
     _multiclass = False
@@ -76,4 +77,31 @@ class CustomScorer(BaseScorer):
         """
         raise NotImplementedError
 
+
+class CustomUnsupervisedScorer(CustomScorer, UnsupervisedScorer):
+
+    def score(
+            self,
+            actual: np.array,
+            predicted: np.array,
+            sample_weight: typing.Optional[np.array] = None,
+            labels: typing.Optional[List[any]] = None,
+            X: typing.Optional[dt.Frame] = None,
+            **kwargs) -> float:
+        """Please implement this function to compute a score from X and predicted values.
+
+        Args:
+            actual (:obj:`np.array`): ignored
+            predicted (:obj:`np.array`): predicted values (output of unsupervised transformer)
+                (any number of columns, any types)
+            sample_weight (:obj:`np.array`): Optional, observation weights for each sample
+                (1 column, 1 numeric value per row)
+            labels (:obj:`List[any]`): ignored
+            X (:obj:`dt.Frame`): Always provided, datatable Frame containing dataset (original data)
+
+        Returns:
+            float: score
+
+        """
+        raise NotImplementedError
 

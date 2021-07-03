@@ -10,6 +10,7 @@ _global_modules_needed_by_name = []  # Optional global package requirements, for
 class CustomModel(BaseCustomModel):
     """Ideally, we want a model to work with all types of supervised problems.
     Please enable the problem types it can support."""
+    _unsupervised = False  # if True, ignores y
     _regression = False  # y has shape (N,) and is of numeric type, no missing values
     _binary = False  # y has shape (N,) and can be numeric or string, cardinality 2, no missing values
     _multiclass = False  # y has shape (N,) and can be numeric or string, cardinality 3+, no missing values
@@ -400,5 +401,46 @@ class CustomTimeSeriesTensorFlowModel(CustomTimeSeriesModel, CustomTensorFlowMod
         TensorFlow-based Time-Series Custom Model
     """
     pass
+
+
+class CustomUnsupervisedModel(CustomModel):
+    _unsupervised = True
+    _booster_str = 'unsupervised'
+    _is_gbm = False
+    _can_handle_non_numeric = True
+
+    # pick one of the following four presets, or make your own pretransformer
+    # needed to convert original data into form that included transformer below can handle
+    _included_pretransformers = ['StdFreqPreTransformer']  # standardizes numerics, frequency-encodes categoricals, drops rest
+    # _included_pretransformers = ['OrigPreTransformer']  # pass-through numerics, drops rest
+    # _included_pretransformers = ['OrigOHEPreTransformer']  # pass-through numerics, one-hot-encodes categoricals, drops rest
+    # _included_pretransformers = ['OrigFreqPreTransformer']  # pass-through numerics, frequency-encodes categoricals, drops rest
+
+    # select one CustomTransformer to do the unsupervised learning
+    _included_transformers = ["MyTransformer"]
+
+    # select one CustomUnsupervisedScorer or use 'UnsupervisedScorer' if nothing to score
+    _included_scorers = ['UnsupervisedScorer']
+
+    def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        # do not override
+        return None
+
+    def predict(self, X, **kwargs):
+        # do not override
+        return X
+
+    def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
+        # do not override
+        return iframe
+
+    @staticmethod
+    def enabled_setting():
+        return "auto"
+
+    @staticmethod
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
+        # User must pick one model from the client, this is not used
+        return False
 
 
