@@ -78,7 +78,8 @@ class CustomScorer(BaseScorer):
         raise NotImplementedError
 
 
-class CustomUnsupervisedScorer(CustomScorer, UnsupervisedScorer):
+class CustomUnsupervisedScorer(UnsupervisedScorer):
+    _perfect_score = 0.0  # Please modify accordingly
 
     def score(
             self,
