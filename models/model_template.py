@@ -403,44 +403,28 @@ class CustomTimeSeriesTensorFlowModel(CustomTimeSeriesModel, CustomTensorFlowMod
     pass
 
 
-class CustomUnsupervisedModel(CustomModel):
-    _unsupervised = True
-    _booster_str = 'unsupervised'
-    _is_gbm = False
-    _can_handle_non_numeric = True
+class CustomUnsupervisedModel(UnsupervisedModel, CustomModel):
+    # Custom wrapper to do unsupervised learning.
+    # It bundles preprocessing of numeric/categorical data, unsupervised learning and scoring.
+    # The model's fit(X) method performs fit_transform(pre_fit_transform(X)).
+    # The model's predict(X) method returns the transform(pre_transform(X)).
+    # The scorer compares X with transform(pre_transform(X)) and returns a float.
 
     # pick one of the following four presets, or make your own pretransformer
-    # needed to convert original data into form that included transformer below can handle
+    # needed to convert original data into form the transformer below can handle
     _included_pretransformers = ['StdFreqPreTransformer']  # standardizes numerics, frequency-encodes categoricals, drops rest
     # _included_pretransformers = ['OrigPreTransformer']  # pass-through numerics, drops rest
     # _included_pretransformers = ['OrigOHEPreTransformer']  # pass-through numerics, one-hot-encodes categoricals, drops rest
     # _included_pretransformers = ['OrigFreqPreTransformer']  # pass-through numerics, frequency-encodes categoricals, drops rest
 
-    # select one CustomTransformer to do the unsupervised learning
-    _included_transformers = ["MyTransformer"]
+    # select exactly one Transformer that doesn't require y (e.g., a CustomUnsupervisedTransformer) to do the unsupervised learning
+    # This transformer will do the fit_transform/transform for unsupervised learning, the model is just a wrapper
+    # If this transformer has MOJO support, then the Unsupervised Model will have a MOJO as well
+    _included_transformers = ["MyUnsupervisedTransformer"]
 
     # select one CustomUnsupervisedScorer or use 'UnsupervisedScorer' if nothing to score
     _included_scorers = ['UnsupervisedScorer']
 
-    def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
-        # do not override
-        return None
-
-    def predict(self, X, **kwargs):
-        # do not override
-        return X
-
-    def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
-        # do not override
-        return iframe
-
-    @staticmethod
-    def enabled_setting():
-        return "auto"
-
-    @staticmethod
-    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
-        # User must pick one model from the client, this is not used
-        return False
+    # no need to override any other methods
 
 
