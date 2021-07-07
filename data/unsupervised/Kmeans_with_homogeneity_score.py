@@ -20,17 +20,12 @@ from h2oaicore.data import CustomData
 import datatable as dt
 import numpy as np
 import pandas as pd
-import os
 
 from sklearn.cluster import KMeans
 
 from sklearn.metrics.cluster import homogeneity_score
-from sklearn.metrics import fowlkes_mallows_score, adjusted_mutual_info_score
 
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.utils import check_X_y
-from sklearn.utils import safe_indexing
-from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.preprocessing import LabelEncoder
 
 """ 
