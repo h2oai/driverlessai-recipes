@@ -11,17 +11,12 @@ Users can define (optional) user inputs: number of clusters, columns to ignore, 
 """
 
 from typing import Union, List
-from h2oaicore.systemutils import config
 from h2oaicore.data import CustomData
 import datatable as dt
 import numpy as np
 import pandas as pd
-import os
 
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.utils import check_X_y
-from sklearn.utils import safe_indexing
-from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.preprocessing import LabelEncoder
 
 from sklearn.cluster import DBSCAN
