@@ -5,6 +5,7 @@ from h2oaicore.transformers import CustomTransformer
 from h2oaicore.metrics import CustomUnsupervisedScorer
 from h2oaicore.models import CustomUnsupervisedModel
 from h2oaicore.transformer_utils import CustomUnsupervisedTransformer
+from sklearn.metrics import davies_bouldin_score
 
 
 class RapidsKMeansClusterLabelTransformer(CustomUnsupervisedTransformer):
