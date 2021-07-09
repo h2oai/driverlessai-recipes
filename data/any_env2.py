@@ -79,7 +79,8 @@ def create_data_popen(func, *args, pyversion="3.8", install_h2oaicore=False, ins
             print("python -m pip install --upgrade pip", file=f)
             print("%s/bin/python -m pip debug --verbose" % (env_path), file=f)
             print("%s/bin/python -c \'import platform ; print(platform.architecture())\'" % (env_path), file=f)
-            template_dir = os.environ.get("H2OAI_SCORER_TEMPLATE_DIR", os.path.join(os.getcwd(), 'h2oai_scorer'))
+            dai_home = os.environ.get('DRIVERLESS_AI_HOME', os.getcwd())
+            template_dir = os.environ.get("H2OAI_SCORER_TEMPLATE_DIR", os.path.join(dai_home, 'h2oai_scorer'))
             if install_h2oaicore:
                 print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'license-*'), file=f)
                 print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'h2oaicore-*'), file=f)

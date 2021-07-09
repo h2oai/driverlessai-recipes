@@ -45,7 +45,8 @@ class FreshEnvData(CustomData):
             print("mkdir -p %s" % env_path, file=f)
             print("virtualenv -p python%s %s" % (pyversion, env_path), file=f)
             print("source %s/bin/activate" % env_path, file=f)
-            template_dir = os.environ.get("H2OAI_SCORER_TEMPLATE_DIR", os.path.join(os.getcwd(), 'h2oai_scorer'))
+            dai_home = os.environ.get('DRIVERLESS_AI_HOME', os.getcwd())
+            template_dir = os.environ.get("H2OAI_SCORER_TEMPLATE_DIR", os.path.join(dai_home, 'h2oai_scorer'))
             if _install_h2oaicore:
                 print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'license-*'), file=f)
                 print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'h2oaicore-*'), file=f)
