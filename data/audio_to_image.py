@@ -28,16 +28,17 @@ import numpy as np
 import pandas as pd
 from h2oaicore.data import CustomData
 
-_global_modules_needed_by_name = ["librosa==0.8.0"]
-import librosa
-
 
 class AudioToMelSpectogram:
     """
     Transforms input audio files into Mel Spectrograms.
     Audio reading and transformation is mostly taken from here:
     https://github.com/lRomul/argus-freesound/blob/master/src/audio.py
+
+    For Ubuntu, required to do: sudo apt-get install libsndfile1 libsndfile1-dev
+    For Centos, required to do: sudo yum install libsndfile libsndfile-dev
     """
+    _modules_needed_by_name = ["librosa==0.8.0"]
 
     def __init__(
         self, min_seconds=2, sampling_rate=44100, n_mels=128, hop_length=345 * 2
@@ -53,6 +54,7 @@ class AudioToMelSpectogram:
 
     def read_audio(self, file_path):
         min_samples = int(self.min_seconds * self.sampling_rate)
+        import librosa
         y, sr = librosa.load(file_path, sr=self.sampling_rate)
         # Trim silence
         trim_y, trim_idx = librosa.effects.trim(y)
@@ -65,6 +67,7 @@ class AudioToMelSpectogram:
         return trim_y
 
     def audio_to_melspectrogram(self, audio):
+        import librosa
         spectrogram = librosa.feature.melspectrogram(
             audio,
             sr=self.sampling_rate,
