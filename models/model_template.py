@@ -10,6 +10,7 @@ _global_modules_needed_by_name = []  # Optional global package requirements, for
 class CustomModel(BaseCustomModel):
     """Ideally, we want a model to work with all types of supervised problems.
     Please enable the problem types it can support."""
+    _unsupervised = False  # if True, ignores y
     _regression = False  # y has shape (N,) and is of numeric type, no missing values
     _binary = False  # y has shape (N,) and can be numeric or string, cardinality 2, no missing values
     _multiclass = False  # y has shape (N,) and can be numeric or string, cardinality 3+, no missing values
@@ -400,5 +401,30 @@ class CustomTimeSeriesTensorFlowModel(CustomTimeSeriesModel, CustomTensorFlowMod
         TensorFlow-based Time-Series Custom Model
     """
     pass
+
+
+class CustomUnsupervisedModel(UnsupervisedModel, CustomModel):
+    # Custom wrapper to do unsupervised learning.
+    # It bundles preprocessing of numeric/categorical data, unsupervised learning and scoring.
+    # The model's fit(X) method performs fit_transform(pre_fit_transform(X)).
+    # The model's predict(X) method returns the transform(pre_transform(X)).
+    # The scorer compares X with transform(pre_transform(X)) and returns a float.
+
+    # pick one of the following four presets, or make your own pretransformer
+    # needed to convert original data into form the transformer below can handle
+    _included_pretransformers = ['StdFreqPreTransformer']  # standardize numerics, frequency-encode categoricals, drop rest
+    # _included_pretransformers = ['OrigPreTransformer']  # pass-through numerics, drop rest
+    # _included_pretransformers = ['OrigOHEPreTransformer']  # pass-through numerics, one-hot-encode categoricals, drop rest
+    # _included_pretransformers = ['OrigFreqPreTransformer']  # pass-through numerics, frequency-encode categoricals, drop rest
+
+    # select exactly one Transformer that doesn't require y (e.g., a CustomUnsupervisedTransformer) to do the unsupervised learning
+    # This transformer will do the fit_transform/transform for unsupervised learning, the model is just a wrapper
+    # If this transformer has MOJO support, then the Unsupervised Model will have a MOJO as well
+    _included_transformers = ["MyUnsupervisedTransformer"]
+
+    # select one CustomUnsupervisedScorer or use 'UnsupervisedScorer' if nothing to score
+    _included_scorers = ['UnsupervisedScorer']
+
+    # no need to override any other methods
 
 

@@ -15,6 +15,7 @@ class CustomTransformer(DataTableTransformer):
 
     """By default, we want a transformer to work with all types of supervised problems.
     Please disable the problem types it cannot support."""
+    _unsupervised = False  # if True, then must ignore y
     _regression = True  # y has shape (N,) and is of numeric type, no missing values
     _binary = True  # y has shape (N,) and can be numeric or string, cardinality 2, no missing values
     _multiclass = True  # y has shape (N,) and can be numeric or string, cardinality 3+, no missing values
@@ -339,5 +340,9 @@ class CustomTimeSeriesTransformer(CustomTransformer):
         Converts time column to pd.Series with elements of type datetime64[ns]
         """
         return self.convert_to_datetime(X, col=self.time_column)
+
+
+class CustomUnsupervisedTransformer(CustomTransformer):
+    _unsupervised = True  # transformer must ignore y
 
 
