@@ -17,10 +17,12 @@ class HolidaysThisWeek(CustomTransformer):
         super().__init__(**kwargs)
         self.time_column = self.input_feature_names[0]
         self.country = "US"
-        self._output_feature_names = ["HolidaysThisWeek"]
-        self._feature_desc = ["Amount of holidays in current week"]
-    
+
     def fit(self, X, y=None, **fit_params):
+
+        self._output_feature_names = ["HolidaysThisWeek:%s" % self.time_column]
+        self._feature_desc = ["Amount of holidays in current week for %s" % self.time_column]
+
         X = X[:, self.time_column].to_pandas()
         X[self.time_column] = convert_to_datetime(X[self.time_column], self.datetime_formats[self.time_column])
 
