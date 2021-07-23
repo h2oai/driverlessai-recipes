@@ -9,6 +9,12 @@ from sklearn.metrics import davies_bouldin_score
 
 
 class RapidsKMeansClusterLabelTransformer(CustomUnsupervisedTransformer):
+    _can_use_gpu = True
+    _must_use_gpu = True
+    _can_use_multi_gpu = False
+    _get_gpu_lock = True
+    _get_gpu_lock_vis = True
+    _parallel_task = False
 
     @staticmethod
     def get_default_properties():
