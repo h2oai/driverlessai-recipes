@@ -76,7 +76,7 @@ abled.
  [1.9.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1)
  [1.9.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.2)
  [1.9.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.3)
-### Count: 245
+### Count: 244
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -212,7 +212,6 @@ abled.
   * [MONOTONIC](./models/monotonic)
     * [monotonic_models.py](./models/monotonic/monotonic_models.py) [LightGBM/XGBoostGBM/DecisionTree with user-given monotonicity constraints (1/-1/0) for original numeric features] 
   * [NLP](./models/nlp)
-    * [finbert.py](./models/nlp/finbert.py) [Custom Bert model which uses FinBert pretrained weights. Can easily be adapted to other pretrained models, like SciBert.] <kbd>✓ MOJO Enabled</kbd>
     * [portuguese_bert.py](./models/nlp/portuguese_bert.py) [Custom Bert model pretrained on Portuguese.] <kbd>✓ MOJO Enabled</kbd>
     * [text_binary_count_logistic.py](./models/nlp/text_binary_count_logistic.py) [Text classification model using binary count of words] 
     * [text_tfidf_model.py](./models/nlp/text_tfidf_model.py) [Text classification / regression model using TFIDF] 

@@ -51,6 +51,9 @@ class CustomTransformer(DataTableTransformer):
     # n_jobs will be  >= 1 (adaptive to system resources and tasks), otherwise 1 if _parallel_task = False
     _can_use_gpu = False  # if enabled, will use special job scheduler for GPUs
     _can_use_multi_gpu = False  # if enabled, can get access to multiple GPUs for single transformer (experimental)
+    _must_use_gpu = False  # whether must use GPUs for this transformer
+    _get_gpu_lock = False  # by default assume handled by user or otherwise
+    _get_gpu_lock_vis = False  # if enabled, set the CUDA_VISIBLE_DEVICES to only the limited set of devices. Required for CUML.
     _check_stall = True  # whether to check for stall, should disable if separate server running task
 
     """Whether this transformer supports MOJO creation.
