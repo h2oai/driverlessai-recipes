@@ -28,9 +28,12 @@ class GAM(CustomModel):
     def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
         if config.hard_asserts:
             # for bigger data, too slow to test even with 1 iteration
-            return train_shape is not None and train_shape[0] * train_shape[1] < 1024*1024 or \
-                   valid_shape is not None and valid_shape[0] * valid_shape[1] < 1024*1024 or \
-                   test_shape is not None and test_shape[0] * test_shape[1] < 1024*1024
+            use = train_shape is not None and train_shape[0] * train_shape[1] < 1024 * 1024 or \
+                  valid_shape is not None and valid_shape[0] * valid_shape[1] < 1024 * 1024 or \
+                  test_shape is not None and test_shape[0] * test_shape[1] < 1024 * 1024
+            # too slow for mercedes even with only 750 rows
+            use &= train_shape is not None and train_shape[1] < 50
+            return use
         else:
             return True
 
