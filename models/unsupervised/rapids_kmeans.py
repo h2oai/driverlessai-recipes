@@ -1,6 +1,7 @@
 """KMeans clustering using RAPIDS.ai"""
 import datatable as dt
 import numpy as np
+from h2oaicore.systemutils import ngpus_vis, IgnoreEntirelyError
 from h2oaicore.transformers import CustomTransformer
 from h2oaicore.metrics import CustomUnsupervisedScorer
 from h2oaicore.models import CustomUnsupervisedModel
@@ -21,6 +22,9 @@ class RapidsKMeansClusterLabelTransformer(CustomUnsupervisedTransformer):
         return dict(col_type="numeric", min_cols=1, max_cols="all")
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
+        if ngpus_vis == 0:
+            raise IgnoreEntirelyError("Transformer cannot run without GPUs")
+
         import cudf
         import cuml
         cuml.common.memory_utils.set_global_output_type('numpy')
@@ -30,6 +34,9 @@ class RapidsKMeansClusterLabelTransformer(CustomUnsupervisedTransformer):
         return self.model.fit_predict(X)
 
     def transform(self, X: dt.Frame, y: np.array = None):
+        if ngpus_vis == 0:
+            raise IgnoreEntirelyError("Transformer cannot run without GPUs")
+
         import cudf
         import cuml
         cuml.common.memory_utils.set_global_output_type('numpy')
