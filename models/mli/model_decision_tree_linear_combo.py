@@ -17,8 +17,6 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
     _multiclass = False
     _display_name = "DECISION_TREE_PLUS_LINEAR"
     _description = "Takes the results of a decision tree and then fits a linear model to each set of node data"
-    _modules_needed_by_name = ['shap', 'collections', 'scipy', 'pandas',
-                               'matplotlib', 'sklearn']
 
     @staticmethod
     def do_acceptance_test():

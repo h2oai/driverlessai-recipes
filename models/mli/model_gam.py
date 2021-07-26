@@ -17,7 +17,7 @@ class GAM(CustomModel):
     _multiclass = False
     _display_name = "GAM"
     _description = "Generalized Additive Model"
-    _modules_needed_by_name = ['shap', 'collections', 'scipy', 'pandas', 'matplotlib', 'sklearn', 'pygam']
+    _modules_needed_by_name = ['pygam==0.8.0']
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod
