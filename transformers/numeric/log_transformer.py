@@ -1,4 +1,7 @@
 """Converts numbers to their Logarithm"""
+import math
+
+from h2oaicore.mojo_transformers import MjT_Replace
 from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.systemutils import dtype_global
 import datatable as dt
@@ -17,9 +20,13 @@ class MyLogTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         if dtype_global() == np.float32:
-            return X[:, [dt.float32(dt.log(dt.f[i])) for i in range(X.ncols)]]
+            X = X[:, [dt.float32(dt.log(dt.f[i])) for i in range(X.ncols)]]
         else:
-            return X[:, [dt.float64(dt.log(dt.f[i])) for i in range(X.ncols)]]
+            X = X[:, [dt.float64(dt.log(dt.f[i])) for i in range(X.ncols)]]
+        # Don't leave inf/-inf
+        for i in range(X.ncols):
+            X.replace([math.inf, -math.inf], None)
+        return X
 
     # optional
     _mojo = True
@@ -39,6 +46,16 @@ class MyLogTransformer(CustomTransformer):
             ocol_frame = MojoFrame(columns=[ocol])
             mojo += MjT_Log(iframe=MojoFrame(columns=[col]), oframe=ocol_frame,
                             group_uuid=group_uuid, group_name=group_name)
+            ocol_no_inf = ocol.duplicate()
+            mojo += MjT_Replace(iframe=MojoFrame(columns=[ocol]),
+                                oframe=MojoFrame(columns=[ocol_no_inf]),
+                                group_uuid=group_uuid, group_name=group_name,
+                                map=[(np.inf, ocol_no_inf.pytype(np.nan))])
+            ocol_no_neginf = ocol.duplicate()
+            mojo += MjT_Replace(iframe=MojoFrame(columns=[ocol]),
+                                oframe=MojoFrame(columns=[ocol_no_neginf]),
+                                group_uuid=group_uuid, group_name=group_name,
+                                map=[(-np.inf, ocol_no_neginf.pytype(np.nan))])
             oframe += ocol
         oframe = AsType(dtype_global()).write_to_mojo(mojo, oframe,
                                                       group_uuid=group_uuid,
