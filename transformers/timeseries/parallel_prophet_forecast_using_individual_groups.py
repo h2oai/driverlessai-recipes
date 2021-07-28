@@ -68,12 +68,18 @@ def fit_prophet_model(Prophet, X_avg, params, force=False):
     # Set n_changepoints when default is too high compared to number of available data points
     # Having n_changepoints too high seems to raise exceptions on CentOS
     n_changepoints = min(25, int(X_avg.shape[0] * 4 / 5 - 1))  # Prophet default value
+    uncertainty_samples = 1000  # default
+    if config.hard_asserts:
+        # testing, avoid slowness
+        n_changepoints = 5
+        uncertainty_samples = 100
 
     avg_model = Prophet(
         yearly_seasonality=True,
         weekly_seasonality=True,
         daily_seasonality=True,
-        n_changepoints=n_changepoints
+        n_changepoints=n_changepoints,
+        uncertainty_samples=uncertainty_samples
     )
     if params["country_holidays"] is not None:
         avg_model.add_country_holidays(country_name=params["country_holidays"])
