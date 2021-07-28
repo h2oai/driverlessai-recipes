@@ -16,7 +16,6 @@ class CustomTFGPUCheck(CustomModel):
     _get_gpu_lock = True  # whether to lock GPUs for this model before fit and predict
     _must_use_gpu = True  # this recipe can only be used if have GPUs
     _predict_on_same_gpus_as_fit = True  # force predict to behave like fit, regardless of config.num_gpus_for_prediction
-    _modules_needed_by_name = ['tensorflow==2.4.1']
 
     @staticmethod
     def is_enabled():
@@ -44,7 +43,7 @@ class CustomTFGPUCheck(CustomModel):
         "/gpu:0": The first GPU of your machine
         '''
         import numpy as np
-        tf = import_tensorflow()
+        tf = import_tensorflow(v1=False)
         import datetime
 
         # Processing Units logs
