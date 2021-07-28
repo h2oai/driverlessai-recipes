@@ -1,4 +1,6 @@
 """Target-encode numbers by their logarithm"""
+import math
+
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
@@ -35,9 +37,16 @@ class LogScaleTargetEncodingTransformer(CustomTransformer):
             y = dt.Frame(LabelEncoder().fit(self.labels).transform(y))
 
         X = self.cvte.fit_transform(X, y)
+        # ensure no inf
+        # Don't leave inf/-inf
+        for i in range(X.ncols):
+            X.replace([math.inf, -math.inf], None)
         return X
 
     def transform(self, X: dt.Frame):
         X = self.binner.transform(X)
         X = self.cvte.transform(X)
+        # Don't leave inf/-inf
+        for i in range(X.ncols):
+            X.replace([math.inf, -math.inf], None)
         return X

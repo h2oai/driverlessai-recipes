@@ -1,4 +1,6 @@
 """Converts numbers to the square root, preserving the sign of the original numbers"""
+import math
+
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
@@ -15,4 +17,8 @@ class SquareRootTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        return X[:, [(dt.f[i] / dt.abs(dt.f[i])) * dt.exp(0.5 * dt.log(dt.abs(dt.f[i]))) for i in range(X.ncols)]]
+        X = X[:, [(dt.f[i] / dt.abs(dt.f[i])) * dt.exp(0.5 * dt.log(dt.abs(dt.f[i]))) for i in range(X.ncols)]]
+        # Don't leave inf/-inf
+        for i in range(X.ncols):
+            X.replace([math.inf, -math.inf], None)
+        return X

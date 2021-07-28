@@ -1,4 +1,6 @@
 """Box-Cox Transform"""
+import math
+
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
@@ -47,4 +49,7 @@ class BoxCoxTransformer(CustomTransformer):
                 return X
             raise
         XX[~is_na] = ret
+        # Don't leave inf/-inf
+        for i in range(X.ncols):
+            XX.replace([math.inf, -math.inf], None)
         return XX
