@@ -36,7 +36,7 @@ class LogScaleTargetEncodingTransformer(CustomTransformer):
             # for classification, always turn y into numeric form, even if already integer
             y = dt.Frame(LabelEncoder().fit(self.labels).transform(y))
 
-        X = self.cvte.fit_transform(X, y)
+        X = dt.Frame(self.cvte.fit_transform(X, y))
         # ensure no inf
         # Don't leave inf/-inf
         for i in range(X.ncols):
@@ -45,7 +45,7 @@ class LogScaleTargetEncodingTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         X = self.binner.transform(X)
-        X = self.cvte.transform(X)
+        X = dt.Frame(self.cvte.transform(X))
         # Don't leave inf/-inf
         for i in range(X.ncols):
             X.replace([math.inf, -math.inf], None)

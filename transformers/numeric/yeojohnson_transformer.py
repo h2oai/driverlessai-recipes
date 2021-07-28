@@ -32,6 +32,7 @@ class YeoJohnsonTransformer(CustomTransformer):
             return X
         ret = yeojohnson(self._offset + XX[~is_na], lmbda=self._lmbda)  # apply transform with pre-computed lambda
         XX[~is_na] = ret
+        XX = dt.Frame(XX)
         # Don't leave inf/-inf
         for i in range(X.ncols):
             XX.replace([math.inf, -math.inf], None)
