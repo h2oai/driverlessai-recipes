@@ -34,6 +34,6 @@ class YeoJohnsonTransformer(CustomTransformer):
         XX[~is_na] = ret
         XX = dt.Frame(XX)
         # Don't leave inf/-inf
-        for i in range(X.ncols):
+        for i in range(XX.ncols):
             XX.replace([math.inf, -math.inf], None)
         return XX

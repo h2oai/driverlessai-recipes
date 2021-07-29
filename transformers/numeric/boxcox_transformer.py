@@ -49,8 +49,10 @@ class BoxCoxTransformer(CustomTransformer):
                 return X
             raise
         XX[~is_na] = ret
+        XX[XX > 1E30] = 1E30
+        XX[XX < -1E30] = -1E30
         XX = dt.Frame(XX)
         # Don't leave inf/-inf
-        for i in range(X.ncols):
+        for i in range(XX.ncols):
             XX.replace([math.inf, -math.inf], None)
         return XX
