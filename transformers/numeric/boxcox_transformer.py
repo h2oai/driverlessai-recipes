@@ -49,6 +49,7 @@ class BoxCoxTransformer(CustomTransformer):
                 return X
             raise
         XX[~is_na] = ret
+        XX = XX.astype(np.float32)
         XX[XX > 1E30] = 1E30
         XX[XX < -1E30] = -1E30
         XX = dt.Frame(XX)
