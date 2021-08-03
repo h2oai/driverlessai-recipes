@@ -29,7 +29,7 @@ import os
 from timeit import default_timer as timer
 import logging
 
-from h2oaicore.systemutils import arch_type
+from h2oaicore.systemutils_more import arch_type
 
 try:
     from shhlex import quote

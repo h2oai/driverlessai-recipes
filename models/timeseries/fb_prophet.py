@@ -8,8 +8,7 @@ import importlib
 import datatable as dt
 import numpy as np
 from h2oaicore.models import CustomTimeSeriesModel
-from h2oaicore.systemutils import config, arch_type, physical_cores_count
-from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
+from h2oaicore.systemutils import make_experiment_logger, loggerinfo
 import os
 import pandas as pd
 

@@ -3,7 +3,7 @@
 import datatable as dt
 from h2oaicore.models import CustomModel
 import numpy as np
-from h2oaicore.systemutils import arch_type
+from h2oaicore.systemutils_more import arch_type
 from sklearn.preprocessing import LabelEncoder
 
 
@@ -23,7 +23,7 @@ class DaalBaseModel(object):
 
     @staticmethod
     def is_enabled():
-        from h2oaicore.systemutils import arch_type
+        from h2oaicore.systemutils_more import arch_type
         #return not (arch_type == "ppc64le")
         return False  # WIP until figure out how to support on py38
 
@@ -157,7 +157,7 @@ def _setup_recipe():
     from h2oaicore.systemutils import user_dir
     import shutil
 
-    from h2oaicore.systemutils import arch_type  # don't remove this import, setup_recipe parsed-out separately
+    from h2oaicore.systemutils_more import arch_type  # don't remove this import, setup_recipe parsed-out separately
     return True  # WIP: Disable daal for now in general, just leave recipe floating there for migration purposes
     if arch_type == "ppc64le":
         if config.hard_asserts:

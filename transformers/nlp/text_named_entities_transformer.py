@@ -2,7 +2,7 @@
 
 import datatable as dt
 import numpy as np
-from h2oaicore.systemutils import arch_type
+from h2oaicore.systemutils_more import arch_type
 from h2oaicore.transformer_utils import CustomTransformer
 
 

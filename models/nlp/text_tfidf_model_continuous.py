@@ -6,15 +6,13 @@ import datatable as dt
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.ensemble import ExtraTreesClassifier
 from h2oaicore.models import CustomModel
-from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.systemutils import config, remove, user_dir, arch_type, get_num_gpus_for_prediction, IgnoreEntirelyError
+from h2oaicore.systemutils_more import arch_type
+from h2oaicore.systemutils import config, remove, user_dir, get_num_gpus_for_prediction, IgnoreEntirelyError
 import joblib
 import copy
 import ast
 import scipy as sc
-import pandas as pd
 
 
 def get_value(config, key):

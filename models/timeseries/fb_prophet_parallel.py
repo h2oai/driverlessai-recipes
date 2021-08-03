@@ -5,8 +5,9 @@ import numpy as np
 from h2oaicore.models import CustomTimeSeriesModel
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdebug
 from h2oaicore.systemutils import (
-    arch_type, small_job_pool, save_obj, load_obj, user_dir, remove, max_threads, config
+    small_job_pool, save_obj, load_obj, user_dir, remove, config
 )
+from h2oaicore.systemutils_more import arch_type
 import os
 import pandas as pd
 import shutil

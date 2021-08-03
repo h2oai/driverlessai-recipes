@@ -7,7 +7,8 @@ import _pickle as pickle
 from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel, MainModel
-from h2oaicore.systemutils import config, arch_type, physical_cores_count, ngpus_vis, save_obj, remove, user_dir
+from h2oaicore.systemutils_more import arch_type
+from h2oaicore.systemutils import config, physical_cores_count, ngpus_vis, save_obj, remove, user_dir
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdata
 from h2oaicore.models import LightGBMModel
 import inspect

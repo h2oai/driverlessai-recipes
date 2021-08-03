@@ -27,7 +27,8 @@ You may also want to disable the Text DAI Recipes.
 """
 import importlib
 from h2oaicore.transformer_utils import CustomTransformer
-from h2oaicore.systemutils import small_job_pool, save_obj, load_obj, user_dir, remove, arch_type
+from h2oaicore.systemutils import small_job_pool
+from h2oaicore.systemutils_more import arch_type
 import datatable as dt
 import numpy as np
 import pandas as pd
