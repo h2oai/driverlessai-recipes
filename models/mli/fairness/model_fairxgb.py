@@ -6,7 +6,7 @@ import datatable as dt
 import numpy as np
 from h2oaicore.models import CustomModel
 from sklearn.preprocessing import LabelEncoder
-from h2oaicore.systemutils import user_dir, remove, config
+from h2oaicore.systemutils import user_dir
 from h2oaicore.systemutils import make_experiment_logger, loggerdata, loggerwarning, loggerdebug, loggerinfo
 
 
@@ -16,7 +16,6 @@ class FAIRXGBOOST(CustomModel):
     _multiclass = False
     _display_name = "Fair_XGBOOST"
     _description = "Fair_XGBOOST"
-    _modules_needed_by_name = ['pandas', 'sklearn', 'xgboost']
 
     @staticmethod
     def do_acceptance_test():
