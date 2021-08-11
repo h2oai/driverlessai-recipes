@@ -105,9 +105,15 @@ class ExtremeClassifierModel:
 
         # Models - Binary classifiers trained on all samples on binned orignal classes
         models = []
+        if isinstance(self, ExtremeClassifierLGBMModel):
+            objective = 'binary'
+            eval_metric = 'binary'
+        else:
+            objective = 'binary:logistic'
+            eval_metric = 'logloss'
         for c in range(y_hashed.shape[1]):
             kwargs_classification = copy.deepcopy(self.params_base)
-            kwargs_update = dict(num_classes=2, objective='binary:logistic', eval_metric='logloss', labels=[0, 1],
+            kwargs_update = dict(num_classes=2, objective=objective, eval_metric=eval_metric, labels=[0, 1],
                                  score_f_name='LOGLOSS')
             kwargs_classification.update(kwargs_update)
             kwargs_classification.pop('base_score', None)
