@@ -144,6 +144,8 @@ ll
 
         Optional. Must set self.params to just the parameters that the __init__() method of the model can accept.
 
+        Recommend calling mutate_params(get_best=True, *args, **kwargs) instead of making separate set_default_params logic
+
         Args:
             accuracy (int): Accuracy setting for this experiment (1 to 10)
                 10 is most accurate, expensive

@@ -76,7 +76,7 @@ abled.
  [1.9.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1)
  [1.9.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.2)
  [1.9.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.3)
-### Count: 244
+### Count: 245
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -221,6 +221,7 @@ abled.
     * [fb_prophet.py](./models/timeseries/fb_prophet.py) [Prophet by Facebook for TimeSeries with an example of parameter mutation.] 
     * [fb_prophet_parallel.py](./models/timeseries/fb_prophet_parallel.py) [Prophet by Facebook for TimeSeries with an example of parameter mutation.] 
     * [historic_mean.py](./models/timeseries/historic_mean.py) [Historic Mean for Time-Series problems. Predicts the mean of the target for each timegroup for regression problems.] 
+    * [ts_rnn.py](./models/timeseries/ts_rnn.py) [please add description] 
   * [UNSUPERVISED](./models/unsupervised)
     * [rapids_kmeans.py](./models/unsupervised/rapids_kmeans.py) [KMeans clustering using RAPIDS.ai] 
   * [UPLIFT](./models/uplift)
