@@ -47,7 +47,7 @@ class RamadanTransformer(CustomTimeSeriesTransformer):
     def transform(self, X: dt.Frame):
         X = X[:, self.time_column]
         if X[:, self.time_column].ltypes[0] != dt.ltype.str:
-            assert self.datetime_formats[self.time_column] in ["%Y%m%d", "%Y%m%d%H%M"]
+            assert self.datetime_formats[self.time_column] in ["%Y%m%d", "%Y%m%d%H%M", "%Y", "%Y%m"]
             X[:, self.time_column] = dt.stype.str32(dt.stype.int64(dt.f[0]))
         X.replace(['', 'None'], None)
         X = X.to_pandas()
