@@ -429,7 +429,7 @@ class CatBoostModel(CustomModel):
         if not pred_contribs and not output_margin:
             if self.num_classes >= 2:
                 preds = model.predict_proba(
-                    data=X,
+                    X,
                     ntree_start=0,
                     ntree_end=iterations,  # index of first tree *not* to be used
                     thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
@@ -441,7 +441,7 @@ class CatBoostModel(CustomModel):
                     return preds
             else:
                 return model.predict(
-                    data=X,
+                    X,
                     ntree_start=0,
                     ntree_end=iterations,  # index of first tree *not* to be used
                     thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
@@ -449,7 +449,7 @@ class CatBoostModel(CustomModel):
         elif output_margin:
             # uses "predict" for raw for any class
             preds = model.predict(
-                    data=X,
+                    X,
                     prediction_type="RawFormulaVal",
                     ntree_start=0,
                     ntree_end=iterations,  # index of first tree *not* to be used
@@ -483,7 +483,7 @@ class CatBoostModel(CustomModel):
             )
             # repair broken shap sum: https://github.com/catboost/catboost/issues/1125
             preds_raw = model.predict(
-                    data=X,
+                    X,
                     prediction_type="RawFormulaVal",
                     ntree_start=0,
                     ntree_end=iterations,  # index of first tree *not* to be used
@@ -507,7 +507,7 @@ class CatBoostModel(CustomModel):
                 model.save_model("catshapproblem")
                 pickle.dump((X, y, self.params['cat_features']), open("catshapproblem.pkl", "wb"))
                 preds_raw = model.predict(
-                        data=X,
+                        X,
                         prediction_type="RawFormulaVal",
                         ntree_start=0,
                         ntree_end=iterations,  # index of first tree *not* to be used
