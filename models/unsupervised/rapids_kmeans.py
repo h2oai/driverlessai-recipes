@@ -77,7 +77,9 @@ class MyDaviesBouldinScorer(CustomUnsupervisedScorer):
 
 class RapidsKMeansModel(CustomUnsupervisedModel):
     _included_pretransformers = ['NoMoreThanTenNumericTransformer']  # make your own
-    # _included_pretransformers = ['OrigFreqPreTransformer']  # see the unsupervised model template for choices
+    # _included_pretransformers = ['OrigFreqPreTransformer']  # from DAI built-in (frequency-encodes categoricals)
+    # _included_pretransformers = ['OrigOHEPreTransformer']  # from DAI built-in (one-hot encodes categoricals)
 
     _included_transformers = ["RapidsKMeansClusterLabelTransformer"]
-    _included_scorers = ['MyDaviesBouldinScorer']
+    _included_scorers = ['MyDaviesBouldinScorer']  # make your own
+    # _included_scorers = ['SilhouetteScorer', 'CalinskiHarabaszScorer', 'DaviesBouldinScorer']  # from DAI built-in
