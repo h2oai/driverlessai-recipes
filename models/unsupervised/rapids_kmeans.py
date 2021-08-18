@@ -35,6 +35,19 @@ class RapidsKMeansClusterLabelTransformer(CustomUnsupervisedTransformer):
     def get_default_properties():
         return dict(col_type="numeric", min_cols=1, max_cols="all")
 
+    @staticmethod
+    def get_parameter_choices():
+        return dict(n_clusters=[2, 3, 4, 5, 10, 20],
+                    max_iters=[300],  # probably no need to tune
+                    tol=[1e-4],  # probably no need to tune
+                    )
+
+    def __init__(self, n_clusters, max_iters, tol, **kwargs):
+        super().__init__(**kwargs)
+        self.n_clusters = n_clusters
+        self.max_iters = max_iters
+        self.tol = tol
+
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         if ngpus_vis == 0:
             raise IgnoreEntirelyError("Transformer cannot run without GPUs")
@@ -42,7 +55,10 @@ class RapidsKMeansClusterLabelTransformer(CustomUnsupervisedTransformer):
         import cudf
         import cuml
         cuml.common.memory_utils.set_global_output_type('numpy')
-        self.model = cuml.cluster.KMeans(n_clusters=8, max_iter=300, tol=1e-4)
+        self.n_clusters = min(self.n_clusters, X.nrows)
+        self.model = cuml.cluster.KMeans(n_clusters=self.n_clusters,
+                                         max_iter=self.max_iters,
+                                         tol=self.tol)
         X = X.to_pandas().fillna(0)
         X = cudf.DataFrame(X)
         return self.model.fit_predict(X)
