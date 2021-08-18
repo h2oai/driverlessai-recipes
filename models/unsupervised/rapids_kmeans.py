@@ -9,6 +9,19 @@ from h2oaicore.transformer_utils import CustomUnsupervisedTransformer
 from sklearn.metrics import davies_bouldin_score
 
 
+class NoMoreThanTenNumericTransformer(CustomTransformer):
+    @staticmethod
+    def get_default_properties():
+        # pick up to 10 numeric columns
+        return dict(col_type="numeric", min_cols=1, max_cols=10, relative_importance=1)
+
+    def fit_transform(self, X: dt.Frame, y: np.array = None):
+        return self.transform(X)
+
+    def transform(self, X: dt.Frame):
+        return X
+
+
 class RapidsKMeansClusterLabelTransformer(CustomUnsupervisedTransformer):
     _can_use_gpu = True
     _must_use_gpu = True
@@ -63,7 +76,8 @@ class MyDaviesBouldinScorer(CustomUnsupervisedScorer):
 
 
 class RapidsKMeansModel(CustomUnsupervisedModel):
-    _included_pretransformers = ['StdFreqPreTransformer']
+    _included_pretransformers = ['NoMoreThanTenNumericTransformer']  # make your own
+    # _included_pretransformers = ['OrigFreqPreTransformer']  # see the unsupervised model template for choices
+
     _included_transformers = ["RapidsKMeansClusterLabelTransformer"]
     _included_scorers = ['MyDaviesBouldinScorer']
-

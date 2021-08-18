@@ -409,9 +409,17 @@ class CustomTimeSeriesTensorFlowModel(CustomTimeSeriesModel, CustomTensorFlowMod
 class CustomUnsupervisedModel(UnsupervisedModel, CustomModel):
     # Custom wrapper to do unsupervised learning.
     # It bundles preprocessing of numeric/categorical data, unsupervised learning and scoring.
-    # The model's fit(X) method performs fit_transform(pre_fit_transform(X)).
-    # The model's predict(X) method returns the transform(pre_transform(X)).
-    # The scorer compares X with transform(pre_transform(X)) and returns a float.
+
+    # There must be exactly one CustomPreTransformer (pre), for data prep
+    # There must be exactly one CustomTransformer (tr), for doing the unsupervised learning
+    # y is never used.
+    # There is no ensembling, only a single model.
+
+    # The pipeline is this: model.predict(X) := tr(pre(X)) = pred
+
+    # The model's fit method performs tr.fit_transform(pre.fit_transform(X)).
+    # The model's predict method returns tr.transform(pre.transform(X)).
+    # The scorer takes pre(X) and pred and returns a float.
 
     # pick one of the following four presets, or make your own pretransformer
     # needed to convert original data into form the transformer below can handle
