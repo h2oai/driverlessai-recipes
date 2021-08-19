@@ -30,9 +30,7 @@ class DBScanTransformer(CustomUnsupervisedTransformer):
 
 
 class DBScanModel(CustomUnsupervisedModel):
-    _included_pretransformers = ['OrigFreqPreTransformer']  # see the unsupervised model template for choices
-    # _included_pretransformers = ['OrigFreqPreTransformer']  # from DAI built-in (frequency-encodes categoricals)
-    # _included_pretransformers = ['OrigOHEPreTransformer']  # from DAI built-in (one-hot encodes categoricals)
+    _included_pretransformers = ['StdFreqPreTransformer']  # standardize numericals, frequency encode categoricals
 
     _included_transformers = ["DBScanTransformer"]
 
