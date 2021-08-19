@@ -350,7 +350,7 @@ class CustomTimeSeriesModel(CustomModel):
                          date_format_strings=date_format_strings, **kwargs)
 
 
-class CustomTensorFlowModel(CustomModel, TensorFlowModel):
+class CustomTensorFlowModel(TensorFlowModel, CustomModel):
     """
         TensorFlow-based Custom Model
     """
@@ -399,7 +399,7 @@ class CustomTensorFlowModel(CustomModel, TensorFlowModel):
         import_tensorflow()
 
 
-class CustomTimeSeriesTensorFlowModel(CustomTimeSeriesModel, CustomTensorFlowModel):
+class CustomTimeSeriesTensorFlowModel(CustomTensorFlowModel, CustomTimeSeriesModel):
     """
         TensorFlow-based Time-Series Custom Model
     """
