@@ -16,6 +16,7 @@ class MyImgTransformer(TensorFlowModel, CustomTransformer):
     # I.e. wasn't enough to put keras imports inside fit/transform to delay after Pillow installed
     _modules_needed_by_name = ['pillow==8.3.1']
     _tensorflow = True
+    _mojo = False
     _parallel_task = True  # assumes will use n_jobs in params_base
     _can_use_gpu = True
     _can_use_multi_gpu = True
@@ -27,20 +28,25 @@ class MyImgTransformer(TensorFlowModel, CustomTransformer):
 
     @staticmethod
     def do_acceptance_test():
-        return False
+        return True # False
+
+    @staticmethod
+    def get_default_properties():
+        return dict(col_type="image", min_cols=1, max_cols=1, relative_importance=1)
 
     @staticmethod
     def enabled_setting():
         return 'on'
 
     def __init__(self, batch_size=32, **kwargs):
+        CustomTransformer.__init__(self, **kwargs)
         TensorFlowModel.__init__(self, **kwargs)
-        super().__init__(**kwargs)
+        self.uuid_tmp = str(uuid.uuid4())[:6]
+        self.experiment_id = self.__class__.__name__ + self.uuid_tmp
+        #super().__init__(**kwargs)
         self.batch_size = batch_size
         self.model_name = "resnet_keras.h5p"
         self.uuid = "%s-img-data-" % self.__class__.__name__ + self.model_name  # + str(uuid.uuid4())[:6] # no, keeps changing and re-loadeing every init
-        self.uuid_tmp = str(uuid.uuid4())[:6]
-        self.col_name = self.input_feature_names[0]
         self.model_path = os.path.join(user_dir(), self.uuid + ".model")
         self.model_tmp_path = self.model_path + "_" + self.uuid_tmp + ".tmp"
         if not os.path.exists(self.model_path):
@@ -128,6 +134,7 @@ class MyImgTransformer(TensorFlowModel, CustomTransformer):
                 f.write(self.model_bytes)
 
         # remove(self.model_path) # can't remove, used by other procs or later
+        self.col_name = self.input_feature_names[0]
         values = X[:, self.col_name].to_numpy().ravel()
         self.batch_size = min(len(values), self.batch_size)
         values_ = np.array_split(values, int(len(values) / self.batch_size) + 1)
