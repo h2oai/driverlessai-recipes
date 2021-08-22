@@ -38,7 +38,7 @@ class AudioToMelSpectogram:
     For Ubuntu, required to do: sudo apt-get install libsndfile1 libsndfile1-dev
     For Centos, required to do: sudo yum install libsndfile libsndfile-dev
     """
-    _modules_needed_by_name = ["librosa==0.8.0"]
+    _modules_needed_by_name = ["librosa==0.8.1"]
 
     def __init__(
         self, min_seconds=2, sampling_rate=44100, n_mels=128, hop_length=345 * 2
