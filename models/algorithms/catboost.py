@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel, MainModel
 from h2oaicore.systemutils_more import arch_type
-from h2oaicore.systemutils import config, physical_cores_count, ngpus_vis, save_obj, remove, user_dir
+from h2oaicore.systemutils import config, physical_cores_count, ngpus_vis, save_obj, remove, user_dir, exp_dir
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdata
 from h2oaicore.models import LightGBMModel
 import inspect
@@ -330,7 +330,7 @@ class CatBoostModel(CustomModel):
         pickle_path = None
         if config.debug_daimodel_level >= 2:
             self.uuid = str(uuid.uuid4())[:6]
-            pickle_path = "catboost%s.pickle" % self.uuid
+            pickle_path = os.path.join(exp_dir(), "catboost%s.pickle" % self.uuid)
             save_obj((self.model, kwargs_fit), pickle_path)
 
         # FIT (with migration safety before hyperopt/Optuna function added)
