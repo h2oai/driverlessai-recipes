@@ -1,7 +1,7 @@
 """KMeans clustering using RAPIDS.ai"""
 import datatable as dt
 import numpy as np
-from h2oaicore.systemutils import ngpus_vis, IgnoreEntirelyError
+from h2oaicore.systemutils import ngpus_vis, IgnoreEntirelyError, config
 from h2oaicore.transformers import CustomTransformer
 from h2oaicore.metrics import CustomUnsupervisedScorer
 from h2oaicore.models import CustomUnsupervisedModel
@@ -33,7 +33,11 @@ class RapidsKMeansClusterLabelTransformer(CustomUnsupervisedTransformer):
 
     @staticmethod
     def get_default_properties():
-        return dict(col_type="numeric", min_cols=1, max_cols="all")
+        if not config.hard_asserts:
+            return dict(col_type="numeric", min_cols=1, max_cols="all")
+        else:
+            # testing mode, to avoid GPU OOM etc.
+            return dict(col_type="numeric", min_cols=1, max_cols=3)
 
     @staticmethod
     def get_parameter_choices():
