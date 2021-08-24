@@ -85,7 +85,7 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         '%s/ephem-3.7.7.1%s' % (_root_path, _suffix),
         '%s/cmdstanpy-0.9.5%s' % (_root_path, _suffix),
         '%s/pystan-2.19.1.1%s' % (_root_path, _suffix),
-        '%s/httpstan-4.5.0-cp38-cp38-manylinux_2_27_x86_64.whl' % _root_path,
+        '%s/httpstan-4.5.0%s' % (_root_path, _suffix),
         '%s/fbprophet-0.7.1%s' % (_root_path, _suffix),
          ]
     else:
