@@ -72,6 +72,8 @@ abled.
  [1.8.6](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.6)
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
+ [1.8.9](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.9)
+ [1.8.10](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.10)
  [1.9.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.0)
  [1.9.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1)
  [1.9.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.2)

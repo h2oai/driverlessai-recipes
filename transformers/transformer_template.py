@@ -331,13 +331,13 @@ class CustomTimeSeriesTransformer(CustomTransformer):
         :return: self
         """
         return self
-    
+
     def convert_to_datetime(self, X: dt.Frame, col: str) -> pd.Series:
         """
         Converts column 'col' to pd.Series with elements of type datetime64[ns]
         """
         return convert_to_datetime(X=X[:, col], datetime_format=self._datetime_formats[col], use_cache=False)
-    
+
     def time_column_to_datetime(self, X: dt.Frame) -> pd.Series:
         """
         Converts time column to pd.Series with elements of type datetime64[ns]

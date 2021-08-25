@@ -8,7 +8,6 @@ _global_modules_needed_by_name = []  # Optional global package requirements, for
 
 
 class CustomScorer(BaseScorer):
-    _description = NotImplemented
     _maximize = True  # whether a higher score is better
     _perfect_score = 1.0  # the ideal score, used for early stopping once validation score achieves this value
 
