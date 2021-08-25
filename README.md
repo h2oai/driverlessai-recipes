@@ -59,7 +59,10 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
  [1.8.7](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.7)
  [1.8.8](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.8)
  [1.8.9](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.9)
-### Count: 143
+ [1.8.10](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.10)
+### Count: 144
+* [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
+  * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description]
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns]
   * [KMeansClustering.py](./data/KMeansClustering.py) [Data Recipe to perform KMeans Clustering on a dataset.]
