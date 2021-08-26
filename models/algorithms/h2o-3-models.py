@@ -42,21 +42,15 @@ class H2OBaseModel:
         if not os.path.isdir(self.my_log_dir):
             os.makedirs(self.my_log_dir, exist_ok=True)
 
-    def set_default_params(self, logger=None, num_classes=None, seed=1234, disable_gpus=False,
-                           score_f_name: str = None,
-                           lossguide=False,
-                           monotonicity_constraints=False, silent=None, accuracy=10,
-                           time_tolerance=10,
-                           interpretability=1, min_child_weight=1.0, params_orig=None, ensemble_level=0,
-                           train_shape=(1, 1), valid_shape=(1, 1), labels=None, **kwargs):
+    def set_default_params(self, logger=None, num_classes=None, accuracy=10, time_tolerance=10, **kwargs):
 
         self.params = {}
 
         if self._is_gbm:
-            self.params.update(self.get_gbm_main_params_evolution(None, None,
-                                                                  accuracy, num_classes,
-                                                                  ensemble_level, train_shape,
-                                                                  valid_shape))
+            self.params.update(self.get_gbm_main_params_evolution(num_classes=num_classes,
+                                                                  accuracy=accuracy,
+                                                                  time_tolerance=time_tolerance,
+                                                                  **kwargs))
             self.transcribe()
 
             self.params['col_sample_rate'] = 0.7

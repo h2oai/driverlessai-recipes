@@ -106,10 +106,10 @@ class CatBoostModel(CustomModel):
         ensemble_level = kwargs.get('ensemble_level', 0)
         train_shape = kwargs.get('train_shape', (1, 1))
         valid_shape = kwargs.get('valid_shape', (1, 1))
-        self.get_gbm_main_params_evolution(self.params, dummy, accuracy,
-                                           self.num_classes,
-                                           ensemble_level, train_shape,
-                                           valid_shape)
+        self.get_gbm_main_params_evolution(params=self.params, dummy=dummy, accuracy=accuracy,
+                                           num_classes=self.num_classes,
+                                           ensemble_level=ensemble_level, train_shape=train_shape,
+                                           valid_shape=valid_shape)
 
         for k in kwargs:
             if k in self.params:
