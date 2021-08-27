@@ -5,7 +5,7 @@ import numpy as np
 from h2oaicore.models import CustomTimeSeriesModel
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdebug
 from h2oaicore.systemutils import (
-    small_job_pool, save_obj, load_obj, user_dir, remove, config
+    small_job_pool, save_obj, load_obj, user_dir, remove, config, max_threads
 )
 from h2oaicore.systemutils_more import arch_type
 import os
@@ -193,8 +193,21 @@ class FBProphetParallelModel(CustomTimeSeriesModel):
         remove(X_path)  # remove to indicate success
         return grp_hash, model_path
 
-    def _get_n_jobs(self, logger, **kwargs):
-        return 4  # self.params_base['n_jobs']
+    @staticmethod
+    def _get_n_jobs(logger, **kwargs):
+        if 'n_jobs_prophet' in config.recipe_dict:
+            return min(config.recipe_dict['n_jobs_prophet'], max_threads())
+        try:
+            if config.fixed_num_folds <= 0:
+                n_jobs = max(1, int(int(max_threads() / min(config.num_folds, kwargs['max_workers']))))
+            else:
+                n_jobs = max(1, int(
+                    int(max_threads() / min(config.fixed_num_folds, config.num_folds, kwargs['max_workers']))))
+        except KeyError:
+            loggerinfo(logger, "Prophet No Max Worker in kwargs. Set n_jobs to 1")
+            n_jobs = 1
+
+        return n_jobs if n_jobs > 1 else 1
 
     def _clean_tmp_folder(self, logger, tmp_folder):
         try:

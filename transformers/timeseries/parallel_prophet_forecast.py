@@ -164,7 +164,10 @@ class MyParallelProphetTransformer(CustomTimeSeriesTransformer):
         remove(X_path)  # remove to indicate success
         return grp_hash, model_path
 
-    def _get_n_jobs(self, logger, **kwargs):
+    @staticmethod
+    def _get_n_jobs(logger, **kwargs):
+        if 'n_jobs_prophet' in config.recipe_dict:
+            return min(config.recipe_dict['n_jobs_prophet'], max_threads())
         try:
             if config.fixed_num_folds <= 0:
                 n_jobs = max(1, int(int(max_threads() / min(config.num_folds, kwargs['max_workers']))))
