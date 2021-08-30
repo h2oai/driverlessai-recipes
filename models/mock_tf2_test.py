@@ -6,7 +6,7 @@ from h2oaicore.models import CustomModel
 from h2oaicore.models_utils import import_tensorflow
 
 
-class CustomTFGPUCheck(CustomModel):
+class CustomTF2GPUCheck(CustomModel):
     _regression = True
     _binary = True
     _multiclass = False  # WIP
