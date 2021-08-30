@@ -8,7 +8,8 @@ from sklearn.preprocessing import LabelEncoder
 
 from h2oaicore.models import CustomModel, MainModel
 from h2oaicore.systemutils_more import arch_type
-from h2oaicore.systemutils import config, physical_cores_count, ngpus_vis, save_obj, remove, user_dir, exp_dir
+from h2oaicore.systemutils import config, physical_cores_count, ngpus_vis, save_obj, remove, user_dir, exp_dir, \
+    print_debug
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdata
 from h2oaicore.models import LightGBMModel
 import inspect
@@ -28,6 +29,7 @@ class CatBoostModel(CustomModel):
     _force_gpu = False  # force use of GPU regardless of what DAI says
     _can_handle_categorical = True
     _can_handle_non_numeric = True
+    _can_handle_text = False  # catboost has issues when text is arbitrary and entirely unique across all rows
     _used_return_params = True
     _average_return_params = True
     _fit_by_iteration = True
@@ -330,8 +332,8 @@ class CatBoostModel(CustomModel):
         pickle_path = None
         if config.debug_daimodel_level >= 2:
             self.uuid = str(uuid.uuid4())[:6]
-            pickle_path = os.path.join(exp_dir(), "catboost%s.pickle" % self.uuid)
-            save_obj((self.model, kwargs_fit), pickle_path)
+            pickle_path = os.path.join(exp_dir(), "catboost%s.tmp.pickle" % self.uuid)
+            save_obj((self.model, X, y, sample_weight, kwargs_fit), pickle_path)
 
         # FIT (with migration safety before hyperopt/Optuna function added)
         if hasattr(self, 'dask_or_hyper_or_normal_fit'):
@@ -474,7 +476,16 @@ class CatBoostModel(CustomModel):
                 shap_calc_type = "Regular"
             # See also shap_mode
             # help(CatBoostClassifier.get_feature_importance)
-            print("shap_calc_type: %s" % shap_calc_type)
+            print_debug("shap_calc_type: %s" % shap_calc_type)
+
+            pickle_path = None
+            if config.debug_daimodel_level >= 2:
+                self.uuid = str(uuid.uuid4())[:6]
+                pickle_path = os.path.join(exp_dir(), "catboost_shappredict%s.tmp.pickle" % self.uuid)
+                model.save_model(os.path.join(exp_dir(), "catshapproblem%s.catboost.model" % self.uuid))
+                # save_obj((self, self.model, model, X, y, kwargs, shap_calc_type, self.params['cat_features']), pickle_path)
+                save_obj((model, X, y, kwargs, shap_calc_type, self.params['cat_features']), pickle_path)
+
             preds_shap = model.get_feature_importance(
                 data=data,
                 thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported,
@@ -482,6 +493,7 @@ class CatBoostModel(CustomModel):
                 shap_calc_type=shap_calc_type,
             )
             # repair broken shap sum: https://github.com/catboost/catboost/issues/1125
+            print_debug("shap_fix")
             preds_raw = model.predict(
                     X,
                     prediction_type="RawFormulaVal",
@@ -494,6 +506,7 @@ class CatBoostModel(CustomModel):
             else:
                 axis = 2
             orig_sum = np.sum(preds_shap, axis=axis)
+            print_debug("shap_fix2")
             # avoid division by 0, need different trick, e.g. change baseline, to fix that case
             if axis == 1:
                 orig_sum[orig_sum[:] == 0.0] = 1.0
@@ -504,8 +517,9 @@ class CatBoostModel(CustomModel):
                 preds_shap = preds_shap * preds_raw[:, :, None] / orig_sum[:, :, None]
 
             if config.hard_asserts and config.debug_daimodel_level >= 2:
-                model.save_model("catshapproblem")
-                pickle.dump((X, y, self.params['cat_features']), open("catshapproblem.pkl", "wb"))
+                print_debug("shap_check")
+                model.save_model(os.path.join(exp_dir(), "catshapproblem"))
+                pickle.dump((X, y, self.params['cat_features']), open(os.path.join(exp_dir(), "catshapproblem.pkl"), "wb"))
                 preds_raw = model.predict(
                         X,
                         prediction_type="RawFormulaVal",
@@ -515,6 +529,10 @@ class CatBoostModel(CustomModel):
                     )
 
                 assert np.isclose(preds_raw, np.sum(preds_shap, axis=axis)).all(), "catboost shapley does not sum up correctly"
+
+            if config.debug_daimodel_level <= 2:
+                remove(pickle_path)
+
             if axis == 1:
                 return preds_shap
             else:

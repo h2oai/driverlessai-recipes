@@ -92,6 +92,7 @@ class LogisticRegressionModel(CustomModel):
         # Just handle all cats directly
         _included_transformers.remove('CatTransformer')
     _can_handle_non_numeric = True  # tell DAI we can handle non-numeric (i.e. strings)
+    _can_handle_text = True  # but no special handling by base model, just doesn't fail
     _can_handle_categorical = True  # tell DAI we can handle numerically encoded categoricals for use as categoricals
     _num_as_cat = False or _kaggle  # treating numeric as categorical best handled per column, but can force all numerics as cats
     _num_as_num = False

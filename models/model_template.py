@@ -15,9 +15,13 @@ class CustomModel(BaseCustomModel):
     _binary = False  # y has shape (N,) and can be numeric or string, cardinality 2, no missing values
     _multiclass = False  # y has shape (N,) and can be numeric or string, cardinality 3+, no missing values
 
-    """Specify whether the model can handle non-numeric input data or not. If not, some transformers might be skipped
+    """Specify whether the model can handle non-numeric categorical-like input data or not. If not, some transformers might be skipped
     during feature creation for this model."""
     _can_handle_non_numeric = False
+
+    """Specify whether the model can handle arbitrary text input data or not. If not, some transformers might be skipped
+    during feature creation for this model."""
+    _can_handle_text = False
 
     """Specify whether the model can handle label-encoded categoricals in special way. If not, some transformers might be skipped
     during feature creation for this model."""
@@ -335,6 +339,7 @@ class CustomTimeSeriesModel(CustomModel):
     _is_custom_time_series = True
     _time_series_only = True
     _can_handle_non_numeric = True  # date format strings and time grouping columns
+    _can_handle_text = False  # not handling text
     _included_transformers = ts_raw_data_transformers  # this enforces the constraint on input features
     _lag_recipe_allowed = True  # by default allow lag time series recipe (fold split and features)
     _causal_recipe_allowed = True  # by default allow causal validation scheme (no lag features)

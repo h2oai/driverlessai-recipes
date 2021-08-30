@@ -28,6 +28,7 @@ class TextBinaryCountLogisticModel(CustomModel):
     _binary = True
     _multiclass = True
     _can_handle_non_numeric = True
+    _can_handle_text = True
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _included_transformers = ["TextOriginalTransformer"]
 
