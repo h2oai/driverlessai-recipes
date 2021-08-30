@@ -19,7 +19,7 @@ class FAIRXGBOOST(CustomModel):
 
     @staticmethod
     def do_acceptance_test():
-        return False
+        return True
 
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
