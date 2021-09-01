@@ -31,6 +31,7 @@ class TextTFIDFModel(CustomModel):
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         orig_cols = list(X.names)
+        text_names = X[:, [str]].names
         if self.num_classes >= 2:
             lb = LabelEncoder()
             lb.fit(self.labels)
@@ -40,14 +41,22 @@ class TextTFIDFModel(CustomModel):
         else:
             model = LinearRegression()
 
-        self.tfidf_objs = []
+        self.tfidf_objs = {}
         new_X = None
-        for col in X.names:
+        for col in text_names:
             XX = X[:, col].to_pandas()
             XX = XX[col].astype(str).fillna("NA").values.tolist()
             tfidf_vec = TfidfVectorizer(**self.params)
-            XX = tfidf_vec.fit_transform(XX)
-            self.tfidf_objs.append(tfidf_vec)
+            try:
+                XX = tfidf_vec.fit_transform(XX)
+            except ValueError as e:
+                if 'vocab' in str(e):
+                    # skip non-text-like column
+                    continue
+                else:
+                    raise
+
+            self.tfidf_objs[col] = tfidf_vec
             if new_X is None:
                 new_X = XX
             else:
@@ -55,7 +64,7 @@ class TextTFIDFModel(CustomModel):
 
         model.fit(new_X, y)
         model = (model, self.tfidf_objs)
-        self.tfidf_objs = []
+        self.tfidf_objs = {}
         importances = [1] * len(orig_cols)
         self.set_model_properties(model=model,
                                   features=orig_cols,
@@ -63,19 +72,21 @@ class TextTFIDFModel(CustomModel):
                                   iterations=0)
 
     def predict(self, X, **kwargs):
-        (model, self.tfidf_objs), _, _, _ = self.get_model_properties()
+        (model, tfidf_objs), _, _, _ = self.get_model_properties()
         X = dt.Frame(X)
         new_X = None
-        for ind, col in enumerate(X.names):
+        text_names = X[:, [str]].names
+        for col in text_names:
+            if col  not in tfidf_objs:
+                continue
             XX = X[:, col].to_pandas()
             XX = XX[col].astype(str).fillna("NA").values.tolist()
-            tfidf_vec = self.tfidf_objs[ind]
+            tfidf_vec = tfidf_objs[col]
             XX = tfidf_vec.transform(XX)
             if new_X is None:
                 new_X = XX
             else:
                 new_X = sp.sparse.hstack([new_X, XX])
-        self.tfidf_objs = []
         if self.num_classes == 1:
             preds = model.predict(new_X)
         else:
