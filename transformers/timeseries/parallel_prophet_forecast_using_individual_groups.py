@@ -282,7 +282,7 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
                 out[res[0]] = res[1]
 
             pool_to_use = small_job_pool
-            loggerinfo(logger, f"Prophet will use {n_jobs} workers for fitting.")
+            loggerinfo(logger, f"Prophet will use {n_jobs} workers for fitting with {nb_groups} groups.")
             loggerinfo(logger, "Prophet parameters holidays {} / monthly {}".format(self.country_holidays,
                                                                                     self.monthly_seasonality))
             pool = pool_to_use(logger=None, processor=processor, num_tasks=nb_groups, max_workers=n_jobs)

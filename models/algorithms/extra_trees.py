@@ -19,19 +19,25 @@ class ExtraTreesModel(CustomModel):
                            interpretability=None, **kwargs):
         # Fill up parameters we care about
         self.params = dict(random_state=kwargs.get("random_state", 1234),
-                           n_estimators=min(kwargs.get("n_estimators", 100), 1000),
+                           n_estimators=self.estimators_list(accuracy=accuracy)[0],
                            criterion="gini" if self.num_classes >= 2 else "mse",
                            n_jobs=self.params_base.get('n_jobs', max(1, physical_cores_count)))
 
-    def mutate_params(self, accuracy=10, **kwargs):
+    def estimators_list(self, accuracy=None):
+        # could use config.n_estimators_list_no_early_stopping
+        if accuracy is None:
+            accuracy = 10
         if accuracy > 8:
             estimators_list = [100, 200, 300, 500, 1000, 2000]
         elif accuracy >= 5:
-            estimators_list = [50, 100, 200, 300, 400, 500]
+            estimators_list = [50, 100, 200]
         else:
-            estimators_list = [10, 50, 100, 150, 200, 250, 300]
+            estimators_list = [10, 50, 100]
+        return estimators_list
+
+    def mutate_params(self, accuracy=10, **kwargs):
         # Modify certain parameters for tuning
-        self.params["n_estimators"] = int(np.random.choice(estimators_list))
+        self.params["n_estimators"] = int(np.random.choice(self.estimators_list(accuracy=accuracy)))
         self.params["criterion"] = np.random.choice(["gini", "entropy"]) if self.num_classes >= 2 \
             else np.random.choice(["mse", "mae"])
 
