@@ -12,6 +12,7 @@ class TextNamedEntityTransformer(CustomTransformer):
     _root_path = "https://s3.amazonaws.com/artifacts.h2o.ai/deps/dai/recipes"
     _suffix = "-cp38-cp38-linux_x86_64.whl"
     froms3 = True
+    _is_reproducible = False  # some issue with deepcopy and refit, do not get same result
     if froms3:
         _modules_needed_by_name = [
             '%s/blis-0.4.1%s' % (_root_path, _suffix),
