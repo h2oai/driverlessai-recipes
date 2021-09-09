@@ -1,9 +1,11 @@
 
 """For GPU usage testing purposes."""
+import os
 
 import numpy as np
 from h2oaicore.models import CustomModel
 from h2oaicore.models_utils import import_tensorflow
+from h2oaicore.systemutils import ngpus_vis
 
 
 class CustomTF2GPUCheck(CustomModel):
@@ -27,6 +29,10 @@ class CustomTF2GPUCheck(CustomModel):
                            **kwargs):
         self.params = {}
 
+    @staticmethod
+    def acceptance_test_coverage_fraction():
+        return 0.05
+
     def mutate_params(self,
                       **kwargs):
         self.params = {}
@@ -37,6 +43,8 @@ class CustomTF2GPUCheck(CustomModel):
         Author: Aymeric Damien
         Project: https://github.com/aymericdamien/TensorFlow-Examples/
         '''
+
+        assert ngpus_vis != 0, "Shouldn't be using/testing this recipe without GPUs"
 
         '''
         This tutorial requires your machine to have 1 GPU
@@ -51,7 +59,7 @@ class CustomTF2GPUCheck(CustomModel):
         log_device_placement = True
 
         # Num of multiplications to perform
-        n = 10
+        n = 3
 
         '''
         Example: compute A^n + B^n on 2 GPUs
@@ -104,5 +112,8 @@ class CustomTF2GPUCheck(CustomModel):
         Returns: dt.Frame, np.ndarray or pd.DataFrame, containing predictions (target values or class probabilities)
         Shape: (K, c) where c = 1 for regression or binary classification, and c>=3 for multi-class problems.
         """
+
+        assert ngpus_vis != 0, "Shouldn't be using/testing this recipe without GPUs"
+
         return np.random.randint(0, 2, (X.nrows, 1))
 
