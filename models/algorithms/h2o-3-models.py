@@ -7,10 +7,11 @@ import traceback
 from h2oaicore.models import CustomModel
 import datatable as dt
 import uuid
-from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError
+from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError, print_debug
 import numpy as np
+import pandas as pd
 
-_global_modules_needed_by_name = ['h2o==3.30.0.3']
+_global_modules_needed_by_name = ['h2o==3.32.1.7']
 import h2o
 import os
 
@@ -110,8 +111,32 @@ class H2OBaseModel:
                 sample_weight_eval_set1 = sample_weight_eval_set1.astype(int)
                 sample_weight_eval_set = [sample_weight_eval_set1]
 
-        train_X = h2o.H2OFrame(X.to_pandas())
+        X_pd = X.to_pandas()
+
+        # fix if few levels for "enum" type.  h2o-3 auto-type is too greedy and only looks at very first rows
+        np_real_types = [np.int8, np.int16, np.int32, np.int64, np.float16, np.float32, np.float64]
+        column_types = {}
+        for col in X_pd.columns:
+            if X_pd[col].dtype.type in np_real_types:
+                column_types[col] = 'real'
+        nuniques = {}
+        for col in X_pd.columns:
+            nuniques[col] = len(pd.unique(X_pd[col]))
+            print_debug("NumUniques for col: %s: %d" % (col, nuniques[col]))
+            if nuniques[col] <= config.max_int_as_cat_uniques and X_pd[col].dtype.type in np_real_types:
+                # override original "real"
+                column_types[col] = 'enum'
+        # if column_types is partially filled, that is ok to h2o-3
+
+        train_X = h2o.H2OFrame(X_pd, column_types=column_types)
         self.col_types = train_X.types
+
+        # see uniques-types dict
+        nuniques_and_types = {}
+        for col, typ, in self.col_types.items():
+            nuniques_and_types[col] = [typ, nuniques[col]]
+            print_debug("NumUniques and types for col: %s : %s" % (col, nuniques_and_types[col]))
+
         train_y = h2o.H2OFrame(y,
                                column_names=[self.target],
                                column_types=['categorical' if self.num_classes >= 2 else 'numeric'])
