@@ -197,9 +197,9 @@ class GAM(CustomModel):
             plt.figure();
             plt.plot(XX[:, ii], clf.partial_dependence(term=ii, X=XX))
             plt.plot(XX[:, ii], clf.partial_dependence(term=ii, X=XX, width=.95)[1], c='r', ls='--')
-            plt.title("Partial Dependence " + X.columns[ii], fontdict={'fontsize': 10})
+            plt.title("Partial Dependence " + str(ii), fontdict={'fontsize': 10})
             plt.show()
-            plt.savefig(os.path.join(tmp_folder, 'Feature_partial_dependence_' + str(X.columns[ii])[0:10] + '.png'),
+            plt.savefig(os.path.join(tmp_folder, 'Feature_partial_dependence_' + str(ii) + '.png'),
                         bbox_inches="tight")
 
         if max(p_values[0:(len(p_values) - 1)]) > 0:

@@ -3,6 +3,7 @@
 import datatable as dt
 import numpy as np
 import pandas as pd
+from h2oaicore.systemutils import IgnoreEntirelyError
 from sklearn.feature_extraction.text import CountVectorizer
 from h2oaicore.transformer_utils import CustomTransformer
 
@@ -74,7 +75,15 @@ class TextBinaryCountTransformer(CustomTransformer):
                                          lowercase=self.do_lowercase,
                                          stop_words=self.remove_stopwords
                                          )
-        X = self.count_vec.fit_transform(X).toarray()
+        try:
+            X = self.count_vec.fit_transform(X).toarray()
+        except ValueError as e:
+            if 'vocab' in str(e):
+                # skip non-text-like column
+                raise IgnoreEntirelyError
+            else:
+                raise
+
         self._output_feature_names = ['BinaryCount:' + curr_col + '.' + token for token in
                                       self.count_vec.get_feature_names()]
         self._feature_desc = ["Binary count of '" + token + "' found in " + curr_col for token in

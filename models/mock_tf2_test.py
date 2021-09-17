@@ -1,12 +1,14 @@
 
 """For GPU usage testing purposes."""
+import os
 
 import numpy as np
 from h2oaicore.models import CustomModel
 from h2oaicore.models_utils import import_tensorflow
+from h2oaicore.systemutils import ngpus_vis
 
 
-class CustomTFGPUCheck(CustomModel):
+class CustomTF2GPUCheck(CustomModel):
     _regression = True
     _binary = True
     _multiclass = False  # WIP
@@ -15,6 +17,7 @@ class CustomTFGPUCheck(CustomModel):
     _can_use_gpu = True  # if enabled, will use special job scheduler for GPUs
     _get_gpu_lock = True  # whether to lock GPUs for this model before fit and predict
     _must_use_gpu = True  # this recipe can only be used if have GPUs
+    _get_gpu_lock_vis = True  # since always using gpu 0
     _predict_on_same_gpus_as_fit = True  # force predict to behave like fit, regardless of config.num_gpus_for_prediction
 
     @staticmethod
@@ -26,6 +29,10 @@ class CustomTFGPUCheck(CustomModel):
                            **kwargs):
         self.params = {}
 
+    @staticmethod
+    def acceptance_test_coverage_fraction():
+        return 0.05
+
     def mutate_params(self,
                       **kwargs):
         self.params = {}
@@ -36,6 +43,8 @@ class CustomTFGPUCheck(CustomModel):
         Author: Aymeric Damien
         Project: https://github.com/aymericdamien/TensorFlow-Examples/
         '''
+
+        assert ngpus_vis != 0, "Shouldn't be using/testing this recipe without GPUs"
 
         '''
         This tutorial requires your machine to have 1 GPU
@@ -50,7 +59,7 @@ class CustomTFGPUCheck(CustomModel):
         log_device_placement = True
 
         # Num of multiplications to perform
-        n = 10
+        n = 3
 
         '''
         Example: compute A^n + B^n on 2 GPUs
@@ -103,5 +112,8 @@ class CustomTFGPUCheck(CustomModel):
         Returns: dt.Frame, np.ndarray or pd.DataFrame, containing predictions (target values or class probabilities)
         Shape: (K, c) where c = 1 for regression or binary classification, and c>=3 for multi-class problems.
         """
+
+        assert ngpus_vis != 0, "Shouldn't be using/testing this recipe without GPUs"
+
         return np.random.randint(0, 2, (X.nrows, 1))
 

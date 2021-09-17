@@ -41,6 +41,7 @@ class MyLightGBMDeep(BaseCustomModel, LightGBMModel):
 
 class CatBoostModel(CustomModel):
     _can_handle_non_numeric = True
+    _can_handle_text = False
     _binary = True
     _display_name = "CatBoost"
     _description = "Yandex CatBoost GBM"

@@ -28,6 +28,7 @@ class TextBinaryCountLogisticModel(CustomModel):
     _binary = True
     _multiclass = True
     _can_handle_non_numeric = True
+    _can_handle_text = True
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _included_transformers = ["TextOriginalTransformer"]
 
@@ -49,6 +50,7 @@ class TextBinaryCountLogisticModel(CustomModel):
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         orig_cols = list(X.names)
+        text_names = X[:, [str]].names
         lb = LabelEncoder()
         lb.fit(self.labels)
         y = lb.transform(y)
@@ -57,9 +59,9 @@ class TextBinaryCountLogisticModel(CustomModel):
                                    fit_intercept=False,
                                    random_state=520)
 
-        count_objs = []
+        count_objs = {}
         new_X = None
-        for col in X.names:
+        for col in text_names:
             XX = X[:, col].to_pandas()
             XX = XX[col].astype(str).values.tolist()
             if not self.use_tfidf:
@@ -67,8 +69,15 @@ class TextBinaryCountLogisticModel(CustomModel):
                                             binary=self.binary_count)
             else:
                 count_vec = TfidfVectorizer(max_features=self.params["max_features"])
-            XX = count_vec.fit_transform(XX)
-            count_objs.append(count_vec)
+            try:
+                XX = count_vec.fit_transform(XX)
+            except ValueError as e:
+                if 'vocab' in str(e):
+                    # skip non-text-like column
+                    continue
+                else:
+                    raise
+            count_objs[col] = count_vec
             if new_X is None:
                 new_X = XX
             else:
@@ -85,11 +94,14 @@ class TextBinaryCountLogisticModel(CustomModel):
     def predict(self, X, **kwargs):
         (model, count_objs), _, _, _ = self.get_model_properties()
         X = dt.Frame(X)
+        text_names = X[:, [str]].names
         new_X = None
-        for ind, col in enumerate(X.names):
+        for col in text_names:
+            if col not in count_objs:
+                continue
             XX = X[:, col].to_pandas()
             XX = XX[col].astype(str).values.tolist()
-            count_vec = count_objs[ind]
+            count_vec = count_objs[col]
             XX = count_vec.transform(XX)
             if new_X is None:
                 new_X = XX

@@ -15,9 +15,13 @@ class CustomModel(BaseCustomModel):
     _binary = False  # y has shape (N,) and can be numeric or string, cardinality 2, no missing values
     _multiclass = False  # y has shape (N,) and can be numeric or string, cardinality 3+, no missing values
 
-    """Specify whether the model can handle non-numeric input data or not. If not, some transformers might be skipped
+    """Specify whether the model can handle non-numeric categorical-like input data or not. If not, some transformers might be skipped
     during feature creation for this model."""
     _can_handle_non_numeric = False
+
+    """Specify whether the model can handle arbitrary text input data or not. If not, some transformers might be skipped
+    during feature creation for this model."""
+    _can_handle_text = False
 
     """Specify whether the model can handle label-encoded categoricals in special way. If not, some transformers might be skipped
     during feature creation for this model."""
@@ -109,7 +113,8 @@ class CustomModel(BaseCustomModel):
         return config.acceptance_test_timeout
 
     @staticmethod
-    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
+                num_classes=None, **kwargs):
         """
         Return whether the model can be used given the settings and parameters that are passed in.
 
@@ -190,7 +195,6 @@ ll
         Returns: None
         """
         pass
-
 
     def __init__(self, context=None,
                  unfitted_pipeline_path=None,
@@ -335,6 +339,7 @@ class CustomTimeSeriesModel(CustomModel):
     _is_custom_time_series = True
     _time_series_only = True
     _can_handle_non_numeric = True  # date format strings and time grouping columns
+    _can_handle_text = False  # not handling text
     _included_transformers = ts_raw_data_transformers  # this enforces the constraint on input features
     _lag_recipe_allowed = True  # by default allow lag time series recipe (fold split and features)
     _causal_recipe_allowed = True  # by default allow causal validation scheme (no lag features)
@@ -423,7 +428,8 @@ class CustomUnsupervisedModel(UnsupervisedModel, CustomModel):
 
     # pick one of the following four presets, or make your own pretransformer
     # needed to convert original data into form the transformer below can handle
-    _included_pretransformers = ['StdFreqPreTransformer']  # standardize numerics, frequency-encode categoricals, drop rest
+    _included_pretransformers = [
+        'StdFreqPreTransformer']  # standardize numerics, frequency-encode categoricals, drop rest
     # _included_pretransformers = ['OrigPreTransformer']  # pass-through numerics, drop rest
     # _included_pretransformers = ['OrigOHEPreTransformer']  # pass-through numerics, one-hot-encode categoricals, drop rest
     # _included_pretransformers = ['OrigFreqPreTransformer']  # pass-through numerics, frequency-encode categoricals, drop rest
@@ -437,5 +443,4 @@ class CustomUnsupervisedModel(UnsupervisedModel, CustomModel):
     _included_scorers = ['UnsupervisedScorer']
 
     # no need to override any other methods
-
 

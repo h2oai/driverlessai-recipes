@@ -6,7 +6,7 @@ import uuid
 from h2oaicore.systemutils import config, user_dir, remove
 import numpy as np
 
-_global_modules_needed_by_name = ['h2o==3.30.0.3']
+_global_modules_needed_by_name = ['h2o==3.32.1.7']
 import h2o
 import os
 
@@ -16,6 +16,7 @@ class H2OBaseModel:
     _binary = False
     _multiclass = False
     _can_handle_non_numeric = True
+    _can_handle_text = True  # but no special handling by base model, just doesn't fail
     _is_reproducible = False
     _check_stall = False  # avoid stall check. h2o runs as server, and is not a child for which we check CPU/GPU usage
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail

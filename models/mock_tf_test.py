@@ -1,9 +1,11 @@
 
 """For GPU usage testing purposes."""
+import os
 
 import numpy as np
 from h2oaicore.models import CustomModel
 from h2oaicore.models_utils import import_tensorflow
+from h2oaicore.systemutils import ngpus_vis
 
 
 class CustomTFGPUCheck(CustomModel):
@@ -14,6 +16,7 @@ class CustomTFGPUCheck(CustomModel):
 
     _can_use_gpu = True  # if enabled, will use special job scheduler for GPUs
     _get_gpu_lock = True  # whether to lock GPUs for this model before fit and predict
+    _get_gpu_lock_vis = True  # since always using gpu 0
     _must_use_gpu = True  # this recipe can only be used if have GPUs
     _predict_on_same_gpus_as_fit = True  # force predict to behave like fit, regardless of config.num_gpus_for_prediction
 
@@ -26,6 +29,10 @@ class CustomTFGPUCheck(CustomModel):
                       **kwargs):
         self.params = {}
 
+    @staticmethod
+    def acceptance_test_coverage_fraction():
+        return 0.05
+
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         '''
         Basic Multi GPU computation example using TensorFlow library.
@@ -33,6 +40,7 @@ class CustomTFGPUCheck(CustomModel):
         Project: https://github.com/aymericdamien/TensorFlow-Examples/
         '''
 
+        assert ngpus_vis != 0, "Shouldn't be using/testing this recipe without GPUs"
         '''
         This tutorial requires your machine to have 1 GPU
         "/cpu:0": The CPU of your machine.
@@ -46,7 +54,7 @@ class CustomTFGPUCheck(CustomModel):
         log_device_placement = True
 
         # Num of multiplications to perform
-        n = 10
+        n = 3
 
         '''
         Example: compute A^n + B^n on 2 GPUs

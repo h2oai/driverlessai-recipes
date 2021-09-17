@@ -32,6 +32,7 @@ class TextTFIDFContinuousModel(CustomModel):
     _binary = True
     _multiclass = True
     _can_handle_non_numeric = True
+    _can_handle_text = True
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _included_transformers = ["TextOriginalTransformer"]
 
@@ -182,6 +183,7 @@ class TextTFIDFContinuousModel(CustomModel):
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         y_ = y.copy()
         orig_cols = list(X.names)
+        text_names = X[:, [str]].names
 
         self.loaded = False
 
@@ -205,11 +207,18 @@ class TextTFIDFContinuousModel(CustomModel):
             self.tfidf_objs = {}
             self.tf_idf_data = {}
             new_X = None
-            for col in X.names:
+            for col in text_names:
                 XX = X[:, col].to_pandas()
                 XX = XX[col].astype(str).fillna("NA").values.tolist()
                 tfidf_vec = TfidfVectorizer(**self.return_tfidf_params())
-                tfidf_vec = self._fit_vectorizer(tfidf_vec, XX)
+                try:
+                    tfidf_vec = self._fit_vectorizer(tfidf_vec, XX)
+                except ValueError as e:
+                    if 'vocab' in str(e):
+                        # skip non-text-like column
+                        continue
+                    else:
+                        raise
                 XX = tfidf_vec.transform(XX)
                 tfidf_vec.N_ = XX.shape[0]
                 self.tfidf_objs[col] = tfidf_vec
@@ -227,7 +236,7 @@ class TextTFIDFContinuousModel(CustomModel):
                 y = lb.transform(y)
 
             new_X = None
-            for col in X.names:
+            for col in text_names:
                 XX = X[:, col].to_pandas()
                 XX = XX[col].astype(str).fillna("NA").values.tolist()
                 N_ = len(XX)
@@ -236,7 +245,10 @@ class TextTFIDFContinuousModel(CustomModel):
                 try:
                     tfidf_vec.fit(XX)
                     new_data_avail = True
-                except ValueError:
+                except ValueError as e:
+                    if 'vocab' in str(e):
+                        # skip non-text-like column
+                        continue
                     new_data_avail = False
                 if new_data_avail:
                     tfidf_vec.N_ = N_
@@ -311,7 +323,10 @@ class TextTFIDFContinuousModel(CustomModel):
         data, _, _, _ = self.get_model_properties()
         models = data["model"]
         self.tfidf_objs = data["tf-idfs"]
-        for col in X.names:
+        text_names = X[:, [str]].names
+        for col in text_names:
+            if col  not in self.tfidf_objs:
+                continue
             XX = X[:, col].to_pandas()
             XX = XX[col].astype(str).fillna("NA").values.tolist()
             tfidf_vec = self.tfidf_objs[col]
