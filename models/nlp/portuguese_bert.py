@@ -1,3 +1,5 @@
+"""Custom Bert model pretrained on Portuguese."""
+
 from h2oaicore.models import TextBERTModel, CustomModel
 
 

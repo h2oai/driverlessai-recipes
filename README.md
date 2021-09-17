@@ -214,7 +214,7 @@ abled.
   * [MONOTONIC](./models/monotonic)
     * [monotonic_models.py](./models/monotonic/monotonic_models.py) [LightGBM/XGBoostGBM/DecisionTree with user-given monotonicity constraints (1/-1/0) for original numeric features] 
   * [NLP](./models/nlp)
-    * [portuguese_bert.py](./models/nlp/portuguese_bert.py) [Custom Bert model pretrained on Portuguese.] <kbd>✓ MOJO Enabled</kbd>
+    * [portuguese_bert.py](./models/nlp/portuguese_bert.py) [Custom Bert model pretrained on Portuguese.] 
     * [text_binary_count_logistic.py](./models/nlp/text_binary_count_logistic.py) [Text classification model using binary count of words] 
     * [text_tfidf_model.py](./models/nlp/text_tfidf_model.py) [Text classification / regression model using TFIDF] 
     * [text_tfidf_model_continuous.py](./models/nlp/text_tfidf_model_continuous.py) [Text classification model using TFIDF] 

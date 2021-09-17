@@ -113,7 +113,8 @@ class CustomModel(BaseCustomModel):
         return config.acceptance_test_timeout
 
     @staticmethod
-    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
+                num_classes=None, **kwargs):
         """
         Return whether the model can be used given the settings and parameters that are passed in.
 
@@ -194,7 +195,6 @@ ll
         Returns: None
         """
         pass
-
 
     def __init__(self, context=None,
                  unfitted_pipeline_path=None,
@@ -428,7 +428,8 @@ class CustomUnsupervisedModel(UnsupervisedModel, CustomModel):
 
     # pick one of the following four presets, or make your own pretransformer
     # needed to convert original data into form the transformer below can handle
-    _included_pretransformers = ['StdFreqPreTransformer']  # standardize numerics, frequency-encode categoricals, drop rest
+    _included_pretransformers = [
+        'StdFreqPreTransformer']  # standardize numerics, frequency-encode categoricals, drop rest
     # _included_pretransformers = ['OrigPreTransformer']  # pass-through numerics, drop rest
     # _included_pretransformers = ['OrigOHEPreTransformer']  # pass-through numerics, one-hot-encode categoricals, drop rest
     # _included_pretransformers = ['OrigFreqPreTransformer']  # pass-through numerics, frequency-encode categoricals, drop rest
@@ -442,5 +443,4 @@ class CustomUnsupervisedModel(UnsupervisedModel, CustomModel):
     _included_scorers = ['UnsupervisedScorer']
 
     # no need to override any other methods
-
 
