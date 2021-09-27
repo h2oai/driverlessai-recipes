@@ -1,6 +1,7 @@
 """Linear Support Vector Machine (SVM) implementation by sklearn. For small data."""
 import datatable as dt
 import numpy as np
+from h2oaicore.systemutils import IgnoreEntirelyError
 from sklearn.preprocessing import LabelEncoder
 from h2oaicore.models import CustomModel
 from sklearn.model_selection import StratifiedKFold
@@ -146,7 +147,12 @@ class LinearSVMModel(CustomModel):
         X = self.basic_impute(X)
         X = X.to_numpy()
         X = self.standard_scaler.fit_transform(X)
-        model.fit(X, y, sample_weight=sample_weight)
+        try:
+            model.fit(X, y, sample_weight=sample_weight)
+        except Exception as e:
+            if 'cross-validation but provided less than' in str(e):
+                raise IgnoreEntirelyError(str(e))
+            raise
         importances = np.array([0.0 for k in range(len(orig_cols))])
         if self.num_classes >= 2:
             for classifier in model.calibrated_classifiers_:
