@@ -50,6 +50,10 @@ class GBMTrainValidScoreGap:
             max_n = max(self.best_iterations, 1)
             min_n = 1
             step_n = max(1, (max_n - min_n) // 20)  # try up to 20 steps from 1 to N trees
+            iter_range = range(min_n, max_n, step_n)
+            if len(iter_range) == 0:
+                loggerinfo(logger, "No steps to take, so no score to optimize between train and valid data")
+                return
 
             mykwargs = {'output_margin': False, 'pred_contribs': False}
             self._predict_by_iteration = False  # allow override below
@@ -61,7 +65,7 @@ class GBMTrainValidScoreGap:
             best_train_score = None
             best_valid_score = None
             scorer = self.get_score_f()  # use the same scorer as the experiment
-            for n in range(min_n, max_n, step_n):
+            for n in iter_range:
                 mykwargs[self._predict_iteration_name] = n  # fix number of trees for predict
                 train_pred = self.predict_model_wrapper(X, **mykwargs)
                 score_train = scorer(actual=y, predicted=train_pred, sample_weight=sample_weight,
