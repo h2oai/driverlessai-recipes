@@ -1,4 +1,5 @@
 """Transformer to parse and augment US airport codes with geolocation info."""
+from h2oaicore.separators import orig_feat_prefix
 from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
 import datatable as dt
@@ -82,7 +83,8 @@ class AirportOriginDestPDTransformer(CustomTransformer):
 
             # self._output_feature_names = ['origin_elevation_ft', 'origin_long', 'origin_lat', 'dest_elevation_ft',
             # 'dest_long', 'dest_lat', 'elevation_diff', 'lat_diff', 'long_diff']
-            self._output_feature_names = ["{}.{}".format(self.transformer_name, f) for f in
+            self._output_feature_names = ["{}{}{}{}{}.{}".format(self.transformer_name,
+                                          orig_feat_prefix, "Origin", orig_feat_prefix, "Dest", f) for f in
                                           ['origin_elevation_ft', 'origin_long', 'origin_lat', 'dest_elevation_ft',
                                            'dest_long', 'dest_lat', 'elevation_diff', 'lat_diff', 'long_diff',
                                            'distance_km']]
