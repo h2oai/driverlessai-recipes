@@ -78,7 +78,7 @@ abled.
  [1.9.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.1)
  [1.9.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.2)
  [1.9.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.3)
-### Count: 246
+### Count: 243
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -240,8 +240,6 @@ abled.
   * [CLASSIFICATION](./scorers/classification)
     * [f3_score.py](./scorers/classification/f3_score.py) [F3 Score] 
     * [f4_score.py](./scorers/classification/f4_score.py) [F4 Score] 
-    * [precision.py](./scorers/classification/precision.py) [Weighted Precision: `TP / (TP + FP)` at threshold for optimal F1 Score.] 
-    * [recall.py](./scorers/classification/recall.py) [Weighted Recall: `TP / (TP + FN)` at threshold for optimal F1 Score.] 
     * [BINARY](./scorers/classification/binary)
       * [average_mcc.py](./scorers/classification/binary/average_mcc.py) [Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems). Example how to use Driverless AI's internal scorer.] 
       * [brier_loss.py](./scorers/classification/binary/brier_loss.py) [Brier Loss] 
@@ -249,10 +247,9 @@ abled.
       * [cost_access_to_data.py](./scorers/classification/binary/cost_access_to_data.py) [Same as CostBinary, but provides access to full Data] 
       * [cost_smooth.py](./scorers/classification/binary/cost_smooth.py) [Using hard-coded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `(1 - y_true) * y_pred * fp_cost + y_true * (1 - y_pred) * fn_cost`] 
       * [fair_auc.py](./scorers/classification/binary/fair_auc.py) [Custom scorer for detecting and reducing bias in machine learning models.] 
-      * [false_discovery_rate.py](./scorers/classification/binary/false_discovery_rate.py) [Weighted False Discovery Rate: `FP / (FP + TP)` at threshold for optimal F1 Score.] 
       * [logloss_with_costs.py](./scorers/classification/binary/logloss_with_costs.py) [Logloss with costs associated with each type of 4 outcomes - typically applicable to fraud use case] 
       * [marketing_campaign.py](./scorers/classification/binary/marketing_campaign.py) [Computes the mean profit per outbound marketing letter, given a fraction of the population addressed, and fixed cost and reward] 
-      * [profit.py](./scorers/classification/binary/profit.py) [Uses domain information about user behavior to calculate the profit or loss of a model.] 
+      * [profit.py](./scorers/classification/binary/profit.py) [Profit Scorer for binary classification] 
     * [MULTICLASS](./scorers/classification/multiclass)
       * [hamming_loss.py](./scorers/classification/multiclass/hamming_loss.py) [Hamming Loss - Misclassification Rate (1 - Accuracy)] 
       * [linear_weighted_kappa.py](./scorers/classification/multiclass/linear_weighted_kappa.py) [Cohen’s Kappa with linear weights] 

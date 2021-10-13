@@ -342,6 +342,7 @@ class CustomTimeSeriesModel(CustomModel):
     _can_handle_text = False  # not handling text
     _included_transformers = ts_raw_data_transformers  # this enforces the constraint on input features
     _lag_recipe_allowed = True  # by default allow lag time series recipe (fold split and features)
+    _causal_recipe_allowed = True  # by default allow causal validation scheme (no lag features)
 
     def __init__(self, context=None, unfitted_pipeline_path=None, transformed_features=None,
                  original_user_cols=None, date_format_strings=dict(), **kwargs):

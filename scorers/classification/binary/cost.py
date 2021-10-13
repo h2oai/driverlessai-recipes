@@ -2,9 +2,9 @@
 
 import typing
 import numpy as np
-from h2oaicore.metrics import CustomScorer
-from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import confusion_matrix
+from h2oaicore.metrics import CustomScorer, prep_actual_predicted
+from sklearn.preprocessing import label_binarize
+import h2o4gpu.util.metrics as daicx
 
 
 class CostBinary(CustomScorer):
@@ -13,12 +13,22 @@ class CostBinary(CustomScorer):
     _maximize = False
     _perfect_score = 0
     _display_name = "Cost"
-    _threshold = 0.5  # Example only, should be adjusted based on domain knowledge and other experiments
+    _threshold_optimizer = "f1"  # used to get the optimal threshold to make labels
 
-    # The cost of false positives and negatives will vary by data set, we use the rules from the below as an example
-    # https://www.kaggle.com/uciml/aps-failure-at-scania-trucks-data-set
-    _fp_cost = 10
-    _fn_cost = 500
+    @staticmethod
+    def _metric(tp, fp, tn, fn):
+        # The cost of false positives and negatives will vary by data set, we use the rules from the below as an example
+        # https://www.kaggle.com/uciml/aps-failure-at-scania-trucks-data-set
+        _fp_cost = 10
+        _fn_cost = 500
+        return ((fp * _fp_cost) + (fn * _fn_cost)) / (
+                tn + fp + fn + tp)  # divide by total weighted count to make loss invariant to data size
+
+    def protected_metric(self, tp, fp, tn, fn):
+        try:
+            return self.__class__._metric(tp, fp, tn, fn)
+        except ZeroDivisionError:
+            return 0 if self.__class__._maximize else 1  # return worst score if ill-defined
 
     def score(self,
               actual: np.array,
@@ -26,18 +36,23 @@ class CostBinary(CustomScorer):
               sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None,
               **kwargs) -> float:
-        # label actuals as 1 or 0
-        lb = LabelEncoder()
-        labels = lb.fit_transform(labels)
-        actual = lb.transform(actual)
 
-        # label predictions as 1 or 0
-        predicted = predicted >= self._threshold
+        if sample_weight is not None:
+            sample_weight = sample_weight.ravel()
+        enc_actual, enc_predicted, labels = prep_actual_predicted(actual, predicted, labels)
+        cm_weights = sample_weight if sample_weight is not None else None
 
-        # use sklearn to get fp and fn
-        cm = confusion_matrix(actual, predicted, sample_weight=sample_weight, labels=labels)
-        tn, fp, fn, tp = cm.ravel()
+        # multiclass
+        if enc_predicted.shape[1] > 1:
+            enc_predicted = enc_predicted.ravel()
+            enc_actual = label_binarize(enc_actual, labels).ravel()
+            cm_weights = np.repeat(cm_weights, predicted.shape[1]).ravel() if cm_weights is not None else None
+            assert enc_predicted.shape == enc_actual.shape
+            assert cm_weights is None or enc_predicted.shape == cm_weights.shape
 
-        # calculate`$1*FP + $2*FN`
-        return ((fp * self.__class__._fp_cost) + (fn * self.__class__._fn_cost)) / (
-                tn + fp + fn + tp)  # divide by total weighted count to make loss invariant to data size
+        cms = daicx.confusion_matrices(enc_actual.ravel(), enc_predicted.ravel(), sample_weight=cm_weights)
+        cms = cms.loc[
+            cms[[self.__class__._threshold_optimizer]].idxmax()]  # get row(s) for optimal metric defined above
+        cms['metric'] = cms[['tp', 'fp', 'tn', 'fn']].apply(lambda x: self.protected_metric(*x), axis=1, raw=True)
+        return cms['metric'].mean()  # in case of ties
+
