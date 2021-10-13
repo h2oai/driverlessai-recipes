@@ -12,6 +12,7 @@ class CustomScorer(BaseScorer):
     _perfect_score = 1.0  # the ideal score, used for early stopping once validation score achieves this value
 
     _supports_sample_weight = True  # whether the scorer accepts and uses the sample_weight input
+    _max_num_rows = None  # limit number of rows via automatic sampling (only if slow)
 
     """Please enable the problem types this scorer applies to"""
     _unsupervised = False  # ignores actual, uses predicted and X to compute metrics
@@ -79,6 +80,11 @@ class CustomScorer(BaseScorer):
 
 class CustomUnsupervisedScorer(UnsupervisedScorer, CustomScorer):
     _perfect_score = 0.0  # Please modify accordingly
+    _max_num_rows = None  # limit number of rows via automatic sampling (only if slow)
+
+    @staticmethod
+    def do_acceptance_test():
+        return False  # don't know what to test, since can be arbitrary
 
     def score(
             self,
