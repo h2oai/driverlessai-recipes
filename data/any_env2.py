@@ -69,12 +69,12 @@ def create_data_popen(func, *args, pyversion="3.8", install_h2oaicore=False, ins
     with open(script_name, "wt") as f:
         print("set -o pipefail", file=f)
         print("set -ex", file=f)
+        print("unset PYTHONPATH", file=f)
+        print("unset PYTHONUSERBASE", file=f)
         print("mkdir -p %s" % env_path, file=f)
         if not use_cache:
             print("virtualenv -p python%s %s" % (pyversion, env_path), file=f)
         print("source %s/bin/activate" % env_path, file=f)
-        print("unset PYTHONPATH", file=f)
-        print("unset PYTHONUSERBASE", file=f)
         if not use_cache:
             print("python -m pip install --upgrade pip", file=f)
             print("%s/bin/python -m pip debug --verbose" % (env_path), file=f)

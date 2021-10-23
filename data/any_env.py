@@ -42,6 +42,8 @@ class FreshEnvData(CustomData):
         with open(script_name, "wt") as f:
             print("set -o pipefail", file=f)
             print("set -ex", file=f)
+            print("unset PYTHONPATH", file=f)
+            print("unset PYTHONUSERBASE", file=f)
             print("mkdir -p %s" % env_path, file=f)
             print("virtualenv -p python%s %s" % (pyversion, env_path), file=f)
             print("source %s/bin/activate" % env_path, file=f)
