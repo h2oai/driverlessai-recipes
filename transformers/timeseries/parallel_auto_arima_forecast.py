@@ -52,7 +52,7 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
     """Implementation of the ARIMA transformer using a pool of processes to fit models in parallel"""
     _binary = False
     _multiclass = False
-    _modules_needed_by_name = ['pmdarima==1.3']
+    _modules_needed_by_name = ['pmdarima==1.8.3']
     _included_model_classes = None
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _lag_recipe_allowed = True

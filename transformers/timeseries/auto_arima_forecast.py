@@ -16,7 +16,7 @@ from h2oaicore.separators import orig_feat_prefix, extra_prefix
 class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
     _binary = False
     _multiclass = False
-    _modules_needed_by_name = ['pmdarima==1.5']
+    _modules_needed_by_name = ['pmdarima==1.8.3']
     _included_model_classes = None
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _lag_recipe_allowed = True
