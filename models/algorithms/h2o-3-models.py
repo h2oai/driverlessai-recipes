@@ -48,20 +48,27 @@ class H2OBaseModel:
 
         self.params = {}
 
-        if self._is_gbm:
-            self.params.update(self.get_gbm_main_params_evolution(num_classes=num_classes,
+        gbm_params = self.get_gbm_main_params_evolution(num_classes=num_classes,
                                                                   accuracy=accuracy,
                                                                   time_tolerance=time_tolerance,
-                                                                  **kwargs))
+                                                                  **kwargs)
+
+        if isinstance(self, H2OGBMModel):
+            if self._fit_iteration_name in gbm_params:
+                self.params[self._fit_iteration_name] = gbm_params[self._fit_iteration_name]
             self.transcribe()
 
             self.params['col_sample_rate'] = 0.7
             self.params['sample_rate'] = 1.0
             self.params['max_depth'] = 6
             self.params['stopping_metric'] = 'auto'
+        elif isinstance(self, (H2ORFModel, H2OGLMModel)):
+            if self._fit_iteration_name in gbm_params:
+                self.params[self._fit_iteration_name] = gbm_params[self._fit_iteration_name]
+            self.transcribe()
 
-        if not self._is_gbm:
-            # don't limit time for gbm
+        if not isinstance(self, (H2OGBMModel, H2OGLMModel, H2ORFModel)):
+            # don't limit time for gbm, glm, rf
             max_runtime_secs = 600
             if accuracy is not None and time_tolerance is not None:
                 max_runtime_secs = accuracy * (time_tolerance + 1) * 10  # customize here to your liking
@@ -79,19 +86,28 @@ class H2OBaseModel:
         if 'early_stopping_threshold' in self.params:
             self.params['stopping_tolerance'] = self.params.pop('early_stopping_threshold')
 
-        if 'n_estimators' in self.params:
-            self.params['ntrees'] = self.params.pop('n_estimators')
-        if 'learning_rate' in self.params:
-            self.params['learn_rate'] = self.params.pop('learning_rate')
+        if isinstance(self, (H2OGBMModel, H2ORFModel, H2OGLMModel)):
+            if self._fit_iteration_name in self.params_base and self._fit_iteration_name not in self.params:
+                self.params[self._fit_iteration_name] = self.params_base[self._fit_iteration_name]
 
-        # TODO:
-        # self.params['monotone_constraints']
+            if config.hard_asserts and self._fit_iteration_name in self.params:
+                # Shapley too slow even with 50 trees, so avoid for testing
+                self.params[self._fit_iteration_name] = min(self.params[self._fit_iteration_name], 3)
 
-        # have to enforce in case mutation was 1-by-1 instead of all
-        if 'nbins_top_level' in self.params and 'nbins' in self.params:
-            self.params['nbins_top_level'] = max(self.params['nbins_top_level'], self.params['nbins'])
-        if 'min_rows' in self.params and X is not None:
-            self.params["min_rows"] = min(self.params["min_rows"], max(1, int(0.5 * X.nrows)))
+        if isinstance(self, H2OGBMModel):
+            if 'learning_rate' in self.params_base:
+                self.params['learn_rate'] = self.params_base['learning_rate']
+            if 'learning_rate' in self.params:
+                self.params['learn_rate'] = self.params.pop('learning_rate')
+
+            # TODO:
+            # self.params['monotone_constraints']
+
+            # have to enforce in case mutation was 1-by-1 instead of all
+            if 'nbins_top_level' in self.params and 'nbins' in self.params:
+                self.params['nbins_top_level'] = max(self.params['nbins_top_level'], self.params['nbins'])
+            if 'min_rows' in self.params and X is not None:
+                self.params["min_rows"] = min(self.params["min_rows"], max(1, int(0.5 * X.nrows)))
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         X = dt.Frame(X)
@@ -361,7 +377,7 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
         return self.labels is None or len(self.labels) <= 2
 
     def get_iterations(self, model):
-        return model.params['ntrees']['actual'] + 1
+        return model.params[self._fit_iteration_name]['actual'] + 1
 
     def mutate_params(self,
                       **kwargs):
@@ -396,24 +412,39 @@ class H2ORFModel(H2OBaseModel, CustomModel):
     _display_name = "H2O RF"
     _description = "H2O-3 Random Forest"
     _class = H2ORandomForestEstimator
+    _is_gbm = True  # gbm means gbm-like parameters like n_estimators (ntrees) not literally only gbm
+    _support_early_stopping = False  # so doesn't assume early stopping done, so no large tree counts by default
+    _fit_by_iteration = True
+    _fit_iteration_name = 'ntrees'
+    _predict_by_iteration = False
 
     @property
     def has_pred_contribs(self):
         return self.labels is None or len(self.labels) <= 2
 
     def get_iterations(self, model):
-        return model.params['ntrees']['actual'] + 1
+        return model.params[self._fit_iteration_name]['actual'] + 1
 
-    def mutate_params(self,
+    def set_default_params(self, logger=None, num_classes=None, accuracy=10, time_tolerance=10, **kwargs):
+        super().set_default_params(logger=logger, num_classes=num_classes, accuracy=accuracy, time_tolerance=time_tolerance, **kwargs)
+        self.mutate_params(get_best=True, accuracy=accuracy, time_tolerance=time_tolerance, **kwargs)
+
+    def mutate_params(self, get_best=False,
+                      accuracy=10, time_tolerance=10,
                       **kwargs):
-        max_iterations = min(kwargs['n_estimators'],
-                             config.max_nestimators) if 'n_estimators' in kwargs else config.max_nestimators
-        max_iterations = min(kwargs['iterations'], max_iterations) if 'iterations' in kwargs else max_iterations
-        self.params['ntrees'] = max_iterations
-        self.params['stopping_rounds'] = int(np.random.choice([5, 10, 20]))
-        self.params['max_depth'] = int(np.random.choice(range(2, 11)))
-        self.params['nbins'] = int(np.random.choice([16, 32, 64, 128, 256]))
-        self.params['sample_rate'] = float(np.random.choice([0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
+        n_estimators_list = config.n_estimators_list_no_early_stopping
+        if config.hard_asserts:
+            # Shapley too slow even with 50 trees, so avoid for testing
+            n_estimators_list = [min(3, x) for x in n_estimators_list]
+
+        self.params[self._fit_iteration_name] = self.get_one(n_estimators_list, get_best=get_best, best_type='first',
+                                                             name=self._fit_iteration_name)
+        self.params['max_depth'] = int(
+            self.get_one([6, 2, 3, 4, 5, 7, 8, 9, 10, 11], get_best=get_best, best_type='first', name='max_depth'))
+        self.params['nbins'] = int(
+            self.get_one([128, 16, 32, 64, 256], get_best=get_best, best_type='first', name='nbins'))
+        self.params['sample_rate'] = float(
+            self.get_one([0.5, 0.6, 0.7, 0.8, 0.9, 1.0], get_best=get_best, best_type='first', name='sample_rate'))
 
 
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
@@ -425,6 +456,13 @@ class H2ODLModel(H2OBaseModel, CustomModel):
     _display_name = "H2O DL"
     _description = "H2O-3 DeepLearning"
     _class = H2ODeepLearningEstimator
+    _fit_by_iteration = True
+    _fit_iteration_name = 'epochs'
+    _predict_by_iteration = False
+
+    def set_default_params(self, logger=None, num_classes=None, accuracy=10, time_tolerance=10, **kwargs):
+        super().set_default_params(logger=logger, num_classes=num_classes, accuracy=accuracy, time_tolerance=time_tolerance, **kwargs)
+        self.mutate_params(accuracy=accuracy, time_tolerance=time_tolerance, **kwargs)
 
     def mutate_params(self,
                       accuracy=10, time_tolerance=10,
@@ -438,6 +476,9 @@ class H2ODLModel(H2OBaseModel, CustomModel):
                                                   [200, 200], [200, 200, 200],
                                                   [500], [500, 500], [500, 500, 500]])
         self.params['epochs'] = accuracy * max(1, time_tolerance)
+        if config.hard_asserts:
+            # avoid long times for testing
+            self.params['epochs'] = min(self.params['epochs'], 3)
         self.params['input_dropout_ratio'] = float(np.random.choice([0, 0.1, 0.2]))
 
 
@@ -448,6 +489,10 @@ class H2OGLMModel(H2OBaseModel, CustomModel):
     _display_name = "H2O GLM"
     _description = "H2O-3 Generalized Linear Model"
     _class = H2OGeneralizedLinearEstimator
+    _is_gbm = True  # gbm means gbm-like parameters like n_estimators (ntrees) not literally only gbm
+    _fit_by_iteration = True
+    _fit_iteration_name = 'max_iterations'
+    _predict_by_iteration = False
 
     def make_instance(self, **kwargs):
         if self.num_classes == 1:
