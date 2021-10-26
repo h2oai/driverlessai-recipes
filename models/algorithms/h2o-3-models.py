@@ -412,7 +412,7 @@ class H2ORFModel(H2OBaseModel, CustomModel):
     _display_name = "H2O RF"
     _description = "H2O-3 Random Forest"
     _class = H2ORandomForestEstimator
-    _is_gbm = False   # gbm means gbm-like parameters like n_estimators (ntrees) not literally only gbm, but set False for now while RF being fixed
+    _is_gbm = True  # gbm means gbm-like parameters like n_estimators (ntrees) not literally only gbm
     _support_early_stopping = False  # so doesn't assume early stopping done, so no large tree counts by default
     _fit_by_iteration = True
     _fit_iteration_name = 'ntrees'
