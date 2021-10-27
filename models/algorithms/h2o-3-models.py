@@ -11,7 +11,7 @@ from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError,
 import numpy as np
 import pandas as pd
 
-_global_modules_needed_by_name = ['h2o==3.32.1.7']
+_global_modules_needed_by_name = ['h2o==3.34.0.3']
 import h2o
 import os
 
