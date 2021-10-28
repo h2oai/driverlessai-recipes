@@ -4,7 +4,7 @@ import numpy as np
 from h2oaicore.models import CustomModel
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
-from h2oaicore.systemutils import physical_cores_count
+from h2oaicore.systemutils import physical_cores_count, config
 
 
 class RandomForestModel(CustomModel):
@@ -28,8 +28,15 @@ class RandomForestModel(CustomModel):
             estimators_list = [100, 200, 300, 500, 1000, 2000]
         elif accuracy >= 5:
             estimators_list = [50, 100, 200, 300, 400, 500]
+        elif accuracy >= 3:
+            estimators_list = [10, 50, 100]
+        elif accuracy >= 2:
+            estimators_list = [10, 50]
         else:
-            estimators_list = [10, 50, 100, 150, 200, 250, 300]
+            estimators_list = [10]
+        if config.hard_asserts:
+            # for testing avoid too many trees
+            estimators_list = [3]
         # Modify certain parameters for tuning
         self.params["n_estimators"] = int(np.random.choice(estimators_list))
         self.params["criterion"] = np.random.choice(["gini", "entropy"]) if self.num_classes >= 2 \
