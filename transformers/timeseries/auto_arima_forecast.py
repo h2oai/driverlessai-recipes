@@ -165,7 +165,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
 
         return pd.concat(tuple(scaled_ys), axis=0)
 
-    def transform(self, X: dt.Frame):
+    def transform(self, X: dt.Frame, **kwargs):
         """
         Uses fitted models (1 per time group) to predict the target
         If self.is_train exists, it means we are doing in-sample predictions
@@ -302,12 +302,13 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
 
         y_predictions.drop(tgc_wo_time, axis=1, inplace=True)
 
-        self._output_feature_names = [f'{self.display_name}{orig_feat_prefix}{self.time_column}{extra_prefix}{_f}'
-                                      for _f in y_predictions]
-        self._feature_desc = self._output_feature_names
+        if kwargs.get('is_fit', False):
+            self._output_feature_names = [f'{self.display_name}{orig_feat_prefix}{self.time_column}{extra_prefix}{_f}'
+                                          for _f in y_predictions]
+            self._feature_desc = self._output_feature_names
         return y_predictions
 
-    def fit_transform(self, X: dt.Frame, y: np.array = None):
+    def fit_transform(self, X: dt.Frame, y: np.array = None, **kwargs):
         """
         Fits the ARIMA models (1 per time group) and outputs the corresponding predictions
         :param X: Datatable Frame
@@ -317,7 +318,7 @@ class MyAutoArimaTransformer(CustomTimeSeriesTransformer):
 
         # Flag the fact we are doing in-sample predictions
         self.is_train = True
-        ret = self.fit(X, y).transform(X)
+        ret = self.fit(X, y).transform(X, is_fit=True)
         del self.is_train
         return ret
 
