@@ -15,6 +15,18 @@ class RandomForestModel(CustomModel):
     _description = "Random Forest Model based on sklearn"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
+    @staticmethod
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
+        if config.hard_asserts:
+            # for bigger data, too slow to test even with 1 iteration
+            use = train_shape is not None and train_shape[0] * train_shape[1] < 1024 * 1024 or \
+                  valid_shape is not None and valid_shape[0] * valid_shape[1] < 1024 * 1024
+            # too slow for walmart with only 421k x 15
+            use &= train_shape is not None and train_shape[1] < 10
+            return use
+        else:
+            return True
+
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
         # Fill up parameters we care about
@@ -57,7 +69,7 @@ class RandomForestModel(CustomModel):
         min_samples_leaf_list = [1, 2, 5]
         self.params['min_samples_leaf'] = int(np.random.choice(min_samples_leaf_list))
         oob_score_list = [True, False]
-        self.params['oob_score'] = int(np.random.choice(oob_score_list))
+        self.params['oob_score'] = bool(np.random.choice(oob_score_list))
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         orig_cols = list(X.names)
