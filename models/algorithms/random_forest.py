@@ -18,10 +18,19 @@ class RandomForestModel(CustomModel):
     def set_default_params(self, accuracy=None, time_tolerance=None,
                            interpretability=None, **kwargs):
         # Fill up parameters we care about
+        n_estimators = min(kwargs.get("n_estimators", 100), 1000)
+        if config.hard_asserts:
+            # for testing avoid too many trees
+            n_estimators = 10
         self.params = dict(random_state=kwargs.get("random_state", 1234),
-                           n_estimators=min(kwargs.get("n_estimators", 100), 1000),
+                           n_estimators=n_estimators,
                            criterion="gini" if self.num_classes >= 2 else "mse",
-                           n_jobs=self.params_base.get('n_jobs', max(1, physical_cores_count)))
+                           n_jobs=self.params_base.get('n_jobs', max(1, physical_cores_count)),
+                           max_depth=14,
+                           min_samples_split=2,
+                           min_samples_leaf=1,
+                           oob_score=False,
+                           )
 
     def mutate_params(self, accuracy=10, **kwargs):
         if accuracy > 8:
@@ -36,11 +45,19 @@ class RandomForestModel(CustomModel):
             estimators_list = [10]
         if config.hard_asserts:
             # for testing avoid too many trees
-            estimators_list = [3]
+            estimators_list = [10]
         # Modify certain parameters for tuning
         self.params["n_estimators"] = int(np.random.choice(estimators_list))
         self.params["criterion"] = np.random.choice(["gini", "entropy"]) if self.num_classes >= 2 \
             else np.random.choice(["mse", "mae"])
+        max_depth_list = [6, 10, 14, 20]
+        self.params['max_depth'] = int(np.random.choice(max_depth_list))
+        min_samples_split_list = [2, 4, 10]
+        self.params['min_samples_split'] = int(np.random.choice(min_samples_split_list))
+        min_samples_leaf_list = [1, 2, 5]
+        self.params['min_samples_leaf'] = int(np.random.choice(min_samples_leaf_list))
+        oob_score_list = [True, False]
+        self.params['oob_score'] = int(np.random.choice(oob_score_list))
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         orig_cols = list(X.names)
