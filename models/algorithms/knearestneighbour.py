@@ -1,6 +1,7 @@
 """K-Nearest Neighbor implementation by sklearn. For small data (< 200k rows)."""
 import datatable as dt
 import numpy as np
+from h2oaicore.systemutils import config
 from sklearn.preprocessing import LabelEncoder
 from h2oaicore.models import CustomModel
 from sklearn.preprocessing import StandardScaler
@@ -17,11 +18,25 @@ class KNearestNeighbourModel(CustomModel):
     _display_name = "KNearestNeighbour"
     _description = "K Nearest Neighbour Model based on sklearn. Not adviced if the data is larger than 200K rows"
 
+    @staticmethod
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
+        if config.hard_asserts:
+            # for bigger data, too slow to test even with 1 iteration
+            use = train_shape is not None and train_shape[0] * train_shape[1] < 1024 * 1024 or \
+                  valid_shape is not None and valid_shape[0] * valid_shape[1] < 1024 * 1024
+            # too slow for walmart with only 421k x 15 even with 10 neighbors
+            use &= train_shape is not None and train_shape[1] < 10
+            return use
+        else:
+            return True
+
     def set_default_params(self,
                            accuracy=None, time_tolerance=None, interpretability=None,
                            **kwargs):
         n_jobs = -1
         n_neighbors = min(kwargs['n_neighbors'], 1000) if 'n_neighbors' in kwargs else 10
+        if config.hard_asserts:
+            n_neighbors = 3
         metric = kwargs['metric'] if "metric" in kwargs and kwargs['metric'] in ["minkowski",
                                                                                  "cityblock"] else "cityblock"
         self.params = {'n_neighbors': n_neighbors,
@@ -41,6 +56,8 @@ class KNearestNeighbourModel(CustomModel):
             list_of_neibs = [100, 200, 300, 500, 1000, 2000]
         elif accuracy >= 5:
             list_of_neibs = [50, 100, 200, 300, 400, 500]
+        if config.hard_asserts:
+            list_of_neibs = [3]
 
         index = np.random.randint(0, high=len(list_of_neibs))
         n_neighbors = list_of_neibs[index]
