@@ -26,7 +26,7 @@ class MyRoundTransformer(CustomTransformer):
     def transform(self, X: dt.Frame):
         return np.round(X.to_numpy(), decimals=self.decimals)
 
-    _mojo = True
+    _mojo = False  # custom op not actually implemented, below is example how one would do it
 
     from h2oaicore.mojo import MojoWriter, MojoFrame
     def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):

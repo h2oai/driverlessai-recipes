@@ -340,7 +340,7 @@ abled.
     * [ohe.py](./transformers/numeric/ohe.py) [One-Hot Encoding for categorical columns] 
     * [product.py](./transformers/numeric/product.py) [Products together 3 or more numeric features] 
     * [random_transformer.py](./transformers/numeric/random_transformer.py) [Creates random numbers] 
-    * [round_transformer.py](./transformers/numeric/round_transformer.py) [Rounds numbers to 1, 2 or 3 decimals] <kbd>✓ MOJO Enabled</kbd>
+    * [round_transformer.py](./transformers/numeric/round_transformer.py) [Rounds numbers to 1, 2 or 3 decimals] 
     * [square_root_transformer.py](./transformers/numeric/square_root_transformer.py) [Converts numbers to the square root, preserving the sign of the original numbers] 
     * [sum.py](./transformers/numeric/sum.py) [Adds together 3 or more numeric features] 
     * [truncated_svd_all.py](./transformers/numeric/truncated_svd_all.py) [Truncated SVD for all columns] 
