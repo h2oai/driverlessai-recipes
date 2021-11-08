@@ -80,7 +80,7 @@ abled.
  [1.9.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.3)
  [1.10.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.0)
  [1.10.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.1)
-### Count: 243
+### Count: 244
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -181,6 +181,7 @@ abled.
   * [mock_tf_test.py](./models/mock_tf_test.py) [For GPU usage testing purposes.] 
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.] 
   * [ALGORITHMS](./models/algorithms)
+    * [autogluon.py](./models/algorithms/autogluon.py) [AutoGluon + RAPIDS] 
     * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines] <kbd>✓ MOJO Enabled</kbd>
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.] 
     * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL] 
