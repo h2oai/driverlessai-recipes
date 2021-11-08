@@ -8,6 +8,16 @@ _global_modules_needed_by_name = []  # Optional global package requirements, for
 
 
 class CustomModel(BaseCustomModel):
+    """
+    Display name.  If not specified, then uses class name, with "Model" on end removed if that exists
+    """
+    # _display_name = ""
+
+    """
+    Descriptoin.  If not specified, then uses display name
+    """
+    # _description = ""
+
     """Ideally, we want a model to work with all types of supervised problems.
     Please enable the problem types it can support."""
     _unsupervised = False  # if True, ignores y
@@ -47,6 +57,8 @@ class CustomModel(BaseCustomModel):
     _can_use_gpu = False  # if enabled, will use special job scheduler for GPUs
     _can_use_multi_gpu = False  # if enabled, can get access to multiple GPUs for single transformer (experimental)
     _get_gpu_lock = False  # whether to lock GPUs for this model before fit and predict
+    _get_gpu_lock_vis = False  # whether to lock GPUs via CUDA_VISIBLE_DEVICES selection so algorithm only sees the restricted set of GPUs
+    _must_use_gpu = False  # whether the model is only for GPUs
     _description = NotImplemented
     _check_stall = True  # whether to check for stall, should disable if separate server running task
 
@@ -78,6 +90,19 @@ class CustomModel(BaseCustomModel):
 
     """ Name of kwarg passed to predict to control iterations (ignored if _predict_by_iteration=False)"""
     _predict_iteration_name = None
+
+    """
+    isolate_env controls whether recipe is isolated in separate env (dict) or runs within DAI env (None)
+    The dict has keys:
+    pyversion: str : "3.6", "3.7", "3.8"
+    install_h2oaicore: bool : whether to install h2oaicore (not recommended)
+    install_datatable: bool : whether to install datatable (3.8 python only)
+    cache_env=True: bool : whether to cache env, so isn't generated every fit-predict
+    cache_by_full_module_name: bool : whether to cache env by full module name (True) or by model class name (False)
+    install_pip: str : "latest", exact version (e.g. "21.1"), or None (no change to default pip)
+    modules_needed_by_name: list : e.g. ['autogluon==0.3.1']
+    """
+    isolate_env = None
 
     @staticmethod
     def is_enabled():
@@ -262,7 +287,25 @@ ll
         Recipe can raise h2oaicore.systemutils.IgnoreEntirelyError to ignore error in all cases (including acceptance testing)
 
         """
-        raise NotImplemented("No fit for %s" % self.__class__.__name__)
+        if self.isolate_env is None:
+            raise NotImplemented("No fit for %s" % self.__class__.__name__)
+        else:
+            return super().fit(X, y, sample_weight=sample_weight, eval_set=eval_set,
+                               sample_weight_eval_set=sample_weight_eval_set, **kwargs)
+
+    @staticmethod
+    def fit_static(X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        """
+        Fit function used for fitting within isolated environment
+        :param X: datatable frame of X
+        :param y: numpy frame of y
+        :param sample_weight: numpy frame of sample weight or None
+        :param eval_set: single evaluation set in form [(valid_X, valid_y)] with valid_X as datatable frame and valid_y as numpy frame
+        :param sample_weight_eval_set: single sample weight for evalulation set in form [valid_sample_weight] with valid_sample_weight as numpy frame
+        :param kwargs: various useful kwargs, like num_classes, n_gpus, n_jobs, labels, accuracy, interpretability
+        :return: model object (must be picklable.  If not directly picklable, one can use the model's save function to write to disk, then read that as a binary object and return that instead)
+        """
+        raise NotImplementedError
 
     def set_feature_importances(self, feature_importances, normalize=True):
         df_imp = pd.DataFrame()
@@ -294,8 +337,21 @@ ll
         Recipe can raise h2oaicore.systemutils.IgnoreEntirelyError to ignore error in all cases (including acceptance testing)
 
         """
+        if self.isolate_env is None:
+            raise NotImplemented("No predict for %s" % self.__class__.__name__)
+        else:
+            return super().predict(X, **kwargs)
 
-        raise NotImplemented("No predict for %s" % self.__class__.__name__)
+    @staticmethod
+    def predict_static(model, X, **kwargs):
+        """
+        Predict function used for predicting within isolated environment
+        :param model: model object returned from fit
+        :param X: datatable frame to predict on
+        :param kwargs: various useful kwargs, like num_classes
+        :return: predictions as datatable frame
+        """
+        raise NotImplementedError
 
     def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):  # -> MojoFrame:
         """
