@@ -1,4 +1,4 @@
-"""AutoGluon + RAPIDS"""
+"""AutoGluon + RAPIDSqgit q"""
 from h2oaicore.models_custom import CustomModel
 
 
@@ -30,6 +30,12 @@ class AutoGluonModel(CustomModel):
     isolate_env = dict(pyversion="3.8", install_h2oaicore=False, install_datatable=True, cache_env=True,
                        cache_by_full_module_name=False, install_pip="latest",
                        modules_needed_by_name=['autogluon==0.3.1'])
+
+    @staticmethod
+    def is_enabled():
+        import os
+        # avoid testing until speed-up when used
+        return 'GIT_HASH' not in os.environ
 
     @staticmethod
     def acceptance_test_coverage_fraction():
