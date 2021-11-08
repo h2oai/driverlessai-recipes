@@ -1,4 +1,4 @@
-"""AutoGluon + RAPIDSqgit q"""
+"""AutoGluon + RAPIDS"""
 from h2oaicore.models_custom import CustomModel
 
 
