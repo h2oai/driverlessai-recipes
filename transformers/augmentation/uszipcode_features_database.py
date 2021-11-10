@@ -49,7 +49,7 @@ class USZipcodeDBTransformer(CustomTransformer):
         if self.transformer_name.endswith("Transformer"):
             self.transformer_name = self.transformer_name[:-len("Transformer")]
 
-    search = SearchEngine(simple_zipcode=False)
+        self.search = SearchEngine(simple_zipcode=False)
 
     def get_zipcode_features(self, value):
         if value is None or not value:
