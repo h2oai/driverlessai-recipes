@@ -20,4 +20,9 @@ class MyTopQuartileMedianAbsErrorScorer(CustomScorer):
               **kwargs) -> float:
         cutoff = np.quantile(predicted, 0.9)
         which = (predicted >= cutoff).ravel()
-        return float(np.median(np.abs(actual[which] - predicted[which])))
+        if any(which):
+            # must have one entry at least, else np.median([]) will give nan
+            return float(np.median(np.abs(actual[which] - predicted[which])))
+        else:
+            # constant of some other case when no 90% quantile, just use all values
+            return float(np.median(np.abs(actual - predicted)))
