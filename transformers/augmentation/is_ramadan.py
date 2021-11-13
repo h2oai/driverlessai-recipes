@@ -1,4 +1,5 @@
 """Returns a flag for whether a date falls on Ramadan in Saudi Arabia"""
+from h2oaicore.systemutils import IgnoreEntirelyError
 from h2oaicore.transformer_utils import CustomTimeSeriesTransformer
 import datatable as dt
 import numpy as np
@@ -47,7 +48,8 @@ class RamadanTransformer(CustomTimeSeriesTransformer):
     def transform(self, X: dt.Frame):
         X = X[:, self.time_column]
         if X[:, self.time_column].ltypes[0] != dt.ltype.str:
-            assert self.datetime_formats[self.time_column] in ["%Y%m%d", "%Y%m%d%H%M", "%Y", "%Y%m"]
+            if self.datetime_formats[self.time_column] not in ["%Y%m%d", "%Y%m%d%H%M", "%Y", "%Y%m"]:
+                raise IgnoreEntirelyError("Unsupported format %s" % self.datetime_formats[self.time_column])
             X[:, self.time_column] = dt.stype.str32(dt.stype.int64(dt.f[0]))
         X.replace(['', 'None'], None)
         X = X.to_pandas()
