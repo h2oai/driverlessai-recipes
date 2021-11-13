@@ -19,6 +19,7 @@ from sklearn.preprocessing import LabelEncoder
 class GermanyLandersHolidayTransformer2(CustomTimeSeriesTransformer):
     _modules_needed_by_name = ['holidays']
     _display_name = 'DE_Holidays'
+    _allow_transform_to_modify_output_feature_names = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -73,9 +74,9 @@ class GermanyLandersHolidayTransformer2(CustomTimeSeriesTransformer):
         # create the list of holidays for Germany and Landers
         self.fit(X, y)
         # Transform the date
-        return self.transform(X)
+        return self.transform(X, is_fit=True)
 
-    def transform(self, X: dt.Frame):
+    def transform(self, X: dt.Frame, **kwargs):
         # Keep date only
         X = X[:, self.time_column].to_pandas()
         # Transform to pandas date time
@@ -106,8 +107,9 @@ class GermanyLandersHolidayTransformer2(CustomTimeSeriesTransformer):
             for prov in ['country', 'BW', 'BY', 'BE', 'BB', 'HB', 'HH', 'HE',
                          'MV', 'NI', 'NW', 'RP', 'SL', 'SN', 'ST', 'SH', 'TH']
         ]
-        self._output_feature_names = list(features)
-        self._feature_desc = list(features)
+        if kwargs.get('is_fit', False):
+            self._output_feature_names = list(features)
+            self._feature_desc = list(features)
 
         return X
 
