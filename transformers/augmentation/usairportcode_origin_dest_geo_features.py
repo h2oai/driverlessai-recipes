@@ -47,7 +47,7 @@ class AirportOriginDestDTTransformer(CustomTransformer):
             X_origin = origin_dt[:, :, dt.join(codes_dt)]
             del X_origin[:, "iata_code"]
             X_origin.names = ["origin_elevation_ft", "origin_long", "origin_lat"]
-            self._output_feature_names = ["{}{}{}".format(self._display_name, orig_feat_prefix, f) for f in
+            self._output_feature_names = ["{}{}{}{}{}".format(self._display_name, orig_feat_prefix, "Origin", orig_feat_prefix, f) for f in
                                           X_origin.names]
             self._feature_desc = ['Origin Elevation Ft.', 'Origin Longitude', 'Origin Latitude']
         else:
@@ -63,7 +63,7 @@ class AirportOriginDestDTTransformer(CustomTransformer):
             del X_dest[:, "iata_code"]
             X_dest.names = ["dest_elevation_ft", "dest_long", "dest_lat"]
             self._output_feature_names = self._output_feature_names + [
-                "{}{}{}".format(self._display_name, orig_feat_prefix, f) for f in
+                "{}{}{}{}{}".format(self._display_name, orig_feat_prefix, "Dest", orig_feat_prefix, f) for f in
                 X_dest.names]
             self._feature_desc = self._feature_desc + ['Destination Elevation', 'Destination Longitude',
                                                        'Destination Latitude']
