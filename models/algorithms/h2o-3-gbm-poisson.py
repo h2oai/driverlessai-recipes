@@ -60,7 +60,7 @@ class H2OBaseModel:
         orig_cols = list(X.names)
         train_X = h2o.H2OFrame(X.to_pandas())
         self.col_types = train_X.types
-        train_y = h2o.H2OFrame(y,
+        train_y = h2o.H2OFrame(np.fabs(y),
                                column_names=[self.target],
                                column_types=['categorical' if self.num_classes >= 2 else 'numeric'])
         train_frame = train_X.cbind(train_y)
@@ -75,7 +75,7 @@ class H2OBaseModel:
         model = None
         if eval_set is not None:
             valid_X = h2o.H2OFrame(eval_set[0][0].to_pandas(), column_types=self.col_types)
-            valid_y = h2o.H2OFrame(eval_set[0][1],
+            valid_y = h2o.H2OFrame(np.fabs(eval_set[0][1]),
                                    column_names=[self.target],
                                    column_types=['categorical' if self.num_classes >= 2 else 'numeric'])
             valid_frame = valid_X.cbind(valid_y)
