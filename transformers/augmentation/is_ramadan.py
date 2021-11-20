@@ -49,7 +49,9 @@ class RamadanTransformer(CustomTimeSeriesTransformer):
         X = X[:, self.time_column]
         if X[:, self.time_column].ltypes[0] != dt.ltype.str:
             if self.datetime_formats[self.time_column] not in ["%Y%m%d", "%Y%m%d%H%M", "%Y", "%Y%m"]:
-                raise IgnoreEntirelyError("Unsupported format %s" % self.datetime_formats[self.time_column])
+                # raise IgnoreEntirelyError("Unsupported format %s" % self.datetime_formats[self.time_column])
+                # just return bad data, so feature is not pruned and breaks backend tuning
+                return np.zeros((X.shape[0], 1))
             X[:, self.time_column] = dt.stype.str32(dt.stype.int64(dt.f[0]))
         X.replace(['', 'None'], None)
         X = X.to_pandas()
