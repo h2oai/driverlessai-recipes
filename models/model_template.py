@@ -160,7 +160,7 @@ class CustomModel(BaseCustomModel):
             valid_shape (tuple): Shape of validation data
 
             n_gpus (int): Number of GPUs available on the system (e.g., to disable GPU-only models if no GPUs available)
-ll
+
             **kwargs (dict): Optional dictionary containing system-level information for advanced usage
 
         Returns: bool

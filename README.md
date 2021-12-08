@@ -80,7 +80,7 @@ abled.
  [1.9.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.3)
  [1.10.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.0)
  [1.10.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.1)
-### Count: 244
+### Count: 240
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -175,6 +175,8 @@ abled.
   * [NOTEBOOKS](./explainers/notebooks)
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
   * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description] 
+* [INDIVIDUALS](./individuals)
+  * [individual_template.py](./individuals/individual_template.py) [Template base class for a custom individual recipe.] 
 * [MODELS](./models)
   * [mock_gpu_test_model.py](./models/mock_gpu_test_model.py) [For GPU usage testing purposes.] 
   * [mock_tf2_test.py](./models/mock_tf2_test.py) [For GPU usage testing purposes.] 
