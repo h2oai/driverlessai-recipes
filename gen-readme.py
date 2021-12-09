@@ -53,7 +53,8 @@ for dirpath, dirs, files in os.walk("."):
                         what = "[" + f + "](" + dirpath + "/" + f + ")"
                         mojo_tag = get_mojo_implementation_tag(os.path.join(dirpath, f))
                         print_offset(depth + 1, "%s [%s] %s" % (what, docstring, mojo_tag), ret)
-                        count += 1
+                        if not f.endswith('_template.py'):
+                            count += 1
 
 print("""# Recipes for H2O Driverless AI
 
