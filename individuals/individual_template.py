@@ -5,17 +5,45 @@ class CustomIndividual:
     Simplified custom wrapper class to construct DAI Individual
 
     _params_valid: dict: items that can be filled for individual-level control of parameters (as opposed to experiment-level)
+                         If not set (i.e. not passed in self.params), then new experiment's value is used
+                         Many of these parameters match experiment dials or are like expert tomls with a similar name
     _from_exp: dict: parameters that are pulled from experiment-level (if value True)
     """
-    _params_valid = dict(config_dict=None, accuracy=None, time_tolerance=None, interpretability=None,
-                         target_transformer=None,
-                         ngenes_min=None, ngenes_max=None,
-                         nfeatures_min=None, nfeatures_max=None,
-                         output_features_to_drop_more=None, grow_prob=None, grow_anneal_factor=None,
-                         grow_prob_lowest=None, explore_prob=None, explore_anneal_factor=None,
-                         explore_prob_lowest=None, explore_model_prob=None, explore_model_anneal_factor=None,
-                         explore_model_prob_lowest=None, random_state=None, model_params=None,
-                         num_as_cat=None, do_te=None)
+    _params_valid = dict(config_dict=None,  # dictionary of config toml items (not currently used)
+                         accuracy=None,  # accuracy dial
+                         time_tolerance=None,  # time dial
+                         interpretability=None,  # interpretability dial
+                         ngenes_min=None,  # minimum number of genes
+                         ngenes_max=None,  # maximum number of genes
+                         nfeatures_min=None,  # minimum number of features
+                         nfeatures_max=None,  # maximum number of features
+                         output_features_to_drop_more=None,  # list of features to drop from overall genome output
+                         # Fast growth of many genes at once is controlled by chance
+                         # grow_prob = max(grow_prob_lowest, grow_prob * grow_anneal_factor)
+                         grow_prob=None,  # Probability to grow genome
+                         grow_anneal_factor=None,  # Annealing factor for growth
+                         grow_prob_lowest=None,  # Lowest growth probability
+                         # Exploration vs. Exploitation of Genetic Algorithm feature exploration is controlled via
+                         # explore_prob = max(explore_prob_lowest, explore_prob * explore_anneal_factor)
+                         explore_prob=None,  # Explore Probability
+                         explore_anneal_factor=None,  # Explore anneal factor
+                         explore_prob_lowest=None,  # Lowest explore probability
+                         # Exploration vs. Exploitation of Genetic Algorithm model hyperparameter is controlled via
+                         # explore_model_prob = max(explore_model_prob_lowest, explore_model_prob * explore_model_anneal_factor)
+                         explore_model_prob=None,  # Explore Probability for models
+                         explore_model_anneal_factor=None,  # Explore anneal factor for models
+                         explore_model_prob_lowest=None,  # Lowest explore probability for models
+
+                         random_state=None,  # random seed for individual
+                         num_as_cat=None,  # whether to treat numeric as categorical
+                         # whether to support target encoding (TE) (True, False, 'only', 'catlabel')
+                         # True means can do TE, False means cannot do TE, 'only' means only have TE
+                         # 'catlabel' is special mode for LightGBM categorical handling, to only use that categorical handling
+                         do_te=None,
+
+                         target_transformer=None,  # target transformer, not in self.params but as separate item
+                         model_params=None,  # model parameters, not in self.params but as separate item
+                         )
 
     # "_from_exp" are added from experiment if value True,
     #  overwriting custom individual values assigned to self value of False means use custom individual value.
@@ -53,6 +81,8 @@ class CustomIndividual:
         'label_counts': True,
         'imbalance_ratio': True,
     }
+
+    callable_prefix = 'DAI_CALLABLE:'
 
     def __init__(self):
         self.gene_list = []
@@ -94,9 +124,11 @@ class CustomIndividual:
         self.model_display_name = None
         self.model_params = None
         self.model_origin = None
+        self.adjust_final_params = None
 
         # related to set_target_transformer
         self.target_transformer_name = None
+        self.target_transformer_params = None
 
         # informative during set_genes, importances of original features
         self.importances_orig = None
@@ -152,6 +184,7 @@ class CustomIndividual:
         self.model_display_name = "NotSet"
         self.model_params = {}
         self.model_origin = "NotSet"
+        self.adjust_final_params = True
         raise NotImplementedError
 
     def set_target_transformer(self):
@@ -159,9 +192,11 @@ class CustomIndividual:
         Function to set target transformer.
         If don't set any target transformer, the new experiment's values are used.  E.g. this is valid for classification.
         self.target_transformer_name = "None" applies to classification
+        self.target_transformer_params = {} applies to non-time-series target transformers, only for informative purposes
         :return:
         """
         self.target_transformer_name = "None"
+        self.target_transformer_params = {}
 
     def set_genes(self):
         """
@@ -170,9 +205,6 @@ class CustomIndividual:
         """
         self.importances_orig = None
         params = dict(num_cols=['AGE'])
-        # gene_index is optional, except:
-        # a) use transformed feature names in (e.g.) monotonicity_constraints_dict toml
-        # b) use multiple layers with specific col_dict per layer for layer > 0
         self.add_transformer('OriginalTransformer', layer=0, **params)
         raise NotImplementedError
 

@@ -1,3 +1,4 @@
+"""Test individual 2"""
 from h2oaicore.ga import CustomIndividual
 class Indivtestinternal2(CustomIndividual):
 
