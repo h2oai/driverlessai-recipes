@@ -1,48 +1,53 @@
 """Template base class for a custom individual recipe."""
 
-class CustomIndividual:
+from h2oaicore.ga_custom import BaseIndividual
+
+
+class CustomIndividual(BaseIndividual):
     """
     Simplified custom wrapper class to construct DAI Individual
 
     _params_valid: dict: items that can be filled for individual-level control of parameters (as opposed to experiment-level)
                          If not set (i.e. not passed in self.params), then new experiment's value is used
                          Many of these parameters match experiment dials or are like expert tomls with a similar name
+                         Dict keys are paramters
+                         Dict values are the types (or values if list) for each parameter
     _from_exp: dict: parameters that are pulled from experiment-level (if value True)
     """
-    _params_valid = dict(config_dict=None,  # dictionary of config toml items (not currently used)
-                         accuracy=None,  # accuracy dial
-                         time_tolerance=None,  # time dial
-                         interpretability=None,  # interpretability dial
-                         ngenes_min=None,  # minimum number of genes
-                         ngenes_max=None,  # maximum number of genes
-                         nfeatures_min=None,  # minimum number of features
-                         nfeatures_max=None,  # maximum number of features
-                         output_features_to_drop_more=None,  # list of features to drop from overall genome output
+    _params_valid = dict(config_dict=dict,  # dictionary of config toml items (not currently used)
+                         accuracy=int,  # accuracy dial
+                         time_tolerance=int,  # time dial
+                         interpretability=int,  # interpretability dial
+                         ngenes_min=int,  # minimum number of genes
+                         ngenes_max=int,  # maximum number of genes
+                         nfeatures_min=int,  # minimum number of features
+                         nfeatures_max=int,  # maximum number of features
+                         output_features_to_drop_more=list,  # list of features to drop from overall genome output
                          # Fast growth of many genes at once is controlled by chance
                          # grow_prob = max(grow_prob_lowest, grow_prob * grow_anneal_factor)
-                         grow_prob=None,  # Probability to grow genome
-                         grow_anneal_factor=None,  # Annealing factor for growth
-                         grow_prob_lowest=None,  # Lowest growth probability
+                         grow_prob=float,  # Probability to grow genome
+                         grow_anneal_factor=float,  # Annealing factor for growth
+                         grow_prob_lowest=float,  # Lowest growth probability
                          # Exploration vs. Exploitation of Genetic Algorithm feature exploration is controlled via
                          # explore_prob = max(explore_prob_lowest, explore_prob * explore_anneal_factor)
-                         explore_prob=None,  # Explore Probability
-                         explore_anneal_factor=None,  # Explore anneal factor
-                         explore_prob_lowest=None,  # Lowest explore probability
+                         explore_prob=float,  # Explore Probability
+                         explore_anneal_factor=float,  # Explore anneal factor
+                         explore_prob_lowest=float,  # Lowest explore probability
                          # Exploration vs. Exploitation of Genetic Algorithm model hyperparameter is controlled via
                          # explore_model_prob = max(explore_model_prob_lowest, explore_model_prob * explore_model_anneal_factor)
-                         explore_model_prob=None,  # Explore Probability for models
-                         explore_model_anneal_factor=None,  # Explore anneal factor for models
-                         explore_model_prob_lowest=None,  # Lowest explore probability for models
+                         explore_model_prob=float,  # Explore Probability for models
+                         explore_model_anneal_factor=float,  # Explore anneal factor for models
+                         explore_model_prob_lowest=float,  # Lowest explore probability for models
 
-                         random_state=None,  # random seed for individual
-                         num_as_cat=None,  # whether to treat numeric as categorical
+                         random_state=int,  # random seed for individual
+                         num_as_cat=bool,  # whether to treat numeric as categorical
                          # whether to support target encoding (TE) (True, False, 'only', 'catlabel')
                          # True means can do TE, False means cannot do TE, 'only' means only have TE
                          # 'catlabel' is special mode for LightGBM categorical handling, to only use that categorical handling
-                         do_te=None,
+                         do_te=[True, False, 'only', 'catlabel'],
 
+                         model_params=dict,  # model parameters, not in self.params but as separate item
                          target_transformer=None,  # target transformer, not in self.params but as separate item
-                         model_params=None,  # model parameters, not in self.params but as separate item
                          )
 
     # "_from_exp" are added from experiment if value True,
@@ -123,8 +128,8 @@ class CustomIndividual:
         # related to set_model
         self.model_display_name = None
         self.model_params = None
-        self.model_origin = None
-        self.adjust_final_params = None
+        self.model_origin = "NotSet"
+        self.adjusted_params = None
 
         # related to set_target_transformer
         self.target_transformer_name = None
@@ -133,17 +138,7 @@ class CustomIndividual:
         # informative during set_genes, importances of original features
         self.importances_orig = None
 
-    def check_params(self):
-        """
-        check parameters that they are only among the valid parameters
-        :return:
-        """
-        assert isinstance(self.params, dict), "constructor must be dictionary of params"
-        for k, v in self.params.items():
-            if k not in CustomIndividual._params_valid:
-                raise RuntimeError("Invalid param key %s with value %s" % (k, v))
-
-    def add_transformer(self, transformer_name, gene_index=None, layer=0, **params):
+    def add_transformer(self, transformer_name, col_type=None, gene_index=None, layer=0, **params):
         """
         transformer collector
         :obj: Transformer display name
@@ -153,9 +148,9 @@ class CustomIndividual:
         params should have every mutation key filled, else default parameters used for missing ones
         :return:
         """
-        self.gene_list.append(dict(obj=transformer_name, gene_index=gene_index, layer=layer, params=params))
+        self.gene_list.append(dict(obj=transformer_name, col_type=col_type, gene_index=gene_index, layer=layer, params=params))
 
-    def add_gene(self, gene, gene_index=None, layer=0, **params):
+    def add_gene(self, gene, col_type=None, gene_index=None, layer=0, **params):
         """
         gene collector
         :obj: Gene, GeneBluePrint, Transformer, or Transformer display name
@@ -165,7 +160,7 @@ class CustomIndividual:
         params should have every blueprint mutations key filled, else default parameters used for missing ones
         :return:
         """
-        self.gene_list.append(dict(obj=gene, gene_index=gene_index, layer=layer, params=params))
+        self.gene_list.append(dict(obj=gene, col_type=col_type, gene_index=gene_index, layer=layer, params=params))
 
     def set_params(self):
         """
@@ -174,7 +169,6 @@ class CustomIndividual:
         :return:
         """
         self.params = {}
-        self.check_params()
 
     def set_model(self):
         """
@@ -184,7 +178,7 @@ class CustomIndividual:
         self.model_display_name = "NotSet"
         self.model_params = {}
         self.model_origin = "NotSet"
-        self.adjust_final_params = True
+        self.adjusted_params = []
         raise NotImplementedError
 
     def set_target_transformer(self):
