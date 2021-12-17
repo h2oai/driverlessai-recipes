@@ -5,7 +5,7 @@ from h2oaicore.ga_custom import BaseIndividual
 
 class CustomIndividual(BaseIndividual):
     """
-    Simplified custom wrapper class to construct DAI Individual
+    Custom wrapper class used to construct DAI Individual
 
     _params_valid: dict: items that can be filled for individual-level control of parameters (as opposed to experiment-level)
                          If not set (i.e. not passed in self.params), then new experiment's value is used
@@ -13,53 +13,81 @@ class CustomIndividual(BaseIndividual):
                          Dict keys are paramters
                          Dict values are the types (or values if list) for each parameter
     _from_exp: dict: parameters that are pulled from experiment-level (if value True)
-    """
-    _params_valid = dict(config_dict=dict,  # dictionary of config toml items (not currently used)
-                         accuracy=int,  # accuracy dial
-                         time_tolerance=int,  # time dial
-                         interpretability=int,  # interpretability dial
-                         ngenes_min=int,  # minimum number of genes
-                         ngenes_max=int,  # maximum number of genes
-                         nfeatures_min=int,  # minimum number of features
-                         nfeatures_max=int,  # maximum number of features
-                         output_features_to_drop_more=list,  # list of features to drop from overall genome output
-                         # Fast growth of many genes at once is controlled by chance
-                         # grow_prob = max(grow_prob_lowest, grow_prob * grow_anneal_factor)
-                         grow_prob=float,  # Probability to grow genome
-                         grow_anneal_factor=float,  # Annealing factor for growth
-                         grow_prob_lowest=float,  # Lowest growth probability
-                         # Exploration vs. Exploitation of Genetic Algorithm feature exploration is controlled via
-                         # explore_prob = max(explore_prob_lowest, explore_prob * explore_anneal_factor)
-                         explore_prob=float,  # Explore Probability
-                         explore_anneal_factor=float,  # Explore anneal factor
-                         explore_prob_lowest=float,  # Lowest explore probability
-                         # Exploration vs. Exploitation of Genetic Algorithm model hyperparameter is controlled via
-                         # explore_model_prob = max(explore_model_prob_lowest, explore_model_prob * explore_model_anneal_factor)
-                         explore_model_prob=float,  # Explore Probability for models
-                         explore_model_anneal_factor=float,  # Explore anneal factor for models
-                         explore_model_prob_lowest=float,  # Lowest explore probability for models
+"""
+    _params_doc = dict(config_dict="dictionary of config toml items (not currently used)",
+                         accuracy="accuracy dial",
+                         time_tolerance="time dial",
+                         interpretability="interpretability dial",
+                         ngenes_min="minimum number of genes",
+                         ngenes_max="maximum number of genes",
+                         nfeatures_min="minimum number of features",
+                         nfeatures_max="maximum number of features",
+                         output_features_to_drop_more="list of features to drop from overall genome output",
+                         grow_prob="""Probability to grow genome
+Fast growth of many genes at once is controlled by chance
+grow_prob = max(grow_prob_lowest, grow_prob * grow_anneal_factor)""",
+                         grow_anneal_factor="Annealing factor for growth",
+                         grow_prob_lowest="Lowest growth probability",
+                         explore_prob="""Explore Probability
+Exploration vs. Exploitation of Genetic Algorithm feature exploration is controlled via
+explore_prob = max(explore_prob_lowest, explore_prob * explore_anneal_factor)""",
+                         explore_anneal_factor="Explore anneal factor",
+                         explore_prob_lowest="Lowest explore probability",
+                         explore_model_prob="""Explore Probability for models
+Exploration vs. Exploitation of Genetic Algorithm model hyperparameter is controlled via
+explore_model_prob = max(explore_model_prob_lowest, explore_model_prob * explore_model_anneal_factor)""",
+                         explore_model_anneal_factor="Explore anneal factor for models",
+                         explore_model_prob_lowest="Lowest explore probability for models",
 
-                         random_state=int,  # random seed for individual
-                         num_as_cat=bool,  # whether to treat numeric as categorical
-                         # whether to support target encoding (TE) (True, False, 'only', 'catlabel')
-                         # True means can do TE, False means cannot do TE, 'only' means only have TE
-                         # 'catlabel' is special mode for LightGBM categorical handling, to only use that categorical handling
-                         do_te=[True, False, 'only', 'catlabel'],
+                         random_state="random seed for individual",
+                         num_as_cat="whether to treat numeric as categorical",
+                         do_te="""Whether to support target encoding (TE) (True, False, 'only', 'catlabel')
+True means can do TE, False means cannot do TE, 'only' means only have TE
+'catlabel' is special mode for LightGBM categorical handling, to only use that categorical handling""",
 
-                         model_params=dict,  # model parameters, not in self.params but as separate item
-                         target_transformer=None,  # target transformer, not in self.params but as separate item
+                         model_params="model parameters, not in self.params but as separate item",
+                         target_transformer="target transformer, not in self.params but as separate item",
                          )
 
-    # "_from_exp" are added from experiment if value True,
-    #  overwriting custom individual values assigned to self value of False means use custom individual value.
-    # False as an option makes most sense for 'columns', to ensure the exact column types one desires are used
-    #  regardless of experiment-level column types.
-    # False is default for 'seed' and 'default_factor' to reproduce individual fitting behavior as closely as possible
-    #  even if reproducible is not set.
-    # False is not currently supported except for 'columns', 'seed', 'default_factor'.
-    # One can override the static var value in the constructor or any function call before _from_exp is actually used
-    #  when calling make_indiv.
-    #  Note that pickling the custom individual object will not preserve such static var changes.
+    _params_valid = dict(config_dict=dict,
+                         accuracy=int,
+                         time_tolerance=int,
+                         interpretability=int,
+                         ngenes_min=int,
+                         ngenes_max=int,
+                         nfeatures_min=int,
+                         nfeatures_max=int,
+                         output_features_to_drop_more=list,
+                         grow_prob=float,
+                         grow_anneal_factor=float,
+                         grow_prob_lowest=float,
+                         explore_prob=float,
+                         explore_anneal_factor=float,
+                         explore_prob_lowest=float,
+                         explore_model_prob=float,
+                         explore_model_anneal_factor=float,
+                         explore_model_prob_lowest=float,
+
+                         random_state=int,
+                         num_as_cat=bool,
+                         do_te=[True, False, 'only', 'catlabel'],
+
+                         model_params=dict,
+                         target_transformer=None,
+                         )
+
+    _from_exp_doc = """
+                    "_from_exp" dictionary have keys as things that will be set from the experiment (True),
+                      which then overwrites the custom individual values assigned to self. of False means use custom individual value.
+                     Or "_from_exp" values can be forced to come from the self attributes in the CustomIndividual (False).
+                     * False is a reasonable possible option for key 'columns', to ensure the exact column types one desires are used
+                       regardless of experiment-level column types.
+                     * False is default for 'seed' and 'default_factor' to reproduce individual fitting behavior as closely as possible
+                       even if reproducible is not set.
+                     * False is not currently supported except for 'columns', 'seed', 'default_factor'.
+                     One can override the static var value in the constructor or any function call before _from_exp is actually used
+                     when calling make_indiv.
+"""
 
     _from_exp = {  # as in set_genes
         'columns': True,
@@ -153,18 +181,6 @@ class CustomIndividual(BaseIndividual):
         :return:
         """
         self.gene_list.append(dict(obj=transformer_name, col_type=col_type, gene_index=gene_index, layer=layer, params=params))
-
-    def add_gene(self, gene, col_type=None, gene_index=None, layer=0, **params):
-        """
-        gene collector
-        :obj: Gene, GeneBluePrint, Transformer, or Transformer display name
-        :gene_index: int : index to use for gene and transformed feature name
-        :layer: Pipeline layer, 0 (normal single layer), 1, ... n - 1 for n layers
-        :params: parameters for GeneBluePrint or Transformer
-        params should have every blueprint mutations key filled, else default parameters used for missing ones
-        :return:
-        """
-        self.gene_list.append(dict(obj=gene, col_type=col_type, gene_index=gene_index, layer=layer, params=params))
 
     def set_params(self):
         """
