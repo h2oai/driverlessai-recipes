@@ -80,7 +80,7 @@ abled.
  [1.9.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.9.3)
  [1.10.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.0)
  [1.10.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.1)
-### Count: 244
+### Count: 245
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -180,6 +180,7 @@ abled.
   * [indiv_test1.py](./individuals/indiv_test1.py) [Test individual 1] 
   * [indiv_test2.py](./individuals/indiv_test2.py) [Test individual 2] 
   * [individual_template.py](./individuals/individual_template.py) [Template base class for a custom individual recipe.] 
+  * [paribas_basemodel0.py](./individuals/paribas_basemodel0.py) [Custom Individual 0 from Experiment satocemi ] 
   * [walmart_lags.py](./individuals/walmart_lags.py) [Custom Individual 0 from Experiment test_time_series_walmart_nolimits_ac642_6d3b_subosahu ] 
 * [MODELS](./models)
   * [mock_gpu_test_model.py](./models/mock_gpu_test_model.py) [For GPU usage testing purposes.] 

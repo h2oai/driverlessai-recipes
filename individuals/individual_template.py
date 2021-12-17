@@ -138,6 +138,10 @@ class CustomIndividual(BaseIndividual):
         # informative during set_genes, importances of original features
         self.importances_orig = None
 
+        self.tsgi = None
+        self.tsp = None
+        self.encoder = None
+
     def add_transformer(self, transformer_name, col_type=None, gene_index=None, layer=0, **params):
         """
         transformer collector
@@ -201,4 +205,26 @@ class CustomIndividual(BaseIndividual):
         params = dict(num_cols=['AGE'])
         self.add_transformer('OriginalTransformer', layer=0, **params)
         raise NotImplementedError
+
+    @staticmethod
+    def is_enabled():
+        """Return whether recipe is enabled. If disabled, recipe will be completely ignored."""
+        return True
+
+    @staticmethod
+    def do_acceptance_test():
+        """
+        Return whether to do acceptance tests during upload of recipe and during start of Driverless AI.
+
+        Acceptance tests try to make internal DAI individual out of the python code
+        """
+        return True
+
+    @staticmethod
+    def acceptance_test_timeout():
+        """
+        Timeout in minutes for each test of a custom recipe.
+        """
+        return config.acceptance_test_timeout
+
 
