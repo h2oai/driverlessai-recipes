@@ -241,6 +241,7 @@ True means can do TE, False means cannot do TE, 'only' means only have TE
         """
         Timeout in minutes for each test of a custom recipe.
         """
+        from h2oaicore.systemutils import config
         return config.acceptance_test_timeout
 
 
