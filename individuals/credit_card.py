@@ -661,4 +661,5 @@ class Indivtestcreditcardc6b984367ficulahe_finalFalse_id0(CustomIndividual):
         """
         Timeout in minutes for each test of a custom recipe.
         """
+        from h2oaicore.systemutils import config
         return config.acceptance_test_timeout
