@@ -712,4 +712,5 @@ class Indivtesttimeserieswalmartnolimits0c26b5c79bibibebo_finalFalse_id0(CustomI
         """
         Timeout in minutes for each test of a custom recipe.
         """
+        from h2oaicore.systemutils import config
         return config.acceptance_test_timeout
