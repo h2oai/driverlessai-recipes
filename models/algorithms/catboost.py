@@ -144,7 +144,9 @@ class CatBoostModel(CustomModel):
         fake_lgbm_model = LightGBMModel(**self.input_dict)
         fake_lgbm_model.params = self.params.copy()
         fake_lgbm_model.params_base = self.params_base.copy()
-        fake_lgbm_model.params.update(fake_lgbm_model.params_base)
+        for k, v in fake_lgbm_model.params_base.items():
+            if k in fake_lgbm_model.params:
+                fake_lgbm_model.params[k] = fake_lgbm_model.params_base[k]
         kwargs['train_shape'] = kwargs.get('train_shape', (10000, 500))
         kwargs['from_catboost'] = True
         fake_lgbm_model.mutate_params(**kwargs)
