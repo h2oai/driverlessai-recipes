@@ -5,7 +5,8 @@ from h2oaicore.ga_custom import BaseIndividual
 
 class CustomIndividual(BaseIndividual):
     """
-    Custom wrapper class used to construct DAI Individual
+    Custom wrapper class used to construct DAI Individual,
+    which contains all information related to model type, model parameters, feature types, and feature parameters.
 
     _params_valid: dict: items that can be filled for individual-level control of parameters (as opposed to experiment-level)
                          If not set (i.e. not passed in self.params), then new experiment's value is used
@@ -14,43 +15,44 @@ class CustomIndividual(BaseIndividual):
                          Dict values are the types (or values if list) for each parameter
     _from_exp: dict: parameters that are pulled from experiment-level (if value True)
 """
-    _params_doc = dict(config_dict="dictionary of config toml items (not currently used)",
-                         accuracy="accuracy dial",
-                         time_tolerance="time dial",
-                         interpretability="interpretability dial",
-                         ngenes_min="minimum number of genes",
-                         ngenes_max="maximum number of genes",
-                         nfeatures_min="minimum number of features",
-                         nfeatures_max="maximum number of features",
-                         output_features_to_drop_more="list of features to drop from overall genome output",
-                         grow_prob="""Probability to grow genome
+    _params_doc = dict(accuracy="accuracy dial",
+                       time_tolerance="time dial",
+                       interpretability="interpretability dial",
+                       ngenes_min="minimum number of genes",
+                       ngenes_max="maximum number of genes",
+                       nfeatures_min="minimum number of features",
+                       nfeatures_max="maximum number of features",
+                       output_features_to_drop_more="list of features to drop from overall genome output",
+                       grow_prob="""Probability to grow genome
 Fast growth of many genes at once is controlled by chance
 grow_prob = max(grow_prob_lowest, grow_prob * grow_anneal_factor)""",
-                         grow_anneal_factor="Annealing factor for growth",
-                         grow_prob_lowest="Lowest growth probability",
-                         explore_prob="""Explore Probability
+                       grow_anneal_factor="Annealing factor for growth",
+                       grow_prob_lowest="Lowest growth probability",
+                       explore_prob="""Explore Probability
 Exploration vs. Exploitation of Genetic Algorithm feature exploration is controlled via
 explore_prob = max(explore_prob_lowest, explore_prob * explore_anneal_factor)""",
-                         explore_anneal_factor="Explore anneal factor",
-                         explore_prob_lowest="Lowest explore probability",
-                         explore_model_prob="""Explore Probability for models
+                       explore_anneal_factor="Explore anneal factor",
+                       explore_prob_lowest="Lowest explore probability",
+                       explore_model_prob="""Explore Probability for models
 Exploration vs. Exploitation of Genetic Algorithm model hyperparameter is controlled via
 explore_model_prob = max(explore_model_prob_lowest, explore_model_prob * explore_model_anneal_factor)""",
-                         explore_model_anneal_factor="Explore anneal factor for models",
-                         explore_model_prob_lowest="Lowest explore probability for models",
+                       explore_model_anneal_factor="Explore anneal factor for models",
+                       explore_model_prob_lowest="Lowest explore probability for models",
 
-                         random_state="random seed for individual",
-                         num_as_cat="whether to treat numeric as categorical",
-                         do_te="""Whether to support target encoding (TE) (True, False, 'only', 'catlabel')
+                       prob_perturb_xgb="Unnormalized probability to change model hyperparameters",
+                       prob_prune_genes="Unnormalized probability to prune genes",
+                       prob_prune_by_features="Unnormalized probability to prune features",
+                       prob_add_genes="Unnormalized probability to add genes",
+                       prob_addbest_genes="Unnormalized probability to add best genes",
+
+                       random_state="random seed for individual",
+                       num_as_cat="whether to treat numeric as categorical",
+                       do_te="""Whether to support target encoding (TE) (True, False, 'only', 'catlabel')
 True means can do TE, False means cannot do TE, 'only' means only have TE
 'catlabel' is special mode for LightGBM categorical handling, to only use that categorical handling""",
+                       )
 
-                         model_params="model parameters, not in self.params but as separate item",
-                         target_transformer="target transformer, not in self.params but as separate item",
-                         )
-
-    _params_valid = dict(config_dict=dict,
-                         accuracy=int,
+    _params_valid = dict(accuracy=int,
                          time_tolerance=int,
                          interpretability=int,
                          ngenes_min=int,
@@ -58,6 +60,7 @@ True means can do TE, False means cannot do TE, 'only' means only have TE
                          nfeatures_min=int,
                          nfeatures_max=int,
                          output_features_to_drop_more=list,
+
                          grow_prob=float,
                          grow_anneal_factor=float,
                          grow_prob_lowest=float,
@@ -68,12 +71,15 @@ True means can do TE, False means cannot do TE, 'only' means only have TE
                          explore_model_anneal_factor=float,
                          explore_model_prob_lowest=float,
 
+                         prob_perturb_xgb=float,
+                         prob_prune_genes=float,
+                         prob_prune_by_features=float,
+                         prob_add_genes=float,
+                         prob_addbest_genes=float,
+
                          random_state=int,
                          num_as_cat=bool,
                          do_te=[True, False, 'only', 'catlabel'],
-
-                         model_params=dict,
-                         target_transformer=None,
                          )
 
     _from_exp_doc = """
@@ -126,6 +132,9 @@ True means can do TE, False means cannot do TE, 'only' means only have TE
         self.columns = None
         self._col_dict_by_layer = None
 
+        self.experiment_id = "UnsetID"
+        self.experiment_description = "Unset Description"
+
         # related to set_params
         self.final_best = None
         self.final_pop = None
@@ -170,17 +179,40 @@ True means can do TE, False means cannot do TE, 'only' means only have TE
         self.tsp = None
         self.encoder = None
 
-    def add_transformer(self, transformer_name, col_type=None, gene_index=None, layer=0, **params):
+        # config_dict is used for experiment-level behavior,
+        # while config_dict_individual adds to individual-level behavior if enforce_experiment_config is False
+        # config_dict_experiment are only informative.
+        self.config_dict = None
+        self.config_dict_individual = None
+        self.enforce_experiment_config = None
+        self.config_dict_experiment = None
+
+    def add_transformer(self, transformer_name, col_type=None, gene_index=None, layer=0, forced=False, mono=False, **params):
         """
         transformer collector
         :obj: Transformer display name
         :gene_index: int : index to use for gene and transformed feature name
         :layer: Pipeline layer, 0 (normal single layer), 1, ... n - 1 for n layers
+        :forced: Whether forcing in gene/transformer instance to avoid pruning at gene level and any derived feature level
+        :mono: Whether making feature monotonic.
+               False means no constraint
+               True means automatic mode done by DAI
+               +1, -1, 0 means specific choice
+               'experiment' means depend upon only experiment settings
+               Only relevant for transformed features that go into the model,
+               e.g. for multi-layer case only last layer is relevant.
         :params: parameters for Transformer
         params should have every mutation key filled, else default parameters used for missing ones
+
+        NOTE: column names are sanitized, which means characters like spaces are not allowed or special internal characters are not allowed.
+        The function sanitize_string_list(column_names) can be used to convert known column names into sanitized form, however
+        if there are multiple features that differ only by a sanitized string, the de-dup process is dependent on the python-sorted order of column names.
+        The function sanitize_string_list can be imported as: `from h2oaicore.transformer_utils import sanitize_string_list`.
+        In DAI data handling during experiment, the sanitize_string_list is called on all columns, including:
+        target, cols_to_drop, weight_column, fold_column, time_groups_columns, and training/validation/test frames.
         :return:
         """
-        self.gene_list.append(dict(obj=transformer_name, col_type=col_type, gene_index=gene_index, layer=layer, params=params))
+        self.gene_list.append(dict(obj=transformer_name, col_type=col_type, gene_index=gene_index, layer=layer, forced=forced, mono=mono, params=params))
 
     def set_params(self):
         """
