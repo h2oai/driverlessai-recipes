@@ -15,13 +15,12 @@ class POSTagTransformer:
     _modules_needed_by_name = ["nltk==3.4.3"]
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
+    def set_tagger(self):
         import nltk
         nltk_data_path = os.path.join(user_dir(), config.contrib_env_relative_directory, "nltk_data")
         nltk_temp_path = os.path.join(user_dir(), "nltk_data")
         nltk.data.path.append(nltk_data_path)
+        nltk.download('averaged_perceptron_tagger', download_dir=nltk_data_path)
         try:
             self.pos_tagger = nltk.pos_tag
             self.pos_tagger("test")
@@ -42,6 +41,11 @@ class POSTagTransformer:
             self.atomic_copy(file2, tagger_path)
             self.pos_tagger = nltk.pos_tag
             self.pos_tagger("test")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.set_tagger()
 
     def unzip_file(self, src, dst_dir):
         with ZipFile(src, 'r') as zip_ref:
@@ -73,9 +77,11 @@ class POSTagTransformer:
         return len([word for word, pos in pos_tagged_text if pos[0] == pos_tag])
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
+        self.set_tagger()
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
+        self.set_tagger()
         return X.to_pandas().astype(str).fillna("NA").iloc[:, 0].apply(lambda x: self.get_pos_count(x))
 
 
