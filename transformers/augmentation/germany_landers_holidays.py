@@ -74,7 +74,7 @@ class GermanyLandersHolidayTransformer2(CustomTimeSeriesTransformer):
         # create the list of holidays for Germany and Landers
         self.fit(X, y)
         # Transform the date
-        return self.transform(X, is_fit=True)
+        return self.transform(X)
 
     def transform(self, X: dt.Frame, **kwargs):
         # Keep date only
@@ -107,9 +107,8 @@ class GermanyLandersHolidayTransformer2(CustomTimeSeriesTransformer):
             for prov in ['country', 'BW', 'BY', 'BE', 'BB', 'HB', 'HH', 'HE',
                          'MV', 'NI', 'NW', 'RP', 'SL', 'SN', 'ST', 'SH', 'TH']
         ]
-        if kwargs.get('is_fit', False):
-            self._output_feature_names = list(features)
-            self._feature_desc = list(features)
+        self._output_feature_names = list(features)
+        self._feature_desc = list(features)
 
         return X
 
