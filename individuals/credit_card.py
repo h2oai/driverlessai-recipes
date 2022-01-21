@@ -1,4 +1,4 @@
-"""Custom Final Individual 0 from Experiment butugewi """
+"""Custom Final Individual 0 from Experiment test_credit_card_9f03b_f55d_pawisaco """
 
 # EXAMPLE USE CASES THAT REQUIRE MINOR MODIFICATIONS TO RECIPE:
 # 1) FROZEN INDIVIDUALS: By default, the custom individual acts like a normal internal DAI individual,
@@ -13,7 +13,7 @@
 from h2oaicore.ga import CustomIndividual
 
 
-class Indiv_butugewi_finalTrue_id0(CustomIndividual):
+class Indiv_testcreditcard9f03bf55dpawisaco_finalTrue_id0(CustomIndividual):
     """ 
     Custom wrapper class used to construct DAI Individual,
     which contains all information related to model type, model parameters, feature types, and feature parameters.
@@ -46,13 +46,13 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
     _binary = True
     _multiclass = False
     _unsupervised = False
-    _description = 'Indiv_butugewi_finalTrue_id0'
-    _display_name = 'Indiv_butugewi_finalTrue_id0'
+    _description = 'Indiv_testcreditcard9f03bf55dpawisaco_finalTrue_id0'
+    _display_name = 'Indiv_testcreditcard9f03bf55dpawisaco_finalTrue_id0'
 
     # Original Experiment ID
-    _experiment_id_origin = '9c066842-7a4f-11ec-973c-00d861553ebb'
+    _experiment_id_origin = 'test_credit_card_9f03b_f55d_pawisaco'
     # Original Experiment Description
-    _experiment_description_origin = 'butugewi'
+    _experiment_description_origin = 'test_credit_card_9f03b_f55d_pawisaco'
 
     def set_params(self):
         """
@@ -75,54 +75,22 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
         self.is_final = True
 
         # Which individual by hash
-        self.hash = '304278b5-290f-4e7a-b2ac-4e6d6856c8b9'
+        self.hash = 'e5e57a23-7375-4f05-9951-71c985c2a49a'
         # Which parent individual by hash
-        self.parent_hash = 'a6c81c46-28cc-4c00-b4e4-4ba7d7f4db4f'
+        self.parent_hash = None
 
         # Score function's (hashed) name
         self.score_f_name = 'AUC'
         # Score (if is_final=True, then this is the final base model out-of-fold score)
-        self.score = 0.77823543501091
+        self.score = 0.7179035816201912
         # Score standard deviation (if folds or repeats or bootstrapping)
-        self.score_sd = 0.00697769066829106
+        self.score_sd = 0.0060064196797443145
         # Tournament Score (penalized by features counts or interpretability)
-        self.tournament_score = 0.7735551732326832
+        self.tournament_score = 0.7520820488964624
         # Score history during tuning and evolution
-        self.score_list = [0.7689483059295176,
-                           0.7689483059295176,
-                           0.7697663511600694,
-                           0.7723728355388477,
-                           0.7714305925186463,
-                           0.7714305925186463,
-                           0.7728476112519861,
-                           0.7728476112519861,
-                           0.7735551732326832,
-                           0.7735551732326832,
-                           0.7735551732326832,
-                           0.7735551732326832,
-                           0.7735551732326832,
-                           0.7735551732326832,
-                           0.7735551732326832,
-                           0.7735551732326832,
-                           0.7735551732326832]
+        self.score_list = [0.7520820488964624, 0.7520820488964624]
         # Score standard deviation history during tuning and evolution
-        self.score_sd_list = [0.006660869584380485,
-                              0.006660869584380485,
-                              0.006760576123036179,
-                              0.00684494599008233,
-                              0.007146588278819641,
-                              0.007146588278819641,
-                              0.007277502007947496,
-                              0.007277502007947496,
-                              0.007140342995562222,
-                              0.007140342995562222,
-                              0.007140342995562222,
-                              0.007140342995562222,
-                              0.007140342995562222,
-                              0.007140342995562222,
-                              0.007140342995562222,
-                              0.007140342995562222,
-                              0.007140342995562222]
+        self.score_sd_list = [0.0069880164299224575, 0.0069880164299224575]
 
         # Number of classes if supervised
         self.num_classes = 2
@@ -130,7 +98,7 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
         self.labels = [0, 1]
 
         # Shape of training frame (may include target)
-        self.train_shape = (23999, 25)
+        self.train_shape = (23999, 27)
         # Shape of validation frame (may include target)
         self.valid_shape = None
         # Cardinality for each column
@@ -161,7 +129,7 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
         # Number of validation splits
         self.num_validation_splits = 1
         # Seed for individual
-        self.seed = 148610952
+        self.seed = 159699529
         # factor of extra genes added during activation
         self.default_factor = 1
         # Ensemble level
@@ -250,27 +218,27 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
                        'do_te': True,
                        'explore_anneal_factor': 0.9,
                        'explore_model_anneal_factor': 0.9,
-                       'explore_model_prob': 0.2952450000000001,
+                       'explore_model_prob': 0.5,
                        'explore_model_prob_lowest': 0.1,
-                       'explore_prob': 0.2657205000000001,
+                       'explore_prob': 0.5,
                        'explore_prob_lowest': 0.1,
                        'grow_anneal_factor': 0.5,
-                       'grow_prob': 0.2,
+                       'grow_prob': 0.8,
                        'grow_prob_lowest': 0.05,
-                       'interpretability': 6,
-                       'nfeatures_max': 200,
+                       'interpretability': 5,
+                       'nfeatures_max': 300,
                        'nfeatures_min': 1,
-                       'ngenes_max': 200,
+                       'ngenes_max': 300,
                        'ngenes_min': 1,
-                       'num_as_cat': True,
+                       'num_as_cat': False,
                        'output_features_to_drop_more': [],
                        'prob_add_genes': 0.5,
                        'prob_addbest_genes': 0.5,
                        'prob_perturb_xgb': 0.25,
                        'prob_prune_by_features': 0.25,
                        'prob_prune_genes': 0.5,
-                       'random_state': 148610952,
-                       'time_tolerance': 4}
+                       'random_state': 159699529,
+                       'time_tolerance': 1}
         #
         # END: PARAMETERS SET FOR CUSTOM INDIVIDUAL, MAY BE SET
         #
@@ -400,11 +368,13 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
                                                                  'UMAPCUMLDaskTransformer',
                                                                  'UMAPCUMLTransformer',
                                                                  'WeightOfEvidenceTransformer'],
+                                       'max_epochs': 1,
                                        'one_hot_encoding_cardinality_threshold': 11,
                                        'prob_default_lags': 0.2,
                                        'prob_lag_non_targets': 0.1,
                                        'prob_lagsaggregates': 0.2,
-                                       'prob_lagsinteraction': 0.2}
+                                       'prob_lagsinteraction': 0.2,
+                                       'tensorflow_max_epochs_nlp': 1}
         #
         # Some transformers and models may be inconsistent with experiment's config.toml or expert config toml state,
         # such as OHE for LightGBM when config.enable_one_hot_encoding in ['auto', 'off'], yet have no other adverse effect.
@@ -429,10 +399,10 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
         # Included lists like included_models and included_scorers will be populated with all allowed values,
         # if no changes to defaults were made.
         #
-        self.config_dict_experiment = {'application_id': 'dai_29024',
-                                       'debug_log': True,
-                                       'debug_print': True,
-                                       'debug_print_server': True,
+        self.config_dict_experiment = {'drop_redundant_columns_limit': 0,
+                                       'dummy': 1,
+                                       'enable_funnel': False,
+                                       'feature_brain_level': 0,
                                        'hard_asserts': True,
                                        'included_models': ['Constant',
                                                            'DecisionTree',
@@ -483,11 +453,12 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
                                                             'PRECISION',
                                                             'RECALL',
                                                             'TNR'],
-                                       'recipe_activation': {'data': [],
-                                                             'individuals': [],
-                                                             'models': [],
-                                                             'scorers': [],
-                                                             'transformers': []},
+                                       'num_gpus_per_experiment': 0,
+                                       'num_gpus_per_model': 0,
+                                       'reproducible': True,
+                                       'stalled_time_kill_ref': 10000.0,
+                                       'stalled_time_min': 10000.0,
+                                       'stalled_time_ref': 10000.0,
                                        'threshold_scorer': 'F1'}
         #
         # For new/continued experiments with this custom individual,
@@ -549,54 +520,52 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
         #  for information purposes and do not affect the model.
         import numpy as np
         nan = np.nan
-        self.model_params = {'bagging_seed': 148610954,
+        self.model_params = {'bagging_seed': 159699531,
                              'booster': 'lightgbm',
                              'boosting_type': 'gbdt',
                              'categorical_feature': '',
                              'class_weight': None,
                              'colsample_bytree': 0.8000000000000002,
-                             'deterministic': False,
+                             'deterministic': True,
                              'device_type': 'cpu',
-                             'disable_gpus': False,
-                             'early_stopping_rounds': 150,
+                             'disable_gpus': True,
+                             'early_stopping_rounds': 1,
                              'early_stopping_threshold': 0.0,
                              'enable_early_stopping_rounds': True,
-                             'eval_metric': 'binary',
-                             'feature_fraction_seed': 148610953,
-                             'gamma': 0.001,
-                             'gpu_device_id': 0,
-                             'gpu_platform_id': 0,
-                             'gpu_use_dp': False,
-                             'grow_policy': 'lossguide',
+                             'eval_metric': 'auc',
+                             'feature_fraction_seed': 159699530,
+                             'gamma': 0.0,
+                             'gpu_id': 0,
+                             'grow_policy': 'depthwise',
                              'importance_type': 'gain',
                              'label_counts': [18630, 5369],
                              'labels': [0, 1],
-                             'learning_rate': 0.05000000000000001,
+                             'learning_rate': 1.0,
                              'max_bin': 249,
-                             'max_delta_step': 1.7349599552989385,
-                             'max_depth': 40,
-                             'max_leaves': 16,
+                             'max_delta_step': 0.0,
+                             'max_depth': 8,
+                             'max_leaves': 256,
                              'min_child_samples': 20,
                              'min_child_weight': 0.001,
-                             'min_data_in_bin': 3,
+                             'min_data_in_bin': 1,
                              'min_split_gain': 0.0,
                              'monotonicity_constraints': False,
-                             'n_estimators': 1000,
-                             'n_gpus': 1,
+                             'n_estimators': 3,
+                             'n_gpus': 0,
                              'n_jobs': 8,
                              'num_class': 1,
                              'num_classes': 2,
-                             'num_leaves': 16,
+                             'num_leaves': 256,
                              'num_threads': 8,
                              'objective': 'binary',
-                             'random_state': 148610952,
-                             'reg_alpha': 2.0,
-                             'reg_lambda': 2.0,
+                             'random_state': 159699529,
+                             'reg_alpha': 0.0,
+                             'reg_lambda': 0.0,
                              'scale_pos_weight': 1.0,
                              'score_f_name': 'AUC',
-                             'seed': 148610952,
+                             'seed': 159699529,
                              'silent': True,
-                             'subsample': 0.6,
+                             'subsample': 0.6999999999999998,
                              'subsample_for_bin': 200000,
                              'subsample_freq': 1,
                              'verbose': -1}
@@ -672,29 +641,29 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
         #
         # ORIGINAL VARIABLE IMPORTANCE, VARIABLE IS INFORMATIVE, NO NEED TO SET
         #
-        self.importances_orig = {'AGE': 0.01376146630276018,
-                                 'BILL_AMT1': 0.04062245627467092,
-                                 'BILL_AMT2': 0.03632686748965984,
-                                 'BILL_AMT3': 0.0,
-                                 'BILL_AMT4': 0.0,
-                                 'BILL_AMT5': 0.0,
-                                 'BILL_AMT6': 0.0,
-                                 'EDUCATION': 0.0,
-                                 'LIMIT_BAL': 0.04670962128298108,
+        self.importances_orig = {'AGE': 0.019255970562231616,
+                                 'BILL_AMT1': 0.0443496509921389,
+                                 'BILL_AMT2': 0.0,
+                                 'BILL_AMT3': 0.011566858223034592,
+                                 'BILL_AMT4': 0.016425227663335498,
+                                 'BILL_AMT5': 0.0012041895689112083,
+                                 'BILL_AMT6': 0.006298225525526133,
+                                 'EDUCATION': 0.0008270333447045372,
+                                 'LIMIT_BAL': 0.0,
                                  'MARRIAGE': 0.0,
-                                 'PAY_0': 0.6085515602876342,
-                                 'PAY_2': 0.0,
-                                 'PAY_3': 0.03658255351015567,
+                                 'PAY_0': 0.5618879967374988,
+                                 'PAY_2': 0.12337593049225047,
+                                 'PAY_3': 0.0,
                                  'PAY_4': 0.0,
-                                 'PAY_5': 0.03670872691097043,
-                                 'PAY_6': 0.0,
-                                 'PAY_AMT1': 0.04002763826600479,
-                                 'PAY_AMT2': 0.031720066189950366,
-                                 'PAY_AMT3': 0.035155449575717694,
-                                 'PAY_AMT4': 0.021805273633914563,
-                                 'PAY_AMT5': 0.017160569708117912,
-                                 'PAY_AMT6': 0.02081728464795037,
-                                 'SEX': 0.014050465919511973}
+                                 'PAY_5': 0.025585774041151442,
+                                 'PAY_6': 0.015153216584793714,
+                                 'PAY_AMT1': 0.011485086478483272,
+                                 'PAY_AMT2': 0.02411861535516454,
+                                 'PAY_AMT3': 0.05860905827395108,
+                                 'PAY_AMT4': 0.026853821653250766,
+                                 'PAY_AMT5': 0.015062602134149883,
+                                 'PAY_AMT6': 0.03629424611547213,
+                                 'SEX': 0.0016464962539513958}
 
         ###########################################################################
         #
@@ -754,28 +723,8 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
                                 'PAY_AMT5',
                                 'PAY_AMT6',
                                 'SEX'],
-                        'categorical': ['AGE',
-                                        'EDUCATION',
-                                        'LIMIT_BAL',
-                                        'MARRIAGE',
-                                        'PAY_0',
-                                        'PAY_2',
-                                        'PAY_3',
-                                        'PAY_4',
-                                        'PAY_5',
-                                        'PAY_6',
-                                        'SEX'],
-                        'catlabel': ['AGE',
-                                     'EDUCATION',
-                                     'LIMIT_BAL',
-                                     'MARRIAGE',
-                                     'PAY_0',
-                                     'PAY_2',
-                                     'PAY_3',
-                                     'PAY_4',
-                                     'PAY_5',
-                                     'PAY_6',
-                                     'SEX'],
+                        'categorical': [],
+                        'catlabel': [],
                         'date': [],
                         'datetime': [],
                         'id': [],
@@ -803,15 +752,7 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
                                     'PAY_AMT5',
                                     'PAY_AMT6',
                                     'SEX'],
-                        'ohe_categorical': ['EDUCATION',
-                                            'MARRIAGE',
-                                            'PAY_0',
-                                            'PAY_2',
-                                            'PAY_3',
-                                            'PAY_4',
-                                            'PAY_5',
-                                            'PAY_6',
-                                            'SEX'],
+                        'ohe_categorical': [],
                         'raw': [],
                         'text': [],
                         'time_column': []}
@@ -867,114 +808,113 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
         
         """
 
-        # Gene Normalized Importance: 0.026744
-        # Transformed Feature Names and Importances: {'0_AGE': 0.02674410678446293}
+        # Gene Normalized Importance: 0.03427
+        # Transformed Feature Names and Importances: {'0_AGE': 0.03427012264728546}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
-        params = {'num_cols': ['AGE'], 'random_state': 148610952}
+        params = {'num_cols': ['AGE'], 'random_state': 159699529}
         self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=0, forced=False, mono=False, **params)
 
-        # Gene Normalized Importance: 0.078946
-        # Transformed Feature Names and Importances: {'1_BILL_AMT1': 0.07894589751958847}
+        # Gene Normalized Importance: 0.07893
+        # Transformed Feature Names and Importances: {'1_BILL_AMT1': 0.07892969995737076}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
-        params = {'num_cols': ['BILL_AMT1'], 'random_state': 148610953}
+        params = {'num_cols': ['BILL_AMT1'], 'random_state': 159699530}
         self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=1, forced=False, mono=False, **params)
 
-        # Gene Normalized Importance: 0.070598
-        # Transformed Feature Names and Importances: {'2_BILL_AMT2': 0.0705978274345398}
+        # Gene Normalized Importance: 0.020586
+        # Transformed Feature Names and Importances: {'3_BILL_AMT3': 0.02058570086956024}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
-        params = {'num_cols': ['BILL_AMT2'], 'random_state': 148610954}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=2, forced=False, mono=False, **params)
+        params = {'num_cols': ['BILL_AMT3'], 'random_state': 159699532}
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=3, forced=False, mono=False, **params)
 
-        # Gene Normalized Importance: 0.06347
-        # Transformed Feature Names and Importances: {'8_LIMIT_BAL': 0.06346997618675232}
+        # Gene Normalized Importance: 0.029232
+        # Transformed Feature Names and Importances: {'4_BILL_AMT4': 0.02923220954835415}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
-        params = {'num_cols': ['LIMIT_BAL'], 'random_state': 148610960}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=8, forced=False, mono=False, **params)
+        params = {'num_cols': ['BILL_AMT4'], 'random_state': 159699533}
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=4, forced=False, mono=False, **params)
+
+        # Gene Normalized Importance: 0.0021431
+        # Transformed Feature Names and Importances: {'5_BILL_AMT5': 0.002143113175407052}
+        # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
+        params = {'num_cols': ['BILL_AMT5'], 'random_state': 159699534}
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=5, forced=False, mono=False, **params)
+
+        # Gene Normalized Importance: 0.011209
+        # Transformed Feature Names and Importances: {'6_BILL_AMT6': 0.011209040880203247}
+        # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
+        params = {'num_cols': ['BILL_AMT6'], 'random_state': 159699535}
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=6, forced=False, mono=False, **params)
+
+        # Gene Normalized Importance: 0.0014719
+        # Transformed Feature Names and Importances: {'7_EDUCATION': 0.0014718829188495874}
+        # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
+        params = {'num_cols': ['EDUCATION'], 'random_state': 159699536}
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=7, forced=False, mono=False, **params)
 
         # Gene Normalized Importance:       1
         # Transformed Feature Names and Importances: {'10_PAY_0': 1.0}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
-        params = {'num_cols': ['PAY_0'], 'random_state': 148610962}
+        params = {'num_cols': ['PAY_0'], 'random_state': 159699539}
         self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=10, forced=False, mono=False, **params)
 
-        # Gene Normalized Importance: 0.071095
-        # Transformed Feature Names and Importances: {'12_PAY_3': 0.07109472900629044}
+        # Gene Normalized Importance: 0.21957
+        # Transformed Feature Names and Importances: {'11_PAY_2': 0.21957388520240784}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
-        params = {'num_cols': ['PAY_3'], 'random_state': 148610964}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=12, forced=False, mono=False, **params)
+        params = {'num_cols': ['PAY_2'], 'random_state': 159699540}
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=11, forced=False, mono=False, **params)
 
-        # Gene Normalized Importance: 0.07134
-        # Transformed Feature Names and Importances: {'14_PAY_5': 0.0713399350643158}
+        # Gene Normalized Importance: 0.045535
+        # Transformed Feature Names and Importances: {'14_PAY_5': 0.045535363256931305}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
-        params = {'num_cols': ['PAY_5'], 'random_state': 148610966}
+        params = {'num_cols': ['PAY_5'], 'random_state': 159699543}
         self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=14, forced=False, mono=False, **params)
 
-        # Gene Normalized Importance: 0.07779
-        # Transformed Feature Names and Importances: {'16_PAY_AMT1': 0.07778992503881454}
+        # Gene Normalized Importance: 0.026968
+        # Transformed Feature Names and Importances: {'15_PAY_6': 0.026968393474817276}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
-        params = {'num_cols': ['PAY_AMT1'], 'random_state': 148610968}
+        params = {'num_cols': ['PAY_6'], 'random_state': 159699544}
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=15, forced=False, mono=False, **params)
+
+        # Gene Normalized Importance: 0.02044
+        # Transformed Feature Names and Importances: {'16_PAY_AMT1': 0.020440170541405678}
+        # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
+        params = {'num_cols': ['PAY_AMT1'], 'random_state': 159699545}
         self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=16, forced=False, mono=False, **params)
 
-        # Gene Normalized Importance: 0.061645
-        # Transformed Feature Names and Importances: {'17_PAY_AMT2': 0.06164494529366493}
+        # Gene Normalized Importance: 0.042924
+        # Transformed Feature Names and Importances: {'17_PAY_AMT2': 0.04292424023151398}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
-        params = {'num_cols': ['PAY_AMT2'], 'random_state': 148610969}
+        params = {'num_cols': ['PAY_AMT2'], 'random_state': 159699546}
         self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=17, forced=False, mono=False, **params)
 
-        # Gene Normalized Importance: 0.068321
-        # Transformed Feature Names and Importances: {'18_PAY_AMT3': 0.06832128763198853}
+        # Gene Normalized Importance: 0.10431
+        # Transformed Feature Names and Importances: {'18_PAY_AMT3': 0.10430736839771271}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
-        params = {'num_cols': ['PAY_AMT3'], 'random_state': 148610970}
+        params = {'num_cols': ['PAY_AMT3'], 'random_state': 159699547}
         self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=18, forced=False, mono=False, **params)
 
-        # Gene Normalized Importance: 0.042376
-        # Transformed Feature Names and Importances: {'19_PAY_AMT4': 0.04237648472189903}
+        # Gene Normalized Importance: 0.047792
+        # Transformed Feature Names and Importances: {'19_PAY_AMT4': 0.04779212549328804}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
-        params = {'num_cols': ['PAY_AMT4'], 'random_state': 148610971}
+        params = {'num_cols': ['PAY_AMT4'], 'random_state': 159699548}
         self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=19, forced=False, mono=False, **params)
 
-        # Gene Normalized Importance: 0.03335
-        # Transformed Feature Names and Importances: {'20_PAY_AMT5': 0.03334994241595268}
+        # Gene Normalized Importance: 0.026807
+        # Transformed Feature Names and Importances: {'20_PAY_AMT5': 0.02680712565779686}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
-        params = {'num_cols': ['PAY_AMT5'], 'random_state': 148610972}
+        params = {'num_cols': ['PAY_AMT5'], 'random_state': 159699549}
         self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=20, forced=False, mono=False, **params)
 
-        # Gene Normalized Importance: 0.040456
-        # Transformed Feature Names and Importances: {'21_PAY_AMT6': 0.04045642167329788}
+        # Gene Normalized Importance: 0.064593
+        # Transformed Feature Names and Importances: {'21_PAY_AMT6': 0.06459338217973709}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
-        params = {'num_cols': ['PAY_AMT6'], 'random_state': 148610973}
+        params = {'num_cols': ['PAY_AMT6'], 'random_state': 159699550}
         self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=21, forced=False, mono=False, **params)
 
-        # Gene Normalized Importance: 0.054612
-        # Transformed Feature Names and Importances: {'29_ClusterTEClusterID50:LIMIT_BAL:SEX.0': 0.05461150035262108}
-        # Valid parameters: ['num_cols', 'clust_num', 'unique_vals', 'l2_norm', 'num_folds', 'cv_type', 'inflection_point', 'steepness', 'min_rows', 'multi_class', 'random_state', 'output_features_to_drop', 'labels']
-        # Allowed parameters and mutations (first mutation in list is default): {'clust_num': [5, 10, 20, 50], 'unique_vals': [False], 'l2_norm': [False, True], 'num_folds': [5], 'random_state': [42], 'cv_type': ['KFold'], 'inflection_point': [10, 20, 100], 'steepness': [3, 1, 5, 10], 'min_rows': [10, None, 20, 100], 'multi_class': [False]}
-        params = {'clust_num': 50,
-                  'cv_type': 'KFold',
-                  'inflection_point': 10,
-                  'l2_norm': False,
-                  'min_rows': 10,
-                  'multi_class': False,
-                  'num_cols': ['LIMIT_BAL', 'SEX'],
-                  'num_folds': 5,
-                  'random_state': 1480602788,
-                  'steepness': 10,
-                  'unique_vals': False}
-        self.add_transformer('ClusterTETransformer', col_type='numeric', gene_index=29, forced=False, mono=False, **params)
-
-        # Gene Normalized Importance: 0.18266
-        # Transformed Feature Names and Importances: {'32_CVTE:PAY_0.0': 0.18266233801841736}
-        # Valid parameters: ['cat_cols', 'num_folds', 'cv_type', 'inflection_point', 'steepness', 'min_rows', 'multi_class', 'random_state', 'output_features_to_drop', 'labels']
-        # Allowed parameters and mutations (first mutation in list is default): {'num_folds': [5], 'random_state': [42], 'cv_type': ['KFold'], 'inflection_point': [10, 20, 100], 'steepness': [3, 1, 5, 10], 'min_rows': [10, None, 20, 100], 'multi_class': [False]}
-        params = {'cat_cols': ['PAY_0'],
-                  'cv_type': 'KFold',
-                  'inflection_point': 100,
-                  'min_rows': 10,
-                  'multi_class': False,
-                  'num_folds': 5,
-                  'random_state': 4180992656,
-                  'steepness': 1}
-        self.add_transformer('CVTargetEncodeTransformer', col_type='categorical', gene_index=32, forced=False, mono=False, **params)
+        # Gene Normalized Importance: 0.0029303
+        # Transformed Feature Names and Importances: {'22_SEX': 0.0029302926268428564}
+        # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
+        params = {'num_cols': ['SEX'], 'random_state': 159699551}
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=22, forced=False, mono=False, **params)
 
 
         ###########################################################################
@@ -989,10 +929,6 @@ class Indiv_butugewi_finalTrue_id0(CustomIndividual):
         # Note: tsgi will use tsp and encoder, and tsp will use encoder
         self.tsgi_params = {'date_format_strings': {},
                            'encoder': None,
-                           'overall_shift_auc': 0.9999428055555556,
-                           'shifted_features': OrderedDict([('ID', 0.9999902777777778),
-                                                            ('SEX', 0.5646249999999999),
-                                                            ('PAY_AMT3', 0.5629289027777779)]),
                            'target': None,
                            'tgc': None,
                            'time_column': None,
