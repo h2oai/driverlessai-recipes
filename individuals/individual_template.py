@@ -139,6 +139,8 @@ True means can do TE, False means cannot do TE, 'only' means only have TE
         self.final_best = None
         self.final_pop = None
         self.is_final = None
+        self.hash = None
+        self.parent_hash = None
 
         self.score = None
         self.score_sd = None
