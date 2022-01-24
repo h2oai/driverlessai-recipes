@@ -5,7 +5,7 @@ import numpy as np
 
 
 class ImageOCRTextTransformer(CustomTransformer):
-    _modules_needed_by_name = ['pillow==8.3.2', "pytesseract==0.3.0"]
+    _modules_needed_by_name = ['pillow==9.0.0', "pytesseract==0.3.0"]
     _parallel_task = True  # if enabled, params_base['n_jobs'] will be >= 1 (adaptive to system), otherwise 1
     _can_use_gpu = True  # if enabled, will use special job scheduler for GPUs
     _can_use_multi_gpu = True  # if enabled, can get access to multiple GPUs for single transformer (experimental)
