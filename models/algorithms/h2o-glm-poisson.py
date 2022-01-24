@@ -50,12 +50,26 @@ class H2OBaseModel:
     def make_instance(self, **kwargs):
         return self.__class__._class(seed=self.random_state, **kwargs)
 
+    def make_y_nonnegative(self, y):
+        y_positive = y[y > 0.0]
+        if len(y_positive) > 0:
+            y_positive_min = np.min(y_positive)
+        else:
+            y_positive_min = 1e-6  # probably will make bad model
+        if isinstance(y, np.ndarray) and not y.flags.writeable:
+            # dt gives view of data, not copy, must now modify
+            y = y.copy()
+        # but don't replace with 0s, replace with least positive value
+        y[y < 0.0] = y_positive_min
+        return y
+
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
         X = dt.Frame(X)
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
         model_path = None
 
         orig_cols = list(X.names)
+        y = self.make_y_nonnegative(y)
         train_X = h2o.H2OFrame(X.to_pandas())
         self.col_types = train_X.types
         train_y = h2o.H2OFrame(y,
@@ -73,7 +87,9 @@ class H2OBaseModel:
         model = None
         if eval_set is not None:
             valid_X = h2o.H2OFrame(eval_set[0][0].to_pandas(), column_types=self.col_types)
-            valid_y = h2o.H2OFrame(eval_set[0][1],
+            valid_y = eval_set[0][1]
+            valid_y = self.make_y_nonnegative(valid_y)
+            valid_y = h2o.H2OFrame(valid_y,
                                    column_names=[self.target],
                                    column_types=['categorical' if self.num_classes >= 2 else 'numeric'])
             valid_frame = valid_X.cbind(valid_y)
