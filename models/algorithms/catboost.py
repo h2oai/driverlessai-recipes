@@ -401,6 +401,10 @@ class CatBoostModel(CustomModel):
                     if eval_set is not None:
                         valid_X = eval_set[0][0]
                         valid_y = eval_set[0][1]
+                        if cattype == int:
+                            # otherwise would hit: ValueError: Cannot convert non-finite values (NA or inf) to integer
+                            valid_X[col] = valid_X[col].replace([np.inf, -np.inf], np.nan)
+                            valid_X[col] = valid_X[col].fillna(value=0)
                         valid_X[col] = valid_X[col].astype(cattype)
                         eval_set = [(valid_X, valid_y)]
         return X, eval_set
