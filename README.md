@@ -81,7 +81,7 @@ abled.
  [1.10.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.0)
  [1.10.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.1)
  [1.10.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.2)
-### Count: 245
+### Count: 246
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -236,6 +236,7 @@ abled.
     * [historic_mean.py](./models/timeseries/historic_mean.py) [Historic Mean for Time-Series problems. Predicts the mean of the target for each timegroup for regression problems.] 
   * [UNSUPERVISED](./models/unsupervised)
     * [dbscan.py](./models/unsupervised/dbscan.py) [Clustering using DBScan] 
+    * [isolation_forest_custom_scorer.py](./models/unsupervised/isolation_forest_custom_scorer.py) [Custom Anomaly Score for Isolation Forest] 
     * [local_outlier_factor.py](./models/unsupervised/local_outlier_factor.py) [Outlier detection with Local Outlier Factor] 
     * [rapids_kmeans.py](./models/unsupervised/rapids_kmeans.py) [KMeans clustering using RAPIDS.ai] 
   * [UPLIFT](./models/uplift)
