@@ -2,6 +2,7 @@
 import datatable as dt
 import numpy as np
 from h2oaicore.models import CustomModel
+from h2oaicore.models_main import MainModel
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor
 from sklearn.preprocessing import LabelEncoder
 from h2oaicore.systemutils import physical_cores_count, config
@@ -14,6 +15,7 @@ class ExtraTreesModel(CustomModel):
     _display_name = "ExtraTrees"
     _description = "Extra Trees Model based on sklearn"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+    _parallel_task = True
 
     @staticmethod
     def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
@@ -29,41 +31,102 @@ class ExtraTreesModel(CustomModel):
         else:
             return True
 
-    def set_default_params(self, accuracy=None, time_tolerance=None,
-                           interpretability=None, **kwargs):
-        # Fill up parameters we care about
-        self.params = dict(random_state=kwargs.get("random_state", 1234),
-                           n_estimators=self.estimators_list(accuracy=accuracy)[0],
-                           criterion="gini" if self.num_classes >= 2 else "mse",
-                           n_jobs=self.params_base.get('n_jobs', max(1, physical_cores_count)))
+    def set_default_params(self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs):
+        kwargs.pop('get_best', None)
+        self.mutate_params(accuracy=accuracy, time_tolerance=time_tolerance, interpretability=interpretability,
+                           get_best=True, **kwargs)
 
     def estimators_list(self, accuracy=None):
         # could use config.n_estimators_list_no_early_stopping
         if accuracy is None:
             accuracy = 10
-        if accuracy > 8:
+        if accuracy >= 9:
             estimators_list = [100, 200, 300, 500, 1000, 2000]
+        elif accuracy >= 8:
+            estimators_list = [100, 200, 300, 500, 1000]
         elif accuracy >= 5:
             estimators_list = [50, 100, 200]
         else:
             estimators_list = [10, 50, 100]
         return estimators_list
 
-    def mutate_params(self, accuracy=10, **kwargs):
+    def mutate_params(self, accuracy=10, time_tolerance=10, interpretability=1, get_best=False, **kwargs):
         # Modify certain parameters for tuning
-        self.params["n_estimators"] = int(np.random.choice(self.estimators_list(accuracy=accuracy)))
-        self.params["criterion"] = np.random.choice(["gini", "entropy"]) if self.num_classes >= 2 \
-            else np.random.choice(["mse", "mae"])
+        user_choice = config.recipe_dict.copy()
+        self.params = dict()
+        trial = kwargs.get('trial')
+        self.params["n_estimators"] = MainModel.get_one(self.estimators_list(accuracy=accuracy), get_best=get_best,
+                                                        best_type="first", name="n_estimators",
+                                                        trial=trial, user_choice=user_choice)
+        criterions = ["gini", "entropy"] if self.num_classes >= 2 else ["mse", "mae"]
+        self.params["criterion"] = MainModel.get_one(criterions, get_best=get_best,
+                                                     best_type="first", name="criterion",
+                                                     trial=trial, user_choice=user_choice)
+        if config.enable_genetic_algorithm == 'Optuna':
+            min_samples_split_list = list(range(2, 30))
+            min_samples_leaf_list = list(range(1, 30))
+        else:
+            min_samples_split_list = list(range(2, 10))
+            min_samples_leaf_list = list(range(1, 10))
+        self.params['min_samples_split'] = MainModel.get_one(min_samples_split_list, get_best=get_best,
+                                                             best_type="first", name="min_samples_split",
+                                                             trial=trial,
+                                                             user_choice=user_choice)
+        self.params['min_samples_leaf'] = MainModel.get_one(min_samples_leaf_list, get_best=get_best,
+                                                            best_type="first", name="min_samples_leaf",
+                                                            trial=trial,
+                                                            user_choice=user_choice)
+        self.params['bootstrap'] = MainModel.get_one([False, True], get_best=get_best,
+                                                     best_type="first", name="bootstrap",
+                                                     trial=trial, user_choice=user_choice)
+        self.params['oob_score'] = MainModel.get_one([False, True], get_best=get_best,
+                                                     best_type="first", name="oob_score",
+                                                     trial=trial, user_choice=user_choice)
+        self.params['class_weight'] = MainModel.get_one(['balanced', 'balanced_subsample', 'None'], get_best=get_best,
+                                                        best_type="first", name="class_weight",
+                                                        trial=trial, user_choice=user_choice)
+        self.params["random_state"] = MainModel.get_one([self.params_base.get("random_state", 1234)], get_best=get_best,
+                                                        best_type="first", name="random_state",
+                                                        trial=None,  # not for Optuna
+                                                        user_choice=user_choice)
+
+    def transcribe_params(self, params=None, **kwargs):
+        """
+        Fixups of params to avoid any conflicts not expressible easily for Optuna
+        Or system things only need to set at fit time
+        :param params:
+        :return:
+        """
+        params_was_None = False
+        if params is None:
+            params = self.params  # reference, so goes back into self.params
+            params_was_None = True
+
+        if not params.get('bootstrap', False):
+            params['oob_score'] = False
+        if params['class_weight'] == 'None':
+            params['class_weight'] = None
+
+        if params_was_None:
+            # in case some function didn't preserve reference
+            self.params = params
+        return params  # default is no transcription
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
+        # system thing, doesn't need to be set in default or mutate, just at runtime in fit, into self.parmas so can see
+        self.params["n_jobs"] = self.params_base.get('n_jobs', max(1, physical_cores_count))
+        params = self.params.copy()
+        params = self.transcribe_params(params)
+
         orig_cols = list(X.names)
         if self.num_classes >= 2:
             lb = LabelEncoder()
             lb.fit(self.labels)
             y = lb.transform(y)
-            model = ExtraTreesClassifier(**self.params)
+            model = ExtraTreesClassifier(**params)
         else:
-            model = ExtraTreesRegressor(**self.params)
+            params.pop('class_weight', None)
+            model = ExtraTreesRegressor(**params)
 
         X = self.basic_impute(X)
         X = X.to_numpy()
@@ -73,7 +136,7 @@ class ExtraTreesModel(CustomModel):
         self.set_model_properties(model=model,
                                   features=orig_cols,
                                   importances=importances.tolist(),
-                                  iterations=self.params['n_estimators'])
+                                  iterations=params['n_estimators'])
 
     def basic_impute(self, X):
         # scikit extra trees internally converts to np.float32 during all operations,

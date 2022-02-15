@@ -447,6 +447,32 @@ class H2ORFModel(H2OBaseModel, CustomModel):
             self.get_one([0.5, 0.6, 0.7, 0.8, 0.9, 1.0], get_best=get_best, best_type='first', name='sample_rate'))
 
 
+class H2OEXTRAModel(H2ORFModel):
+    _display_name = "H2O XRT"
+    _description = "H2O-3 XRT"
+    def mutate_params(self, get_best=False,
+                      accuracy=10, time_tolerance=10,
+                      **kwargs):
+        trial = kwargs.get('trial')
+
+        n_estimators_list = config.n_estimators_list_no_early_stopping
+        if config.hard_asserts:
+            # Shapley too slow even with 50 trees, so avoid for testing
+            n_estimators_list = [min(3, x) for x in n_estimators_list]
+
+        self.params[self._fit_iteration_name] = self.get_one(n_estimators_list, get_best=get_best, best_type='first', name=self._fit_iteration_name, trial=trial)
+        if config.enable_genetic_algorithm == "Optuna":
+            max_depth_list = [6, 2, 3, 4, 5, 7, 8, 9, 10, 11]
+            nbins_list = [20, 16, 32, 64, 256]
+        else:
+            max_depth_list = [6, 2, 3, 4, 5, 7, 8, 9, 10, 11, 0]
+            nbins_list = [20, 16, 32, 64, 256]
+        self.params['max_depth'] = self.get_one(max_depth_list, get_best=get_best, best_type='first', name='max_depth', trial=trial)
+        self.params['nbins'] = self.get_one(nbins_list, get_best=get_best, best_type='first', name='nbins', trial=trial)
+        self.params['sample_rate'] = self.get_one([0.6320000291, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], get_best=get_best, best_type='first', name='sample_rate', trial=trial)
+        self.params['histogram_type'] = self.get_one(['Random'], get_best=get_best, best_type='first', name='histogram_type', trial=None)
+
+
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 
 
