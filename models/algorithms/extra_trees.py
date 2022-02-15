@@ -85,7 +85,7 @@ class ExtraTreesModel(CustomModel):
         self.params['class_weight'] = MainModel.get_one(['balanced', 'balanced_subsample', 'None'], get_best=get_best,
                                                         best_type="first", name="class_weight",
                                                         trial=trial, user_choice=user_choice)
-        self.params["random_state"] = MainModel.get_one([kwargs.get("random_state", 1234)], get_best=get_best,
+        self.params["random_state"] = MainModel.get_one([self.params_base.get("random_state", 1234)], get_best=get_best,
                                                         best_type="first", name="random_state",
                                                         trial=None,  # not for Optuna
                                                         user_choice=user_choice)
