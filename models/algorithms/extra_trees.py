@@ -113,7 +113,7 @@ class ExtraTreesModel(CustomModel):
         return params  # default is no transcription
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
-        # system thing, doesn't need to be set in default or mutate, just at runtime in fit, into self.parmas so can see
+        # system thing, doesn't need to be set in default or mutate, just at runtime in fit, into self.params so can see
         self.params["n_jobs"] = self.params_base.get('n_jobs', max(1, physical_cores_count))
         params = self.params.copy()
         params = self.transcribe_params(params)
@@ -133,7 +133,7 @@ class ExtraTreesModel(CustomModel):
 
         model.fit(X, y)
         importances = np.array(model.feature_importances_)
-        self.set_model_properties(model=model,
+        self.set_model_properties(model=(model, self.min),
                                   features=orig_cols,
                                   importances=importances.tolist(),
                                   iterations=params['n_estimators'])
@@ -144,7 +144,7 @@ class ExtraTreesModel(CustomModel):
         from h2oaicore.systemutils import update_precision
         X = update_precision(X, data_type=np.float32, override_with_data_type=True, fixup_almost_numeric=True)
         # Replace missing values with a value smaller than all observed values
-        if not hasattr(self, 'min'):
+        if not hasattr(self, 'min') or not isinstance(self.min, dict):
             self.min = dict()
         for col in X.names:
             XX = X[:, col]
@@ -160,10 +160,18 @@ class ExtraTreesModel(CustomModel):
         return X
 
     def predict(self, X, **kwargs):
+        model_tuple, _, _, _ = self.get_model_properties()
+        if len(model_tuple) == 2:
+            model, self.min = model_tuple
+        else:
+            # migration for old recipe version
+            model = model_tuple
+            self.min = dict()
+
         X = dt.Frame(X)
         X = self.basic_impute(X)
         X = X.to_numpy()
-        model, _, _, _ = self.get_model_properties()
+
         if self.num_classes == 1:
             preds = model.predict(X)
         else:
