@@ -1,4 +1,6 @@
 """K-Nearest Neighbor implementation by sklearn. For small data (< 200k rows)."""
+import os
+
 import datatable as dt
 import numpy as np
 import pandas as pd
@@ -44,11 +46,11 @@ class KNearestNeighbourModel(CustomModel):
         self.params = dict()
         trial = kwargs.get('trial')
 
-        list_of_neibs = [5, 1, 2, 10, 50, 100, 150, 200]
+        list_of_neibs = [1, 2, 5, 10, 50, 100, 150, 200]
         if config.recipe == 'kaggle':
             list_of_neibs.extend([250, 300])
-        if config.hard_asserts:
-            list_of_neibs = [3]
+        if 'GIT_HASH' in os.environ and config.hard_asserts:
+            list_of_neibs = [1]
         self.params['n_neighbors'] = MainModel.get_one(list_of_neibs, get_best=get_best,
                                                        best_type="first", name="n_neighbors",
                                                        trial=trial,
@@ -73,7 +75,7 @@ class KNearestNeighbourModel(CustomModel):
                                                    best_type="first", name="weights",
                                                    trial=trial,
                                                    user_choice=user_choice)
-        self.params['standardize'] = MainModel.get_one([True, False], get_best=get_best,
+        self.params['standardize'] = MainModel.get_one([False, True], get_best=get_best,
                                                        best_type="first", name="standardize",
                                                        trial=trial,
                                                        user_choice=user_choice)
