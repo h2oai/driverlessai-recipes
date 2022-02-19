@@ -110,6 +110,7 @@ class KNearestNeighbourModel(CustomModel):
         params = self.params.copy()
         params = self.transcribe_params(params, train_shape=X.shape)
         loggerinfo(self.get_logger(**kwargs), "%s fit params: %s" % (self.display_name, dict(params)))
+        loggerinfo(self.get_logger(**kwargs), "%s data: %s %s" % (self.display_name, X.shape, y.shape))
 
         X = dt.Frame(X)
         orig_cols = list(X.names)
