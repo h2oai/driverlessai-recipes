@@ -147,7 +147,7 @@ class ExtraTreesModel(CustomModel):
         X = self.basic_impute(X)
         X = X.to_numpy()
 
-        model.fit(X, y)
+        model.fit(X, y, sample_weight=sample_weight)
         importances = np.array(model.feature_importances_)
         self.set_model_properties(model=(model, self.min),
                                   features=orig_cols,
