@@ -5,9 +5,10 @@ import datatable as dt
 import numpy as np
 from h2oaicore.models import CustomModel
 from h2oaicore.models_main import MainModel
+from h2oaicore.utils import optimal_nthreads_model
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor
 from sklearn.preprocessing import LabelEncoder
-from h2oaicore.systemutils import physical_cores_count, config, loggerinfo
+from h2oaicore.systemutils import physical_cores_count, config, loggerinfo, max_threads, get_num_threads
 
 
 class ExtraTreesModel(CustomModel):
@@ -185,6 +186,9 @@ class ExtraTreesModel(CustomModel):
             model = model_tuple
             self.min = dict()
 
+        # update in case changed predict core count, e.g. for FS or scoring
+        model.n_jobs = self.update_n_jobs(X.shape, **kwargs)
+
         X = dt.Frame(X)
         X = self.basic_impute(X)
         X = X.to_numpy()
@@ -195,6 +199,26 @@ class ExtraTreesModel(CustomModel):
             func = model.predict_proba
 
         return self.predict_in_batch(func, X, **kwargs)
+
+    def update_n_jobs(self, X_shape, **kwargs):
+        if 'IS_SCORER' in kwargs:
+            # i.e. don't listen to fit-time n_jobs for predict if scoring
+            parent_max_workers = max(1, kwargs.get('parent_max_workers', kwargs.get('max_workers', 1)) or 1)
+            new_optimal = optimal_nthreads_model(X_shape, max_workers=parent_max_workers)
+            if config.hard_asserts:
+                # then in testing situation, maybe multiple experiments, so drop down
+                self.params['n_jobs'] = self.params_base['n_jobs'] = min(self.params_base['n_jobs'], new_optimal)
+            else:
+                self.params['n_jobs'] = self.params_base['n_jobs'] = new_optimal
+        else:
+            # still doing experiment, shared resources assumed, re-use self.params_base['n_jobs'] from fit
+            pass
+        if config.max_fit_cores_override > 0:
+            self.params_base['n_jobs'] = config.max_fit_cores_override
+        # self.params_base['n_jobs'] can change for predict
+        n_jobs = min(max_threads(), get_num_threads(), self.params_base['n_jobs'])
+
+        return n_jobs
 
     def predict_in_batch(self, func, X, **kwargs):
         # sklearn not very good at handling frames, no internal batching for row-by-row operations,
