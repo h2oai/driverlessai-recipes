@@ -215,7 +215,7 @@ class ExtraTreesModel(CustomModel):
         mem_used_per_row = 100E9 * (self.params['n_estimators'] * X.shape[1]) / (2000 * 100000 * 289)
         mem_max = 1E9
 
-        batch_size = int(mem_max/mem_used_per_row)
+        batch_size = max(1, int(mem_max/mem_used_per_row))
         loggerinfo(self.get_logger(**kwargs), "%s predict using batch_size %d with %d batches" %
                    (self.display_name, min(nrows, batch_size), max(1, ceil(nrows/batch_size))))
         start = 0
