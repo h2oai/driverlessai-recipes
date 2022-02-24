@@ -212,7 +212,7 @@ class ExtraTreesModel(CustomModel):
         # make empty numpy frame
         preds = np.ones((nrows, pred_cols)) * np.nan
 
-        mem_used_per_row = 30E9 * (self.params['n_estimators'] * X.shape[1]) / (2000 * 100000 * 289)
+        mem_used_per_row = 100E9 * (self.params['n_estimators'] * X.shape[1]) / (2000 * 100000 * 289)
         mem_max = 1E9
 
         batch_size = int(mem_max/mem_used_per_row)
