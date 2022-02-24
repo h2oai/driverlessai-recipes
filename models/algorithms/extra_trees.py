@@ -1,11 +1,13 @@
 """Extremely Randomized Trees (ExtraTrees) model from sklearn"""
+from math import ceil
+
 import datatable as dt
 import numpy as np
 from h2oaicore.models import CustomModel
 from h2oaicore.models_main import MainModel
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor
 from sklearn.preprocessing import LabelEncoder
-from h2oaicore.systemutils import physical_cores_count, config
+from h2oaicore.systemutils import physical_cores_count, config, loggerinfo
 
 
 class ExtraTreesModel(CustomModel):
@@ -16,6 +18,10 @@ class ExtraTreesModel(CustomModel):
     _description = "Extra Trees Model based on sklearn"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _parallel_task = True
+
+    # e.g. can choose 2000, and then only final model would use that many
+    # 0 means ignore option
+    _force_final_n_estimators = 0
 
     @staticmethod
     def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
@@ -68,6 +74,9 @@ class ExtraTreesModel(CustomModel):
         else:
             min_samples_split_list = list(range(2, 10))
             min_samples_leaf_list = list(range(1, 10))
+
+        # max_depth just kept at pure leave mode (default)
+
         self.params['min_samples_split'] = MainModel.get_one(min_samples_split_list, get_best=get_best,
                                                              best_type="first", name="min_samples_split",
                                                              trial=trial,
@@ -82,9 +91,10 @@ class ExtraTreesModel(CustomModel):
         self.params['oob_score'] = MainModel.get_one([False, True], get_best=get_best,
                                                      best_type="first", name="oob_score",
                                                      trial=trial, user_choice=user_choice)
-        self.params['class_weight'] = MainModel.get_one(['balanced', 'balanced_subsample', 'None'], get_best=get_best,
-                                                        best_type="first", name="class_weight",
-                                                        trial=trial, user_choice=user_choice)
+        if self.num_classes > 1:
+            self.params['class_weight'] = MainModel.get_one(['None', 'balanced', 'balanced_subsample'], get_best=get_best,
+                                                            best_type="first", name="class_weight",
+                                                            trial=trial, user_choice=user_choice)
         self.params["random_state"] = MainModel.get_one([self.params_base.get("random_state", 1234)], get_best=get_best,
                                                         best_type="first", name="random_state",
                                                         trial=None,  # not for Optuna
@@ -104,7 +114,7 @@ class ExtraTreesModel(CustomModel):
 
         if not params.get('bootstrap', False):
             params['oob_score'] = False
-        if params['class_weight'] == 'None':
+        if params.get('class_weight') == 'None':
             params['class_weight'] = None
 
         if params_was_None:
@@ -117,6 +127,12 @@ class ExtraTreesModel(CustomModel):
         self.params["n_jobs"] = self.params_base.get('n_jobs', max(1, physical_cores_count))
         params = self.params.copy()
         params = self.transcribe_params(params)
+
+        if self._force_final_n_estimators > 0 and kwargs.get('IS_FINAL', False):
+            self.params['n_estimators'] = params['n_estimators'] = self._force_final_n_estimators
+
+        loggerinfo(self.get_logger(**kwargs), "%s fit params: %s" % (self.display_name, dict(params)))
+        loggerinfo(self.get_logger(**kwargs), "%s data: %s %s" % (self.display_name, X.shape, y.shape))
 
         orig_cols = list(X.names)
         if self.num_classes >= 2:
@@ -160,6 +176,7 @@ class ExtraTreesModel(CustomModel):
         return X
 
     def predict(self, X, **kwargs):
+        assert X is not None
         model_tuple, _, _, _ = self.get_model_properties()
         if len(model_tuple) == 2:
             model, self.min = model_tuple
@@ -173,7 +190,41 @@ class ExtraTreesModel(CustomModel):
         X = X.to_numpy()
 
         if self.num_classes == 1:
-            preds = model.predict(X)
+            func = model.predict
         else:
-            preds = model.predict_proba(X)
+            func = model.predict_proba
+
+        return self.predict_in_batch(func, X, **kwargs)
+
+    def predict_in_batch(self, func, X, **kwargs):
+        # sklearn not very good at handling frames, no internal batching for row-by-row operations,
+        # yet predict can use much more memory than fit for same frame size
+        assert X is not None
+        assert isinstance(X, np.ndarray)
+        nrows = X.shape[0]
+
+        # see what shape would be
+        idx = X.shape[0] - 1
+        Xslice = X[idx:, :]
+        preds_1 = func(Xslice)
+        pred_cols = int(np.prod(preds_1.shape[1:]))
+
+        # make empty numpy frame
+        preds = np.ones((nrows, pred_cols)) * np.nan
+
+        mem_used_per_row = 30E9 * (self.params['n_estimators'] * X.shape[1]) / (2000 * 100000 * 289)
+        mem_max = 1E9
+
+        batch_size = int(mem_max/mem_used_per_row)
+        loggerinfo(self.get_logger(**kwargs), "%s predict using batch_size %d with %d batches" %
+                   (self.display_name, min(nrows, batch_size), max(1, ceil(nrows/batch_size))))
+        start = 0
+        while start < preds.shape[0]:
+            end = min(start + batch_size, preds.shape[0])
+            Xslice = X[start:end, :]
+
+            p = func(Xslice)
+            preds[start:end, :] = p.reshape(end - start, pred_cols)
+
+            start = end
         return preds
