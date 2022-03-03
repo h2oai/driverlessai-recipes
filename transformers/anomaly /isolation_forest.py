@@ -21,6 +21,18 @@ import os
 
 
 class H2OIFAllNumCatTransformer(CustomTransformer):
+    """
+    See docs at: https://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science/if.html
+    See blog at: https://www.h2o.ai/blog/anomaly-detection-with-isolation-forests-using-h2o/
+
+    Outputs 2 transformed features:
+     1) Normalized anomaly score
+     2) mean length: average number of splits across all trees to isolate the observation
+
+    This recipe uses h2o_recipes_nthreads toml for thread count, default of 8.
+    If have more cores and wish recipe to use them,
+     then increase h2o_recipes_nthreads in config.toml before DAI server starts.
+    """
     _display_name = "H2OIFAllNumCat"
     _description = "H2O-3 Isolation Forest for All Numeric and All Categorical Columns"
     _regression = True
