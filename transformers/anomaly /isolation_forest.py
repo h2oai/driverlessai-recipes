@@ -1,23 +1,21 @@
 """H2O-3 Distributed Scalable Machine Learning Transformers (IF)
 """
+import os
 import copy
-import sys
-import traceback
 from typing import Literal, List, Optional, Union
-
-from h2o import H2OFrame
-from h2o.estimators import H2OEstimator
-from h2oaicore.models import CustomModel
-import datatable as dt
 import uuid
-from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError, print_debug
+
 import numpy as np
 import pandas as pd
+import datatable as dt
+
+from h2oaicore.systemutils import config, user_dir, remove, print_debug
 from h2oaicore.transformer_utils import CustomTransformer
 
 _global_modules_needed_by_name = ['h2o==3.34.0.7']
 import h2o
-import os
+from h2o import H2OFrame
+from h2o.estimators import H2OEstimator
 
 
 class H2OIFAllNumCatTransformer(CustomTransformer):
