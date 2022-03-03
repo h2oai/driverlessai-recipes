@@ -45,6 +45,11 @@ class H2OIFAllNumCatTransformer(CustomTransformer):
     _check_stall = False  # avoid stall check. h2o runs as server, and is not a child for which we check CPU/GPU usage
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
+    # for DAI 1.10.3+
+    # can set _unique=True if know default options are sufficient and don't want multiple transformers created by genetic algorithm
+    # effectively same ass ignoring possible parameter choices and only ever using first (default) value in list
+    _unique = False
+
     @staticmethod
     def do_acceptance_test():
         return True
@@ -56,6 +61,8 @@ class H2OIFAllNumCatTransformer(CustomTransformer):
                     max_cols="all",
                     relative_importance=1,
                     num_default_instances=1,
+                    # if _unique=True, maximum number of times transformer is allowed to survive mutation pruning before actually pruned
+                    max_perturb=4,
                     )
 
     @staticmethod
