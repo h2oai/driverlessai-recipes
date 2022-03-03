@@ -20,12 +20,15 @@ import h2o
 import os
 
 
-class H2OIFTransformer(CustomTransformer):
-    _display_name = "H2O IF"
-    _description = "H2O-3 Isolation Forest"
+class H2OIFAllNumCatTransformer(CustomTransformer):
+    _display_name = "H2OIFAllNumCat"
+    _description = "H2O-3 Isolation Forest for All Numeric and All Categorical Columns"
     _regression = True
     _binary = True
     _multiclass = True
+    # default _unsupervised=False for CustomTransformer in case y used, but we don't use y
+    # speeds-up acceptance testing since only test "unsupervised" mode with no y used
+    _unsupervised = True
     _is_reproducible = False  # since using max_runtime_secs - disable that if need reproducible models
     _check_stall = False  # avoid stall check. h2o runs as server, and is not a child for which we check CPU/GPU usage
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
@@ -36,7 +39,7 @@ class H2OIFTransformer(CustomTransformer):
 
     @staticmethod
     def get_default_properties():
-        return dict(col_type="numeric",
+        return dict(col_type="numcat",
                     min_cols="all",
                     max_cols="all",
                     relative_importance=1,
@@ -399,3 +402,56 @@ class H2OIFTransformer(CustomTransformer):
                 h2o.remove(preds_frame)
 
 
+class H2OIFAllNumTransformer(H2OIFAllNumCatTransformer):
+    _display_name = "H2OIFAllNum"
+    _description = "H2O-3 Isolation Forest for All Numeric Columns"
+
+    @staticmethod
+    def get_default_properties():
+        return dict(col_type="numeric",
+                    min_cols="all",
+                    max_cols="all",
+                    relative_importance=1,
+                    num_default_instances=1,
+                    )
+
+
+class H2OIFAllCatTransformer(H2OIFAllNumCatTransformer):
+    _display_name = "H2OIFAllCat"
+    _description = "H2O-3 Isolation Forest for All Categorical Columns"
+
+    @staticmethod
+    def get_default_properties():
+        return dict(col_type="categorical",
+                    min_cols="all",
+                    max_cols="all",
+                    relative_importance=1,
+                    num_default_instances=1,
+                    )
+
+
+class H2OIFNumTransformer(H2OIFAllNumCatTransformer):
+    _display_name = "H2OIFNum"
+    _description = "H2O-3 Isolation Forest for Sample of Numeric Columns"
+
+    @staticmethod
+    def get_default_properties():
+        return dict(col_type="numeric",
+                    min_cols=1,
+                    max_cols="any",
+                    relative_importance=1,
+                    num_default_instances=1,
+                    )
+
+class H2OIFCatTransformer(H2OIFAllNumCatTransformer):
+    _display_name = "H2OIFCat"
+    _description = "H2O-3 Isolation Forest for Sample of Categorical Columns"
+
+    @staticmethod
+    def get_default_properties():
+        return dict(col_type="categorical",
+                    min_cols=1,
+                    max_cols="any",
+                    relative_importance=1,
+                    num_default_instances=1,
+                    )
