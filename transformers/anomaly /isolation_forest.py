@@ -39,7 +39,8 @@ class H2OIFAllNumCatTransformer(CustomTransformer):
     # default _unsupervised=False for CustomTransformer in case y used, but we don't use y
     # speeds-up acceptance testing since only test "unsupervised" mode with no y used
     _unsupervised = True
-    _is_reproducible = False  # since using max_runtime_secs - disable that if need reproducible models
+    # if set self.params['max_runtime_secs'] in fit(), then need to set _is_reproducible=False
+    _is_reproducible = True
     _check_stall = False  # avoid stall check. h2o runs as server, and is not a child for which we check CPU/GPU usage
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
@@ -77,7 +78,7 @@ class H2OIFAllNumCatTransformer(CustomTransformer):
                     max_depth=[8],  # type: int
                     min_rows=[1.0],  # type: float
                     max_runtime_secs=[0.0],  # type: float
-                    seed=[-1],  # type: int
+                    seed=[1234],  # type: int
                     build_tree_one_node=[False],  # type: bool
                     mtries=[-1],  # type: int
                     sample_size=[256],  # type: int
@@ -143,7 +144,7 @@ class H2OIFAllNumCatTransformer(CustomTransformer):
                  max_depth=8,  # type: int
                  min_rows=1.0,  # type: float
                  max_runtime_secs=0.0,  # type: float
-                 seed=-1,  # type: int
+                 seed=1234,  # type: int
                  build_tree_one_node=False,  # type: bool
                  mtries=-1,  # type: int
                  sample_size=256,  # type: int
