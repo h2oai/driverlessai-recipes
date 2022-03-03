@@ -81,7 +81,7 @@ abled.
  [1.10.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.0)
  [1.10.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.1)
  [1.10.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.2)
-### Count: 247
+### Count: 249
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -288,6 +288,8 @@ abled.
   * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [Example how to debug a transformer outside of Driverless AI (optional)] 
   * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [Testing a BYOR Transformer the PyClient - works on 1.7.0 & 1.7.1-17] 
   * [transformer_template.py](./transformers/transformer_template.py) [Template base class for a custom transformer recipe.] 
+  * [ANOMALY ](./transformers/anomaly )
+    * [isolation_forest.py](./transformers/anomaly /isolation_forest.py) [H2O-3 Distributed Scalable Machine Learning Transformers (IF)] 
   * [AUGMENTATION](./transformers/augmentation)
     * [germany_landers_holidays.py](./transformers/augmentation/germany_landers_holidays.py) [Returns a flag for whether a date falls on a holiday for each of Germany's Bundeslaender. ] 
     * [holidays_this_week.py](./transformers/augmentation/holidays_this_week.py) [Returns the amount of US holidays for a given week] 
@@ -344,6 +346,7 @@ abled.
     * [vader_text_sentiment_transformer.py](./transformers/nlp/vader_text_sentiment_transformer.py) [Extract sentiment from text using lexicon and rule-based sentiment analysis tool called VADER] 
   * [NUMERIC](./transformers/numeric)
     * [boxcox_transformer.py](./transformers/numeric/boxcox_transformer.py) [Box-Cox Transform] 
+    * [clusterdist_all.py](./transformers/numeric/clusterdist_all.py) [Cluster Distance for all columns] 
     * [count_negative_values_transformer.py](./transformers/numeric/count_negative_values_transformer.py) [Count of negative values per row] 
     * [count_positive_values_transformer.py](./transformers/numeric/count_positive_values_transformer.py) [Count of positive values per row] 
     * [exp_diff_transformer.py](./transformers/numeric/exp_diff_transformer.py) [Exponentiated difference of two numbers] 

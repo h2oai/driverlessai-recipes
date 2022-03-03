@@ -193,6 +193,10 @@ True means can do TE, False means cannot do TE, 'only' means only have TE
         """
         transformer collector
         :obj: Transformer display name
+              Use hashed display name for exact custom recipe
+              Use unhashed (i.e. after display name, remove | and rest of string) for internal DAI transformers
+              or for currently-activated custom recipe if it exists.
+              Ensure all required model, transformer, scorer recipes are uploaded.
         :gene_index: int : index to use for gene and transformed feature name
         :layer: Pipeline layer, 0 (normal single layer), 1, ... n - 1 for n layers
         :forced: Whether forcing in gene/transformer instance to avoid pruning at gene level and any derived feature level
