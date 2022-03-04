@@ -2,6 +2,9 @@
 """
 import os
 import copy
+import sys
+import traceback
+
 from typing import Literal, List, Optional, Union
 import uuid
 
@@ -9,7 +12,7 @@ import numpy as np
 import pandas as pd
 import datatable as dt
 
-from h2oaicore.systemutils import config, user_dir, remove, print_debug
+from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError, print_debug
 from h2oaicore.transformer_utils import CustomTransformer
 
 _global_modules_needed_by_name = ['h2o==3.34.0.7']
@@ -327,15 +330,11 @@ class H2OIFAllNumCatTransformer(CustomTransformer):
                 else:
                     offset_col = col
 
-            orig_cols = cols_to_train  # not training on offset
-
-            from h2o.estimators import H2OIsolationForestEstimator, H2OEstimator
-            model = H2OIsolationForestEstimator(**params)
-            model.train(x=train_X.names, training_frame=train_frame, **train_kwargs)
+            model, params = self.model_train_protected(params, train_X, train_frame, train_kwargs)
 
             preds = self.transform(X, y=y, model=model, **kwargs)
 
-            self.id = model.model_id
+            self.id = model.model_id  # shouldn't need in self.transform unless bug, to keep after above line
             model_path = os.path.join(user_dir(), "h2o_model." + str(uuid.uuid4()))
             model_path = h2o.save_model(model=model, path=model_path)
             with open(model_path, "rb") as f:
@@ -349,6 +348,34 @@ class H2OIFAllNumCatTransformer(CustomTransformer):
                 if xx is not None:
                     h2o.remove(xx)
 
+    def model_train_protected(self, params, train_X, train_frame, train_kwargs):
+        trials = 2
+        model = None
+        for trial in range(0, trials):
+            try:
+                from h2o.estimators import H2OIsolationForestEstimator, H2OEstimator
+                model = H2OIsolationForestEstimator(**params)
+                model.train(x=train_X.names, training_frame=train_frame, **train_kwargs)
+                break
+            except Exception as e:
+                print(str(e))
+                t, v, tb = sys.exc_info()
+                ex = ''.join(traceback.format_exception(t, v, tb))
+                if 'Training data must have at least 2 features' in str(ex) and train_X.ncols != 0:
+                    # if had non-zero features but h2o-3 saw as constant, ignore h2o-3 in that case
+                    raise IgnoreEntirelyError
+                elif "min_rows: The dataset size is too small to split for min_rows" in str(e):
+                    # then h2o-3 counted as rows some reduced set, since we already protect against actual rows vs. min_rows
+                    params['min_rows'] = 1  # go down to lowest value
+                    # permit another trial
+                elif "There are no usable columns to generate model" in str(ex) and train_X.ncols != 0:
+                    raise IgnoreEntirelyError
+                else:
+                    raise
+                if trial == trials - 1:
+                    # if at end of trials, raise no matter what
+                    raise
+        return model, params
 
     def inf_impute(self, X):
         # Replace -inf/inf values with a value smaller/larger than all observed values
