@@ -372,6 +372,9 @@ class H2OIFAllNumCatTransformer(CustomTransformer):
                     raise IgnoreEntirelyError
                 elif "There are no usable columns to generate model" in str(ex) and train_X.ncols != 0:
                     raise IgnoreEntirelyError
+                elif " java.lang.AssertionError" in str(ex):
+                    # bug in h2o-3, nothing can be done
+                    raise IgnoreEntirelyError
                 else:
                     raise
                 if trial == trials - 1:

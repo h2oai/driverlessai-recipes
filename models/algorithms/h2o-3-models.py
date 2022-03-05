@@ -229,6 +229,9 @@ class H2OBaseModel:
                         # permit another trial
                     elif "min_rows: The dataset size is too small to split for min_rows" in str(e) and trial == 1:
                         raise IgnoreEntirelyError
+                    elif " java.lang.AssertionError" in str(ex):
+                        # bug in h2o-3, nothing can be done
+                        raise IgnoreEntirelyError
                     else:
                         raise
                     if trial == trials - 1:
