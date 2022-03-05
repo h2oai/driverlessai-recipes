@@ -223,10 +223,12 @@ class H2OBaseModel:
                     if 'Training data must have at least 2 features' in str(ex) and X.ncols != 0:
                         # if had non-zero features but h2o-3 saw as constant, ignore h2o-3 in that case
                         raise IgnoreEntirelyError
-                    elif "min_rows: The dataset size is too small to split for min_rows" in str(e):
+                    elif "min_rows: The dataset size is too small to split for min_rows" in str(e) and trial == 0:
                         # then h2o-3 counted as rows some reduced set, since we already protect against actual rows vs. min_rows
                         params['min_rows'] = 1  # go down to lowest value
                         # permit another trial
+                    elif "min_rows: The dataset size is too small to split for min_rows" in str(e) and trial == 1:
+                        raise IgnoreEntirelyError
                     else:
                         raise
                     if trial == trials - 1:
