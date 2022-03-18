@@ -1,13 +1,14 @@
 """H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB/AutoML)
 """
 import copy
+import json
 import sys
 import traceback
 
 from h2oaicore.models import CustomModel
 import datatable as dt
 import uuid
-from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError, print_debug
+from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError, print_debug, exp_dir
 import numpy as np
 import pandas as pd
 
@@ -26,6 +27,8 @@ class H2OBaseModel:
     _check_stall = False  # avoid stall check. h2o runs as server, and is not a child for which we check CPU/GPU usage
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _mutate_all = 'auto'
+
+    _compute_p_values = False
 
     _class = NotImplemented
 
@@ -79,6 +82,9 @@ class H2OBaseModel:
 
     def make_instance(self, **kwargs):
         return self.__class__._class(seed=self.random_state, **kwargs)
+
+    def doing_p_values(self):
+        return isinstance(self, H2OGLMModel) and self._compute_p_values and self.num_classes <= 2
 
     def transcribe(self, X=None):
         if 'early_stopping_rounds' in self.params:
@@ -204,6 +210,18 @@ class H2OBaseModel:
 
             orig_cols = cols_to_train  # not training on offset
 
+            if self.doing_p_values():
+                # https://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science/algo-params/compute_p_values.html
+                # take a look at the coefficients_table to see the p_values
+                params['remove_collinear_columns'] = True
+                params['compute_p_values'] = True
+                # h2o-3 only supports p-values if lambda=0
+                params['lambda_'] = 0
+                if self.num_classes == 2:
+                    params['family'] = 'binomial'
+                params['solver'] = 'IRLSM'
+                params.pop('beta_constraints', None)
+
             trials = 2
             for trial in range(0, trials):
                 try:
@@ -238,10 +256,23 @@ class H2OBaseModel:
                         # if at end of trials, raise no matter what
                         raise
 
+            struuid = str(uuid.uuid4())
+
+            if isinstance(self, H2OGLMModel):
+                coeff_table = model._model_json['output']['coefficients_table']
+                # convert table to a pandas dataframe
+                coeff_table = coeff_table.as_data_frame()
+                is_final = 'IS_FINAL' in kwargs
+                json_file = os.path.join(exp_dir(), 'coefficients_table_is_final_%s_%s.json' % (is_final, struuid))
+                with open(json_file, "wt") as f:
+                    pd.set_option('precision', 16)
+                    f.write(json.dumps(json.loads(coeff_table.to_json()), indent=4))
+                    pd.set_option('precision', 6)
+
             if isinstance(model, H2OAutoML):
                 model = model.leader
             self.id = model.model_id
-            model_path = os.path.join(user_dir(), "h2o_model." + str(uuid.uuid4()))
+            model_path = os.path.join(exp_dir(), "h2o_model." + struuid)
             model_path = h2o.save_model(model=model, path=model_path)
             with open(model_path, "rb") as f:
                 raw_model_bytes = f.read()
@@ -318,7 +349,7 @@ class H2OBaseModel:
         X = dt.Frame(X)
         X = self.inf_impute(X)
         h2o.init(port=config.h2o_recipes_port, log_dir=self.my_log_dir)
-        model_path = os.path.join(user_dir(), self.id)
+        model_path = os.path.join(exp_dir(), self.id)
         model_file = os.path.join(model_path, "h2o_model." + str(uuid.uuid4()) + ".bin")
         os.makedirs(model_path, exist_ok=True)
         with open(model_file, "wb") as f:
@@ -332,10 +363,31 @@ class H2OBaseModel:
                 return model.predict_contributions(test_frame).as_data_frame(header=False).values
             preds_frame = model.predict(test_frame)
             preds = preds_frame.as_data_frame(header=False)
+
+            is_final = 'IS_FINAL' in kwargs
+            struuid = str(uuid.uuid4())
+            json_file = os.path.join(exp_dir(), 'stderr_is_final_%s_%s.json' % (is_final, struuid))
+
             if self.num_classes == 1:
-                return preds.values.ravel()
+                if self.doing_p_values():
+                    df = preds.iloc[:, 1]
+                    with open(json_file, "wt") as f:
+                        pd.set_option('precision', 16)
+                        f.write(json.dumps(json.loads(df.to_json()), indent=4))
+                        pd.set_option('precision', 6)
+                    return preds.iloc[:, 0].values.ravel()
+                else:
+                    return preds.values.ravel()
             elif self.num_classes == 2:
-                return preds.iloc[:, -1].values.ravel()
+                if self.doing_p_values():
+                    df = preds.iloc[:, 2]
+                    with open(json_file, "wt") as f:
+                        pd.set_option('precision', 16)
+                        f.write(json.dumps(json.loads(df.to_json()), indent=4))
+                        pd.set_option('precision', 6)
+                    return preds.iloc[:, -1 - 1].values.ravel()
+                else:
+                    return preds.iloc[:, -1].values.ravel()
             else:
                 return preds.iloc[:, 1:].values
         finally:
@@ -376,6 +428,10 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
     _fit_by_iteration = True
     _fit_iteration_name = 'ntrees'
     _predict_by_iteration = False
+
+    @staticmethod
+    def do_acceptance_test():
+        return True
 
     @property
     def has_pred_contribs(self):
@@ -423,6 +479,10 @@ class H2ORFModel(H2OBaseModel, CustomModel):
     _fit_iteration_name = 'ntrees'
     _predict_by_iteration = False
 
+    @staticmethod
+    def do_acceptance_test():
+        return True
+
     @property
     def has_pred_contribs(self):
         return self.labels is None or len(self.labels) <= 2
@@ -455,6 +515,11 @@ class H2ORFModel(H2OBaseModel, CustomModel):
 class H2OEXTRAModel(H2ORFModel):
     _display_name = "H2O XRT"
     _description = "H2O-3 XRT"
+
+    @staticmethod
+    def do_acceptance_test():
+        return False  # fails with preds of 0,0,0,0
+
     def mutate_params(self, get_best=False,
                       accuracy=10, time_tolerance=10,
                       **kwargs):
@@ -525,13 +590,29 @@ class H2OGLMModel(H2OBaseModel, CustomModel):
     _fit_iteration_name = 'max_iterations'
     _predict_by_iteration = False
 
-    def make_instance(self, **kwargs):
+    _compute_p_values = False  # can be set to true and then experiment summary zip contains coefficients*.json
+
+    @staticmethod
+    def do_acceptance_test():
+        return True
+
+    def make_instance(self, **params):
         if self.num_classes == 1:
-            return self.__class__._class(seed=self.random_state, family='gaussian')  # tweedie/poisson/tweedie/gamma
+            params.update(dict(seed=self.random_state, family='gaussian'))
+            return self.__class__._class(**params)  # tweedie/poisson/tweedie/gamma
         elif self.num_classes == 2:
-            return self.__class__._class(seed=self.random_state, family='binomial')
+            params.update(dict(seed=self.random_state, family='binomial'))
+            return self.__class__._class(**params)
         else:
-            return self.__class__._class(seed=self.random_state, family='multinomial')
+            params.update(dict(seed=self.random_state, family='multinomial'))
+            return self.__class__._class(**params)
+
+
+class H2OGLMPValuesModel(H2OGLMModel):
+    _display_name = "H2O GLM with p-values"
+    _description = "H2O-3 Generalized Linear Model with p-values (lambda=0 only)"
+    _compute_p_values = True
+    _multiclass = False  # doesn't support multinomial
 
 
 from h2o.automl import H2OAutoML
