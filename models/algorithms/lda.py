@@ -4,7 +4,7 @@ import numpy as np
 from h2oaicore.models import CustomModel
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis, LinearDiscriminantAnalysis
 from sklearn.preprocessing import LabelEncoder
-from h2oaicore.systemutils import physical_cores_count, config
+from h2oaicore.systemutils import physical_cores_count, config, IgnoreEntirelyError
 
 
 class DAModel(CustomModel):
@@ -91,7 +91,12 @@ class DAModel(CustomModel):
         X = self.basic_impute(X)
         X = X.to_numpy()
 
-        model.fit(X, y)
+        try:
+            model.fit(X, y)
+        except np.linalg.LinAlgError as e:
+            # nothing can be done, just revert to constant predictions
+            raise IgnoreEntirelyError(str(e))
+
         importances = np.array([1 for x in range(len(orig_cols))])
         self.set_model_properties(model=model,
                                   features=orig_cols,
