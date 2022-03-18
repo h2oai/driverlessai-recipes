@@ -15,6 +15,7 @@ class DAModel(CustomModel):
     _description = "Discriminant Analysis (linear and quadratic) Model based on sklearn"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _parallel_task = False
+    _supports_sample_weight = False
 
     @staticmethod
     def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
