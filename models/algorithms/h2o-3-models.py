@@ -29,6 +29,8 @@ class H2OBaseModel:
     _mutate_all = 'auto'
 
     _compute_p_values = False
+    _show_performance = False
+    _show_coefficients = False
 
     _class = NotImplemented
 
@@ -268,16 +270,17 @@ class H2OBaseModel:
                         # if at end of trials, raise no matter what
                         raise
 
-            # retrieve the model performance
-            perf_train = model.model_performance(train_frame)
-            loggerinfo(self.get_logger(**kwargs), self.perf_to_list(perf_train, which="training"))
-            if valid_frame is not None:
-                perf_valid = model.model_performance(valid_frame)
-                loggerinfo(self.get_logger(**kwargs), self.perf_to_list(perf_valid, which="validation"))
+            if self._show_performance:
+                # retrieve the model performance
+                perf_train = model.model_performance(train_frame)
+                loggerinfo(self.get_logger(**kwargs), self.perf_to_list(perf_train, which="training"))
+                if valid_frame is not None:
+                    perf_valid = model.model_performance(valid_frame)
+                    loggerinfo(self.get_logger(**kwargs), self.perf_to_list(perf_valid, which="validation"))
 
             struuid = str(uuid.uuid4())
 
-            if isinstance(self, H2OGLMModel):
+            if self._show_coefficients:
                 coeff_table = model._model_json['output']['coefficients_table']
                 # convert table to a pandas dataframe
                 coeff_table = coeff_table.as_data_frame()
@@ -310,13 +313,26 @@ class H2OBaseModel:
         if df_varimp is None:
             varimp = np.ones(len(orig_cols))
         else:
+            df_varimp = model.varimp(True)
+
+            # deal with categorical levels appended as .<num> or .<str>
+            orig_cols_set = set(orig_cols)
             df_varimp.index = df_varimp['variable']
-            df_varimp = df_varimp.iloc[:, 1]  # relative importance
+            # try to remove tail end where cat added
+            for i in range(3):
+                df_varimp.index = [x if x in orig_cols_set else ".".join(x.split(".")[:-2]) for x in df_varimp.index]
+            # try to remove stuff after 1st, 2nd, third dot in case above didn't work, e.g. when many .'s in string
+            df_varimp.index = [x if x in orig_cols_set else ".".join(x.split(".")[0:1]) for x in df_varimp.index]
+            df_varimp.index = [x if x in orig_cols_set else ".".join(x.split(".")[0:2]) for x in df_varimp.index]
+            df_varimp.index = [x if x in orig_cols_set else ".".join(x.split(".")[0:3]) for x in df_varimp.index]
+            df_varimp.index.name = "___INDEXINTERNAL___"
+            df_varimp = df_varimp.groupby(df_varimp.index.name).sum()['scaled_importance']
+
             for missing in [x for x in orig_cols if x not in list(df_varimp.index)]:
                 # h2o3 doesn't handle raw strings all the time, can hit:
                 # KeyError: "None of [Index(['0_Str:secret_ChangeTemp'], dtype='object', name='variable')] are in the [index]"
                 df_varimp[missing] = 0
-            varimp = df_varimp[orig_cols].values  # order by fitted features
+            varimp = df_varimp[orig_cols].values  # order by (and select) fitted features
             varimp = np.nan_to_num(varimp)
 
         self.set_model_properties(model=raw_model_bytes,
@@ -611,8 +627,6 @@ class H2OGLMModel(H2OBaseModel, CustomModel):
     _fit_iteration_name = 'max_iterations'
     _predict_by_iteration = False
 
-    _compute_p_values = False  # can be set to true and then experiment summary zip contains coefficients*.json
-
     @staticmethod
     def do_acceptance_test():
         return True
@@ -632,8 +646,11 @@ class H2OGLMModel(H2OBaseModel, CustomModel):
 class H2OGLMPValuesModel(H2OGLMModel):
     _display_name = "H2O GLM with p-values"
     _description = "H2O-3 Generalized Linear Model with p-values (lambda=0 only)"
-    _compute_p_values = True
     _multiclass = False  # doesn't support multinomial
+
+    _compute_p_values = True
+    _show_coefficients = True
+    _show_performance = True
 
 
 from h2o.automl import H2OAutoML
