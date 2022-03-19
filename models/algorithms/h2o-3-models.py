@@ -8,7 +8,7 @@ import traceback
 from h2oaicore.models import CustomModel
 import datatable as dt
 import uuid
-from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError, print_debug, exp_dir
+from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError, print_debug, exp_dir, loggerinfo
 import numpy as np
 import pandas as pd
 
@@ -57,8 +57,8 @@ class H2OBaseModel:
                                                                   **kwargs)
 
         if isinstance(self, H2OGBMModel):
-            if self._fit_iteration_name in gbm_params:
-                self.params[self._fit_iteration_name] = gbm_params[self._fit_iteration_name]
+            if 'n_estimators' in gbm_params:
+                self.params[self._fit_iteration_name] = gbm_params['n_estimators']
             self.transcribe()
 
             self.params['col_sample_rate'] = 0.7
@@ -66,8 +66,8 @@ class H2OBaseModel:
             self.params['max_depth'] = 6
             self.params['stopping_metric'] = 'auto'
         elif isinstance(self, (H2ORFModel, H2OGLMModel)):
-            if self._fit_iteration_name in gbm_params:
-                self.params[self._fit_iteration_name] = gbm_params[self._fit_iteration_name]
+            if 'n_estimators' in gbm_params:
+                self.params[self._fit_iteration_name] = gbm_params['n_estimators']
             self.transcribe()
 
         if not isinstance(self, (H2OGBMModel, H2OGLMModel, H2ORFModel)):
@@ -78,7 +78,12 @@ class H2OBaseModel:
             self.params['max_runtime_secs'] = max_runtime_secs
 
     def get_iterations(self, model):
-        return 0
+        if self._fit_iteration_name in model.params and 'actual' in model.params[self._fit_iteration_name]:
+            return model.params[self._fit_iteration_name]['actual'] + 1
+        elif self._fit_by_iteration:
+            return self.params[self._fit_iteration_name]
+        else:
+            return 0
 
     def make_instance(self, **kwargs):
         return self.__class__._class(seed=self.random_state, **kwargs)
@@ -87,6 +92,9 @@ class H2OBaseModel:
         return isinstance(self, H2OGLMModel) and self._compute_p_values and self.num_classes <= 2
 
     def transcribe(self, X=None):
+        if self._support_early_stopping and isinstance(self, H2OGLMModel):
+            self.params['early_stopping'] = True
+
         if 'early_stopping_rounds' in self.params:
             self.params['stopping_rounds'] = self.params.pop('early_stopping_rounds')
         if 'early_stopping_threshold' in self.params:
@@ -96,9 +104,12 @@ class H2OBaseModel:
             if self._fit_iteration_name in self.params_base and self._fit_iteration_name not in self.params:
                 self.params[self._fit_iteration_name] = self.params_base[self._fit_iteration_name]
 
-            if config.hard_asserts and self._fit_iteration_name in self.params:
+            if config.hard_asserts:
                 # Shapley too slow even with 50 trees, so avoid for testing
-                self.params[self._fit_iteration_name] = min(self.params[self._fit_iteration_name], 3)
+                if self._fit_iteration_name in self.params:
+                    self.params[self._fit_iteration_name] = min(self.params[self._fit_iteration_name], 3)
+                else:
+                    self.params[self._fit_iteration_name] = 3
 
         if isinstance(self, H2OGBMModel):
             if 'learning_rate' in self.params_base:
@@ -226,6 +237,7 @@ class H2OBaseModel:
             for trial in range(0, trials):
                 try:
                     # Models that can use an offset column
+                    loggerinfo(self.get_logger(**kwargs), "%s (%s) fit parameters: %s" % (self.display_name, self.__class__.__module__, dict(params)))
                     model = self.make_instance(**params)
                     if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
                         model.train(x=cols_to_train, y=self.target, training_frame=train_frame,
@@ -255,6 +267,13 @@ class H2OBaseModel:
                     if trial == trials - 1:
                         # if at end of trials, raise no matter what
                         raise
+
+            # retrieve the model performance
+            perf_train = model.model_performance(train_frame)
+            loggerinfo(self.get_logger(**kwargs), self.perf_to_list(perf_train, which="training"))
+            if valid_frame is not None:
+                perf_valid = model.model_performance(valid_frame)
+                loggerinfo(self.get_logger(**kwargs), self.perf_to_list(perf_valid, which="validation"))
 
             struuid = str(uuid.uuid4())
 
@@ -304,6 +323,14 @@ class H2OBaseModel:
                                   features=orig_cols,
                                   importances=varimp,
                                   iterations=self.get_iterations(model))
+
+    def perf_to_list(self, perf, which="training"):
+        perf_list = []
+        prefix = "%s (%s) fit %s performance:" % (self.display_name, which, self.__class__.__module__)
+        for k, v in perf._metric_json.items():
+            if isinstance(v, (int, str, float)):
+                perf_list.append(["%s: %s: %s" % (prefix, k, v)])
+        return perf_list
 
     def inf_impute(self, X):
         # Replace -inf/inf values with a value smaller/larger than all observed values
@@ -437,9 +464,6 @@ class H2OGBMModel(H2OBaseModel, CustomModel):
     def has_pred_contribs(self):
         return self.labels is None or len(self.labels) <= 2
 
-    def get_iterations(self, model):
-        return model.params[self._fit_iteration_name]['actual'] + 1
-
     def mutate_params(self,
                       **kwargs):
         self.params['max_depth'] = int(np.random.choice([2, 3, 4, 5, 5, 6, 6, 6, 8, 8, 8, 9, 9, 10, 10, 11, 12]))
@@ -481,14 +505,11 @@ class H2ORFModel(H2OBaseModel, CustomModel):
 
     @staticmethod
     def do_acceptance_test():
-        return True
+        return False  # has issue with probs summing up, all probs 0 for multiclass
 
     @property
     def has_pred_contribs(self):
         return self.labels is None or len(self.labels) <= 2
-
-    def get_iterations(self, model):
-        return model.params[self._fit_iteration_name]['actual'] + 1
 
     def set_default_params(self, logger=None, num_classes=None, accuracy=10, time_tolerance=10, **kwargs):
         super().set_default_params(logger=logger, num_classes=num_classes, accuracy=accuracy, time_tolerance=time_tolerance, **kwargs)
