@@ -124,9 +124,9 @@ class ExtraTreesModel(CustomModel):
         return params  # default is no transcription
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
-        if config.hard_asserts:
-            from h2oaicore.utils import kwargs_has_stage, kwargs_missing_stage
-            assert kwargs_has_stage(kwargs), kwargs_missing_stage(kwargs)
+        #if config.hard_asserts:
+        #    from h2oaicore.utils import kwargs_has_stage, kwargs_missing_stage
+        #    assert kwargs_has_stage(kwargs), kwargs_missing_stage(kwargs)
 
         # system thing, doesn't need to be set in default or mutate, just at runtime in fit, into self.params so can see
         self.params["n_jobs"] = self.params_base.get('n_jobs', max(1, physical_cores_count))
@@ -181,9 +181,9 @@ class ExtraTreesModel(CustomModel):
         return X
 
     def predict(self, X, **kwargs):
-        if config.hard_asserts:
-            from h2oaicore.utils import kwargs_has_stage, kwargs_missing_stage
-            assert kwargs_has_stage(kwargs), kwargs_missing_stage(kwargs)
+        #if config.hard_asserts:
+        #    from h2oaicore.utils import kwargs_has_stage, kwargs_missing_stage
+        #    assert kwargs_has_stage(kwargs), kwargs_missing_stage(kwargs)
 
         assert X is not None
         model_tuple, _, _, _ = self.get_model_properties()
