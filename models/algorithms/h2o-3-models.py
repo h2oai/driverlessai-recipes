@@ -264,6 +264,9 @@ class H2OBaseModel:
                     elif " java.lang.AssertionError" in str(ex):
                         # bug in h2o-3, nothing can be done
                         raise IgnoreEntirelyError
+                    elif "NotStrictlyPositiveException" in str(ex):
+                        # bad input data for given hyperparameters
+                        raise IgnoreEntirelyError
                     else:
                         raise
                     if trial == trials - 1:
