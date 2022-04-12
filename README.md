@@ -23,7 +23,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
   * The code for the recipes runs as the same native Linux user that runs the Driverless AI application.
     * Recipes have explicit access to all data passing through the transformer/model/scorer API
     * Recipes have implicit access to system resources such as disk, memory, CPUs, GPUs, network, etc.
-  * A H2O-3 Java process is started in the background, for use by all recipes using H2O-3. Anyone with access to the Driverless AI instance can browse the file system, see models and data through the H2O-3 interface.
+  * An H2O-3 Java process is started in the background, for use by all recipes using H2O-3. Anyone with access to the Driverless AI instance can browse the file system, see models and data through the H2O-3 interface.
 
 * Enable automatic detection of forbidden or dangerous code constructs in a custom recipe with `custom_recipe_security_analysis_enabled = tr
 ue`. Note the following:
@@ -51,7 +51,7 @@ abled.
 * More information in the FAQ
 
 ### Performance
-* Use fast and efficient data manipulation tools like `data.table`, `sklearn`, `numpy` or `pandas` instead of Python lists, for-loops etc.
+* Use fast and efficient data manipulation tools like `datatable`, `sklearn`, `numpy` or `pandas` instead of Python lists, for-loops etc.
 * Use disk sparingly, delete temporary files as soon as possible
 * Use memory sparingly, delete objects when no longer needed
 
@@ -361,7 +361,7 @@ abled.
     * [truncated_svd_all.py](./transformers/numeric/truncated_svd_all.py) [Truncated SVD for all columns] 
     * [yeojohnson_transformer.py](./transformers/numeric/yeojohnson_transformer.py) [Yeo-Johnson Power Transformer] 
   * [OUTLIERS](./transformers/outliers)
-    * [h2o3-dl-anomaly.py](./transformers/outliers/h2o3-dl-anomaly.py) [Anomaly score for each row based on reconstruction error of a H2O-3 deep learning autoencoder] 
+    * [h2o3-dl-anomaly.py](./transformers/outliers/h2o3-dl-anomaly.py) [Anomaly score for each row based on reconstruction error of an H2O-3 deep learning autoencoder]
     * [quantile_winsorizer.py](./transformers/outliers/quantile_winsorizer.py) [Winsorizes (truncates) univariate outliers outside of a given quantile threshold] 
     * [twosigma_winsorizer.py](./transformers/outliers/twosigma_winsorizer.py) [Winsorizes (truncates) univariate outliers outside of two standard deviations from the mean.] 
   * [RECOMMENDATIONS](./transformers/recommendations)

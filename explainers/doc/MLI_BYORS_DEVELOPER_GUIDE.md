@@ -2899,7 +2899,7 @@ For example:
 ## Performance
 Performance best practices:
 
-* Use fast and efficient data manipulation tools like `data.table`, `sklearn`, `numpy` or `pandas` instead of Python lists, for-loops etc.
+* Use fast and efficient data manipulation tools like `datatable`, `sklearn`, `numpy` or `pandas` instead of Python lists, for-loops etc.
 * Use disk sparingly, delete temporary files as soon as possible.
 * Use memory sparingly, delete objects when no longer needed.
 ## Safety
