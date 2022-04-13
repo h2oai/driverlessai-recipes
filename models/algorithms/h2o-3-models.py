@@ -316,20 +316,7 @@ class H2OBaseModel:
         if df_varimp is None:
             varimp = np.ones(len(orig_cols))
         else:
-            df_varimp = model.varimp(True)
-
-            # deal with categorical levels appended as .<num> or .<str>
-            orig_cols_set = set(orig_cols)
-            df_varimp.index = df_varimp['variable']
-            # try to remove tail end where cat added
-            for i in range(3):
-                df_varimp.index = [x if x in orig_cols_set else ".".join(x.split(".")[:-2]) for x in df_varimp.index]
-            # try to remove stuff after 1st, 2nd, third dot in case above didn't work, e.g. when many .'s in string
-            df_varimp.index = [x if x in orig_cols_set else ".".join(x.split(".")[0:1]) for x in df_varimp.index]
-            df_varimp.index = [x if x in orig_cols_set else ".".join(x.split(".")[0:2]) for x in df_varimp.index]
-            df_varimp.index = [x if x in orig_cols_set else ".".join(x.split(".")[0:3]) for x in df_varimp.index]
-            df_varimp.index.name = "___INDEXINTERNAL___"
-            df_varimp = df_varimp.groupby(df_varimp.index.name).sum()['scaled_importance']
+            _, _, df_varimp = self.get_df_varimp(model, orig_cols)
 
             missing_features_set = set([x for x in orig_cols if x not in list(df_varimp.index)])
             # must not keep "missing features", even as zero, since h2o-3 won't have them in pred_contribs output
@@ -338,11 +325,31 @@ class H2OBaseModel:
             varimp = df_varimp[orig_cols].values  # order by (and select) fitted features
             varimp = np.nan_to_num(varimp)
 
-
         self.set_model_properties(model=raw_model_bytes,
                                   features=orig_cols,
                                   importances=varimp,
                                   iterations=self.get_iterations(model))
+
+    def get_df_varimp(self, model, orig_cols):
+        orig_cols_set = set(orig_cols)
+
+        # deal with categorical levels appended as .<num> or .<str>
+        df_varimp = model.varimp(True)
+        df_varimp.index = df_varimp['variable']
+        df_varimp_orig = df_varimp.copy()
+
+        # try to remove tail end where cat added
+        for sp in ['.', ':']:
+            for shift in range(1, 4 + 1):
+                df_varimp.index = [".".join(x.split(".")[:-shift]) if ".".join(x.split(".")[:-shift]) in orig_cols_set else x for x in df_varimp.index]
+            # try to remove stuff after 1st, 2nd, third dot in case above didn't work, e.g. when many .'s in string
+            for shift in range(1, 4 + 1):
+                df_varimp.index = [sp.join(x.split(sp)[0:shift]) if sp.join(x.split(sp)[0:shift]) in orig_cols_set else x for x in df_varimp.index]
+        df_varimp.index.name = "___INDEXINTERNAL___"
+
+        df_varimp_merged = df_varimp.groupby(df_varimp.index.name).sum()['scaled_importance']
+
+        return df_varimp_orig, df_varimp, df_varimp_merged
 
     def perf_to_list(self, perf, which="training"):
         perf_list = []
@@ -407,7 +414,14 @@ class H2OBaseModel:
 
         try:
             if kwargs.get("pred_contribs"):
-                return model.predict_contributions(test_frame).as_data_frame(header=False).values
+                orig_cols = list(X.names)
+                df_varimp_orig, df_varimp, df_varimp_merged = self.get_df_varimp(model, orig_cols)
+                dfmap = {k: v for k, v in zip(df_varimp_orig.index, df_varimp.index)}
+                preds_df = model.predict_contributions(test_frame).as_data_frame(header=False)
+                # this only has to work for regression and binary since h2o-3 does not support multiclass shapley
+                preds_df.columns = [dfmap.get(x, x) for x in preds_df.columns]
+                preds_df = preds_df.groupby(preds_df.columns, axis=1).sum()
+                return preds_df.values
             preds_frame = model.predict(test_frame)
             preds = preds_frame.as_data_frame(header=False)
 
