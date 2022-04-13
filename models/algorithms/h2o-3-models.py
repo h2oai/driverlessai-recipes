@@ -331,12 +331,13 @@ class H2OBaseModel:
             df_varimp.index.name = "___INDEXINTERNAL___"
             df_varimp = df_varimp.groupby(df_varimp.index.name).sum()['scaled_importance']
 
-            for missing in [x for x in orig_cols if x not in list(df_varimp.index)]:
-                # h2o3 doesn't handle raw strings all the time, can hit:
-                # KeyError: "None of [Index(['0_Str:secret_ChangeTemp'], dtype='object', name='variable')] are in the [index]"
-                df_varimp[missing] = 0
+            missing_features = [x for x in orig_cols if x not in list(df_varimp.index)]
+            # must not keep "missing features", even as zero, since h2o-3 won't have them in pred_contribs output
+            orig_cols = [x for x in orig_cols if x not in missing_features]
+            self.col_types = {k: v for k, v in self.col_types.items() if k  not in missing_features}
             varimp = df_varimp[orig_cols].values  # order by (and select) fitted features
             varimp = np.nan_to_num(varimp)
+
 
         self.set_model_properties(model=raw_model_bytes,
                                   features=orig_cols,
