@@ -331,10 +331,10 @@ class H2OBaseModel:
             df_varimp.index.name = "___INDEXINTERNAL___"
             df_varimp = df_varimp.groupby(df_varimp.index.name).sum()['scaled_importance']
 
-            missing_features = [x for x in orig_cols if x not in list(df_varimp.index)]
+            missing_features_set = set([x for x in orig_cols if x not in list(df_varimp.index)])
             # must not keep "missing features", even as zero, since h2o-3 won't have them in pred_contribs output
-            orig_cols = [x for x in orig_cols if x not in missing_features]
-            self.col_types = {k: v for k, v in self.col_types.items() if k  not in missing_features}
+            orig_cols = [x for x in orig_cols if x not in missing_features_set]
+            self.col_types = {k: v for k, v in self.col_types.items() if k  not in missing_features_set}
             varimp = df_varimp[orig_cols].values  # order by (and select) fitted features
             varimp = np.nan_to_num(varimp)
 
