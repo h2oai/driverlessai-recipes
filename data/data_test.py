@@ -9,7 +9,7 @@ from h2oaicore.systemutils import user_dir
 
 
 class TestData(CustomData):
-    url = "http://data.un.org/_Docs/SYB/CSV/SYB63_226_202009_Net%20Disbursements%20from%20Official%20ODA%20to%20Recipients.csv"
+    url = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
 
     @staticmethod
     def create_data(X: dt.Frame = None) -> Union[str, List[str],

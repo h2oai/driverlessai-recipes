@@ -21,10 +21,10 @@ class TestDataMultiple(CustomData):
         temp_path = os.path.join(user_dir(), config.contrib_relative_directory, "testdata_%s" % str(uuid.uuid4()))
         os.makedirs(temp_path, exist_ok=True)
 
-        link = "http://data.un.org/_Docs/SYB/CSV/SYB63_226_202009_Net%20Disbursements%20from%20Official%20ODA%20to%20Recipients.csv"
+        link = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
         output_file1 = download(link, dest_path=temp_path)
 
-        link = "http://data.un.org/_Docs/SYB/CSV/SYB63_223_202009_Net%20Disbursements%20from%20Official%20ODA%20from%20Donors.csv"
+        link = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/bezdekIris.data"
         output_file2 = download(link, dest_path=temp_path)
 
         return [output_file1, output_file2]
