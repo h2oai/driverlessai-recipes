@@ -45,6 +45,9 @@ explore_model_prob = max(explore_model_prob_lowest, explore_model_prob * explore
                        prob_add_genes="Unnormalized probability to add genes",
                        prob_addbest_genes="Unnormalized probability to add best genes",
 
+                       prob_prune_pretransformer_genes="Unnormalized probability to prune pretransformer genes",
+                       prob_prune_pretransformer_by_features="Unnormalized probability to prune pretransformer features",
+
                        random_state="random seed for individual",
                        num_as_cat="whether to treat numeric as categorical",
                        do_te="""Whether to support target encoding (TE) (True, False, 'only', 'catlabel')
@@ -76,6 +79,8 @@ True means can do TE, False means cannot do TE, 'only' means only have TE
                          prob_prune_by_features=float,
                          prob_add_genes=float,
                          prob_addbest_genes=float,
+                         prob_prune_pretransformer_genes=float,
+                         prob_prune_pretransformer_by_features=float,
 
                          random_state=int,
                          num_as_cat=bool,

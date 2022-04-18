@@ -81,7 +81,7 @@ abled.
  [1.10.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.0)
  [1.10.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.1)
  [1.10.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.2)
-### Count: 250
+### Count: 251
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -193,6 +193,7 @@ abled.
     * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines] <kbd>✓ MOJO Enabled</kbd>
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.] 
     * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL] 
+    * [datatable_glm.py](./models/algorithms/datatable_glm.py) [datatable Linear Model] 
     * [extra_trees.py](./models/algorithms/extra_trees.py) [Extremely Randomized Trees (ExtraTrees) model from sklearn] 
     * [extremeClassifier.py](./models/algorithms/extremeClassifier.py) [ Extreme Classifier Model: To speed up train of multiclass model (100s of classes) for lightGBM.    Caution: can only be used for AUC (or GINI) and accuracy metrics.    Based on: Extreme Classification in Log Memory using Count-Min Sketch: https://arxiv.org/abs/1910.13830] 
     * [h2o-3-gbm-poisson.py](./models/algorithms/h2o-3-gbm-poisson.py) [H2O-3 Distributed Scalable Machine Learning Models: Poisson GBM] 
@@ -361,7 +362,7 @@ abled.
     * [truncated_svd_all.py](./transformers/numeric/truncated_svd_all.py) [Truncated SVD for all columns] 
     * [yeojohnson_transformer.py](./transformers/numeric/yeojohnson_transformer.py) [Yeo-Johnson Power Transformer] 
   * [OUTLIERS](./transformers/outliers)
-    * [h2o3-dl-anomaly.py](./transformers/outliers/h2o3-dl-anomaly.py) [Anomaly score for each row based on reconstruction error of an H2O-3 deep learning autoencoder]
+    * [h2o3-dl-anomaly.py](./transformers/outliers/h2o3-dl-anomaly.py) [Anomaly score for each row based on reconstruction error of an H2O-3 deep learning autoencoder] 
     * [quantile_winsorizer.py](./transformers/outliers/quantile_winsorizer.py) [Winsorizes (truncates) univariate outliers outside of a given quantile threshold] 
     * [twosigma_winsorizer.py](./transformers/outliers/twosigma_winsorizer.py) [Winsorizes (truncates) univariate outliers outside of two standard deviations from the mean.] 
   * [RECOMMENDATIONS](./transformers/recommendations)
