@@ -41,10 +41,5 @@ class datatableLinearModel(CustomModel):
         X_standard = X[:, (f[:] - model["X_mean"])/model["X_sd"]]
         X_standard.replace(None, 0.0)
         p = model["lm"].predict(X_standard)
-
-        #TODO: remove conversion to numpy, as we should support returning of dt frames
-        #https://github.com/h2oai/driverlessai-recipes/blob/0da78f9252a40f1382c63cb22e4d314f9e8c982e/models/model_template.py#L329
-        p = p.to_numpy()
-
         return p
 
