@@ -12,24 +12,6 @@ import functools
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-
-
-class SplitLayer(tf.keras.layers.Layer):
-    def __init__(self, splits, **kwargs):
-        super(SplitLayer, self).__init__(**kwargs)
-        self.splits = splits
-
-    def build(self, input_shape):
-        pass
-
-    def call(self, input, **kwargs):
-        return tf.split(input, self.splits, 1)
-
-    def get_config(self):
-        config = {'splits': self.splits}
-        base_config = super(SplitLayer, self).get_config()
-        return dict(list(base_config.items()) + list(config.items()))
 
 
 class CustomXNNModel(CustomTensorFlowModel):
@@ -176,6 +158,28 @@ class CustomXNNModel(CustomTensorFlowModel):
 
             ridge_networks = []
             # Each subnetwork uses only 1 neuron from the projection layer as input so we need to split it
+
+            from h2oaicore.models_utils import import_tensorflow
+            tf = import_tensorflow()
+
+            class SplitLayer(tf.keras.layers.Layer):
+                def __init__(self, splits, **kwargs):
+                    super(SplitLayer, self).__init__(**kwargs)
+                    self.splits = splits
+
+                def build(self, input_shape):
+                    pass
+
+                def call(self, input, **kwargs):
+                    from h2oaicore.models_utils import import_tensorflow
+                    tf = import_tensorflow()
+                    return tf.split(input, self.splits, 1)
+
+                def get_config(self):
+                    config = {'splits': self.splits}
+                    base_config = super(SplitLayer, self).get_config()
+                    return dict(list(base_config.items()) + list(config.items()))
+
             ridge_inputs = SplitLayer(ridge_functions)(ridge_input)
             for i, ridge_input in enumerate(ridge_inputs):
                 # Generate subnetwork i
@@ -452,6 +456,25 @@ class CustomXNNModel(CustomTensorFlowModel):
 
     def get_model(self, X_shape=(1, 1), **kwargs):
         import h2oaicore.keras as keras
+        from h2oaicore.models_utils import import_tensorflow
+        tf = import_tensorflow()
+        class SplitLayer(tf.keras.layers.Layer):
+            def __init__(self, splits, **kwargs):
+                super(SplitLayer, self).__init__(**kwargs)
+                self.splits = splits
+
+            def build(self, input_shape):
+                pass
+
+            def call(self, input, **kwargs):
+                from h2oaicore.models_utils import import_tensorflow
+                tf = import_tensorflow()
+                return tf.split(input, self.splits, 1)
+
+            def get_config(self):
+                config = {'splits': self.splits}
+                base_config = super(SplitLayer, self).get_config()
+                return dict(list(base_config.items()) + list(config.items()))
         with keras.utils.CustomObjectScope({'SplitLayer': SplitLayer}):
             if self.model is None:
                 self.did_get_model = True
