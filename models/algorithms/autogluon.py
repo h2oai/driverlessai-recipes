@@ -107,15 +107,16 @@ class AutoGluonModel(CustomModel):
             verbosity=verbosity,
             # learner_kwargs={'ignored_columns': ['id']}
         )
+        n_jobs = kwargs.get('n_jobs', 4) or 4
         hyperparameters = {
             KNNRapidsModel: {},
             LinearRapidsModel: {},
             'RF': {},
-            'XGB': {'ag_args_fit': {'num_gpus': num_gpus}},
-            'CAT': {'ag_args_fit': {'num_gpus': num_gpus}},
+            'XGB': {'n_jobs': n_jobs, 'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
+            'CAT': {'n_jobs': n_jobs, 'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
             'GBM': [{}, {'extra_trees': True, 'ag_args': {'name_suffix': 'XT'}}, 'GBMLarge'],
-            'NN': {'ag_args_fit': {'num_gpus': num_gpus}},
-            'FASTAI': {'ag_args_fit': {'num_gpus': num_gpus}},
+            'NN': {'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
+            'FASTAI': {'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
         }
         kwargs_fit = dict(hyperparameters=hyperparameters)
         if accuracy >= 5:
