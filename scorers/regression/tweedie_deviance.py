@@ -111,6 +111,10 @@ class TweedieDeviance(CustomScorer):
 
             actual = actual.astype('float64')
             predicted = predicted.astype('float64')
+            '''Safety mechanizm in case predictions or actuals are zero'''
+            epsilon = 1E-8
+            actual += epsilon
+            predicted += epsilon
 
             if power == 0:
                 '''No need to validate sign of actual or predicted'''
@@ -143,12 +147,6 @@ class TweedieDeviance(CustomScorer):
                     loggerinfo(logger, 'Invalid Predicted:%s' % str(predicted[predicted <= 0]))
                     raise RuntimeError(
                         'power >= 2. Error during Tweedie Deviance score calculation. Invalid predicted values. Expecting only positive values')
-
-
-            '''Safety mechanizm in case predictions or actuals are zero'''
-            #epsilon = 1E-8
-            #actual += epsilon
-            #predicted += epsilon
 
             '''Check if any element of the arrays is nan'''
             if np.isnan(np.sum(actual)):
