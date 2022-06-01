@@ -1,10 +1,7 @@
 """LightGBM/XGBoostGBM/DecisionTree with user-given monotonicity constraints (1/-1/0) for original numeric features
 """
 from h2oaicore.models import BaseCustomModel, XGBoostGBMModel, LightGBMModel, DecisionTreeModel
-from h2oaicore.transformers import Transformer
-import numpy as np
-import datatable as dt
-from h2oaicore.systemutils import make_experiment_logger, loggerinfo, config, loggerdata
+from h2oaicore.systemutils import config
 
 
 class MonotonicModel:

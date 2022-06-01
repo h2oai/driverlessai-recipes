@@ -27,7 +27,7 @@ class datatableLinearModel(CustomModel):
         X_standard.replace(None, 0.0)
 
         res = lm.fit(X_standard, y)
-        importances = lm.model[:, dt.rowsum(dt.math.abs(f[:]))]
+        importances = lm.model[1:, dt.rowsum(dt.math.abs(f[:]))]
         model = {"lm": lm, "X_mean": X_mean, "X_sd": X_sd}
 
         self.set_model_properties(model=model,
