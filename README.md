@@ -82,7 +82,7 @@ abled.
  [1.10.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.1)
  [1.10.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.2)
  [1.10.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.3)
-### Count: 251
+### Count: 252
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -238,6 +238,7 @@ abled.
     * [fb_prophet_parallel.py](./models/timeseries/fb_prophet_parallel.py) [Prophet by Facebook for TimeSeries with an example of parameter mutation.] 
     * [historic_mean.py](./models/timeseries/historic_mean.py) [Historic Mean for Time-Series problems. Predicts the mean of the target for each timegroup for regression problems.] 
   * [UNSUPERVISED](./models/unsupervised)
+    * [TextSentiment.py](./models/unsupervised/TextSentiment.py) [Extract sentiment from text using pretrained models from TextBlob] 
     * [dbscan.py](./models/unsupervised/dbscan.py) [Clustering using DBScan] 
     * [isolation_forest_custom_scorer.py](./models/unsupervised/isolation_forest_custom_scorer.py) [Custom Anomaly Score for Isolation Forest] 
     * [lda.py](./models/unsupervised/lda.py) [Unsupervised way to extract topic information from one text column] 
