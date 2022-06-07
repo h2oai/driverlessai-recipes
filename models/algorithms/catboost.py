@@ -133,7 +133,8 @@ class CatBoostModel(CustomModel):
 
         # fill mutatable params with best for left over if default didn't fill
         params = copy.deepcopy(self.params)
-        self.mutate_params(accuracy=accuracy, time_tolerance=time_tolerance, interpretability=interpretability, get_best=True, **kwargs)
+        self.mutate_params(accuracy=accuracy, time_tolerance=time_tolerance, interpretability=interpretability,
+                           get_best=True, **kwargs)
         params_from_mutate = copy.deepcopy(self.params)
         for k in params_from_mutate:
             if k not in params:
@@ -165,11 +166,14 @@ class CatBoostModel(CustomModel):
         uses_gpus, n_gpus = self.get_uses_gpus(self.params)
         if not uses_gpus:
             colsample_bylevel_list = [0.3, 0.5, 0.9, 1.0]
-            self.params['colsample_bylevel'] = MainModel.get_one(colsample_bylevel_list, get_best=get_best, best_type="first", name="colsample_bylevel", trial=trial)
+            self.params['colsample_bylevel'] = MainModel.get_one(colsample_bylevel_list, get_best=get_best,
+                                                                 best_type="first", name="colsample_bylevel",
+                                                                 trial=trial)
 
         if not (uses_gpus and self.num_classes > 2):
             boosting_type_list = ['Plain', 'Ordered']
-            self.params['boosting_type'] = MainModel.get_one(boosting_type_list, get_best=get_best, best_type="first", name="boosting_type", trial=trial)
+            self.params['boosting_type'] = MainModel.get_one(boosting_type_list, get_best=get_best, best_type="first",
+                                                             name="boosting_type", trial=trial)
 
         if self._can_handle_categorical:
             max_cat_to_onehot_list = [4, 10, 20, 40, config.max_int_as_cat_uniques]
@@ -179,28 +183,35 @@ class CatBoostModel(CustomModel):
                 max_one_hot_max_size = 65535
             max_cat_to_onehot_list = sorted(set([min(x, max_one_hot_max_size) for x in max_cat_to_onehot_list]))
             log = True if max(max_cat_to_onehot_list) > 1000 else False
-            self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list, get_best=get_best, best_type="max", name="one_hot_max_size", trial=trial, log=log)
+            self.params['one_hot_max_size'] = MainModel.get_one(max_cat_to_onehot_list, get_best=get_best,
+                                                                best_type="max", name="one_hot_max_size", trial=trial,
+                                                                log=log)
 
         if not uses_gpus:
             sampling_frequency_list = ['PerTree', 'PerTreeLevel', 'PerTreeLevel', 'PerTreeLevel']
-            self.params['sampling_frequency'] = MainModel.get_one(sampling_frequency_list, get_best=get_best, best_type="first", name="sampling_frequency", trial=trial)
+            self.params['sampling_frequency'] = MainModel.get_one(sampling_frequency_list, get_best=get_best,
+                                                                  best_type="first", name="sampling_frequency",
+                                                                  trial=trial)
 
         bootstrap_type_list = ['Bayesian', 'Bayesian', 'Bayesian', 'Bayesian', 'Bernoulli', 'MVS', 'Poisson', 'No']
         if not uses_gpus:
             bootstrap_type_list.remove('Poisson')
         if uses_gpus:
             bootstrap_type_list.remove('MVS')  # undocumented CPU only
-        self.params['bootstrap_type'] = MainModel.get_one(bootstrap_type_list, get_best=get_best, best_type="first", name="bootstrap_type", trial=trial)
+        self.params['bootstrap_type'] = MainModel.get_one(bootstrap_type_list, get_best=get_best, best_type="first",
+                                                          name="bootstrap_type", trial=trial)
 
         # lgbm usage already sets subsample
-        #if self.params['bootstrap_type'] in ['Poisson', 'Bernoulli']:
+        # if self.params['bootstrap_type'] in ['Poisson', 'Bernoulli']:
         #    subsample_list = [0.5, 0.66, 0.66, 0.9]
         #    # will get pop'ed if not Poisson/Bernoulli
         #    self.params['subsample'] = MainModel.get_one(subsample_list, get_best=get_best, best_type="first", name="subsample", trial=trial)
 
         if self.params['bootstrap_type'] in ['Bayesian']:
             bagging_temperature_list = [0.0, 0.1, 0.5, 0.9, 1.0]
-            self.params['bagging_temperature'] = MainModel.get_one(bagging_temperature_list, get_best=get_best, best_type="first", name="bagging_temperature", trial=trial)
+            self.params['bagging_temperature'] = MainModel.get_one(bagging_temperature_list, get_best=get_best,
+                                                                   best_type="first", name="bagging_temperature",
+                                                                   trial=trial)
 
         # overfit protection different sometimes compared to early_stopping_rounds
         # self.params['od_type']
@@ -462,12 +473,12 @@ class CatBoostModel(CustomModel):
         elif output_margin:
             # uses "predict" for raw for any class
             preds = model.predict(
-                    X,
-                    prediction_type="RawFormulaVal",
-                    ntree_start=0,
-                    ntree_end=iterations,  # index of first tree *not* to be used
-                    thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
-                )
+                X,
+                prediction_type="RawFormulaVal",
+                ntree_start=0,
+                ntree_end=iterations,  # index of first tree *not* to be used
+                thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
+            )
             if len(preds.shape) > 1 and preds.shape[1] == 2 and self.num_classes == 2:
                 return preds[:, 1]
             else:
@@ -506,12 +517,12 @@ class CatBoostModel(CustomModel):
             # repair broken shap sum: https://github.com/catboost/catboost/issues/1125
             print_debug("shap_fix")
             preds_raw = model.predict(
-                    X,
-                    prediction_type="RawFormulaVal",
-                    ntree_start=0,
-                    ntree_end=iterations,  # index of first tree *not* to be used
-                    thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
-                )
+                X,
+                prediction_type="RawFormulaVal",
+                ntree_start=0,
+                ntree_end=iterations,  # index of first tree *not* to be used
+                thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
+            )
             if self.num_classes <= 2:
                 axis = 1
             else:
@@ -530,16 +541,18 @@ class CatBoostModel(CustomModel):
             if config.hard_asserts and config.debug_daimodel_level >= 2:
                 print_debug("shap_check")
                 model.save_model(os.path.join(exp_dir(), "catshapproblem"))
-                pickle.dump((X, y, self.params['cat_features']), open(os.path.join(exp_dir(), "catshapproblem.pkl"), "wb"))
+                pickle.dump((X, y, self.params['cat_features']),
+                            open(os.path.join(exp_dir(), "catshapproblem.pkl"), "wb"))
                 preds_raw = model.predict(
-                        X,
-                        prediction_type="RawFormulaVal",
-                        ntree_start=0,
-                        ntree_end=iterations,  # index of first tree *not* to be used
-                        thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
-                    )
+                    X,
+                    prediction_type="RawFormulaVal",
+                    ntree_start=0,
+                    ntree_end=iterations,  # index of first tree *not* to be used
+                    thread_count=self.params_base.get('n_jobs', n_jobs),  # -1 is not supported
+                )
 
-                assert np.isclose(preds_raw, np.sum(preds_shap, axis=axis)).all(), "catboost shapley does not sum up correctly"
+                assert np.isclose(preds_raw,
+                                  np.sum(preds_shap, axis=axis)).all(), "catboost shapley does not sum up correctly"
 
             if config.debug_daimodel_level <= 2:
                 remove(pickle_path)
@@ -549,7 +562,7 @@ class CatBoostModel(CustomModel):
             else:
                 # DAI expects (shape rows) * (classes x (features + 1)) with "columns" as blocks of
                 # feature_0_class_0 feature_0_class_0 ... feature_0_class_1 feature_1_class_1 ...
-                return preds_shap.reshape(preds_shap.shape[0], preds_shap.shape[1]*preds_shap.shape[2])
+                return preds_shap.reshape(preds_shap.shape[0], preds_shap.shape[1] * preds_shap.shape[2])
         else:
             raise RuntimeError("No such case")
 
@@ -694,7 +707,7 @@ class CatBoostModel(CustomModel):
             # https://catboost.ai/docs/features/training-on-gpu.html
             params['devices'] = "%d-%d" % (
                 self.params_base.get('gpu_id', 0), self.params_base.get('gpu_id', 0) + n_gpus - 1)
-            #params['gpu_ram_part'] = 0.3  # per-GPU, assumes GPU locking or no other experiments running
+            # params['gpu_ram_part'] = 0.3  # per-GPU, assumes GPU locking or no other experiments running
 
         if self.num_classes > 2:
             params.pop("eval_metric", None)
@@ -709,7 +722,7 @@ class CatBoostModel(CustomModel):
         params['learning_rate'] = self.params_base.get('learning_rate', config.min_learning_rate)
         params['learning_rate'] = min(params['learning_rate'], 0.5)  # 1.0 leads to illegal access on GPUs
         params['learning_rate'] = max(config.min_learning_rate,
-                                           max(self._min_learning_rate_catboost, params['learning_rate']))
+                                      max(self._min_learning_rate_catboost, params['learning_rate']))
         if 'early_stopping_rounds' not in params and has_eval_set:
             params['early_stopping_rounds'] = 150  # temp fix
             # assert 'early_stopping_rounds' in params

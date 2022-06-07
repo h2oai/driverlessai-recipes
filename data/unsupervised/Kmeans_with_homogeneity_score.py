@@ -65,6 +65,7 @@ def check_number_of_labels(n_labels, n_samples):
         raise ValueError("Number of labels is %d. Valid values are 2 "
                          "to n_samples - 1 (inclusive)" % n_labels)
 
+
 def get_score(X, labels):
     score = homogeneity_score(X, labels)
     return score

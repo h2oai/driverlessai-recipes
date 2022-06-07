@@ -12,6 +12,7 @@ from h2oaicore.models import BaseCustomModel, LightGBMModel
 import numpy as np
 import datatable as dt
 
+
 class LightGBMTransformedOutcome(BaseCustomModel, LightGBMModel):
     _regression = True
     _binary = False

@@ -12,6 +12,7 @@ from h2oaicore.models import BaseCustomModel, GLMModel
 import numpy as np
 import datatable as dt
 
+
 class GLMTransformedOutcome(BaseCustomModel, GLMModel):
     _regression = True
     _binary = False
@@ -29,7 +30,6 @@ class GLMTransformedOutcome(BaseCustomModel, GLMModel):
             treatment_policy = np.mean(sample_weight)  # weights are carrying the treatment
             y = y * ((sample_weight - treatment_policy) / (treatment_policy * (1 - treatment_policy)))
         return super().fit(X, y, None, eval_set, None, **kwargs)
-
 
     @staticmethod
     def do_acceptance_test():

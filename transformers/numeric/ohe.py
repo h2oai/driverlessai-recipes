@@ -12,7 +12,8 @@ class OHETransformer(OneHotEncodingTransformer, CustomTransformer):
     def __init__(self, cat_cols=[], max_cat_bins=20, sort_order="lexical", multi_class=False,
                  output_features_to_drop=list(), copy=True, random_state=42, **kwargs):
         super().__init__(cat_cols=cat_cols, max_cat_bins=max_cat_bins, sort_order=sort_order, multi_class=multi_class,
-                 output_features_to_drop=output_features_to_drop, copy=copy, random_state=random_state, **kwargs)
+                         output_features_to_drop=output_features_to_drop, copy=copy, random_state=random_state,
+                         **kwargs)
 
     @staticmethod
     def get_default_properties():

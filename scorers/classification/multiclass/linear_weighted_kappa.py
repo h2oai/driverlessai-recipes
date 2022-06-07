@@ -15,14 +15,13 @@ class QuadraticWeightedKappaScorer(CustomScorer):
     _display_name = "COHEN_KAPPA"
 
     def score(
-        self,
-        actual: np.array,
-        predicted: np.array,
-        sample_weight: typing.Optional[np.array] = None,
-        labels: typing.Optional[np.array] = None,
-        **kwargs
+            self,
+            actual: np.array,
+            predicted: np.array,
+            sample_weight: typing.Optional[np.array] = None,
+            labels: typing.Optional[np.array] = None,
+            **kwargs
     ) -> float:
-
         lb = LabelEncoder()
         labels = lb.fit_transform(labels)
         actual = lb.transform(actual)

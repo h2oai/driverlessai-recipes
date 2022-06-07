@@ -6,7 +6,6 @@ from h2oaicore.mli.oss.byor.core.explanations import WorkDirArchiveExplanation
 
 
 class ExampleHelloWorldExplainer(CustomExplainer):
-
     _display_name = "Hello, World!"
     _description = "This is 'Hello, World!' explainer example."
     _regression = True

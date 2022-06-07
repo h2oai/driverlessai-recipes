@@ -22,6 +22,7 @@ class MyAnomalyScorer(CustomUnsupervisedScorer):
         # X is provided here. E.g., one can do aggregations of anomaly scores across specific cohorts.
         return np.var(predicted)
 
+
 class MyIsolationForestAnomalyModel(IsolationForestAnomalyModel, CustomUnsupervisedModel):
     _included_scorers = ['MyAnomalyScorer']
 

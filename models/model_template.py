@@ -499,4 +499,3 @@ class CustomUnsupervisedModel(UnsupervisedModel, CustomModel):
     _included_scorers = ['UnsupervisedScorer']
 
     # no need to override any other methods
-

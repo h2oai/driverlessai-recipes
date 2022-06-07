@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import holidays
 
+
 class HolidaysThisWeek(CustomTransformer):
     _modules_needed_by_name = ['holidays']
     _display_name = 'HolidaysThisWeek'
@@ -12,7 +13,7 @@ class HolidaysThisWeek(CustomTransformer):
     @staticmethod
     def get_default_properties():
         return dict(col_type="date", min_cols=1, max_cols=1, relative_importance=1)
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.time_column = self.input_feature_names[0]
@@ -46,11 +47,11 @@ class HolidaysThisWeek(CustomTransformer):
         self.memo = self.memo.groupby(by=['year', 'week'], as_index=False).size()
         self.memo.rename(columns={'size': self._output_feature_names[0]}, inplace=True)
         return self
-    
+
     def transform(self, X, **kwargs):
         X = X[:, self.time_column].to_pandas()
         X[self.time_column] = convert_to_datetime(X[self.time_column], self.datetime_formats[self.time_column])
-        
+
         X['year'] = X[self.time_column].dt.year
         X['week'] = X[self.time_column].dt.weekofyear
         X.drop(self.time_column, axis=1, inplace=True)

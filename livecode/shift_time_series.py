@@ -27,14 +27,14 @@ new_dataset_name = "new_dataset_with_shifted_columns"
 # X = dt.fread("~/Projects/Pepsico/data/beverage_mix_forecast/latam-beverage-item-demand-time.csv")
 
 Xpd = X[:, tgc + [value_col]].to_pandas()
-Xq = Xpd.groupby(tgc).quantile(q = quantile)
-Xq.rename(columns = {value_col: quantile_col_name}, inplace = True)
+Xq = Xpd.groupby(tgc).quantile(q=quantile)
+Xq.rename(columns={value_col: quantile_col_name}, inplace=True)
 Xq.reset_index(inplace=True)
 Xqpd = dt.Frame(Xq)
 Xqpd.key = tgc
 
 X_with_q = X[:, :, dt.join(Xqpd)]
 
-X_with_q[:, dt.update(**{value_col+"_shifted": dt.f[value_col] + dt.f[quantile_col_name]})]
+X_with_q[:, dt.update(**{value_col + "_shifted": dt.f[value_col] + dt.f[quantile_col_name]})]
 
 return {new_dataset_name: X_with_q}

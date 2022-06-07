@@ -596,7 +596,6 @@ class Indiv_testcreditcard9f03bf55dpawisaco_finalTrue_id0(CustomIndividual):
         #
         self.model_origin = 'FINAL BASE MODEL 0'
 
-
     def set_target_transformer(self):
         """
         
@@ -812,110 +811,127 @@ class Indiv_testcreditcard9f03bf55dpawisaco_finalTrue_id0(CustomIndividual):
         # Transformed Feature Names and Importances: {'0_AGE': 0.03427012264728546}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['AGE'], 'random_state': 159699529}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=0, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=0, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.07893
         # Transformed Feature Names and Importances: {'1_BILL_AMT1': 0.07892969995737076}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['BILL_AMT1'], 'random_state': 159699530}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=1, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=1, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.020586
         # Transformed Feature Names and Importances: {'3_BILL_AMT3': 0.02058570086956024}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['BILL_AMT3'], 'random_state': 159699532}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=3, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=3, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.029232
         # Transformed Feature Names and Importances: {'4_BILL_AMT4': 0.02923220954835415}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['BILL_AMT4'], 'random_state': 159699533}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=4, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=4, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.0021431
         # Transformed Feature Names and Importances: {'5_BILL_AMT5': 0.002143113175407052}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['BILL_AMT5'], 'random_state': 159699534}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=5, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=5, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.011209
         # Transformed Feature Names and Importances: {'6_BILL_AMT6': 0.011209040880203247}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['BILL_AMT6'], 'random_state': 159699535}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=6, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=6, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.0014719
         # Transformed Feature Names and Importances: {'7_EDUCATION': 0.0014718829188495874}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['EDUCATION'], 'random_state': 159699536}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=7, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=7, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance:       1
         # Transformed Feature Names and Importances: {'10_PAY_0': 1.0}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['PAY_0'], 'random_state': 159699539}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=10, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=10, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.21957
         # Transformed Feature Names and Importances: {'11_PAY_2': 0.21957388520240784}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['PAY_2'], 'random_state': 159699540}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=11, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=11, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.045535
         # Transformed Feature Names and Importances: {'14_PAY_5': 0.045535363256931305}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['PAY_5'], 'random_state': 159699543}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=14, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=14, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.026968
         # Transformed Feature Names and Importances: {'15_PAY_6': 0.026968393474817276}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['PAY_6'], 'random_state': 159699544}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=15, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=15, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.02044
         # Transformed Feature Names and Importances: {'16_PAY_AMT1': 0.020440170541405678}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['PAY_AMT1'], 'random_state': 159699545}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=16, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=16, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.042924
         # Transformed Feature Names and Importances: {'17_PAY_AMT2': 0.04292424023151398}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['PAY_AMT2'], 'random_state': 159699546}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=17, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=17, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.10431
         # Transformed Feature Names and Importances: {'18_PAY_AMT3': 0.10430736839771271}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['PAY_AMT3'], 'random_state': 159699547}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=18, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=18, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.047792
         # Transformed Feature Names and Importances: {'19_PAY_AMT4': 0.04779212549328804}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['PAY_AMT4'], 'random_state': 159699548}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=19, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=19, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.026807
         # Transformed Feature Names and Importances: {'20_PAY_AMT5': 0.02680712565779686}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['PAY_AMT5'], 'random_state': 159699549}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=20, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=20, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.064593
         # Transformed Feature Names and Importances: {'21_PAY_AMT6': 0.06459338217973709}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['PAY_AMT6'], 'random_state': 159699550}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=21, forced=False, mono=False, **params)
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=21, forced=False, mono=False,
+                             **params)
 
         # Gene Normalized Importance: 0.0029303
         # Transformed Feature Names and Importances: {'22_SEX': 0.0029302926268428564}
         # Valid parameters: ['num_cols', 'random_state', 'output_features_to_drop', 'labels']
         params = {'num_cols': ['SEX'], 'random_state': 159699551}
-        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=22, forced=False, mono=False, **params)
-
+        self.add_transformer('OriginalTransformer', col_type='numeric', gene_index=22, forced=False, mono=False,
+                             **params)
 
         ###########################################################################
         #
@@ -928,12 +944,12 @@ class Indiv_testcreditcard9f03bf55dpawisaco_finalTrue_id0(CustomIndividual):
 
         # Note: tsgi will use tsp and encoder, and tsp will use encoder
         self.tsgi_params = {'date_format_strings': {},
-                           'encoder': None,
-                           'target': None,
-                           'tgc': None,
-                           'time_column': None,
-                           'tsp': None,
-                           'ufapt': []}
+                            'encoder': None,
+                            'target': None,
+                            'tgc': None,
+                            'time_column': None,
+                            'tsp': None,
+                            'ufapt': []}
         self.tsgi = NonTimeSeriesGeneInfo(**self.tsgi_params)
 
         self.tsp_params = {}

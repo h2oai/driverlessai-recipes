@@ -6,9 +6,7 @@ import numpy as np
 from h2oaicore.systemutils_more import arch_type
 from sklearn.preprocessing import LabelEncoder
 
-
 enable_daal = arch_type != 'ppc64le' and False  # WIP until figure out how to support on py38
-
 
 if enable_daal:
     import daal4py as d4p
@@ -24,7 +22,7 @@ class DaalBaseModel(object):
     @staticmethod
     def is_enabled():
         from h2oaicore.systemutils_more import arch_type
-        #return not (arch_type == "ppc64le")
+        # return not (arch_type == "ppc64le")
         return False  # WIP until figure out how to support on py38
 
     def dt_to_numpy(self, X, y=None):

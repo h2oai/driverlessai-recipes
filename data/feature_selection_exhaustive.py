@@ -45,12 +45,12 @@ class ExhaustiveFeatureSelection(CustomData):
         y = X[TARGET_COLUMN].values
         X.drop(TARGET_COLUMN, axis=1, inplace=True)
 
-        efs = EFS(ESTIMATOR, 
-           min_features=MIN_FEATURES, 
-           max_features=MAX_FEATURES, 
-           scoring=SCORING,
-           cv=CV,
-           n_jobs=-1)
+        efs = EFS(ESTIMATOR,
+                  min_features=MIN_FEATURES,
+                  max_features=MAX_FEATURES,
+                  scoring=SCORING,
+                  cv=CV,
+                  n_jobs=-1)
 
         efs.fit(X, y)
 

@@ -34,11 +34,11 @@ SEPARATOR = ' | '
 
 
 def _clean_frozenset(text: frozenset, separator: str = SEPARATOR) -> str:
-        """
-        Convert frozenset into a string with separator.
-        """
+    """
+    Convert frozenset into a string with separator.
+    """
 
-        return separator.join(list(text))
+    return separator.join(list(text))
 
 
 class MarketBasketAnalysis(CustomData):

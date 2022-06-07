@@ -10,7 +10,6 @@ from h2oaicore.mli.oss.commons import ExplainerParamType
 
 
 class ExampleParamsExplainer(CustomExplainer, CustomDaiExplainer):
-
     PARAM_ROWS_TO_SCORE = "rows_to_score"
 
     _display_name = "Example Params Explainer"

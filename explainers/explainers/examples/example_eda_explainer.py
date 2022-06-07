@@ -6,7 +6,6 @@ from h2oaicore.mli.oss.byor.core.explanations import WorkDirArchiveExplanation
 
 
 class ExampleEdaExplainer(CustomExplainer):
-
     _display_name = "Example Dataset Explainer"
     _description = "This is Explanatory Data Analysis explainer example."
     _regression = True

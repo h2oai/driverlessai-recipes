@@ -18,7 +18,8 @@ class DAModel(CustomModel):
     _supports_sample_weight = False
 
     @staticmethod
-    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
+                num_classes=None, **kwargs):
         if config.hard_asserts:
             # for bigger data, too slow to test even with 1 iteration
             use = True

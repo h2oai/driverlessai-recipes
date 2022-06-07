@@ -35,13 +35,13 @@ class TwoSigmaRental(CustomData):
         sub_file_dir = os.path.join(temp_path, "kaggle_%s" % str(uuid.uuid4())[:4])
 
         cmd_train = f'kaggle competitions download ' \
-            f'-c two-sigma-connect-rental-listing-inquiries ' \
-            f'-f train.json.zip ' \
-            f'-p {sub_file_dir} -q'
+                    f'-c two-sigma-connect-rental-listing-inquiries ' \
+                    f'-f train.json.zip ' \
+                    f'-p {sub_file_dir} -q'
         cmd_test = f'kaggle competitions download ' \
-            f'-c two-sigma-connect-rental-listing-inquiries ' \
-            f'-f test.json.zip ' \
-            f'-p {sub_file_dir} -q'
+                   f'-c two-sigma-connect-rental-listing-inquiries ' \
+                   f'-f test.json.zip ' \
+                   f'-p {sub_file_dir} -q'
 
         try:
             subprocess.check_output(cmd_train.split(), timeout=120).decode("utf-8")

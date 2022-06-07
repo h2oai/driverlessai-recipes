@@ -110,4 +110,3 @@ class CustomUnsupervisedScorer(UnsupervisedScorer, CustomScorer):
 
         """
         raise NotImplementedError
-

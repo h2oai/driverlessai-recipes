@@ -23,7 +23,7 @@ class datatableLinearModel(CustomModel):
         y = dt.Frame(y)
         X_mean = X.mean()
         X_sd = X.sd()
-        X_standard = X[:, (f[:] - X_mean)/X_sd]
+        X_standard = X[:, (f[:] - X_mean) / X_sd]
         X_standard.replace(None, 0.0)
 
         res = lm.fit(X_standard, y)
@@ -35,11 +35,9 @@ class datatableLinearModel(CustomModel):
                                   importances=importances.to_list()[0],
                                   iterations=res.epoch)
 
-
     def predict(self, X, **kwargs):
         model, _, _, _ = self.get_model_properties()
-        X_standard = X[:, (f[:] - model["X_mean"])/model["X_sd"]]
+        X_standard = X[:, (f[:] - model["X_mean"]) / model["X_sd"]]
         X_standard.replace(None, 0.0)
         p = model["lm"].predict(X_standard)
         return p
-

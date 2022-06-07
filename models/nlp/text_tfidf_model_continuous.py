@@ -325,7 +325,7 @@ class TextTFIDFContinuousModel(CustomModel):
         self.tfidf_objs = data["tf-idfs"]
         text_names = X[:, [str]].names
         for col in text_names:
-            if col  not in self.tfidf_objs:
+            if col not in self.tfidf_objs:
                 continue
             XX = X[:, col].to_pandas()
             XX = XX[col].astype(str).fillna("NA").values.tolist()

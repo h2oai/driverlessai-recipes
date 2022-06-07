@@ -493,6 +493,7 @@ class H2OIFNumTransformer(H2OIFAllNumCatTransformer):
                     num_default_instances=1,
                     )
 
+
 class H2OIFCatTransformer(H2OIFAllNumCatTransformer):
     _display_name = "H2OIFCat"
     _description = "H2O-3 Isolation Forest for Sample of Categorical Columns"

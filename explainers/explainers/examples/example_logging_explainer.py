@@ -6,7 +6,6 @@ from h2oaicore.mli.oss.byor.core.explanations import WorkDirArchiveExplanation
 
 
 class ExampleLoggingExplainer(CustomExplainer):
-
     _display_name = "Example Logging Explainer"
     _description = "This is logging explainer example."
     _regression = True

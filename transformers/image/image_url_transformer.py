@@ -28,7 +28,7 @@ class MyImgTransformer(TensorFlowModel, CustomTransformer):
 
     @staticmethod
     def do_acceptance_test():
-        return True # False
+        return True  # False
 
     @staticmethod
     def get_default_properties():
@@ -43,7 +43,7 @@ class MyImgTransformer(TensorFlowModel, CustomTransformer):
         TensorFlowModel.__init__(self, **kwargs)
         self.uuid_tmp = str(uuid.uuid4())[:6]
         self.experiment_id = self.__class__.__name__ + self.uuid_tmp
-        #super().__init__(**kwargs)
+        # super().__init__(**kwargs)
         self.batch_size = batch_size
         self.model_name = "resnet_keras.h5p"
         self.uuid = "%s-img-data-" % self.__class__.__name__ + self.model_name  # + str(uuid.uuid4())[:6] # no, keeps changing and re-loadeing every init

@@ -30,6 +30,7 @@ class TextSentimentTransformer(CustomTransformer):
         return X.to_pandas().astype(str).iloc[:, 0].apply(
             lambda x: self.sentimentAnalysis(x))
 
+
 class TextSentimentModel(CustomUnsupervisedModel):
     _included_pretransformers = ['TextOriginalTransformer']
     _included_transformers = ['TextSentimentTransformer']

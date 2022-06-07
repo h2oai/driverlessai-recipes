@@ -77,7 +77,7 @@ class TextTFIDFModel(CustomModel):
         new_X = None
         text_names = X[:, [str]].names
         for col in text_names:
-            if col  not in tfidf_objs:
+            if col not in tfidf_objs:
                 continue
             XX = X[:, col].to_pandas()
             XX = XX[col].astype(str).fillna("NA").values.tolist()

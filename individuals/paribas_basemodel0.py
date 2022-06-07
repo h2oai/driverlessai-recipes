@@ -1,6 +1,8 @@
 """Custom Individual 0 from Experiment satocemi """
 
 from h2oaicore.ga import CustomIndividual
+
+
 class Indivsatocemi_finalFalse_id0(CustomIndividual):
 
     def set_params(self):
@@ -523,7 +525,6 @@ class Indivsatocemi_finalFalse_id0(CustomIndividual):
         # MODEL ORIGIN, VARIABLE IS INFORMATIVE, NO NEED TO SET
         #
         self.model_origin = 'FINAL BASE MODEL 1'
-
 
     def set_target_transformer(self):
         ###########################################################################
@@ -5518,4 +5519,3 @@ class Indivsatocemi_finalFalse_id0(CustomIndividual):
                   'steepness': 3}
         # 'col_type' is used in some cases to get unique DAI transformer, and it does not need to be set independently of the transformer in most cases
         self.add_transformer('NumToCatTETransformer', col_type='numeric', gene_index=1224, **params)
-

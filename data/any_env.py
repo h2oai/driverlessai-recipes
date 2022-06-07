@@ -2,6 +2,7 @@
 
 from h2oaicore.data import CustomData
 
+
 class FreshEnvData(CustomData):
 
     @staticmethod
@@ -96,6 +97,7 @@ class FreshEnvData(CustomData):
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="DAI recipe")
     parser.add_argument(
         "--X",
@@ -115,6 +117,7 @@ if __name__ == "__main__":
 
     import os
     import datatable as dt
+
     if os.path.isfile(args.X):
         X = dt.fread(args.X)
     else:

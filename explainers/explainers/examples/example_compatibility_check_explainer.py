@@ -10,7 +10,6 @@ from h2oaicore.mli.oss.byor.core.explanations import WorkDirArchiveExplanation
 
 
 class ExampleCompatibilityCheckExplainer(CustomExplainer, CustomDaiExplainer):
-
     _display_name = "Example Compatibility Check Explainer"
     _description = "This is explainer with compatibility check example."
     _regression = True
@@ -21,9 +20,9 @@ class ExampleCompatibilityCheckExplainer(CustomExplainer, CustomDaiExplainer):
         CustomDaiExplainer.__init__(self)
 
     def check_compatibility(
-        self,
-        params: Optional[CommonExplainerParameters] = None,
-        **explainer_params,
+            self,
+            params: Optional[CommonExplainerParameters] = None,
+            **explainer_params,
     ) -> bool:
         CustomExplainer.check_compatibility(self, params, **explainer_params)
         CustomDaiExplainer.check_compatibility(self, params, **explainer_params)

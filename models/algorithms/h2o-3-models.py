@@ -54,9 +54,9 @@ class H2OBaseModel:
         self.params = {}
 
         gbm_params = self.get_gbm_main_params_evolution(num_classes=num_classes,
-                                                                  accuracy=accuracy,
-                                                                  time_tolerance=time_tolerance,
-                                                                  **kwargs)
+                                                        accuracy=accuracy,
+                                                        time_tolerance=time_tolerance,
+                                                        **kwargs)
 
         if isinstance(self, H2OGBMModel):
             if 'n_estimators' in gbm_params:
@@ -140,7 +140,8 @@ class H2OBaseModel:
             # NB can only handle weights of 0 / 1
             if sample_weight is not None:
                 sample_weight = (sample_weight != 0).astype(int)
-            if sample_weight_eval_set is not None and len(sample_weight_eval_set) > 0 and sample_weight_eval_set[0] is not None:
+            if sample_weight_eval_set is not None and len(sample_weight_eval_set) > 0 and sample_weight_eval_set[
+                0] is not None:
                 sample_weight_eval_set1 = sample_weight_eval_set[0]
                 sample_weight_eval_set1[sample_weight_eval_set1 != 0] = 1
                 sample_weight_eval_set1 = sample_weight_eval_set1.astype(int)
@@ -239,7 +240,8 @@ class H2OBaseModel:
             for trial in range(0, trials):
                 try:
                     # Models that can use an offset column
-                    loggerinfo(self.get_logger(**kwargs), "%s (%s) fit parameters: %s" % (self.display_name, self.__class__.__module__, dict(params)))
+                    loggerinfo(self.get_logger(**kwargs), "%s (%s) fit parameters: %s" % (
+                    self.display_name, self.__class__.__module__, dict(params)))
                     model = self.make_instance(**params)
                     if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
                         model.train(x=cols_to_train, y=self.target, training_frame=train_frame,
@@ -321,7 +323,7 @@ class H2OBaseModel:
             missing_features_set = set([x for x in orig_cols if x not in list(df_varimp.index)])
             # must not keep "missing features", even as zero, since h2o-3 won't have them in pred_contribs output
             orig_cols = [x for x in orig_cols if x not in missing_features_set]
-            self.col_types = {k: v for k, v in self.col_types.items() if k  not in missing_features_set}
+            self.col_types = {k: v for k, v in self.col_types.items() if k not in missing_features_set}
             varimp = df_varimp[orig_cols].values  # order by (and select) fitted features
             varimp = np.nan_to_num(varimp)
 
@@ -341,10 +343,14 @@ class H2OBaseModel:
         # try to remove tail end where cat added
         for sp in ['.', ':']:
             for shift in range(1, 4 + 1):
-                df_varimp.index = [".".join(x.split(".")[:-shift]) if ".".join(x.split(".")[:-shift]) in orig_cols_set else x for x in df_varimp.index]
+                df_varimp.index = [
+                    ".".join(x.split(".")[:-shift]) if ".".join(x.split(".")[:-shift]) in orig_cols_set else x for x in
+                    df_varimp.index]
             # try to remove stuff after 1st, 2nd, third dot in case above didn't work, e.g. when many .'s in string
             for shift in range(1, 4 + 1):
-                df_varimp.index = [sp.join(x.split(sp)[0:shift]) if sp.join(x.split(sp)[0:shift]) in orig_cols_set else x for x in df_varimp.index]
+                df_varimp.index = [
+                    sp.join(x.split(sp)[0:shift]) if sp.join(x.split(sp)[0:shift]) in orig_cols_set else x for x in
+                    df_varimp.index]
         df_varimp.index.name = "___INDEXINTERNAL___"
 
         df_varimp_merged = df_varimp.groupby(df_varimp.index.name).sum()['scaled_importance']
@@ -546,7 +552,8 @@ class H2ORFModel(H2OBaseModel, CustomModel):
         return self.labels is None or len(self.labels) <= 2
 
     def set_default_params(self, logger=None, num_classes=None, accuracy=10, time_tolerance=10, **kwargs):
-        super().set_default_params(logger=logger, num_classes=num_classes, accuracy=accuracy, time_tolerance=time_tolerance, **kwargs)
+        super().set_default_params(logger=logger, num_classes=num_classes, accuracy=accuracy,
+                                   time_tolerance=time_tolerance, **kwargs)
         self.mutate_params(get_best=True, accuracy=accuracy, time_tolerance=time_tolerance, **kwargs)
 
     def mutate_params(self, get_best=False,
@@ -585,17 +592,21 @@ class H2OEXTRAModel(H2ORFModel):
             # Shapley too slow even with 50 trees, so avoid for testing
             n_estimators_list = [min(3, x) for x in n_estimators_list]
 
-        self.params[self._fit_iteration_name] = self.get_one(n_estimators_list, get_best=get_best, best_type='first', name=self._fit_iteration_name, trial=trial)
+        self.params[self._fit_iteration_name] = self.get_one(n_estimators_list, get_best=get_best, best_type='first',
+                                                             name=self._fit_iteration_name, trial=trial)
         if config.enable_genetic_algorithm == "Optuna":
             max_depth_list = [6, 2, 3, 4, 5, 7, 8, 9, 10, 11]
             nbins_list = [20, 16, 32, 64, 256]
         else:
             max_depth_list = [6, 2, 3, 4, 5, 7, 8, 9, 10, 11, 0]
             nbins_list = [20, 16, 32, 64, 256]
-        self.params['max_depth'] = self.get_one(max_depth_list, get_best=get_best, best_type='first', name='max_depth', trial=trial)
+        self.params['max_depth'] = self.get_one(max_depth_list, get_best=get_best, best_type='first', name='max_depth',
+                                                trial=trial)
         self.params['nbins'] = self.get_one(nbins_list, get_best=get_best, best_type='first', name='nbins', trial=trial)
-        self.params['sample_rate'] = self.get_one([0.6320000291, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], get_best=get_best, best_type='first', name='sample_rate', trial=trial)
-        self.params['histogram_type'] = self.get_one(['Random'], get_best=get_best, best_type='first', name='histogram_type', trial=None)
+        self.params['sample_rate'] = self.get_one([0.6320000291, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], get_best=get_best,
+                                                  best_type='first', name='sample_rate', trial=trial)
+        self.params['histogram_type'] = self.get_one(['Random'], get_best=get_best, best_type='first',
+                                                     name='histogram_type', trial=None)
 
 
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
@@ -612,7 +623,8 @@ class H2ODLModel(H2OBaseModel, CustomModel):
     _predict_by_iteration = False
 
     def set_default_params(self, logger=None, num_classes=None, accuracy=10, time_tolerance=10, **kwargs):
-        super().set_default_params(logger=logger, num_classes=num_classes, accuracy=accuracy, time_tolerance=time_tolerance, **kwargs)
+        super().set_default_params(logger=logger, num_classes=num_classes, accuracy=accuracy,
+                                   time_tolerance=time_tolerance, **kwargs)
         self.mutate_params(accuracy=accuracy, time_tolerance=time_tolerance, **kwargs)
 
     def mutate_params(self,

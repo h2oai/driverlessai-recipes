@@ -14,7 +14,8 @@ class ClusterDistCUMLTransformerAll(ClusterDistCUMLTransformer, CustomTransforme
                  oversampling_factor=1, max_samples_per_batch=32768,
                  output_features_to_drop=list(), copy=False, **kwargs):
         super().__init__(num_cols=num_cols, n_components=n_clusters, max_iter=max_iter, tol=tol,
-                         init=init, oversampling_factor=oversampling_factor, max_samples_per_batch=max_samples_per_batch,
+                         init=init, oversampling_factor=oversampling_factor,
+                         max_samples_per_batch=max_samples_per_batch,
                          output_features_to_drop=output_features_to_drop, copy=copy, **kwargs)
 
     @staticmethod

@@ -458,6 +458,7 @@ class CustomXNNModel(CustomTensorFlowModel):
         import h2oaicore.keras as keras
         from h2oaicore.models_utils import import_tensorflow
         tf = import_tensorflow()
+
         class SplitLayer(tf.keras.layers.Layer):
             def __init__(self, splits, **kwargs):
                 super(SplitLayer, self).__init__(**kwargs)
@@ -475,6 +476,7 @@ class CustomXNNModel(CustomTensorFlowModel):
                 config = {'splits': self.splits}
                 base_config = super(SplitLayer, self).get_config()
                 return dict(list(base_config.items()) + list(config.items()))
+
         with keras.utils.CustomObjectScope({'SplitLayer': SplitLayer}):
             if self.model is None:
                 self.did_get_model = True

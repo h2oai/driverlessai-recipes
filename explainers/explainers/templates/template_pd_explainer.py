@@ -154,7 +154,7 @@ class TemplatePartialDependenceExplainer(CustomExplainer):
         # (feature and class names MUST fit names from index file ^)
         for fi, feature in enumerate(self.features):
             for ci, clazz in enumerate(
-                TemplatePartialDependenceExplainer.MOCK_CLASSES
+                    TemplatePartialDependenceExplainer.MOCK_CLASSES
             ):
                 json_representation.add_data(
                     # IMPROVE: tweak values for every class (1 data for simplicity)
@@ -269,10 +269,10 @@ class TemplatePartialDependenceExplainer(CustomExplainer):
     MOCK_CLASSES = ["class_A", "class_B", "class_C"]
 
     def _mock_ice_json_dt(
-        self,
-        explanation: IndividualConditionalExplanation,
-        features_meta: dict,
-        frame_file: str,
+            self,
+            explanation: IndividualConditionalExplanation,
+            features_meta: dict,
+            frame_file: str,
     ):
         # index file
         (index_dict, index_str) = IceJsonDatatableFormat.serialize_index_file(

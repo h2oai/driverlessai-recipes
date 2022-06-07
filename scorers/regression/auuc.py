@@ -6,6 +6,7 @@ import pandas as pd
 import datatable as dt
 from h2oaicore.metrics import CustomScorer
 
+
 class AUUC(CustomScorer):
     _description = "Area under uplift curve"
     _maximize = True  # whether a higher score is better
@@ -144,7 +145,8 @@ class AUUC(CustomScorer):
 
         return lift
 
-    def auuc_score(self, df, outcome_col='y', treatment_col='w', treatment_effect_col='tau', normalize=True, *args, **kwarg):
+    def auuc_score(self, df, outcome_col='y', treatment_col='w', treatment_effect_col='tau', normalize=True, *args,
+                   **kwarg):
         """Calculate the AUUC (Area Under the Uplift Curve) score.
 
          Args:
@@ -187,4 +189,5 @@ class AUUC(CustomScorer):
             'treatment': sample_weight
         })
 
-        return self.auuc_score(df, outcome_col='outcome', treatment_col='treatment', treatment_effect_col=None, normalize=True)['dai']
+        return self.auuc_score(df, outcome_col='outcome', treatment_col='treatment', treatment_effect_col=None,
+                               normalize=True)['dai']

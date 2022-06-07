@@ -1,4 +1,3 @@
-
 """For GPU usage testing purposes."""
 import os
 
@@ -76,10 +75,10 @@ class CustomTF2GPUCheck(CustomModel):
         c2 = []
 
         def matpow(M, n):
-            if n < 1: #Abstract cases where n < 1
+            if n < 1:  # Abstract cases where n < 1
                 return M
             else:
-                return tf.matmul(M, matpow(M, n-1))
+                return tf.matmul(M, matpow(M, n - 1))
 
         '''
         Single GPU computing
@@ -92,15 +91,16 @@ class CustomTF2GPUCheck(CustomModel):
             c1.append(matpow(b, n))
 
         with tf.device('/gpu:0'):
-          sum = tf.add_n(c1) #Addition of all elements in c1, i.e. A^n + B^n
+            sum = tf.add_n(c1)  # Addition of all elements in c1, i.e. A^n + B^n
 
         t1_1 = datetime.datetime.now()
-        with tf.Session(config=tf.ConfigProto(log_device_placement=log_device_placement, allow_soft_placement=True)) as sess:
+        with tf.Session(
+                config=tf.ConfigProto(log_device_placement=log_device_placement, allow_soft_placement=True)) as sess:
             # Run the op.
-            sess.run(sum, {a:A, b:B})
+            sess.run(sum, {a: A, b: B})
         t2_1 = datetime.datetime.now()
 
-        print("Single GPU computation time: " + str(t2_1-t1_1))
+        print("Single GPU computation time: " + str(t2_1 - t1_1))
 
         self.set_model_properties(model=[1],
                                   features=list(X.names),
@@ -116,4 +116,3 @@ class CustomTF2GPUCheck(CustomModel):
         assert ngpus_vis != 0, "Shouldn't be using/testing this recipe without GPUs"
 
         return np.random.randint(0, 2, (X.nrows, 1))
-

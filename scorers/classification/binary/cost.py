@@ -55,4 +55,3 @@ class CostBinary(CustomScorer):
             cms[[self.__class__._threshold_optimizer]].idxmax()]  # get row(s) for optimal metric defined above
         cms['metric'] = cms[['tp', 'fp', 'tn', 'fn']].apply(lambda x: self.protected_metric(*x), axis=1, raw=True)
         return cms['metric'].mean()  # in case of ties
-

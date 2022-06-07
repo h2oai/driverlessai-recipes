@@ -7,7 +7,6 @@ from h2oaicore.mli.oss.byor.core.explanations import WorkDirArchiveExplanation
 
 
 class ExampleScoreExplainer(CustomExplainer, CustomDaiExplainer):
-
     _display_name = "Example Score Explainer"
     _description = (
         "This is explainer example which demonstrates how to get model predict "

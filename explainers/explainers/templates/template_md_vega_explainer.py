@@ -1,5 +1,5 @@
 """Markdown report with Vega chart explainer template which can be used to create explainer which creates global report explanations."""
- 
+
 from h2oaicore.mli.oss.byor.core.explainers import CustomExplainer
 from h2oaicore.mli.oss.byor.core.explanations import (
     CustomExplanation,

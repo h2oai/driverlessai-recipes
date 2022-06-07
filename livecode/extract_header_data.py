@@ -27,22 +27,22 @@ new_dataset_name = "dataset_header_collapsed"
 
 cols = list(X.names)
 if cols_keep and len(cols_keep) > 0:
-  cols = cols_keep
+    cols = cols_keep
 elif cols_regex_keep:
-  regex = re.compile(cols_regex_keep)
-  cols = list(filter(regex.match, cols))
+    regex = re.compile(cols_regex_keep)
+    cols = list(filter(regex.match, cols))
 elif cols_remove and len(cols_remove) > 0:
-  [cols.remove(el) for el in cols_remove]
+    [cols.remove(el) for el in cols_remove]
 elif cols_regex_remove:
-  regex = re.compile(cols_regex_remove)
-  cols_remove = list(filter(regex.match, cols))
-  [cols.remove(el) for el in cols_remove]
+    regex = re.compile(cols_regex_remove)
+    cols_remove = list(filter(regex.match, cols))
+    [cols.remove(el) for el in cols_remove]
 
 X = X[:, cols]
 
 X = X[:, dt.count(), dt.by(cols)]
 
 if not add_rowcount:
-  del X[:, f[-1]]
-  
+    del X[:, f[-1]]
+
 return {new_dataset_name: X}

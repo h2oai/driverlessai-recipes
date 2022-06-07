@@ -84,7 +84,8 @@ class AirportOriginDestPDTransformer(CustomTransformer):
             # self._output_feature_names = ['origin_elevation_ft', 'origin_long', 'origin_lat', 'dest_elevation_ft',
             # 'dest_long', 'dest_lat', 'elevation_diff', 'lat_diff', 'long_diff']
             self._output_feature_names = ["{}{}{}{}{}.{}".format(self.transformer_name,
-                                          orig_feat_prefix, "Origin", orig_feat_prefix, "Dest", f) for f in
+                                                                 orig_feat_prefix, "Origin", orig_feat_prefix, "Dest",
+                                                                 f) for f in
                                           ['origin_elevation_ft', 'origin_long', 'origin_lat', 'dest_elevation_ft',
                                            'dest_long', 'dest_lat', 'elevation_diff', 'lat_diff', 'long_diff',
                                            'distance_km']]

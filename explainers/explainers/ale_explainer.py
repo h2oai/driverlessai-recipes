@@ -65,7 +65,7 @@ class ALEExplainer(CustomExplainer, CustomDaiExplainer):
         CustomExplainer.__init__(self)
         CustomDaiExplainer.__init__(self)
 
-    def setup(self, model, persistence, key = None, params = None, **explainer_params):
+    def setup(self, model, persistence, key=None, params=None, **explainer_params):
         CustomExplainer.setup(self, model, persistence, key, params, **explainer_params)
         CustomDaiExplainer.setup(self, **explainer_params)
         self.args = CustomExplainerArgs(ALEExplainer._parameters)
@@ -134,13 +134,13 @@ class ALEExplainer(CustomExplainer, CustomDaiExplainer):
     def _ale_to_gom(self, ale_per_feature: dict) -> PartialDependenceExplanation:
         """ALE to Grammar of MLI JSon PD representation."""
         ale_explanation = PartialDependenceExplanation(
-            explainer=self, 
-            display_name=self._display_name, 
+            explainer=self,
+            display_name=self._display_name,
             display_category=PartialDependenceExplanation.DISPLAY_CAT_DAI_MODEL
         )
         index_dict, index_str = PartialDependenceJSonFormat.serialize_index_file(
-            features=list(ale_per_feature.keys()), 
-            classes=[self.ALE_CLASS], 
+            features=list(ale_per_feature.keys()),
+            classes=[self.ALE_CLASS],
             doc=self._description
         )
         json_format = PartialDependenceJSonFormat(

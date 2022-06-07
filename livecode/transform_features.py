@@ -14,12 +14,14 @@
 #   dataset containing original and transformed features
 from datatable import f, isna, ifelse
 
-transformations = {'title_with_type': f['primaryTitle'] + '-' + f['titleType'], # concatentate 2 columns
-                   'startYear': ifelse(f['startYear']=='\\N', None, f['startYear']), # override empty value with NULL
-                   'endYear': ifelse(f['endYear']=='\\N', None, f['endYear']), # override empty value with NULL in another column
-                   'spanYears': ifelse((f['startYear']=='\\N') | (f['endYear']=='\\N'), 
-                                       0, dt.int32(f['endYear']) - dt.int32(f['startYear'])) # compute the different between two columns
-                  } 
+transformations = {'title_with_type': f['primaryTitle'] + '-' + f['titleType'],  # concatentate 2 columns
+                   'startYear': ifelse(f['startYear'] == '\\N', None, f['startYear']),  # override empty value with NULL
+                   'endYear': ifelse(f['endYear'] == '\\N', None, f['endYear']),
+                   # override empty value with NULL in another column
+                   'spanYears': ifelse((f['startYear'] == '\\N') | (f['endYear'] == '\\N'),
+                                       0, dt.int32(f['endYear']) - dt.int32(f['startYear']))
+                   # compute the different between two columns
+                   }
 
 X[:, dt.update(**transformations)]
 

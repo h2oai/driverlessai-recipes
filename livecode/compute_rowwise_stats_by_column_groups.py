@@ -23,13 +23,13 @@ from datatable import f, update, rowsum, rowmean, rowsd, rowmax, rowmin, rowfirs
 import re
 from collections import defaultdict
 
-columns = None # columns = ["PAY_AMT", "BILL_AMT", "PAY_"]
-ranges = None # [(1, 6), (1, 6), (2, 6)]
+columns = None  # columns = ["PAY_AMT", "BILL_AMT", "PAY_"]
+ranges = None  # [(1, 6), (1, 6), (2, 6)]
 black_listed_columns = []
 min_col_group_size = 2
 
 # parse column names for time series column groups
-if columns is None or columns == [] or\
+if columns is None or columns == [] or \
         ranges is None or ranges == []:
     # match any column names that consist of alpha name (prefix) followed by integer index (suffix)
     p = re.compile(r"^([a-zA-Z_]+)(\d+)$")
@@ -42,7 +42,7 @@ if columns is None or columns == [] or\
             all_col_groups[key].append(val)
 
     # remove black listed columns or column groups that smaller than minimal size
-    col_groups= { key: val for key, val in all_col_groups.items() if not key in black_listed_columns or
+    col_groups = {key: val for key, val in all_col_groups.items() if not key in black_listed_columns or
                   len(val) >= min_col_group_size}
 
     # list of column prefixes

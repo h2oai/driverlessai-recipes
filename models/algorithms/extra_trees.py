@@ -25,7 +25,8 @@ class ExtraTreesModel(CustomModel):
     _force_final_n_estimators = 0
 
     @staticmethod
-    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
+                num_classes=None, **kwargs):
         if config.hard_asserts:
             # for bigger data, too slow to test even with 1 iteration
             use = True
@@ -93,7 +94,8 @@ class ExtraTreesModel(CustomModel):
                                                      best_type="first", name="oob_score",
                                                      trial=trial, user_choice=user_choice)
         if self.num_classes > 1:
-            self.params['class_weight'] = MainModel.get_one(['None', 'balanced', 'balanced_subsample'], get_best=get_best,
+            self.params['class_weight'] = MainModel.get_one(['None', 'balanced', 'balanced_subsample'],
+                                                            get_best=get_best,
                                                             best_type="first", name="class_weight",
                                                             trial=trial, user_choice=user_choice)
         self.params["random_state"] = MainModel.get_one([self.params_base.get("random_state", 1234)], get_best=get_best,
@@ -124,7 +126,7 @@ class ExtraTreesModel(CustomModel):
         return params  # default is no transcription
 
     def fit(self, X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
-        #if config.hard_asserts:
+        # if config.hard_asserts:
         #    from h2oaicore.utils import kwargs_has_stage, kwargs_missing_stage
         #    assert kwargs_has_stage(kwargs), kwargs_missing_stage(kwargs)
 
@@ -181,7 +183,7 @@ class ExtraTreesModel(CustomModel):
         return X
 
     def predict(self, X, **kwargs):
-        #if config.hard_asserts:
+        # if config.hard_asserts:
         #    from h2oaicore.utils import kwargs_has_stage, kwargs_missing_stage
         #    assert kwargs_has_stage(kwargs), kwargs_missing_stage(kwargs)
 
@@ -247,9 +249,9 @@ class ExtraTreesModel(CustomModel):
         mem_used_per_row = 100E9 * (self.params['n_estimators'] * X.shape[1]) / (2000 * 100000 * 289)
         mem_max = 1E9
 
-        batch_size = max(1, int(mem_max/mem_used_per_row))
+        batch_size = max(1, int(mem_max / mem_used_per_row))
         loggerinfo(self.get_logger(**kwargs), "%s predict using batch_size %d with %d batches" %
-                   (self.display_name, min(nrows, batch_size), max(1, ceil(nrows/batch_size))))
+                   (self.display_name, min(nrows, batch_size), max(1, ceil(nrows / batch_size))))
         start = 0
         while start < preds.shape[0]:
             end = min(start + batch_size, preds.shape[0])

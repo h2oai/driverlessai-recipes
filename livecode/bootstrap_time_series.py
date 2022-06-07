@@ -17,10 +17,10 @@
 
 import random
 
-tgc = 'C1' # IMPORTANT: only single feature tgc supported
+tgc = 'C1'  # IMPORTANT: only single feature tgc supported
 time_col = 'C2'
 value_col = 'C4'
-size_multiplier = 1 # 1 will increase dataset size by 100%, 2 by 200%, etc.
+size_multiplier = 1  # 1 will increase dataset size by 100%, 2 by 200%, etc.
 
 new_dataset_name = "new_dataset_with_shifted_columns"
 
@@ -53,6 +53,6 @@ for i in range(size_multiplier * tgc_info.shape[0]):
                        value_col: dt.f[1] + dt.f[2]})]
     # tt[:, dt.update(C1 = drink1_name + '+' + drink2_name, C3 = 'bootstrap', C4 = dt.f[1] + dt.f[2]),]
 
-    X_result = dt.rbind(X_result, tt[:, [tgc,time_col,'C3',value_col]])
+    X_result = dt.rbind(X_result, tt[:, [tgc, time_col, 'C3', value_col]])
 
 return {new_dataset_name: X_result}

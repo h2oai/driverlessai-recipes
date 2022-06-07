@@ -101,8 +101,8 @@ class R2byTimeSeries(CustomScorer):
                 current_tgc.key = tgc
                 ts_frame = X[:, :, join(current_tgc)][~isna(f.r2), :]
                 r2_score = scorer.score(ts_frame['actual'].to_numpy(), ts_frame['predicted'].to_numpy(),
-                                            ts_frame['sample_weight'].to_numpy() if sample_weight is not None else None,
-                                            labels, **kwargs)
+                                        ts_frame['sample_weight'].to_numpy() if sample_weight is not None else None,
+                                        labels, **kwargs)
                 tgc_values[i, f.r2] = r2_score
 
                 loggerinfo(logger,

@@ -16,7 +16,8 @@ class RandomForestQuantileModel(CustomModel):
     _description = "Quantile Random Forest Regression"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
-    _modules_needed_by_name=['scikit-garden==0.1.3']
+    _modules_needed_by_name = ['scikit-garden==0.1.3']
+
     # pre-built:
     # _modules_needed_by_name = ['https://s3.amazonaws.com/artifacts.h2o.ai/deps/dai/recipes/scikit_garden-0.1.3-cp38-cp38-linux_x86_64.whl']
 
@@ -29,11 +30,11 @@ class RandomForestQuantileModel(CustomModel):
         return False  # scikit-garden is from 2017 and no longer compatible with new sklearn despite attempts to make it work
 
     def set_default_params(
-        self, 
-        accuracy=None, 
-        time_tolerance=None, 
-        interpretability=None, 
-        **kwargs
+            self,
+            accuracy=None,
+            time_tolerance=None,
+            interpretability=None,
+            **kwargs
     ):
         # fill up parameters we care about
         self.params = dict(
@@ -46,24 +47,24 @@ class RandomForestQuantileModel(CustomModel):
         )
 
     def mutate_params(
-        self, 
-        accuracy=10,
-        **kwargs
+            self,
+            accuracy=10,
+            **kwargs
     ):
         if accuracy > 8:
-            estimators_list = [300, 500, 1000, 2000,]
-            depth_list = [10, 20, 30, 50, 100,]
-            samples_leaf_list = [10, 20, 30,]
+            estimators_list = [300, 500, 1000, 2000, ]
+            depth_list = [10, 20, 30, 50, 100, ]
+            samples_leaf_list = [10, 20, 30, ]
         elif accuracy >= 5:
-            estimators_list = [50, 100, 200, 300,]
-            depth_list = [5, 10, 15, 25, 50,]
-            samples_leaf_list = [20, 40, 60,]
+            estimators_list = [50, 100, 200, 300, ]
+            depth_list = [5, 10, 15, 25, 50, ]
+            samples_leaf_list = [20, 40, 60, ]
         else:
-            estimators_list = [10, 20, 40, 60,]
-            depth_list = [1, 2, 3, 5, 10,]
-            samples_leaf_list = [30, 60, 90,]
+            estimators_list = [10, 20, 40, 60, ]
+            depth_list = [1, 2, 3, 5, 10, ]
+            samples_leaf_list = [30, 60, 90, ]
 
-        criterion_list = ["mse", "mae",]
+        criterion_list = ["mse", "mae", ]
 
         # modify certain parameters for tuning
         self.params["n_estimators"] = int(np.random.choice(estimators_list))
@@ -72,13 +73,13 @@ class RandomForestQuantileModel(CustomModel):
         self.params["min_samples_leaf"] = int(np.random.choice(samples_leaf_list))
 
     def fit(
-        self,
-        X,
-        y,
-        sample_weight=None,
-        eval_set=None,
-        sample_weight_eval_set=None,
-        **kwargs
+            self,
+            X,
+            y,
+            sample_weight=None,
+            eval_set=None,
+            sample_weight_eval_set=None,
+            **kwargs
     ):
         X = dt.Frame(X)
         orig_cols = list(X.names)
@@ -98,8 +99,8 @@ class RandomForestQuantileModel(CustomModel):
         )
 
     def basic_impute(
-        self, 
-        X
+            self,
+            X
     ):
         # scikit extra trees internally converts to np.float32 during all operations,
         # so if float64 datatable, need to cast first, in case will be nan for float32
@@ -114,9 +115,9 @@ class RandomForestQuantileModel(CustomModel):
             if col not in self.min:
                 self.min[col] = XX.min1()
                 if (
-                    self.min[col] is None
-                    or np.isnan(self.min[col])
-                    or np.isinf(self.min[col])
+                        self.min[col] is None
+                        or np.isnan(self.min[col])
+                        or np.isinf(self.min[col])
                 ):
                     self.min[col] = -1e10
                 else:
@@ -127,9 +128,9 @@ class RandomForestQuantileModel(CustomModel):
         return X
 
     def predict(
-        self,
-        X, 
-        **kwargs
+            self,
+            X,
+            **kwargs
     ):
         X = dt.Frame(X)
         X = self.basic_impute(X)

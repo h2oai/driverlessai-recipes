@@ -7,7 +7,6 @@ from h2oaicore.mli.oss.byor.core.explanations import WorkDirArchiveExplanation
 
 
 class ExampleMetaAndAttrsExplainer(CustomExplainer, CustomDaiExplainer):
-
     _display_name = "Example DAI Explainer Metadata and Attributes"
     _description = (
         "This explainer example prints explainer metadata, instance attributes and "

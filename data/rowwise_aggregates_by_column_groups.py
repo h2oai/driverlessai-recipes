@@ -9,6 +9,7 @@ import pandas as pd
 import re
 from collections import defaultdict
 
+
 # Compute row-wise aggregates, usually applicable when dataset contains time
 # series data as enumerated columns, e.g. "PAY_1, PAY_2, ..., PAY_6" in
 # the Kaggle Credit Card Default dataset.
@@ -74,7 +75,7 @@ class AggregateRowwiseByColumnGroups(CustomData):
             ranges = [(min(idx), max(idx)) for idx in col_groups.values()]
 
         col_slices = [((col + "%d") % (desde), (col + "%d") % (hasta)) for (col, (desde, hasta)) in
-                         zip(columns, ranges)]
+                      zip(columns, ranges)]
 
         for c, r, s in zip(columns, ranges, col_slices):
             update_map = {c + "_sum": rowsum(f[s[0]:s[1]]),
@@ -90,4 +91,3 @@ class AggregateRowwiseByColumnGroups(CustomData):
             X[:, update(**update_map)]
 
         return X
-

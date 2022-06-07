@@ -18,7 +18,7 @@ class F4Scorer(CustomScorer):
     def _metric(tp, fp, tn, fn):
         precision = tp / (tp + fp)
         recall = tp / (tp + fn)
-        beta2 = 4**2  # F3
+        beta2 = 4 ** 2  # F3
         return (1 + beta2) * (precision * recall) / ((beta2 * precision) + recall)
 
     def protected_metric(self, tp, fp, tn, fn):
@@ -52,4 +52,3 @@ class F4Scorer(CustomScorer):
             cms[[self.__class__._threshold_optimizer]].idxmax()]  # get row(s) for optimal metric defined above
         cms['metric'] = cms[['tp', 'fp', 'tn', 'fn']].apply(lambda x: self.protected_metric(*x), axis=1, raw=True)
         return cms['metric'].mean()  # in case of ties
-

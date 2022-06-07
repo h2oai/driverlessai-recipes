@@ -43,13 +43,13 @@ class BackwardFeatureSelection(CustomData):
         y = X[TARGET_COLUMN].values
         X.drop(TARGET_COLUMN, axis=1, inplace=True)
 
-        sfs = SFS(ESTIMATOR, 
-           k_features=K_FEATURES, 
-           forward=False, 
-           floating=False,
-           scoring=SCORING,
-           cv=CV,
-           n_jobs=-1)
+        sfs = SFS(ESTIMATOR,
+                  k_features=K_FEATURES,
+                  forward=False,
+                  floating=False,
+                  scoring=SCORING,
+                  cv=CV,
+                  n_jobs=-1)
 
         sfs.fit(X, y)
 

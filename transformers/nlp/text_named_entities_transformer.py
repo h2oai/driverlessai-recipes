@@ -26,7 +26,7 @@ class TextNamedEntityTransformer(CustomTransformer):
             '%s/srsly-1.0.5%s' % (_root_path, _suffix),
             '%s/thinc-7.3.1%s' % (_root_path, _suffix),
             '%s/wasabi-0.8.2%s' % (_root_path, _suffix),
-            ]
+        ]
     else:
         _modules_needed_by_name = ["spacy==2.2.3",
                                    "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.5/en_core_web_sm-2.2.5.tar.gz#egg=en_core_web_sm==2.2.5"]

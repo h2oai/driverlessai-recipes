@@ -79,7 +79,7 @@ class AutoGluonModel(CustomModel):
             valid_y_dt = dt.Frame(valid_y, names=[label])
 
             assert X.shape[1] == valid_X.shape[1], "Bad shape to rbind: %s %s : %s %s" % (
-            X.shape, X.names, valid_X.shape, valid_X.names)
+                X.shape, X.names, valid_X.shape, valid_X.names)
             X = dt.rbind([X, valid_X])
             y_dt = dt.rbind([y_dt, valid_y_dt])
 

@@ -58,4 +58,3 @@ class LDAModel(CustomUnsupervisedModel):
     _included_pretransformers = ['TextOriginalTransformer']
     _included_transformers = ['TextLDATopicTransformer']
     _included_scorers = ['UnsupervisedScorer']
-

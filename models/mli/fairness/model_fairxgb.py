@@ -487,7 +487,7 @@ class FAIRXGBOOST(CustomModel):
                     # Create a penalty proportional to the distance below the specified threshold
                     len_preds = len(preds)
                     num_penalty = min(len_preds, int((
-                                                                 self.mean_protected_prediction_ratio_minimum - DI) / self.mean_protected_prediction_ratio_minimum * len_preds))
+                                                             self.mean_protected_prediction_ratio_minimum - DI) / self.mean_protected_prediction_ratio_minimum * len_preds))
 
                     preds[0:num_penalty] = penalty
                     loggerdata(logger, "num_penalty1")

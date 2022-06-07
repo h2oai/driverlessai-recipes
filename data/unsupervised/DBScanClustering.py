@@ -21,8 +21,6 @@ from sklearn.preprocessing import LabelEncoder
 
 from sklearn.cluster import DBSCAN
 
-
-
 """ 
 	"" Optional User Inputs "" 
 
@@ -58,7 +56,7 @@ class IsolationForestClustering(CustomData):
         if not isinstance(ignore_columns, list):
             raise ValueError("Column: 'ignore_columns' should be <list>")
         # if not isinstance(num_clusters, int):
-            # raise ValueError("Column: 'num_clusters' should be <int>")
+        # raise ValueError("Column: 'num_clusters' should be <int>")
 
         ## validate user-inputs and override the columns given by user
         features = list(X.names)

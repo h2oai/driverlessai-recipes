@@ -28,7 +28,7 @@ new_dataset_name = "imdb_ratings_with_episodes_stats"
 Y = dt.fread(Y_name)
 
 # define aggregate computations/features
-aggs = {'episode_count': dt.count(), 
+aggs = {'episode_count': dt.count(),
         'episode_rating_mean': dt.mean(dt.f['episodeAverageRating']),
         'episode_rating_stddev': dt.sd(dt.f['episodeAverageRating']),
         'episode_rating_min': dt.min(dt.f['episodeAverageRating']),
@@ -45,7 +45,7 @@ result = Y_aggs[:, :, join(X)]
 # (until datatable supports only left outer join with existing unique key on the joined table we need this workaround)
 Y_aggs_keys = dt.unique(Y_aggs[:, primary_key_cols])
 Y_aggs_keys.key = primary_key_cols
-X_missing_in_Y_keys = X[g[-1]==None, f[:], join(Y_aggs_keys)]
+X_missing_in_Y_keys = X[g[-1] == None, f[:], join(Y_aggs_keys)]
 result.rbind(X_missing_in_Y_keys, force=True)
 
 # assign key for validation purpose only

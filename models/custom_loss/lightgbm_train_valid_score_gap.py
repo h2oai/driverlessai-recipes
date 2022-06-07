@@ -14,7 +14,8 @@ class GBMTrainValidScoreGap:
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod
-    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
+                num_classes=None, **kwargs):
         max_abs_deviation = config.recipe_dict.get('max_abs_score_delta_train_valid', 0.0)  # set to > 0.0 to enable
         max_rel_deviation = config.recipe_dict.get('max_rel_score_delta_train_valid', 0.0)  # set to > 0.0 to enable
         return max_abs_deviation > 0 or max_rel_deviation > 0

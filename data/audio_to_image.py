@@ -41,7 +41,7 @@ class AudioToMelSpectogram:
     _modules_needed_by_name = ["librosa==0.8.1"]
 
     def __init__(
-        self, min_seconds=2, sampling_rate=44100, n_mels=128, hop_length=345 * 2
+            self, min_seconds=2, sampling_rate=44100, n_mels=128, hop_length=345 * 2
     ):
         # Audio hyperparameters
         self.min_seconds = min_seconds

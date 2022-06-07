@@ -6,7 +6,6 @@ from h2oaicore.mli.oss.byor.core.explanations import WorkDirArchiveExplanation
 
 
 class ExamplePersistenceExplainer(CustomExplainer):
-
     _display_name = "Example Persistence Explainer"
     _description = (
         "This is explainer example which demonstrates how to use persistence object"

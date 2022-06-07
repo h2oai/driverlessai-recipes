@@ -16,6 +16,7 @@ import os
 from h2oaicore.systemutils_more import download
 from h2oaicore.systemutils import config, user_dir
 
+
 class IMDbTitleRatingsData(CustomData):
     @staticmethod
     def create_data(X: dt.Frame = None) -> Union[
@@ -62,7 +63,8 @@ class IMDbTitleRatingsData(CustomData):
         # Create Episodes dataset
         episodes = episodes[~dt.isna(dt.f.seasonNumber) & ~dt.isna(dt.f.episodeNumber), :]
         episode_ratings = episodes[:, :, dt.join(ratings)]
-        episode_ratings.names = {'tconst': 'episodeTconst', 'parentTconst': 'tconst', 'averageRating': 'episodeAverageRating', 'numVotes': 'episodeNumVotes'}
+        episode_ratings.names = {'tconst': 'episodeTconst', 'parentTconst': 'tconst',
+                                 'averageRating': 'episodeAverageRating', 'numVotes': 'episodeNumVotes'}
         basics_ratings.key = 'tconst'
         title_episode_ratings = episode_ratings[:, :, dt.join(basics_ratings)]
 

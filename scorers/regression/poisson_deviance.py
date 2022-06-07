@@ -37,15 +37,15 @@ class PoissonDevianceScorer(CustomScorer):
         return make_experiment_logger(experiment_id=application_context.context.experiment_id, tmp_dir=None,
                                       experiment_tmp_dir=exp_dir())
 
-
-    def score(self, actual: np.array, predicted: np.array, sample_weight: typing.Optional[np.array] = None, labels: typing.Optional[np.array] = None) -> float:
+    def score(self, actual: np.array, predicted: np.array, sample_weight: typing.Optional[np.array] = None,
+              labels: typing.Optional[np.array] = None) -> float:
         """Initialize logger to print additional info in case of invalid inputs(exception is raised) and to enable debug prints"""
         logger = self.logger
         from h2oaicore.systemutils import loggerinfo
-        #loggerinfo(logger, "Start Poisson Deviance Scorer.......")
-        #loggerinfo(logger, 'Actual:%s' % str(actual))
-        #loggerinfo(logger, 'Predicted:%s' % str(predicted))
-        #loggerinfo(logger, 'Sample W:%s' % str(sample_weight))
+        # loggerinfo(logger, "Start Poisson Deviance Scorer.......")
+        # loggerinfo(logger, 'Actual:%s' % str(actual))
+        # loggerinfo(logger, 'Predicted:%s' % str(predicted))
+        # loggerinfo(logger, 'Sample W:%s' % str(sample_weight))
 
         try:
             if sample_weight is not None:
@@ -67,15 +67,16 @@ class PoissonDevianceScorer(CustomScorer):
             '''Check if any element of the arrays is not positive or nan'''
             if (actual <= 0).any() or np.isnan(np.sum(actual)):
                 loggerinfo(logger, 'Actual:%s' % str(actual))
-                loggerinfo(logger, 'Non-positive Actuals:%s' % str(actual[actual <=0]))
+                loggerinfo(logger, 'Non-positive Actuals:%s' % str(actual[actual <= 0]))
                 loggerinfo(logger, 'Nan values index:%s' % str(np.argwhere(np.isnan(actual))))
-                raise RuntimeError('Error during Poisson deviance score calculation. Invalid actuals values. Expecting only positive values')
+                raise RuntimeError(
+                    'Error during Poisson deviance score calculation. Invalid actuals values. Expecting only positive values')
             if (predicted <= 0).any() or np.isnan(np.sum(predicted)):
                 loggerinfo(logger, 'Predicted:%s' % str(predicted))
                 loggerinfo(logger, 'Invalid Predicted:%s' % str(predicted[predicted <= 0]))
                 loggerinfo(logger, 'Nan values index:%s' % str(np.argwhere(np.isnan(predicted))))
-                raise RuntimeError('Error during Poisson deviance score calculation. Invalid predicted values. Expecting only positive values')
-
+                raise RuntimeError(
+                    'Error during Poisson deviance score calculation. Invalid predicted values. Expecting only positive values')
 
             dev = 2 * (actual * np.log(actual / predicted) + predicted - actual)
             score = np.average(dev, weights=sample_weight)

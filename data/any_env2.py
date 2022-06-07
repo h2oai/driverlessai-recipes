@@ -30,8 +30,8 @@ def create_data_popen(func, *args, pyversion="3.8", install_h2oaicore=False, ins
     """
     print(
         "Recipe %s running pyversion=%s install_h2oaicore=%s install_datatable=%s modules_needed_by_name=%s cache_env=%s id=%s" % (
-        file, pyversion, install_h2oaicore, install_datatable,
-        modules_needed_by_name, cache_env, id))
+            file, pyversion, install_h2oaicore, install_datatable,
+            modules_needed_by_name, cache_env, id))
     import os
     from h2oaicore.data import DataContribLoader
     env_dir_orig = DataContribLoader()._env_dir
@@ -119,9 +119,10 @@ class FreshEnvData(CustomData):
     # NOTE: Keep @wrap_create on a single line
     # NOTE: If want to share cache across recipes, can set cache_env=True and set id=<some unique identifier, like myrecipe12345>
     # Below caches the env into "id" folder
-    #@wrap_create(pyversion="3.8", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.1.5"], cache_env=True, file=__file__, id="myrecipe12345")
+    # @wrap_create(pyversion="3.8", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.1.5"], cache_env=True, file=__file__, id="myrecipe12345")
     # Below does not cache the env
-    @wrap_create(pyversion="3.8", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.1.5"], file=__file__)
+    @wrap_create(pyversion="3.8", install_h2oaicore=False, install_datatable=True,
+                 modules_needed_by_name=["pandas==1.1.5"], file=__file__)
     def create_data(X=None):
         import os
         import datatable as dt

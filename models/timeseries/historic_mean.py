@@ -29,7 +29,8 @@ class HistoricMeanModel(CustomTimeSeriesModel):
         self.nan_value = y.mean()
         self.means = {}
         if not all([x in X.names for x in self.tgc]):
-            raise RuntimeError("Internal error: need all time group cols (%s) in X, but only got %s" % (self.tgc, X.names))
+            raise RuntimeError(
+                "Internal error: need all time group cols (%s) in X, but only got %s" % (self.tgc, X.names))
 
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
 

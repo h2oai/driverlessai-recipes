@@ -10,8 +10,9 @@ import datatable as dt
 import numpy as np
 import pandas as pd
 
-#_global_modules_needed_by_name = ['mnist==0.2.2']
-#import mnist
+
+# _global_modules_needed_by_name = ['mnist==0.2.2']
+# import mnist
 
 
 class MNISTData(CustomData):

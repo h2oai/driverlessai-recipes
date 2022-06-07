@@ -47,7 +47,6 @@ class GammaDeviance(CustomScorer):
         return make_experiment_logger(experiment_id=application_context.context.experiment_id, tmp_dir=None,
                                       experiment_tmp_dir=exp_dir())
 
-
     def score(self, actual: np.array, predicted: np.array, sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
         """
@@ -65,10 +64,10 @@ class GammaDeviance(CustomScorer):
             """Initialize logger to print additional info in case of invalid inputs(exception is raised) and to enable debug prints"""
             logger = self.logger
             from h2oaicore.systemutils import loggerinfo
-            #loggerinfo(logger, "Start Gamma Deviance Scorer.......")
-            #loggerinfo(logger, 'Actual:%s' % str(actual))
-            #loggerinfo(logger, 'Predicted:%s' % str(predicted))
-            #loggerinfo(logger, 'Sample W:%s' % str(sample_weight))
+            # loggerinfo(logger, "Start Gamma Deviance Scorer.......")
+            # loggerinfo(logger, 'Actual:%s' % str(actual))
+            # loggerinfo(logger, 'Predicted:%s' % str(predicted))
+            # loggerinfo(logger, 'Sample W:%s' % str(sample_weight))
 
             from sklearn.metrics import mean_gamma_deviance
 
@@ -123,5 +122,3 @@ class GammaDeviance(CustomScorer):
             loggerinfo(logger, 'Error during Gamma Deviance score calculation. Exception raised: %s' % str(e))
             raise
         return score
-
-

@@ -151,12 +151,12 @@ class RecH2OMFTransformer(CustomTransformer):
         # output feature names
         if self.__class__._mf_type == "h2o4gpu":
             self._output_feature_names = [(f"{self.display_name}{orig_feat_prefix}{self.user_col}{col_sep}"
-                                          f"{self.item_col}.n_components={self._n_components},"
-                                          f"lambda={self._lambda},batches={self._batches},max_iter={self._max_iter}")]
+                                           f"{self.item_col}.n_components={self._n_components},"
+                                           f"lambda={self._lambda},batches={self._batches},max_iter={self._max_iter}")]
         elif self.__class__._mf_type == "nmf":
             self._output_feature_names = [(f"{self.display_name}{orig_feat_prefix}{self.user_col}{col_sep}"
-                                          f"{self.item_col}.n_components={self._n_components},"
-                                          f"alpha={self._alpha},max_iter={self._max_iter}")]
+                                           f"{self.item_col}.n_components={self._n_components},"
+                                           f"alpha={self._alpha},max_iter={self._max_iter}")]
         # output feature descriptions
         self._feature_desc = [f"Recommender transformer ({self.__class__._mf_type}): " + self._output_feature_names[0]]
 

@@ -63,7 +63,7 @@ class MorrisSensitivityLeExplainer(CustomExplainer, CustomDaiExplainer):
 
     # explain() method is responsible for the creation of the explanations
     def explain(
-        self, X, y=None, explanations_types: list = None, **kwargs
+            self, X, y=None, explanations_types: list = None, **kwargs
     ) -> list:
         # 3rd party Morris SA library import
         from interpret.blackbox import MorrisSensitivity
@@ -79,7 +79,7 @@ class MorrisSensitivityLeExplainer(CustomExplainer, CustomDaiExplainer):
 
         # PREDICT FUNCTION: Driverless AI scorer -> library compliant predict function
         def predict_function(
-            pred_fn, col_names, cat_variables, label_encoder, X
+                pred_fn, col_names, cat_variables, label_encoder, X
         ):
             X = pd.DataFrame(X.tolist(), columns=col_names)
 
@@ -163,7 +163,7 @@ class MorrisSensitivityLeExplainer(CustomExplainer, CustomDaiExplainer):
                 jdf.COL_NAME: morris_explanation.data()["names"],
                 jdf.COL_IMPORTANCE: list(morris_explanation.data()["scores"]),
                 jdf.COL_GLOBAL_SCOPE: [True]
-                * len(morris_explanation.data()["scores"]),
+                                      * len(morris_explanation.data()["scores"]),
             }
         ).sort(-dt.f[jdf.COL_IMPORTANCE])
         # index file (of per-class data files)
