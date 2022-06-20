@@ -47,6 +47,8 @@ class CatBoostModel(CustomModel):
 
     _min_one_hot_max_size = 4
     _min_learning_rate_catboost = 0.005  # for catboost often for same low learning rate as xgb/lgb, too many trees
+
+    _parallel_task = True
     _use_single_core_if_many = True
 
     def __init__(self, context=None,
