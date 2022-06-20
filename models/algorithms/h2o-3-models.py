@@ -37,7 +37,11 @@ class H2OBaseModel:
     _class = NotImplemented
 
     @staticmethod
-    def set_threads(parent_max_workers, cls=None):
+    def set_threads(parent_max_workers=1, cls=None):
+        return config.h2o_recipes_nthreads  # always fixed
+
+    @classmethod
+    def set_threads_cls(cls, parent_max_workers=1):
         return config.h2o_recipes_nthreads  # always fixed
 
     @staticmethod
