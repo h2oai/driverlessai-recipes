@@ -46,11 +46,17 @@ class H2OIFAllNumCatTransformer(CustomTransformer):
     _is_reproducible = True
     _check_stall = False  # avoid stall check. h2o runs as server, and is not a child for which we check CPU/GPU usage
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+    _parallel_task = True  # doesn't take n_jobs, but is parallel, but with fixed threads
+    _fixed_threads = True
 
     # for DAI 1.10.3+
     # can set _unique=True if know default options are sufficient and don't want multiple transformers created by genetic algorithm
     # effectively same ass ignoring possible parameter choices and only ever using first (default) value in list
     _unique = False
+
+    @staticmethod
+    def set_threads(parent_max_workers, cls=None):
+        return config.h2o_recipes_nthreads  # always fixed
 
     @staticmethod
     def do_acceptance_test():
