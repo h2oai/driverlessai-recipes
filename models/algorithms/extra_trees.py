@@ -19,6 +19,7 @@ class ExtraTreesModel(CustomModel):
     _description = "Extra Trees Model based on sklearn"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _parallel_task = True
+    _use_single_core_if_many = True
 
     # e.g. can choose 2000, and then only final model would use that many
     # 0 means ignore option

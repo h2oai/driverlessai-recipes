@@ -14,6 +14,7 @@ class RandomForestModel(CustomModel):
     _display_name = "RandomForest"
     _description = "Random Forest Model based on sklearn"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+    _use_single_core_if_many = True
 
     @staticmethod
     def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
