@@ -1,6 +1,7 @@
 """datatable Linear Model"""
 from h2oaicore.models import CustomModel
 from datatable import dt, models, f
+import math
 import numpy as np
 
 
@@ -23,8 +24,10 @@ class datatableLinearModel(CustomModel):
         y = dt.Frame(y)
         X_mean = X.mean()
         X_sd = X.sd()
+        # for constant columns prevent dividing by zero
+        X_sd.replace(0.0, 1.0)
         X_standard = X[:, (f[:] - X_mean) / X_sd]
-        X_standard.replace(None, 0.0)
+        self.impute(X_standard)
 
         res = lm.fit(X_standard, y)
         importances = lm.model[1:, dt.rowsum(dt.math.abs(f[:]))]
@@ -35,9 +38,16 @@ class datatableLinearModel(CustomModel):
                                   importances=importances.to_list()[0],
                                   iterations=res.epoch)
 
+
     def predict(self, X, **kwargs):
         model, _, _, _ = self.get_model_properties()
         X_standard = X[:, (f[:] - model["X_mean"]) / model["X_sd"]]
-        X_standard.replace(None, 0.0)
+        self.impute(X_standard)
         p = model["lm"].predict(X_standard)
         return p
+
+
+    @staticmethod
+    def impute(X):
+        X.replace([None, -math.inf, math.inf], 0.0)
+
