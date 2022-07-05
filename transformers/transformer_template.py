@@ -66,8 +66,7 @@ class CustomTransformer(DataTableTransformer):
         return True
 
     @staticmethod
-    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
-                num_classes=None, **kwargs):
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0, num_classes=None, **kwargs):
         """
         Whether by default to use.  If False, then only used if all other transformers disabled
         """
@@ -348,3 +347,5 @@ class CustomTimeSeriesTransformer(CustomTransformer):
 
 class CustomUnsupervisedTransformer(CustomTransformer):
     _unsupervised = True  # transformer must ignore y
+
+

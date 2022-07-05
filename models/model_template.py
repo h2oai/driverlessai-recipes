@@ -25,16 +25,18 @@ class CustomModel(BaseCustomModel):
     _binary = False  # y has shape (N,) and can be numeric or string, cardinality 2, no missing values
     _multiclass = False  # y has shape (N,) and can be numeric or string, cardinality 3+, no missing values
 
-    """Specify whether the model can handle non-numeric categorical-like input data or not. If not, some transformers might be skipped
-    during feature creation for this model."""
+    """Specify whether the model can handle non-numeric categorical-like input data or not.
+    If not, CatOriginal transformer is skipped during feature creation for this model."""
     _can_handle_non_numeric = False
 
-    """Specify whether the model can handle arbitrary text input data or not. If not, some transformers might be skipped
-    during feature creation for this model."""
+    """Specify whether the model can handle arbitrary text input data or not.
+    If not, TextOriginal transformer is skipped during feature creation for this model."""
     _can_handle_text = False
 
-    """Specify whether the model can handle label-encoded categoricals in special way. If not, some transformers might be skipped
-    during feature creation for this model."""
+    """Specify whether the model can handle label-encoded categoricals in special way.
+    When True, CatTransformer is used to label encode categoricals.
+    For example, this is used by LightGBM when toml enable_lightgbm_cat_support=true,
+    which then supports LightGBM's direct categorical handling (mojo not supported)."""
     _can_handle_categorical = False
 
     """Specify whether the model is expected to create reproducible results. If disabled, model might be
@@ -498,4 +500,6 @@ class CustomUnsupervisedModel(UnsupervisedModel, CustomModel):
     # select one CustomUnsupervisedScorer or use 'UnsupervisedScorer' if nothing to score
     _included_scorers = ['UnsupervisedScorer']
 
+    _mojo = False
     # no need to override any other methods
+

@@ -82,7 +82,7 @@ abled.
  [1.10.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.1)
  [1.10.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.2)
  [1.10.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.3)
-### Count: 252
+### Count: 256
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
 * [DATA](./data)
@@ -239,6 +239,7 @@ abled.
     * [historic_mean.py](./models/timeseries/historic_mean.py) [Historic Mean for Time-Series problems. Predicts the mean of the target for each timegroup for regression problems.] 
   * [UNSUPERVISED](./models/unsupervised)
     * [TextSentiment.py](./models/unsupervised/TextSentiment.py) [Extract sentiment from text using pretrained models from TextBlob] 
+    * [aggregator.py](./models/unsupervised/aggregator.py) [Unsupervised Aggregator algorithm (by Leland Wilkinson) to segment data into user-given number of exemplars] 
     * [dbscan.py](./models/unsupervised/dbscan.py) [Clustering using DBScan] 
     * [isolation_forest_custom_scorer.py](./models/unsupervised/isolation_forest_custom_scorer.py) [Custom Anomaly Score for Isolation Forest] 
     * [lda.py](./models/unsupervised/lda.py) [Unsupervised way to extract topic information from one text column] 
@@ -278,16 +279,19 @@ abled.
     * [auuc.py](./scorers/regression/auuc.py) [Area under uplift curve] 
     * [cosh_loss.py](./scorers/regression/cosh_loss.py) [Hyperbolic Cosine Loss] 
     * [explained_variance.py](./scorers/regression/explained_variance.py) [Explained Variance. Fraction of variance that is explained by the model.] 
+    * [gamma_deviance.py](./scorers/regression/gamma_deviance.py) [Gamma Deviance scorer recipe.This is same as Tweedie Deviance scorer with power=2If you need to print debug messages into DAI log, uncomment lines with logger and loggerinfo.Starting 1.10.2 - DAI handles exceptions raised by custom scorers.Default DAI behavior is to continue experiment in case of Scorer failure.To enable forcing experiment to fail, in case of scorer error, set following parameters in DAI:  - skip_scorer_failures=false (Disabled)  - skip_model_failures=false (Disabled)] 
     * [largest_error.py](./scorers/regression/largest_error.py) [Largest error for regression problems. Highly sensitive to outliers.] 
     * [log_mae.py](./scorers/regression/log_mae.py) [Log Mean Absolute Error for regression] 
     * [mean_absolute_scaled_error.py](./scorers/regression/mean_absolute_scaled_error.py) [Mean Absolute Scaled Error for time-series regression] 
     * [mean_squared_log_error.py](./scorers/regression/mean_squared_log_error.py) [Mean Squared Log Error for regression] 
     * [median_absolute_error.py](./scorers/regression/median_absolute_error.py) [Median Absolute Error for regression] 
     * [pearson_correlation.py](./scorers/regression/pearson_correlation.py) [Pearson Correlation Coefficient for regression] 
+    * [poisson_deviance.py](./scorers/regression/poisson_deviance.py) [Poisson Deviance scorer recipe.] 
     * [quantile_loss.py](./scorers/regression/quantile_loss.py) [Quantile Loss regression] 
     * [r2_by_tgc.py](./scorers/regression/r2_by_tgc.py) [Custom R2 scorer computes R2 on each time series, then averages them out for the final score.] 
     * [rmse_with_x.py](./scorers/regression/rmse_with_x.py) [Custom RMSE Scorer that also gets X (original features) - for demo/testing purposes only] 
     * [top_decile.py](./scorers/regression/top_decile.py) [Median Absolute Error for predictions in the top decile] 
+    * [tweedie_deviance.py](./scorers/regression/tweedie_deviance.py) [Tweedie Deviance scorer recipe.User inputs can be provided through recipe_dict in config.To pass power parameterrecipe_dict = "{'power':2.0}"The default value is 1.5If you need to print debug messages into DAI log, uncomment lines with logger and loggerinfo.Starting 1.10.2 - DAI handles exceptions raised by custom scorers.Default DAI behavior is to continue experiment in case of Scorer failure.To enable forcing experiment to fail, in case of scorer error, set following parameters in DAI:  - skip_scorer_failures=false (Disabled)  - skip_model_failures=false (Disabled)] 
 * [TRANSFORMERS](./transformers)
   * [how_to_debug_transformer.py](./transformers/how_to_debug_transformer.py) [Example how to debug a transformer outside of Driverless AI (optional)] 
   * [how_to_test_from_py_client.py](./transformers/how_to_test_from_py_client.py) [Testing a BYOR Transformer the PyClient - works on 1.7.0 & 1.7.1-17] 

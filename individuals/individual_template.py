@@ -194,8 +194,7 @@ True means can do TE, False means cannot do TE, 'only' means only have TE
         self.enforce_experiment_config = None
         self.config_dict_experiment = None
 
-    def add_transformer(self, transformer_name, col_type=None, gene_index=None, layer=0, forced=False, mono=False,
-                        **params):
+    def add_transformer(self, transformer_name, col_type=None, gene_index=None, layer=0, forced=False, mono=False, **params):
         """
         transformer collector
         :obj: Transformer display name
@@ -224,9 +223,7 @@ True means can do TE, False means cannot do TE, 'only' means only have TE
         target, cols_to_drop, weight_column, fold_column, time_groups_columns, and training/validation/test frames.
         :return:
         """
-        self.gene_list.append(
-            dict(obj=transformer_name, col_type=col_type, gene_index=gene_index, layer=layer, forced=forced, mono=mono,
-                 params=params))
+        self.gene_list.append(dict(obj=transformer_name, col_type=col_type, gene_index=gene_index, layer=layer, forced=forced, mono=mono, params=params))
 
     def set_params(self):
         """
@@ -289,3 +286,5 @@ True means can do TE, False means cannot do TE, 'only' means only have TE
         """
         from h2oaicore.systemutils import config
         return config.acceptance_test_timeout
+
+
