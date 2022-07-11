@@ -285,6 +285,9 @@ class H2OBaseModel:
                     elif "Job was aborted due to observed numerical instability" in str(ex):
                         # likely large valued input to DeepLearning it cannot handle
                         raise IgnoreEntirelyError
+                    elif "java.lang.NullPointerException" in str(ex):
+                        # likely large valued input to DeepLearning it cannot handle
+                        raise IgnoreEntirelyError
                     else:
                         raise
                     if trial == trials - 1:
