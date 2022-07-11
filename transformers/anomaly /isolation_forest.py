@@ -467,6 +467,10 @@ class H2OIFAllNumTransformer(H2OIFAllNumCatTransformer):
     _description = "H2O-3 Isolation Forest for All Numeric Columns"
 
     @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
+        return not config.hard_asserts  # too expensive to do "all" for testing
+
+    @staticmethod
     def get_default_properties():
         return dict(col_type="numeric",
                     min_cols="all",
@@ -479,6 +483,10 @@ class H2OIFAllNumTransformer(H2OIFAllNumCatTransformer):
 class H2OIFAllCatTransformer(H2OIFAllNumCatTransformer):
     _display_name = "H2OIFAllCat"
     _description = "H2O-3 Isolation Forest for All Categorical Columns"
+
+    @staticmethod
+    def can_use(accuracy, interpretability, **kwargs):
+        return not config.hard_asserts  # too expensive to do "all" for testing
 
     @staticmethod
     def get_default_properties():
