@@ -253,7 +253,7 @@ class H2OBaseModel:
                     loggerinfo(self.get_logger(**kwargs), "%s (%s) fit parameters: %s" % (
                     self.display_name, self.__class__.__module__, dict(params)))
                     model = self.make_instance(**params)
-                    if isinstance(model, H2OGBMModel) | isinstance(model, H2ODLModel) | isinstance(model, H2OGLMModel):
+                    if isinstance(self, (H2OGBMModel, H2ODLModel, H2OGLMModel)):
                         model.train(x=cols_to_train, y=self.target, training_frame=train_frame,
                                     offset_column=offset_col,
                                     **train_kwargs)
@@ -278,6 +278,9 @@ class H2OBaseModel:
                         raise IgnoreEntirelyError
                     elif "NotStrictlyPositiveException" in str(ex):
                         # bad input data for given hyperparameters
+                        raise IgnoreEntirelyError
+                    elif "hex.gram.Gram$NonSPDMatrixException" in str(ex):
+                        # likely large valued input to GLM it cannot handle
                         raise IgnoreEntirelyError
                     else:
                         raise
