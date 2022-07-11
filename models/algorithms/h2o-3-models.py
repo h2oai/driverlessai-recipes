@@ -282,6 +282,9 @@ class H2OBaseModel:
                     elif "hex.gram.Gram$NonSPDMatrixException" in str(ex):
                         # likely large valued input to GLM it cannot handle
                         raise IgnoreEntirelyError
+                    elif "Job was aborted due to observed numerical instability" in str(ex):
+                        # likely large valued input to DeepLearning it cannot handle
+                        raise IgnoreEntirelyError
                     else:
                         raise
                     if trial == trials - 1:
