@@ -558,6 +558,7 @@ class H2ORFModel(H2OBaseModel, CustomModel):
     _fit_by_iteration = True
     _fit_iteration_name = 'ntrees'
     _predict_by_iteration = False
+    _known_bad_preds = True  # known to make bad predictions, e.g. 3 classes but all 0 probabilities
 
     @staticmethod
     def do_acceptance_test():
