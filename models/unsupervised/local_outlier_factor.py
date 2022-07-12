@@ -1,5 +1,5 @@
 """Outlier detection with Local Outlier Factor"""
-from h2oaicore.systemutils import IgnoreEntirelyError
+from h2oaicore.systemutils import IgnoreEntirelyError, update_precision
 from sklearn.neighbors import LocalOutlierFactor
 
 """
@@ -24,7 +24,10 @@ class LocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
         if X.nrows <= 2:
             raise IgnoreEntirelyError
         self.model = LocalOutlierFactor(n_jobs=self.n_jobs)
-        X = X.to_pandas().fillna(0)
+        # make float, replace of nan/inf won't work on int
+        X = update_precision(X, fixup_almost_numeric=False)
+        X.replace([None, np.nan, np.inf, -np.inf], 0.0)
+        X = X.to_numpy()
         return self.model.fit_predict(X)
 
     def transform(self, X: dt.Frame, y: np.array = None):
