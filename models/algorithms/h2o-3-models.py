@@ -476,6 +476,14 @@ class H2OBaseModel:
                     return preds.iloc[:, -1].values.ravel()
             else:
                 return preds.iloc[:, 1:].values
+        except Exception as e:
+            t, v, tb = sys.exc_info()
+            ex = ''.join(traceback.format_exception(t, v, tb))
+            if 'java.lang.NullPointerException' in str(ex) and X.ncols != 0:
+                # Problems making predictions with GLM, some bug in h2o-3
+                raise IgnoreEntirelyError
+            else:
+                raise
         finally:
             # h2o.remove(self.id) # Cannot remove id, do multiple predictions on same model
             h2o.remove(test_frame)
