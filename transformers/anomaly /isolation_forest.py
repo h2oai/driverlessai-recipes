@@ -80,7 +80,7 @@ class H2OIFAllNumCatTransformer(CustomTransformer):
     @staticmethod
     def get_parameter_choices():
         """
-        Copy-pste of init from H2OIsolationForestEstimator, with value as list
+        Copy-paste of init from H2OIsolationForestEstimator, with value as list
         :return: dict: Dictionary of supported arguments and possible values, first value is the default value.
         """
         return dict(score_each_iteration=[False],  # type: bool
@@ -111,7 +111,7 @@ class H2OIFAllNumCatTransformer(CustomTransformer):
                     )
 
     def valid_params_dict(self):
-        # copy-pste of init from H2OIsolationForestEstimator
+        # copy-paste of init from H2OIsolationForestEstimator
         return dict(
             model_id=None,  # type: Optional[Union[None, str, H2OEstimator]]
             training_frame=None,  # type: Optional[Union[None, str, H2OFrame]]
