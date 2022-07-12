@@ -13,7 +13,8 @@ from h2oaicore.transformer_utils import CustomUnsupervisedTransformer
 
 class LocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
     _can_use_gpu = False
-    _parallel_task = False
+    _parallel_task = True  # if enabled, fit_transform and transform will be given self.n_jobs and kwargs['n_jobs']
+    # n_jobs will be  >= 1 (adaptive to system resources and tasks), otherwise 1 if _parallel_task = False
 
     @staticmethod
     def get_default_properties():
@@ -22,7 +23,7 @@ class LocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         if X.nrows <= 2:
             raise IgnoreEntirelyError
-        self.model = LocalOutlierFactor()
+        self.model = LocalOutlierFactor(n_jobs=self.n_jobs)
         X = X.to_pandas().fillna(0)
         return self.model.fit_predict(X)
 
