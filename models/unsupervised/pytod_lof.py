@@ -1,4 +1,3 @@
-import pytod
 import copy
 from typing import List
 
@@ -15,9 +14,6 @@ import numpy as np
 from h2oaicore.models import CustomUnsupervisedModel
 from h2oaicore.transformer_utils import CustomUnsupervisedTransformer
 
-from pytod.models.lof import LOF
-from pytod.utils.utility import validate_device
-
 import os
 import sys
 import time
@@ -30,8 +26,6 @@ class pyTodLocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
     _get_gpu_lock_vis = True
     _parallel_task = False
     _testing_can_skip_failure = True  # not stable algo, GPU OOM too often
-
-    _modules_needed_by_name = ['pytod==0.0.3']
     
     def __init__(self,
                  num_cols: List[str] = list(),
@@ -63,6 +57,11 @@ class pyTodLocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
 
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         import torch
+        import pytod
+        
+        from pytod.models.lof import LOF
+        from pytod.utils.utility import validate_device
+        
         if X.nrows <= 2:
             raise IgnoreEntirelyError
         params = copy.deepcopy(self.params)
@@ -79,7 +78,8 @@ class pyTodLocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
         X = update_precision(X, fixup_almost_numeric=False)
         X.replace([None, np.nan, np.inf, -np.inf], 0.0)
         X = X.to_numpy()
-        X=torch.from_numpy(X) ## Had to add this as it doesnt work with numpy arrays
+        X= torch.from_numpy(X) ## Had to add this as it doesnt work with numpy arrays
+        
         return self.model.fit_predict(X) # For labels
     
     def transform(self, X: dt.Frame, y: np.array = None):
