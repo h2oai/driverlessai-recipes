@@ -1,9 +1,12 @@
 """H2O-3 Distributed Scalable Machine Learning Models: Poisson GLM
 """
+import sys
+import traceback
+
 from h2oaicore.models import CustomModel
 import datatable as dt
 import uuid
-from h2oaicore.systemutils import config, user_dir, remove
+from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError
 import numpy as np
 
 _global_modules_needed_by_name = ['h2o==3.34.0.7']
@@ -128,6 +131,34 @@ class H2OBaseModel:
             model_path = h2o.save_model(model=model, path=model_path)
             with open(model_path, "rb") as f:
                 raw_model_bytes = f.read()
+        except Exception as e:
+            print(str(e))
+            t, v, tb = sys.exc_info()
+            ex = ''.join(traceback.format_exception(t, v, tb))
+            if 'Training data must have at least 2 features' in str(ex) and X.ncols != 0:
+                # if had non-zero features but h2o-3 saw as constant, ignore h2o-3 in that case
+                raise IgnoreEntirelyError
+            elif "min_rows: The dataset size is too small to split for min_rows" in str(e):
+                raise IgnoreEntirelyError
+            elif "min_rows: The dataset size is too small to split for min_rows" in str(e):
+                raise IgnoreEntirelyError
+            elif " java.lang.AssertionError" in str(ex):
+                # bug in h2o-3, nothing can be done
+                raise IgnoreEntirelyError
+            elif "NotStrictlyPositiveException" in str(ex):
+                # bad input data for given hyperparameters
+                raise IgnoreEntirelyError
+            elif "hex.gram.Gram$NonSPDMatrixException" in str(ex):
+                # likely large valued input to GLM it cannot handle
+                raise IgnoreEntirelyError
+            elif "Job was aborted due to observed numerical instability" in str(ex):
+                # likely large valued input to DeepLearning it cannot handle
+                raise IgnoreEntirelyError
+            elif "java.lang.NullPointerException" in str(ex):
+                # likely large valued input to DeepLearning it cannot handle
+                raise IgnoreEntirelyError
+            else:
+                raise
 
         finally:
             if model_path is not None:
