@@ -14,9 +14,6 @@ import numpy as np
 from h2oaicore.models import CustomUnsupervisedModel
 from h2oaicore.transformer_utils import CustomUnsupervisedTransformer
 
-import os
-import sys
-import time
 
 class pyTodLocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
     _can_use_gpu = True
@@ -26,6 +23,8 @@ class pyTodLocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
     _get_gpu_lock_vis = True
     _parallel_task = False
     _testing_can_skip_failure = True  # not stable algo, GPU OOM too often
+
+    _modules_needed_by_name = ['pytod==0.0.3']
     
     def __init__(self,
                  num_cols: List[str] = list(),
