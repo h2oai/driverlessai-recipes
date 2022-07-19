@@ -98,6 +98,12 @@ class DAModel(CustomModel):
         except np.linalg.LinAlgError as e:
             # nothing can be done, just revert to constant predictions
             raise IgnoreEntirelyError(str(e))
+        except Exception as e:
+            if 'On entry to DGESDD parameter number 10 had an illegal value' in str(e):
+                # nothing can be done, just revert to constant predictions
+                raise IgnoreEntirelyError(str(e))
+            else:
+                raise
 
         importances = np.array([1 for x in range(len(orig_cols))])
         self.set_model_properties(model=model,
