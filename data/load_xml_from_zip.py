@@ -1,6 +1,6 @@
 """
-Data Recipe to load sas7bdat datasets from a zip file. 
-Just include this script inside the zip and upload it as a data recipe.
+Data Recipe to load XML datasets from a zip file. 
+Just include this script inside the zip and upload it as a data recipe. 
 """
 
 from typing import Union, List
@@ -13,14 +13,29 @@ import os
 import glob
 import uuid
 from zipfile import ZipFile
+import xml.etree.ElementTree as ET
 
-_global_modules_needed_by_name = ["sas7bdat"]
-from sas7bdat import SAS7BDAT
+FILE_EXTENSION = ".xml"
 
-FILE_EXTENSION = ".sas7bdat"
+"""
+This recipe expects the XML file to have a schema similar to the one below:
+<data>
+  <row>
+    <col_1>Value</col_1>
+    <col_2>Value</col_2>
+  </row>
+  <row>
+    <col_1>Value</col_1>
+    <col_2>Value</col_2>
+  </row>
+</data>
+
+The <data> and <row> tags do not need to follow the same name convention. 
+The col_1, col_2, ..., col_N tags will provide the column names for the final dataset.
+"""
 
 
-class SAS7BDATLoadFromZip(CustomData):
+class XMLLoadFromZip(CustomData):
     @staticmethod
     def create_data(
         X: dt.Frame = None,
@@ -72,9 +87,17 @@ class SAS7BDATLoadFromZip(CustomData):
             if not os.path.exists(full_data_path):
                 raise ValueError("File <<" + full_data_path + ">> does not exists!")
 
-            with SAS7BDAT(full_data_path, skip_header=False) as reader:
-                X = reader.to_data_frame()
-                print(X.head())
-                data_sets.update({f: X})
+            with open(full_data_path, "r") as fl:
+                root = ET.XML(fl.read())
+                data = {}
+                for row in root:
+                    for item in row:
+                        colname = item.tag
+                        value = item.text
+                        column = data.get(colname, [])
+                        column.append(value)
+                        data.update({colname: column})
+                df = pd.DataFrame(data)
+            data_sets.update({f: df})
 
         return data_sets

@@ -1,5 +1,5 @@
 """
-Data Recipe to load sas7bdat datasets from a zip file. 
+Data Recipe to load JSON datasets from a zip file. 
 Just include this script inside the zip and upload it as a data recipe.
 """
 
@@ -14,13 +14,10 @@ import glob
 import uuid
 from zipfile import ZipFile
 
-_global_modules_needed_by_name = ["sas7bdat"]
-from sas7bdat import SAS7BDAT
-
-FILE_EXTENSION = ".sas7bdat"
+FILE_EXTENSION = ".json"
 
 
-class SAS7BDATLoadFromZip(CustomData):
+class JSONLoadFromZip(CustomData):
     @staticmethod
     def create_data(
         X: dt.Frame = None,
@@ -72,9 +69,7 @@ class SAS7BDATLoadFromZip(CustomData):
             if not os.path.exists(full_data_path):
                 raise ValueError("File <<" + full_data_path + ">> does not exists!")
 
-            with SAS7BDAT(full_data_path, skip_header=False) as reader:
-                X = reader.to_data_frame()
-                print(X.head())
-                data_sets.update({f: X})
+            df = pd.read_json(full_data_path)
+            data_sets.update({f: df})
 
         return data_sets
