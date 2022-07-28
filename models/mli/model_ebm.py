@@ -52,11 +52,7 @@ class EBMModel(CustomModel):
         self.params = dict(
             random_state=kwargs.get("random_state", 1234),
             max_rounds=max_rounds,
-            interactions=ALLOWED_INTERACTIONS
-            if self.num_classes <= 2
-            else 0
-            if self.num_classes <= 2
-            else 0,
+            interactions=ALLOWED_INTERACTIONS if self.num_classes <= 2 else 0,
             learning_rate=max(kwargs.get("learning_rate", 0.1), 0.0001),
             n_jobs=self.params_base.get("n_jobs", max(1, physical_cores_count)),
         )
