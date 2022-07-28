@@ -1,4 +1,4 @@
-"""Random Forest (RandomForest) model from sklearn"""
+"""Adaboost model from sklearn"""
 import datatable as dt
 import numpy as np
 from h2oaicore.models import CustomModel
