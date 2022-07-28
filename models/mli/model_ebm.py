@@ -11,17 +11,26 @@ from h2oaicore.systemutils import physical_cores_count, config
 ALLOWED_INTERACTIONS = 1  #  [[0, 1], [1, 2]]
 
 
-class GA2MModel(CustomModel):
+class EBMModel(CustomModel):
     _regression = True
     _binary = True
     _multiclass = False  # According to the `interpret` library: "Multiclass is still experimental. Subject to change per release." So, set to `True` at your own risk.
     # Current known issue(s): https://github.com/interpretml/interpret/issues/142
-    _display_name = "GA2M"
+    _display_name = "EBM"
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _description = (
-        "GA2M Model. see: Caruana, R., Lou, Y., Gehrke, J., Koch, P., Sturm, M. and Elhadad, N., 2015, August."
-        "Intelligible models for healthcare: Predicting pneumonia risk and hospital 30-day readmission."
-        "In Proceedings of the 21th ACM SIGKDD international conference on knowledge discovery and data mining (pp. 1721-1730)."
+        "Explainable Boosting Machines (EBM) are a faster implementation of GA2M. "
+        "References:"
+        "GA2M: "
+        "Yin Lou, Rich Caruana, Johannes Gehrke, and Giles Hooker (2013). "
+        "Accurate intelligible models with pairwise interactions. In The 19th ACM "
+        "SIGKDD International Conference on Knowledge Discovery and Data Mining, "
+        "KDD 2013, Chicago, IL, USA, August 11-14, 2013, pages 623â631, 2013. "
+        "doi: 10.1145/2487575.2487579. URL https://doi.org/10.1145/2487575.2487579."
+        "EBM: "
+        "H. Nori, S. Jenkins, P. Koch, and R. Caruana (2019). InterpretML: A "
+        "Unified Framework for Machine Learning Interpretability. "
+        "URL https://arxiv.org/pdf/1909.09223.pdf"
     )
     _modules_needed_by_name = ["pillow==8.3.2", "interpret==0.1.20"]
 
@@ -37,19 +46,17 @@ class GA2MModel(CustomModel):
         self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
     ):
         # Fill up parameters we care about
-        n_estimators = (
+        max_rounds = (
             min(kwargs.get("n_estimators", 100), 1000) if not config.hard_asserts else 1
-        )
-        max_tree_splits = (
-            min(kwargs.get("max_tree_splits", 10), 200)
-            if not config.hard_asserts
-            else 3
         )
         self.params = dict(
             random_state=kwargs.get("random_state", 1234),
-            n_estimators=n_estimators,
-            interactions=ALLOWED_INTERACTIONS if self.num_classes <= 2 else 0,
-            max_tree_splits=max_tree_splits,
+            max_rounds=max_rounds,
+            interactions=ALLOWED_INTERACTIONS
+            if self.num_classes <= 2
+            else 0
+            if self.num_classes <= 2
+            else 0,
             learning_rate=max(kwargs.get("learning_rate", 0.1), 0.0001),
             n_jobs=self.params_base.get("n_jobs", max(1, physical_cores_count)),
         )
@@ -57,25 +64,17 @@ class GA2MModel(CustomModel):
     def mutate_params(self, accuracy=10, **kwargs):
         if accuracy > 8:
             estimators_list = [50, 100, 150, 200, 300, 400]
-            max_tree_splits_list = [10, 20, 30, 50, 80, 100]
             learning_rate_list = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06]
         elif accuracy >= 5:
             estimators_list = [30, 50, 100, 150, 200, 250]
-            max_tree_splits_list = [10, 20, 30, 30, 60, 80]
             learning_rate_list = [0.02, 0.04, 0.06, 0.08, 0.09, 0.1]
         else:
             estimators_list = [30, 50, 100, 120, 150, 180, 200]
-            max_tree_splits_list = [5, 10, 20, 25, 30, 50]
             learning_rate_list = [0.03, 0.04, 0.06, 0.1, 0.12, 0.15]
 
         # Modify certain parameters for tuning
-        self.params["n_estimators"] = (
+        self.params["max_rounds"] = (
             int(np.random.choice(estimators_list)) if not config.hard_asserts else 1
-        )
-        self.params["max_tree_splits"] = (
-            int(np.random.choice(max_tree_splits_list))
-            if not config.hard_asserts
-            else 3
         )
         self.params["learning_rate"] = float(np.random.choice(learning_rate_list))
 
@@ -87,11 +86,17 @@ class GA2MModel(CustomModel):
         importances = [0.0] * num_cols
         for jj in range(len(names)):
             if " x " not in names[jj]:
-                importances[int(names[jj].replace("feature_", ""))] += scores[jj]
+                idx = int(names[jj].replace("feature_", ""))
+                if idx == num_cols:
+                    idx -= 1
+                importances[idx] += scores[idx]
             else:
                 sub_features = names[jj].split(" x ")
                 for feature in sub_features:
-                    importances[int(feature.replace("feature_", ""))] += scores[jj]
+                    idx = int(feature.replace("feature_", ""))
+                    if idx == num_cols:
+                        idx -= 1
+                    importances[idx] += scores[idx]
         return importances
 
     def fit(
@@ -130,7 +135,7 @@ class GA2MModel(CustomModel):
             model=model,
             features=orig_cols,
             importances=importances,
-            iterations=self.params["n_estimators"],
+            iterations=self.params["max_rounds"],
         )
 
     def basic_impute(self, X):

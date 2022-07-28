@@ -19,7 +19,7 @@ class PortugueseBertModel(TextBERTModel, CustomModel):
     """
     _mojo = False
     _booster_str = "pytorch_custom"
-    _model_name = "bert-base-portuguese-cased"
+    _model_name = "neuralmind/bert-base-portuguese-cased"
 
     def _set_model_name(self, *args, **kwargs):
         self.model_path = self.model_name = self._model_name
