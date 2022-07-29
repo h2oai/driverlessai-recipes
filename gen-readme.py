@@ -1,12 +1,27 @@
 import ast
 
-exclude = ['.', '.idea', 'pycache', '.git', 'speech/data', 'Makefile', 'LICENSE', 'README.md', 'gen.sh', 'gen.py',
-           '.pytest_cache', 'livecode', 'www']
-sep = '  '
+exclude = [
+    ".",
+    ".idea",
+    "pycache",
+    ".git",
+    "speech/data",
+    "Makefile",
+    "LICENSE",
+    "README.md",
+    "gen.sh",
+    "gen.py",
+    ".pytest_cache",
+    "livecode",
+    "www",
+    ".vscode",
+    "models/timeseries/outputs",
+]
+sep = "  "
 
 
 def get_module_docstring(filepath):
-    co = compile(open(filepath).read(), filepath, 'exec')
+    co = compile(open(filepath).read(), filepath, "exec")
     if co.co_consts and isinstance(co.co_consts[0], str):
         docstring = co.co_consts[0].replace("\n", "")
     else:
@@ -18,7 +33,7 @@ def get_mojo_implementation_tag(filepath):
     with open(filepath, "r") as source:
         root = ast.parse(source.read())
         for node in (n for n in ast.walk(root) if isinstance(n, ast.Assign)):
-            if isinstance(node.targets[0], ast.Name) and node.targets[0].id == '_mojo':
+            if isinstance(node.targets[0], ast.Name) and node.targets[0].id == "_mojo":
                 if isinstance(node.value, ast.NameConstant) and node.value.value:
                     return "<kbd>✓ MOJO Enabled</kbd>"
         else:
@@ -40,7 +55,7 @@ ret = []
 for dirpath, dirs, files in os.walk("."):
     dirs.sort()
     if all(x not in dirpath for x in exclude if len(x) > 1):
-        path = dirpath.split('/')
+        path = dirpath.split("/")
         pdir = os.path.basename(dirpath)
         if pdir not in exclude:
             depth = len(path) - 2
@@ -48,15 +63,20 @@ for dirpath, dirs, files in os.walk("."):
             for f in sorted(files):
                 if f not in exclude and not f.startswith("test_"):
                     if f[-3:] == ".py":
-                        docstring = get_module_docstring(os.path.join(dirpath, f)) or \
-                                    "please add description"
+                        docstring = (
+                            get_module_docstring(os.path.join(dirpath, f))
+                            or "please add description"
+                        )
                         what = "[" + f + "](" + dirpath + "/" + f + ")"
                         mojo_tag = get_mojo_implementation_tag(os.path.join(dirpath, f))
-                        print_offset(depth + 1, "%s [%s] %s" % (what, docstring, mojo_tag), ret)
-                        if not f.endswith('_template.py'):
+                        print_offset(
+                            depth + 1, "%s [%s] %s" % (what, docstring, mojo_tag), ret
+                        )
+                        if not f.endswith("_template.py"):
                             count += 1
 
-print("""# Recipes for H2O Driverless AI
+print(
+    """# Recipes for H2O Driverless AI
 
 ## About Driverless AI
 H2O Driverless AI is Automatic Machine Learning for the Enterprise. Driverless AI automates feature engineering, model building, visualization and interpretability.
@@ -117,9 +137,12 @@ abled.
 * [FAQ](https://github.com/h2oai/driverlessai-recipes/blob/master/FAQ.md#faq)
 * [Templates](https://github.com/h2oai/driverlessai-recipes/blob/master/FAQ.md#references)
 * [Technical Architecture Diagram](https://raw.githubusercontent.com/h2oai/driverlessai-recipes/master/reference/DriverlessAI_BYOR.png)
-""")
+"""
+)
 print("## Sample Recipes")
-print("[Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)")
+print(
+    "[Go to Recipes for Driverless 1.7.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.0)"
+)
 print(" [1.7.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.7.1)")
 print(" [1.8.0](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.0)")
 print(" [1.8.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.8.1)")
