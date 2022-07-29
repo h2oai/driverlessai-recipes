@@ -1,3 +1,5 @@
+"""Example of how to define custom MLI explanations."""
+
 # Copyright 2017-2021 H2O.ai, Inc. All rights reserved.
 from h2oaicore.mli.oss.byor.core.explainers import (
     CustomDaiExplainer,
@@ -16,7 +18,7 @@ class MyCustomExplanation(CustomExplanation):
     _is_global = True
 
     def __init__(
-            self, explainer, display_name: str = None, display_category: str = None
+        self, explainer, display_name: str = None, display_category: str = None
     ) -> None:
         CustomExplanation.__init__(
             self,
@@ -31,9 +33,7 @@ class MyCustomExplanation(CustomExplanation):
 
 class ExampleCustomExplanationExplainer(CustomExplainer, CustomDaiExplainer):
     _display_name = "Example Custom Explanation Explainer"
-    _description = (
-        "Explainer example which shows how to define custom explanation."
-    )
+    _description = "Explainer example which shows how to define custom explanation."
     _regression = True
     _explanation_types = [TextCustomExplanationFormat]
 

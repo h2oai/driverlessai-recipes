@@ -1,3 +1,5 @@
+"""Load custom recipes on air-gapped installations."""
+
 import argparse
 import os
 from h2oaicore.recipe_server_support import server_load_all_custom_recipes
@@ -7,32 +9,32 @@ import re
 from h2oaicore.systemutils import set_username
 
 regex = re.compile(
-    r'^(?:http|ftp)s?://'  # http:// or https://
-    r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
-    r'localhost|'
-    r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
-    r'(?::\d+)?'
-    r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    r"^(?:http|ftp)s?://"  # http:// or https://
+    r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"
+    r"localhost|"
+    r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"
+    r"(?::\d+)?"
+    r"(?:/?|[/?]\S+)$",
+    re.IGNORECASE,
+)
 
 
 def main():
-    agr_parser = argparse.ArgumentParser(description='Load custom recipes',
-                                         usage='./dai-env.sh python load_custom_recipe.py [options] -path or -url or -username')
+    agr_parser = argparse.ArgumentParser(
+        description="Load custom recipes",
+        usage="./dai-env.sh python load_custom_recipe.py [options] -path or -url or -username",
+    )
 
     # required argument
-    agr_parser.add_argument('-username',
-                            type=str,
-                            help='The user name for installing custom recipes')
+    agr_parser.add_argument(
+        "-username", type=str, help="The user name for installing custom recipes"
+    )
 
     # Creating a mutually exclusive group, so user need to provide either a path or a url of the recipe.
     args_group = agr_parser.add_mutually_exclusive_group(required=True)
-    args_group.add_argument('-path',
-                            type=str,
-                            help='The path to custom recipes')
+    args_group.add_argument("-path", type=str, help="The path to custom recipes")
 
-    args_group.add_argument('-url',
-                            type=str,
-                            help='The URL to custom recipes')
+    args_group.add_argument("-url", type=str, help="The URL to custom recipes")
 
     args = agr_parser.parse_args()
 

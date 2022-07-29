@@ -1,3 +1,5 @@
+"""Example of how to print MLI explainer metadata."""
+
 # Copyright 2017-2021 H2O.ai, Inc. All rights reserved.
 from h2oaicore.mli.oss.byor.core.explainers import (
     CustomDaiExplainer,
@@ -39,9 +41,7 @@ class ExampleMetaAndAttrsExplainer(CustomExplainer, CustomDaiExplainer):
         self.logger.info(f"    global: {self._global_explanation}")
         self.logger.info(f"    local: {self._local_explanation}")
         self.logger.info(f"    explanation types: {self._explanation_types}")
-        self.logger.info(
-            f"    optional e. types: {self._optional_explanation_types}"
-        )
+        self.logger.info(f"    optional e. types: {self._optional_explanation_types}")
         self.logger.info(f"    parameters: {self._parameters}")
         self.logger.info(f"    not standalone: {self._requires_predict_method}")
         self.logger.info(f"    Python deps: {self._modules_needed_by_name}")
@@ -62,9 +62,7 @@ class ExampleMetaAndAttrsExplainer(CustomExplainer, CustomDaiExplainer):
         self.logger.info(f"    DAI username: {self.dai_username}")
         self.logger.info(f"    model entity: {self.model_entity}")
         self.logger.info(f"    dataset entity: {self.dataset_entity}")
-        self.logger.info(
-            f"    validation dataset entity: {self.validset_entity}"
-        )
+        self.logger.info(f"    validation dataset entity: {self.validset_entity}")
         self.logger.info(f"    test dataset entity: {self.testset_entity}")
         self.logger.info(f"    sanitization map: {self.sanitization_map}")
         self.logger.info(f"    enable MOJO: {self.enable_mojo}")

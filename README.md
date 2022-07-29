@@ -82,9 +82,9 @@ abled.
  [1.10.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.1)
  [1.10.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.2)
  [1.10.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.3)
-### Count: 256
+### Count: 265
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
-  * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [please add description] 
+  * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [Load custom recipes on air-gapped installations.] 
 * [DATA](./data)
   * [GroupAgg.py](./data/GroupAgg.py) [Aggregation features on numeric columns across multiple categorical columns] 
   * [airlines.py](./data/airlines.py) [Create airlines dataset] 
@@ -104,7 +104,7 @@ abled.
   * [data_template.py](./data/data_template.py) [Custom data recipe base class] 
   * [data_test.py](./data/data_test.py) [Create test dataset] 
   * [data_test_multiple.py](./data/data_test_multiple.py) [Create multiple dataset test] 
-  * [feature_selection.py](./data/feature_selection.py) [please add description] 
+  * [feature_selection.py](./data/feature_selection.py) [Perform feature selection by using target perturbation technique] 
   * [feature_selection_backward.py](./data/feature_selection_backward.py) [Backward Feature Selection using an sklearn estimator.] 
   * [feature_selection_bidirectional.py](./data/feature_selection_bidirectional.py) [Bidirectional Feature Selection using an sklearn estimator.] 
   * [feature_selection_exhaustive.py](./data/feature_selection_exhaustive.py) [Exhaustive Feature Selection using an sklearn estimator.] 
@@ -117,7 +117,10 @@ abled.
   * [kaggle_ieee_fraud.py](./data/kaggle_ieee_fraud.py) [Data recipe to prepare data for Kaggle IEEE-CIS Fraud Detection https://www.kaggle.com/c/ieee-fraud-detection] 
   * [kaggle_m5.py](./data/kaggle_m5.py) [Prepare data for m5 Kaggle Time-Series Forecast competition] 
   * [keywords_data.py](./data/keywords_data.py) [Check and match a list of words from a specific string column] 
-  * [load_sas7bdat.py](./data/load_sas7bdat.py) [Data Recipe to load a single sas file__version__ = 0.1authored by @mtanco (Michelle Tanco)Required User Defined Inputs: name of file to load] 
+  * [load_json_from_zip.py](./data/load_json_from_zip.py) [Data Recipe to load JSON datasets from a zip file. Just include this script inside the zip and upload it as a data recipe.] 
+  * [load_sas7bdat.py](./data/load_sas7bdat.py) [Data Recipe to load a single sas file] 
+  * [load_sas7bdat_from_zip.py](./data/load_sas7bdat_from_zip.py) [Data Recipe to load sas7bdat datasets from a zip file. Just include this script inside the zip and upload it as a data recipe.] 
+  * [load_xml_from_zip.py](./data/load_xml_from_zip.py) [Data Recipe to load XML datasets from a zip file. Just include this script inside the zip and upload it as a data recipe. ] 
   * [marketbasketanalysis.py](./data/marketbasketanalysis.py) [Market basket analysis] 
   * [mnist.py](./data/mnist.py) [Prep and upload the MNIST datasset] 
   * [mozilla_deepspeech_wav2txt.py](./data/mozilla_deepspeech_wav2txt.py) [Speech to text using Mozilla's DeepSpeechSettings for this recipe:Assing MODEL_PATH global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.General requirements to .wav's:1 channel (mono)16 bit16000 frequency] 
@@ -129,7 +132,7 @@ abled.
   * [seattle_rain_modify.py](./data/seattle_rain_modify.py) [Transpose the Monthly Seattle Rain Inches data set for Time Series use cases] 
   * [seattle_rain_upload.py](./data/seattle_rain_upload.py) [Upload Monthly Seattle Rain Inches data set from data provided by the City of Seattle] 
   * [ts_fill_n_cluster.py](./data/ts_fill_n_cluster.py) [Data Recipe to fill missing values in TS data and then create new data sets from TS Clustering] 
-  * [two_sigma_rental.py](./data/two_sigma_rental.py) [please add description] 
+  * [two_sigma_rental.py](./data/two_sigma_rental.py) [Download and preprocess datasets from the Two Sigma Rental competition on Kaggle] 
   * [video_to_image.py](./data/video_to_image.py) [Data recipe to transform input video to the images] 
   * [wav2txt.py](./data/wav2txt.py) [Speech to text using Azure Cognitive ServicesSettings for this recipe:Assing AZURE_SERVICE_KEY and AZURE_SERVICE_REGION global variable prior to usageAssign WAV_COLNAME global variable with proper column name from your dataset.This colums should contain absolute paths to .wav file which needs to be converted to text.] 
   * [DATABASES](./data/databases)
@@ -157,15 +160,15 @@ abled.
     * [ale_explainer.py](./explainers/explainers/ale_explainer.py) [Accumulated Local Effects (ALE) explainerNote:This example repurposes the Partial Dependence format render data. As such, the label"Average Prediction of {response}" is used for the y-axis instead of "ALE of {response}".] 
     * [morris_sensitivity_explainer.py](./explainers/explainers/morris_sensitivity_explainer.py) [Morris Sensitivity Analysis Explainer] 
     * [EXAMPLES](./explainers/explainers/examples)
-      * [example_compatibility_check_explainer.py](./explainers/explainers/examples/example_compatibility_check_explainer.py) [please add description] 
-      * [example_custom_explanation_explainer.py](./explainers/explainers/examples/example_custom_explanation_explainer.py) [please add description] 
-      * [example_dai_metadata_explainer.py](./explainers/explainers/examples/example_dai_metadata_explainer.py) [please add description] 
-      * [example_eda_explainer.py](./explainers/explainers/examples/example_eda_explainer.py) [please add description] 
-      * [example_hello_world_explainer.py](./explainers/explainers/examples/example_hello_world_explainer.py) [please add description] 
-      * [example_logging_explainer.py](./explainers/explainers/examples/example_logging_explainer.py) [please add description] 
-      * [example_params_explainer.py](./explainers/explainers/examples/example_params_explainer.py) [please add description] 
-      * [example_persistence_explainer.py](./explainers/explainers/examples/example_persistence_explainer.py) [please add description] 
-      * [example_score_explainer.py](./explainers/explainers/examples/example_score_explainer.py) [please add description] 
+      * [example_compatibility_check_explainer.py](./explainers/explainers/examples/example_compatibility_check_explainer.py) [Runs compatibility check for MLI recipe.] 
+      * [example_custom_explanation_explainer.py](./explainers/explainers/examples/example_custom_explanation_explainer.py) [Example of how to define custom MLI explanations.] 
+      * [example_dai_metadata_explainer.py](./explainers/explainers/examples/example_dai_metadata_explainer.py) [Example of how to print MLI explainer metadata.] 
+      * [example_eda_explainer.py](./explainers/explainers/examples/example_eda_explainer.py) [Example of MLI explainer for Exploratory Data Analysis] 
+      * [example_hello_world_explainer.py](./explainers/explainers/examples/example_hello_world_explainer.py) [Hello World! explainer example.] 
+      * [example_logging_explainer.py](./explainers/explainers/examples/example_logging_explainer.py) [Example of how to use logging on MLI explainers.] 
+      * [example_params_explainer.py](./explainers/explainers/examples/example_params_explainer.py) [Example of how to define MLI explainer parameters.] 
+      * [example_persistence_explainer.py](./explainers/explainers/examples/example_persistence_explainer.py) [Example of how to use the persistence object inside an MLI explainer to access FS directories.] 
+      * [example_score_explainer.py](./explainers/explainers/examples/example_score_explainer.py) [Example of how to use a model's predict method inside an MLI explainer.] 
     * [TEMPLATES](./explainers/explainers/templates)
       * [template_dt_explainer.py](./explainers/explainers/templates/template_dt_explainer.py) [Decision Tree explainer which can be used to create explainer with global and local decision tree explanations.] 
       * [template_featimp_explainer.py](./explainers/explainers/templates/template_featimp_explainer.py) [Feature importance explainer template which can be used create explainer with global and local feature importance explanations.] 
@@ -176,7 +179,7 @@ abled.
       * [template_scatter_plot_explainer.py](./explainers/explainers/templates/template_scatter_plot_explainer.py) [Scatter plot explainer template which can be used to create explainer with global and local explanations.] 
   * [NOTEBOOKS](./explainers/notebooks)
 * [HOW_TO_WRITE_A_RECIPE](./how_to_write_a_recipe)
-  * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [please add description] 
+  * [ExampleLogTransformer.py](./how_to_write_a_recipe/ExampleLogTransformer.py) [Apply log transform to any single numeric column.] 
 * [INDIVIDUALS](./individuals)
   * [credit_card.py](./individuals/credit_card.py) [Custom Final Individual 0 from Experiment test_credit_card_9f03b_f55d_pawisaco ] 
   * [indiv_test1.py](./individuals/indiv_test1.py) [Test individual 1] 
@@ -190,6 +193,7 @@ abled.
   * [mock_tf_test.py](./models/mock_tf_test.py) [For GPU usage testing purposes.] 
   * [model_template.py](./models/model_template.py) [Template base class for a custom model recipe.] 
   * [ALGORITHMS](./models/algorithms)
+    * [adaboost.py](./models/algorithms/adaboost.py) [Adaboost model from sklearn] 
     * [autogluon.py](./models/algorithms/autogluon.py) [AutoGluon + RAPIDS] 
     * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines] <kbd>✓ MOJO Enabled</kbd>
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.] 
@@ -200,6 +204,7 @@ abled.
     * [h2o-3-gbm-poisson.py](./models/algorithms/h2o-3-gbm-poisson.py) [H2O-3 Distributed Scalable Machine Learning Models: Poisson GBM] 
     * [h2o-3-models.py](./models/algorithms/h2o-3-models.py) [H2O-3 Distributed Scalable Machine Learning Models (DL/GLM/GBM/DRF/NB/AutoML)] 
     * [h2o-glm-poisson.py](./models/algorithms/h2o-glm-poisson.py) [H2O-3 Distributed Scalable Machine Learning Models: Poisson GLM] 
+    * [kernel_naive_bayes.py](./models/algorithms/kernel_naive_bayes.py) [Kernel Naive Bayes implementation by sklearn. For small data (< 200k rows).] 
     * [knearestneighbour.py](./models/algorithms/knearestneighbour.py) [K-Nearest Neighbor implementation by sklearn. For small data (< 200k rows).] 
     * [lda.py](./models/algorithms/lda.py) [Linear/Quadratic Discriminant Analysis (LDA/QDA) model from sklearn] 
     * [libfm_fastfm.py](./models/algorithms/libfm_fastfm.py) [LibFM implementation of fastFM ] 
@@ -216,15 +221,13 @@ abled.
     * [xgboost_with_custom_loss.py](./models/custom_loss/xgboost_with_custom_loss.py) [Modified version of Driverless AI's internal XGBoost implementation with a custom objective function (used for tree split finding).] <kbd>✓ MOJO Enabled</kbd>
   * [MLI](./models/mli)
     * [model_decision_tree_linear_combo.py](./models/mli/model_decision_tree_linear_combo.py) [Decision tree plus linear model] 
+    * [model_ebm.py](./models/mli/model_ebm.py) [Explainable Boosting Machines (EBM), implementation of GA2M with option for user-defined interaction between features. ] 
     * [model_gam.py](./models/mli/model_gam.py) [Generalized Additive Model] 
     * [model_skopes_rules.py](./models/mli/model_skopes_rules.py) [Skopes rules ] 
+    * [model_xnn.py](./models/mli/model_xnn.py) [ Explainable neural net ] 
     * [FAIRNESS](./models/mli/fairness)
       * [model_fairxgb.py](./models/mli/fairness/model_fairxgb.py) [Fair XGB ] 
       * [reweighing_recipe.py](./models/mli/fairness/reweighing_recipe.py) [Debiasing using reweighing] 
-    * [GA2M](./models/mli/ga2m)
-      * [model_ga2m.py](./models/mli/ga2m/model_ga2m.py) [Explainable Boosting Machines (EBM), implementation of GA2M] 
-    * [XNN](./models/mli/xnn)
-      * [model_xnn.py](./models/mli/xnn/model_xnn.py) [ Explainable neural net ] 
   * [MONOTONIC](./models/monotonic)
     * [monotonic_models.py](./models/monotonic/monotonic_models.py) [LightGBM/XGBoostGBM/DecisionTree with user-given monotonicity constraints (1/-1/0) for original numeric features] 
   * [NLP](./models/nlp)
@@ -233,6 +236,7 @@ abled.
     * [text_tfidf_model.py](./models/nlp/text_tfidf_model.py) [Text classification / regression model using TFIDF] 
     * [text_tfidf_model_continuous.py](./models/nlp/text_tfidf_model_continuous.py) [Text classification model using TFIDF] 
   * [TIMESERIES](./models/timeseries)
+    * [autoarima_parallel.py](./models/timeseries/autoarima_parallel.py) [autoarima for TimeSeries with an example of parameter mutation.] 
     * [exponential_smoothing.py](./models/timeseries/exponential_smoothing.py) [Linear Model on top of Exponential Weighted Moving Average Lags for Time-Series. Provide appropriate lags and past outcomes during batch scoring for best results.] 
     * [fb_prophet.py](./models/timeseries/fb_prophet.py) [Prophet by Facebook for TimeSeries with an example of parameter mutation.] 
     * [fb_prophet_parallel.py](./models/timeseries/fb_prophet_parallel.py) [Prophet by Facebook for TimeSeries with an example of parameter mutation.] 
@@ -244,6 +248,7 @@ abled.
     * [isolation_forest_custom_scorer.py](./models/unsupervised/isolation_forest_custom_scorer.py) [Custom Anomaly Score for Isolation Forest] 
     * [lda.py](./models/unsupervised/lda.py) [Unsupervised way to extract topic information from one text column] 
     * [local_outlier_factor.py](./models/unsupervised/local_outlier_factor.py) [Outlier detection with Local Outlier Factor] 
+    * [pytod_lof.py](./models/unsupervised/pytod_lof.py) [Local Outlier Factor method for outlier detection, based on PyTOD library.] 
     * [rapids_kmeans.py](./models/unsupervised/rapids_kmeans.py) [KMeans clustering using RAPIDS.ai] 
   * [UPLIFT](./models/uplift)
     * [GLMTransformedOutcome.py](./models/uplift/GLMTransformedOutcome.py) [GLM for uplift modeling] <kbd>✓ MOJO Enabled</kbd>
@@ -335,7 +340,7 @@ abled.
     * [image_ocr_transformer.py](./transformers/image/image_ocr_transformer.py) [Convert a path to an image to text using OCR based on tesseract] 
     * [image_url_transformer.py](./transformers/image/image_url_transformer.py) [Convert a path to an image (JPG/JPEG/PNG) to a vector of class probabilities created by a pretrained ImageNet deeplearning model (Keras, TensorFlow).] 
   * [NLP](./transformers/nlp)
-    * [continuous_TextTransformer.py](./transformers/nlp/continuous_TextTransformer.py) [please add description] <kbd>✓ MOJO Enabled</kbd>
+    * [continuous_TextTransformer.py](./transformers/nlp/continuous_TextTransformer.py) [Creates a TF-IDF based text transformation that can be continuously updated with new data and vocabulary.] <kbd>✓ MOJO Enabled</kbd>
     * [fuzzy_text_similarity_transformers.py](./transformers/nlp/fuzzy_text_similarity_transformers.py) [Row-by-row similarity between two text columns based on FuzzyWuzzy] 
     * [text_binary_count_transformer.py](./transformers/nlp/text_binary_count_transformer.py) [Explainable Text transformer that uses binary counts of words using sklearn's CountVectorizer] 
     * [text_char_tfidf_count_transformers.py](./transformers/nlp/text_char_tfidf_count_transformers.py) [Character level TFIDF and Count followed by Truncated SVD on text columns] 
@@ -358,8 +363,10 @@ abled.
     * [count_negative_values_transformer.py](./transformers/numeric/count_negative_values_transformer.py) [Count of negative values per row] 
     * [count_positive_values_transformer.py](./transformers/numeric/count_positive_values_transformer.py) [Count of positive values per row] 
     * [exp_diff_transformer.py](./transformers/numeric/exp_diff_transformer.py) [Exponentiated difference of two numbers] 
+    * [factor_analysis_transformer.py](./transformers/numeric/factor_analysis_transformer.py) [Factor Analysis Transformer] 
     * [log_transformer.py](./transformers/numeric/log_transformer.py) [Converts numbers to their Logarithm] <kbd>✓ MOJO Enabled</kbd>
     * [ohe.py](./transformers/numeric/ohe.py) [One-Hot Encoding for categorical columns] 
+    * [pca_transformer.py](./transformers/numeric/pca_transformer.py) [Principal Component Analysis (PCA) Transformer] 
     * [product.py](./transformers/numeric/product.py) [Products together 3 or more numeric features] 
     * [random_transformer.py](./transformers/numeric/random_transformer.py) [Creates random numbers] 
     * [round_transformer.py](./transformers/numeric/round_transformer.py) [Rounds numbers to 1, 2 or 3 decimals] 

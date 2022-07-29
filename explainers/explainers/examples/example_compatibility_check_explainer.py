@@ -1,3 +1,5 @@
+"""Runs compatibility check for MLI recipe."""
+
 # Copyright 2017-2021 H2O.ai, Inc. All rights reserved.
 from typing import Optional
 
@@ -20,9 +22,9 @@ class ExampleCompatibilityCheckExplainer(CustomExplainer, CustomDaiExplainer):
         CustomDaiExplainer.__init__(self)
 
     def check_compatibility(
-            self,
-            params: Optional[CommonExplainerParameters] = None,
-            **explainer_params,
+        self,
+        params: Optional[CommonExplainerParameters] = None,
+        **explainer_params,
     ) -> bool:
         CustomExplainer.check_compatibility(self, params, **explainer_params)
         CustomDaiExplainer.check_compatibility(self, params, **explainer_params)

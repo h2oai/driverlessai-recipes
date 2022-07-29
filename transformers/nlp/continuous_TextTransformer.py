@@ -1,3 +1,5 @@
+"""Creates a TF-IDF based text transformation that can be continuously updated with new data and vocabulary."""
+
 import importlib
 from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.transformers import TextTransformer, CPUTruncatedSVD
@@ -33,6 +35,7 @@ def get_value(config, key):
 
 # "{'Custom_TextTransformer_load':'/home/dmitry/Desktop/tmp/save_000.pkl','Custom_TextTransformer_save':'/home/dmitry/Desktop/tmp/save_001.pkl'}"
 
+
 class Cached_TextTransformer(CustomTransformer):
     _regression = True
     _binary = True
@@ -63,7 +66,9 @@ class Cached_TextTransformer(CustomTransformer):
     def get_default_properties():
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
 
-    def __init__(self, max_features=None, tf_idf=True, max_ngram=1, dim_reduction=50, **kwargs):
+    def __init__(
+        self, max_features=None, tf_idf=True, max_ngram=1, dim_reduction=50, **kwargs
+    ):
         super().__init__(**kwargs)
 
         self.loaded = False
@@ -109,7 +114,9 @@ class Cached_TextTransformer(CustomTransformer):
     _mojo = True
     from h2oaicore.mojo import MojoWriter, MojoFrame
 
-    def to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
+    def to_mojo(
+        self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None
+    ):
         return self.TextTransformer.write_to_mojo(mojo, iframe, group_uuid, group_name)
 
 
@@ -135,7 +142,7 @@ class Cached_TextTransformer(CustomTransformer):
 #                     pre_trained = self.TextTransformer.pipes[col][0]["model"]
 #                     cv.set_params(**pre_trained.get_params())
 #                     cv.set_params(**{
-#                         "vocabulary": pre_trained.vocabulary_, 
+#                         "vocabulary": pre_trained.vocabulary_,
 #                         "stop_words": pre_trained.stop_words_
 #                     })
 #                     pipe_ = copy.deepcopy(self.TextTransformer.pipes[col][0])
@@ -152,7 +159,7 @@ class Cached_TextTransformer(CustomTransformer):
 #                     freq2 = self.inverse_idf(cv.idf_, N_)
 
 #                     freq = self.inverse_idf(
-#                         pre_trained.idf_, 
+#                         pre_trained.idf_,
 #                         self.TextTransformer.N_
 #                     )
 #                     freq = freq + freq2
@@ -176,16 +183,27 @@ class Updatable_TextTransformer(Cached_TextTransformer):
     Updates TF-IDF terms, vocabulary and stop word, same for CountVectorizer
     Updates SVD matrix in order to incorporate new terms and adjust influence of old ones
     """
+
     _display_name = "Updatable_TextTransformer"
 
     @staticmethod
     def get_parameter_choices():
         dict_ = Cached_TextTransformer.get_parameter_choices()
-        dict_["step"] = [1e-5, 1e-4, 1e-3, 1e-2, .1]
+        dict_["step"] = [1e-5, 1e-4, 1e-3, 1e-2, 0.1]
         return dict_
 
-    def __init__(self, max_features=None, tf_idf=True, max_ngram=1, dim_reduction=50, step=.1, **kwargs):
-        super().__init__(max_features=None, tf_idf=True, max_ngram=1, dim_reduction=50, **kwargs)
+    def __init__(
+        self,
+        max_features=None,
+        tf_idf=True,
+        max_ngram=1,
+        dim_reduction=50,
+        step=0.1,
+        **kwargs
+    ):
+        super().__init__(
+            max_features=None, tf_idf=True, max_ngram=1, dim_reduction=50, **kwargs
+        )
 
         self.step = step
 
@@ -210,20 +228,17 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                     pipe_ = copy.deepcopy(self.TextTransformer.pipes[col][0])
                     new_pipe = []
                     for step in pipe_.steps:
-                        if step[0] != 'model':
+                        if step[0] != "model":
                             new_pipe.append(step)
                         else:
-                            new_pipe.append(('model', cv))
+                            new_pipe.append(("model", cv))
                             break
                     new_pipe = Pipeline(new_pipe)
                     new_pipe.fit(self.TextTransformer.stringify_col(X_[col]))
 
                     freq2 = self.inverse_idf(cv.idf_, N_)
 
-                    freq = self.inverse_idf(
-                        pre_trained.idf_,
-                        self.TextTransformer.N_
-                    )
+                    freq = self.inverse_idf(pre_trained.idf_, self.TextTransformer.N_)
 
                     # adjust vocabulary and stop word list based on newly data
                     # adjust frequency terms and idf terms
@@ -261,10 +276,10 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                     pipe_ = copy.deepcopy(self.TextTransformer.pipes[col][0])
                     new_pipe = []
                     for step in pipe_.steps:
-                        if step[0] != 'model':
+                        if step[0] != "model":
                             new_pipe.append(step)
                         else:
-                            new_pipe.append(('model', cv))
+                            new_pipe.append(("model", cv))
                             break
                     new_pipe = Pipeline(new_pipe)
                     new_pipe.fit(self.TextTransformer.stringify_col(X_[col]))
@@ -310,7 +325,12 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                         if append:
                             data_ = svd_.transform(self.tf_idf[col])
                             data_ = self.TextTransformer.pipes[col][2].transform(data_)
-                            data_ = pd.DataFrame(data_, columns=self.TextTransformer.get_names(col, data_.shape[1]))
+                            data_ = pd.DataFrame(
+                                data_,
+                                columns=self.TextTransformer.get_names(
+                                    col, data_.shape[1]
+                                ),
+                            )
                             new_data.append(data_)
 
                     else:
@@ -321,13 +341,18 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                         new_svd.fit(X_transformed)
 
                         # adjust old transform matrix based on new one
-                        grad = svd_.components_ - new_svd.components_[:, :svd_.components_.shape[1]]
+                        grad = (
+                            svd_.components_
+                            - new_svd.components_[:, : svd_.components_.shape[1]]
+                        )
                         grad = self.step * grad
                         svd_.components_ = svd_.components_ - grad
-                        svd_.components_ = np.hstack([
-                            svd_.components_,
-                            new_svd.components_[:, svd_.components_.shape[1]:]
-                        ])
+                        svd_.components_ = np.hstack(
+                            [
+                                svd_.components_,
+                                new_svd.components_[:, svd_.components_.shape[1] :],
+                            ]
+                        )
 
             if append:
                 new_data = pd.concat(new_data, axis=1)
@@ -335,12 +360,13 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                     y_ = np.hstack([self.target, y_])
 
                 if self.save_path:
-                    joblib.dump({
-                        "txtTransformer": self.TextTransformer,
-                        "tf_idf": self.tf_idf,
-                        "target": y_,
-                    },
-                        self.save_path
+                    joblib.dump(
+                        {
+                            "txtTransformer": self.TextTransformer,
+                            "tf_idf": self.tf_idf,
+                            "target": y_,
+                        },
+                        self.save_path,
                     )
                 return new_data, y_
 
@@ -358,11 +384,12 @@ class Updatable_TextTransformer(Cached_TextTransformer):
                 )
 
         if self.save_path:
-            joblib.dump({
-                "txtTransformer": self.TextTransformer,
-                "tf_idf": self.tf_idf,
-                "target": y_,
-            },
-                self.save_path
+            joblib.dump(
+                {
+                    "txtTransformer": self.TextTransformer,
+                    "tf_idf": self.tf_idf,
+                    "target": y_,
+                },
+                self.save_path,
             )
         return result

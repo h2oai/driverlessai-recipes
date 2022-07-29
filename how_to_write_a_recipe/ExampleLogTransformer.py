@@ -1,3 +1,4 @@
+"""Apply log transform to any single numeric column."""
 from h2oaicore.systemutils import segfault, loggerinfo, main_logger
 from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
@@ -12,7 +13,7 @@ class ExampleLogTransformer(CustomTransformer):
     _multiclass = True
     _numeric_output = True
     _is_reproducible = True
-    _excluded_model_classes = ['tensorflow']
+    _excluded_model_classes = ["tensorflow"]
 
     @staticmethod
     def do_acceptance_test():
