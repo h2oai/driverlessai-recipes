@@ -1,3 +1,4 @@
+"""Example of how to use a model's predict method inside an MLI explainer."""
 # Copyright 2017-2021 H2O.ai, Inc. All rights reserved.
 from h2oaicore.mli.oss.byor.core.explainers import (
     CustomDaiExplainer,

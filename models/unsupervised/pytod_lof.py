@@ -1,3 +1,5 @@
+"""Local Outlier Factor method for outlier detection, based on PyTOD library."""
+
 import copy
 from typing import List
 
@@ -24,19 +26,22 @@ class pyTodLocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
     _parallel_task = False
     _testing_can_skip_failure = True  # not stable algo, GPU OOM too often
 
-    _modules_needed_by_name = ['pytod==0.0.3']
-    
-    def __init__(self,
-                 num_cols: List[str] = list(),
-                 output_features_to_drop=list(),
-                 n_neighbors=20,
-                 batch_size=10000,
-                 **kwargs,
-                 ):
+    _modules_needed_by_name = ["pytod==0.0.3"]
+
+    def __init__(
+        self,
+        num_cols: List[str] = list(),
+        output_features_to_drop=list(),
+        n_neighbors=20,
+        batch_size=10000,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         init_args_dict = locals().copy()
-        self.params = {k: v for k, v in init_args_dict.items() if k in self.get_parameter_choices()}
+        self.params = {
+            k: v for k, v in init_args_dict.items() if k in self.get_parameter_choices()
+        }
         self._output_features_to_drop = output_features_to_drop
 
     @staticmethod
@@ -46,9 +51,9 @@ class pyTodLocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
         """
 
         return dict(
-                    n_neighbors=[10,20,5],  # could add to list other values
-                    batch_size=[10000,20000,30000],
-                    )
+            n_neighbors=[10, 20, 5],  # could add to list other values
+            batch_size=[10000, 20000, 30000],
+        )
 
     @staticmethod
     def get_default_properties():
@@ -57,36 +62,38 @@ class pyTodLocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
     def fit_transform(self, X: dt.Frame, y: np.array = None):
         import torch
         import pytod
-        
+
         from pytod.models.lof import LOF
         from pytod.utils.utility import validate_device
-        
+
         if X.nrows <= 2:
             raise IgnoreEntirelyError
         params = copy.deepcopy(self.params)
-        
+
         print("pyTodLocalOutlierFactorTransformer params: %s" % params)
-        
+
         device = validate_device(0)
-        clf_name = 'lof-PyTOD'
+        clf_name = "lof-PyTOD"
         params.update(dict(device=device))
 
         self.model = LOF(**params)
-        
+
         # make float, replace of nan/inf won't work on int
         X = update_precision(X, fixup_almost_numeric=False)
         X.replace([None, np.nan, np.inf, -np.inf], 0.0)
         X = X.to_numpy()
-        X= torch.from_numpy(X) ## Had to add this as it doesnt work with numpy arrays
-        
-        return self.model.fit_predict(X) # For labels
-    
+        X = torch.from_numpy(X)  ## Had to add this as it doesnt work with numpy arrays
+
+        return self.model.fit_predict(X)  # For labels
+
     def transform(self, X: dt.Frame, y: np.array = None):
         # no state, always finds outliers in any given dataset
         return self.fit_transform(X)
 
 
 class pyTodLocalOutlierFactorModel(CustomUnsupervisedModel):
-    _included_pretransformers = ['OrigFreqPreTransformer']  # frequency-encode categoricals, keep numerics as is
+    _included_pretransformers = [
+        "OrigFreqPreTransformer"
+    ]  # frequency-encode categoricals, keep numerics as is
     _included_transformers = ["pyTodLocalOutlierFactorTransformer"]
-    _included_scorers = ['UnsupervisedScorer']  # trivial, nothing to score
+    _included_scorers = ["UnsupervisedScorer"]  # trivial, nothing to score

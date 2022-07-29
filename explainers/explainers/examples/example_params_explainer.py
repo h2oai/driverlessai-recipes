@@ -1,3 +1,4 @@
+"""Example of how to define MLI explainer parameters."""
 # Copyright 2017-2021 H2O.ai, Inc. All rights reserved.
 from h2oaicore.mli.oss.byor.core.explainers import (
     CustomDaiExplainer,
@@ -13,9 +14,7 @@ class ExampleParamsExplainer(CustomExplainer, CustomDaiExplainer):
     PARAM_ROWS_TO_SCORE = "rows_to_score"
 
     _display_name = "Example Params Explainer"
-    _description = (
-        "This explainer example shows how to define explainer parameters."
-    )
+    _description = "This explainer example shows how to define explainer parameters."
     _regression = True
     _parameters = [
         CustomExplainerParam(
@@ -52,9 +51,7 @@ class ExampleParamsExplainer(CustomExplainer, CustomDaiExplainer):
 
         df = X[:rows, self.used_features]
         prediction = self.model.predict_method(df)
-        self.logger.info(
-            f"Predictions of dataset with shape {df.shape}: {prediction}"
-        )
+        self.logger.info(f"Predictions of dataset with shape {df.shape}: {prediction}")
         return [
             self.create_explanation_workdir_archive(
                 display_name=self.display_name, display_category="Demo"
