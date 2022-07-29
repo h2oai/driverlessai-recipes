@@ -1,6 +1,8 @@
 """
 Data Recipe to load a single sas file
+"""
 
+"""
 __version__ = 0.1
 
 authored by @mtanco (Michelle Tanco)
@@ -16,7 +18,7 @@ import numpy as np
 import pandas as pd
 import os
 
-_global_modules_needed_by_name = ['sas7bdat']
+_global_modules_needed_by_name = ["sas7bdat"]
 from sas7bdat import SAS7BDAT
 
 """
@@ -42,10 +44,18 @@ file_names = ["cloth.sas7bdat", "clothes.sas7bdat"]
 # TODO: default to all files in the folder
 class KMeansClustering(CustomData):
     @staticmethod
-    def create_data(X: dt.Frame = None) -> Union[str, List[str],
-                                                 dt.Frame, List[dt.Frame],
-                                                 np.ndarray, List[np.ndarray],
-                                                 pd.DataFrame, List[pd.DataFrame]]:
+    def create_data(
+        X: dt.Frame = None,
+    ) -> Union[
+        str,
+        List[str],
+        dt.Frame,
+        List[dt.Frame],
+        np.ndarray,
+        List[np.ndarray],
+        pd.DataFrame,
+        List[pd.DataFrame],
+    ]:
         if dai_file_path is None:
             return []
         # check the datatype of user-defined columns
