@@ -21,6 +21,10 @@ class H2OBaseModel:
     _regression = True
     _binary = True
     _multiclass = True
+    # For AUTOML, best to use:
+    # 1) config.toml num_as_cat=False
+    # 2 ) only choose OriginalTransformer and CatOriginalTransformer
+    # 3 ) config.toml enable_genetic_algorithm = 'off'
     _can_handle_non_numeric = True
     _can_handle_text = True  # but no special handling by base model, just doesn't fail
     _is_reproducible = False  # since using max_runtime_secs - disable that if need reproducible models
@@ -352,7 +356,7 @@ class H2OBaseModel:
                     pd.set_option('precision', 6)
 
             if isinstance(model, H2OAutoML):
-                lb = h2o.automl.get_leaderboard(model, extra_columns="ALL")
+                lb = h2o.automl.get_leaderboard(model, extra_columns="ALL").as_data_frame()
                 loggerinfo(self.get_logger(**kwargs), lb)
                 # select leader
                 model = model.leader
