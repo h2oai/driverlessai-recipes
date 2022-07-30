@@ -213,6 +213,9 @@ class H2OBaseModel:
                                        column_names=[self.weight],
                                        column_types=['numeric'])
                 valid_frame = valid_frame.cbind(valid_w)
+            loggerinfo(self.get_logger(**kwargs), "%s (%s) using validation set" % (self.display_name, self.__class__.__module__))
+        else:
+            loggerinfo(self.get_logger(**kwargs), "%s (%s) not using validation set" % (self.display_name, self.__class__.__module__))
 
         try:
             train_kwargs = dict()
