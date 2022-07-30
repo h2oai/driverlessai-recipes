@@ -87,6 +87,8 @@ class H2OBaseModel:
             max_runtime_secs = 600
             if accuracy is not None and time_tolerance is not None:
                 max_runtime_secs = accuracy * (time_tolerance + 1) * 10  # customize here to your liking
+            if os.environ.get('OPENMLBENCHMARK') is not None:
+                max_runtime_secs = config.max_runtime_minutes * 60
             self.params['max_runtime_secs'] = max_runtime_secs
 
     def get_iterations(self, model):
