@@ -221,13 +221,31 @@ class H2OBaseModel:
             train_kwargs = dict()
             params = copy.deepcopy(self.params)
             if isinstance(self, H2OAutoMLModel):
-                if self.num_classes == 2:
-                    sort_metric = 'AUC'
-                elif self.num_classes > 2:
-                    sort_metric = 'logloss'
+                metrics_mapping = dict(
+                                ACC='mean_per_class_error',
+                                AUC='AUC',
+                                LOGLOSS='logloss',
+                                MAE='mae',
+                                MSE='mse',
+                                R2='r2',
+                                RMSE='rmse',
+                                RMSLE='rmsle'
+                            )
+                dai_score_upper = self.params_base.get('score_f_name', '').upper()
+                sort_metric = metrics_mapping.get(dai_score_upper)
+                if sort_metric is None:
+                    if self.num_classes == 2:
+                        sort_metric = 'AUC'
+                    elif self.num_classes > 2:
+                        sort_metric = 'logloss'
+                    else:
+                        sort_metric = 'rmse'
+                    loggerinfo(self.get_logger(**kwargs), "%s (%s) using backup for sort_metric: %s" % (self.display_name, self.__class__.__module__, sort_metric))
                 else:
-                    sort_metric = 'rmse'
+                    loggerinfo(self.get_logger(**kwargs), "%s (%s) using DAI %s for sort_metric: %s" % (self.display_name, self.__class__.__module__, dai_score_upper, sort_metric))
                 params['sort_metric'] = sort_metric
+                if os.environ.get("H2O_TE", '0') == '1':
+                    params['preprocessing'] = ["target_encoding"]
                 loggerinfo(self.get_logger(**kwargs), "%s (%s) sort_metric: %s" % (self.display_name, self.__class__.__module__, sort_metric))
             else:
                 loggerinfo(self.get_logger(**kwargs), "%s (%s) sort_metric not set" % (self.display_name, self.__class__.__module__))
@@ -334,6 +352,9 @@ class H2OBaseModel:
                     pd.set_option('precision', 6)
 
             if isinstance(model, H2OAutoML):
+                lb = h2o.automl.get_leaderboard(model, extra_columns="ALL")
+                loggerinfo(self.get_logger(**kwargs), lb)
+                # select leader
                 model = model.leader
             self.id = model.model_id
             model_path = os.path.join(exp_dir(), "h2o_model." + struuid)
