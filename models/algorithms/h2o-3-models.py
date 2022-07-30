@@ -225,6 +225,9 @@ class H2OBaseModel:
                 else:
                     sort_metric = 'rmse'
                 params['sort_metric'] = sort_metric
+                loggerinfo(self.get_logger(**kwargs), "%s (%s) sort_metric: %s" % (self.display_name, self.__class__.__module__, sort_metric))
+            else:
+                loggerinfo(self.get_logger(**kwargs), "%s (%s) sort_metric not set" % (self.display_name, self.__class__.__module__))
             if not isinstance(self, H2OAutoMLModel):
                 # AutoML needs max_runtime_secs in initializer, all others in train() method
                 max_runtime_secs = params.pop('max_runtime_secs', 0)
