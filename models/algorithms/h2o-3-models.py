@@ -217,6 +217,14 @@ class H2OBaseModel:
         try:
             train_kwargs = dict()
             params = copy.deepcopy(self.params)
+            if isinstance(self, H2OAutoMLModel):
+                if self.num_classes == 2:
+                    sort_metric = 'AUC'
+                elif self.num_classes > 2:
+                    sort_metric = 'logloss'
+                else:
+                    sort_metric = 'rmse'
+                params['sort_metric'] = sort_metric
             if not isinstance(self, H2OAutoMLModel):
                 # AutoML needs max_runtime_secs in initializer, all others in train() method
                 max_runtime_secs = params.pop('max_runtime_secs', 0)
