@@ -356,10 +356,22 @@ class H2OBaseModel:
                     pd.set_option('precision', 6)
 
             if isinstance(model, H2OAutoML):
+                pd.set_option('display.max_rows', None)
+                pd.set_option('display.max_columns', None)
+                pd.set_option('display.width', 1000)
+
                 lb = h2o.automl.get_leaderboard(model, extra_columns="ALL").as_data_frame()
-                loggerinfo(self.get_logger(**kwargs), lb)
+
+                loggerinfo(self.get_logger(**kwargs), str(lb))
                 # select leader
                 model = model.leader
+
+                if hasattr(model, 'base_models'):
+                    loggerinfo(self.get_logger(**kwargs), "base_models: %s" % model.base_models)
+                    for bm in model.base_models:
+                        m = h2o.get_model(bm)
+                        loggerinfo(self.get_logger(**kwargs), "base_model: %s params: %s" % (bm, str(m.params)))
+
             self.id = model.model_id
             model_path = os.path.join(exp_dir(), "h2o_model." + struuid)
             model_path = h2o.save_model(model=model, path=model_path)
