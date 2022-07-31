@@ -21,6 +21,10 @@ class H2OBaseModel:
     _regression = True
     _binary = True
     _multiclass = True
+    # For AUTOML, best to use:
+    # 1) config.toml num_as_cat=False
+    # 2 ) only choose OriginalTransformer and CatOriginalTransformer
+    # 3 ) config.toml enable_genetic_algorithm = 'off'
     _can_handle_non_numeric = True
     _can_handle_text = True  # but no special handling by base model, just doesn't fail
     _is_reproducible = False  # since using max_runtime_secs - disable that if need reproducible models
@@ -87,6 +91,10 @@ class H2OBaseModel:
             max_runtime_secs = 600
             if accuracy is not None and time_tolerance is not None:
                 max_runtime_secs = accuracy * (time_tolerance + 1) * 10  # customize here to your liking
+            if os.environ.get('OPENMLBENCHMARK') is not None:
+                max_runtime_secs = config.max_runtime_minutes * 60
+            if kwargs.get('IS_BACKEND_TUNING', False):
+                max_runtime_secs = min(60, max_runtime_secs)
             self.params['max_runtime_secs'] = max_runtime_secs
 
     def get_iterations(self, model):
@@ -209,10 +217,42 @@ class H2OBaseModel:
                                        column_names=[self.weight],
                                        column_types=['numeric'])
                 valid_frame = valid_frame.cbind(valid_w)
+            loggerinfo(self.get_logger(**kwargs), "%s (%s) using validation set" % (self.display_name, self.__class__.__module__))
+        else:
+            loggerinfo(self.get_logger(**kwargs), "%s (%s) not using validation set" % (self.display_name, self.__class__.__module__))
 
         try:
             train_kwargs = dict()
             params = copy.deepcopy(self.params)
+            if isinstance(self, H2OAutoMLModel):
+                metrics_mapping = dict(
+                                ACC='mean_per_class_error',
+                                AUC='AUC',
+                                LOGLOSS='logloss',
+                                MAE='mae',
+                                MSE='mse',
+                                R2='r2',
+                                RMSE='rmse',
+                                RMSLE='rmsle'
+                            )
+                dai_score_upper = self.params_base.get('score_f_name', '').upper()
+                sort_metric = metrics_mapping.get(dai_score_upper)
+                if sort_metric is None:
+                    if self.num_classes == 2:
+                        sort_metric = 'AUC'
+                    elif self.num_classes > 2:
+                        sort_metric = 'logloss'
+                    else:
+                        sort_metric = 'rmse'
+                    loggerinfo(self.get_logger(**kwargs), "%s (%s) using backup for sort_metric: %s" % (self.display_name, self.__class__.__module__, sort_metric))
+                else:
+                    loggerinfo(self.get_logger(**kwargs), "%s (%s) using DAI %s for sort_metric: %s" % (self.display_name, self.__class__.__module__, dai_score_upper, sort_metric))
+                params['sort_metric'] = sort_metric
+                if os.environ.get("H2O_TE", '0') == '1':
+                    params['preprocessing'] = ["target_encoding"]
+                loggerinfo(self.get_logger(**kwargs), "%s (%s) sort_metric: %s" % (self.display_name, self.__class__.__module__, sort_metric))
+            else:
+                loggerinfo(self.get_logger(**kwargs), "%s (%s) sort_metric not set" % (self.display_name, self.__class__.__module__))
             if not isinstance(self, H2OAutoMLModel):
                 # AutoML needs max_runtime_secs in initializer, all others in train() method
                 max_runtime_secs = params.pop('max_runtime_secs', 0)
@@ -316,7 +356,22 @@ class H2OBaseModel:
                     pd.set_option('precision', 6)
 
             if isinstance(model, H2OAutoML):
+                pd.set_option('display.max_rows', None)
+                pd.set_option('display.max_columns', None)
+                pd.set_option('display.width', 1000)
+
+                lb = h2o.automl.get_leaderboard(model, extra_columns="ALL").as_data_frame()
+
+                loggerinfo(self.get_logger(**kwargs), str(lb))
+                # select leader
                 model = model.leader
+
+                if hasattr(model, 'base_models'):
+                    loggerinfo(self.get_logger(**kwargs), "base_models: %s" % model.base_models)
+                    for bm in model.base_models:
+                        m = h2o.get_model(bm)
+                        loggerinfo(self.get_logger(**kwargs), "base_model: %s params: %s" % (bm, str(m.params)))
+
             self.id = model.model_id
             model_path = os.path.join(exp_dir(), "h2o_model." + struuid)
             model_path = h2o.save_model(model=model, path=model_path)
