@@ -25,6 +25,7 @@ class H2OBaseModel:
     # 1) config.toml num_as_cat=False
     # 2 ) only choose OriginalTransformer and CatOriginalTransformer
     # 3 ) config.toml enable_genetic_algorithm = 'off'
+    # 4 ) set OPENMLBENCHMARK env so config.toml max_runtime_minutes can be used, or change this code to always use
     _can_handle_non_numeric = True
     _can_handle_text = True  # but no special handling by base model, just doesn't fail
     _is_reproducible = False  # since using max_runtime_secs - disable that if need reproducible models
