@@ -7,7 +7,6 @@ from typing import List
 
 class PrincipalComponentAnalysisTransformer(CustomTransformer):
     _unsupervised = True
-    _modules_needed_by_name = ["sklearn"]
     _display_name = "Principal Component Analysis (PCA) Transformer"
 
     @staticmethod
