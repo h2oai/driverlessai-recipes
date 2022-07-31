@@ -22,10 +22,18 @@ class H2OBaseModel:
     _binary = True
     _multiclass = True
     # For AUTOML, best to use:
-    # 1) config.toml num_as_cat=False
-    # 2 ) only choose OriginalTransformer and CatOriginalTransformer
-    # 3 ) config.toml enable_genetic_algorithm = 'off'
-    # 4 ) set OPENMLBENCHMARK env so config.toml max_runtime_minutes can be used, or change this code to always use
+    # 1  ) Only set included_models = ['H2OAutoMLModel']
+    # 2  ) config.toml num_as_cat=False
+    # 3  ) only choose OriginalTransformer and CatOriginalTransformer
+    # 4  ) config.toml enable_genetic_algorithm = 'off'
+    # 5  ) set OPENMLBENCHMARK env so config.toml max_runtime_minutes can be used, or change this code to always use
+    # 6  ) fixed_ensemble_level = 0
+    # 7  ) cross_validate_single_final_model = false
+    # 8  ) fixed_num_individuals = 1
+    # 9  ) parameter_tuning_num_models = 0
+    # 19 ) parameter_tuning_num_models_sequence = 1
+    # 11 ) no_drop_features = true
+    # 12 ) drop_redundant_columns_limit = 0
     _can_handle_non_numeric = True
     _can_handle_text = True  # but no special handling by base model, just doesn't fail
     _is_reproducible = False  # since using max_runtime_secs - disable that if need reproducible models
