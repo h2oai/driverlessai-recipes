@@ -33,6 +33,8 @@ class CustomXNNModel(CustomTensorFlowModel):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _mojo = False
 
+    _fail_if_plot_fails = False
+
     @staticmethod
     def do_acceptance_test():
         return True
@@ -354,14 +356,19 @@ class CustomXNNModel(CustomTensorFlowModel):
                     weight_list.append(weight)
                     weight_list2.append(list(np.reshape(weight, (1, features))[0]))
 
-                    # Plot weights
-                    plt.bar(orig_cols, abs(np.reshape(weight, (1, features))[0]), 1, color="blue")
-                    plt.ylabel("Coefficient value")
-                    plt.title("Projection Layer Weights {}".format(i), fontdict={'fontsize': 10})
-                    plt.xticks(rotation=90)
-                    plt.show()
-                    plt.savefig(os.path.join(tmp_folder, 'projection_layer_' + str(i) + '.png'), bbox_inches="tight")
-                    plt.clf()
+                    try:
+                        # Plot weights
+                        plt.bar(orig_cols, abs(np.reshape(weight, (1, features))[0]), 1, color="blue")
+                        plt.ylabel("Coefficient value")
+                        plt.title("Projection Layer Weights {}".format(i), fontdict={'fontsize': 10})
+                        plt.xticks(rotation=90)
+                        plt.show()
+                        plt.savefig(os.path.join(tmp_folder, 'projection_layer_' + str(i) + '.png'), bbox_inches="tight")
+                        plt.clf()
+                    except Exception as e:
+                        if self._fail_if_plot_fails:
+                            raise
+                        print("Exception for i=%s weight=%s: %s" % (i, weight, str(e)))
 
             if "main_output" in layer.get_config()['name']:
                 weights_main = layer.get_weights()
@@ -384,14 +391,19 @@ class CustomXNNModel(CustomTensorFlowModel):
             ridge_x.append(list(sum(X[:, ii] * weight_list[weight_number][ii] for ii in range(features))))
             ridge_y.append(list(intermediate_output[weight_number]))
 
-            plt.plot(sum(X[:, ii] * weight_list[weight_number][ii] for ii in range(features)),
-                     intermediate_output[weight_number], 'o')
-            plt.xlabel("Input")
-            plt.ylabel("Subnetwork " + str(weight_number))
-            plt.title("Ridge Function {}".format(i), fontdict={'fontsize': 10})
-            plt.show()
-            plt.savefig(os.path.join(tmp_folder, 'ridge_' + str(weight_number) + '.png'))
-            plt.clf()
+            try:
+                plt.plot(sum(X[:, ii] * weight_list[weight_number][ii] for ii in range(features)),
+                         intermediate_output[weight_number], 'o')
+                plt.xlabel("Input")
+                plt.ylabel("Subnetwork " + str(weight_number))
+                plt.title("Ridge Function {}".format(i), fontdict={'fontsize': 10})
+                plt.show()
+                plt.savefig(os.path.join(tmp_folder, 'ridge_' + str(weight_number) + '.png'))
+                plt.clf()
+            except Exception as e:
+                if self._fail_if_plot_fails:
+                    raise
+                print("Exception for weight_number=%s: %s" % (weight_number, str(e)))
 
         # Output the ridge function importance    
         weights2 = np.array([item[0] for item in list(weights)[0]])
@@ -401,12 +413,17 @@ class CustomXNNModel(CustomTensorFlowModel):
         loggerinfo(logger, str(output_activations))
         pd.DataFrame(output_activations).to_csv(os.path.join(tmp_folder, "ridge_weights.csv"), index=False)
 
-        plt.bar(x_labels, output_activations, 1, color="blue")
-        plt.xlabel("Ridge function number")
-        plt.ylabel("Feature importance")
-        plt.title("Ridge function importance", fontdict={'fontsize': 10})
-        plt.show()
-        plt.savefig(os.path.join(tmp_folder, 'Ridge_function_importance.png'))
+        try:
+            plt.bar(x_labels, output_activations, 1, color="blue")
+            plt.xlabel("Ridge function number")
+            plt.ylabel("Feature importance")
+            plt.title("Ridge function importance", fontdict={'fontsize': 10})
+            plt.show()
+            plt.savefig(os.path.join(tmp_folder, 'Ridge_function_importance.png'))
+        except Exception as e:
+            if self._fail_if_plot_fails:
+                raise
+            print("Exception for function number plot: %s" % (str(e)))
 
         pd.DataFrame(ridge_y).applymap(lambda x: x[0]).to_csv(os.path.join(tmp_folder, "ridge_y.csv"), index=False)
         pd.DataFrame(ridge_x).to_csv(os.path.join(tmp_folder, "ridge_x.csv"), index=False)
