@@ -238,7 +238,8 @@ class CustomXNNModel(CustomTensorFlowModel):
 
             # Explain predictions of the model on the subset
             explainer = shap.DeepExplainer(model, background)
-            shap_values = explainer.shap_values(X)
+            # rarely can fail to add up very well, but only need as estimate of importances, not critical to recipe
+            shap_values = explainer.shap_values(X, check_additivity=False)
 
             # Return the mean absolute value of each shap value for each dataset
             xnn_shap = np.abs(shap_values[0]).mean(axis=0)
