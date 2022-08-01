@@ -82,7 +82,7 @@ abled.
  [1.10.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.1)
  [1.10.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.2)
  [1.10.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.3)
-### Count: 265
+### Count: 266
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [Load custom recipes on air-gapped installations.] 
 * [DATA](./data)
@@ -241,6 +241,7 @@ abled.
     * [fb_prophet.py](./models/timeseries/fb_prophet.py) [Prophet by Facebook for TimeSeries with an example of parameter mutation.] 
     * [fb_prophet_parallel.py](./models/timeseries/fb_prophet_parallel.py) [Prophet by Facebook for TimeSeries with an example of parameter mutation.] 
     * [historic_mean.py](./models/timeseries/historic_mean.py) [Historic Mean for Time-Series problems. Predicts the mean of the target for each timegroup for regression problems.] 
+    * [ts_rnn.py](./models/timeseries/ts_rnn.py) [Recurrent Neural Networks with Convolution for Time-series problems using LSTM, GRU or Elman cells.] 
   * [UNSUPERVISED](./models/unsupervised)
     * [TextSentiment.py](./models/unsupervised/TextSentiment.py) [Extract sentiment from text using pretrained models from TextBlob] 
     * [aggregator.py](./models/unsupervised/aggregator.py) [Unsupervised Aggregator algorithm (by Leland Wilkinson) to segment data into user-given number of exemplars] 
