@@ -88,10 +88,15 @@ class AutoARIMAParallelModel(CustomTimeSeriesModel):
             '%s/pystan-2.19.1.1%s' % (_root_path, _suffix),
             '%s/httpstan-4.5.0%s' % (_root_path, _suffix),
             '%s/fbprophet-0.7.1%s' % (_root_path, _suffix),
+            "statsforecast==0.6.0",
+            "prophet==1.1",
         ]
     else:
         _modules_needed_by_name = ['holidays==0.11.1', 'convertdate', 'lunarcalendar', 'pystan==2.19.1.1',
-                                   'fbprophet==0.7.1']
+                                   'fbprophet==0.7.1',
+                                    "statsforecast==0.6.0",
+                                    "prophet==1.1",
+                                   ]
 
     def set_default_params(
         self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
