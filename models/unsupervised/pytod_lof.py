@@ -45,6 +45,11 @@ class pyTodLocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
         self._output_features_to_drop = output_features_to_drop
 
     @staticmethod
+    def acceptance_test_coverage_fraction():
+        import os
+        return 0.05 if 'GIT_HASH' in os.environ else 1.0
+
+    @staticmethod
     def get_parameter_choices():
         """
         Possible parameters to use as mutations, where first value is default value

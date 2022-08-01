@@ -31,6 +31,11 @@ class MyImgTransformer(TensorFlowModel, CustomTransformer):
         return True  # False
 
     @staticmethod
+    def acceptance_test_coverage_fraction():
+        import os
+        return 0.05 if 'GIT_HASH' in os.environ else 1.0
+
+    @staticmethod
     def get_default_properties():
         return dict(col_type="image", min_cols=1, max_cols=1, relative_importance=1)
 
