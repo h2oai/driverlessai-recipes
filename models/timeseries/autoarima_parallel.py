@@ -75,15 +75,23 @@ class AutoARIMAParallelModel(CustomTimeSeriesModel):
     def do_acceptance_test():
         return False
 
-    _modules_needed_by_name = [
-        "holidays==0.11.1",
-        "convertdate",
-        "lunarcalendar",
-        "pystan==2.19.1.1",
-        "fbprophet==0.7.1",
-        "statsforecast==0.6.0",
-        "prophet==1.1",
-    ]
+    # some package dependencies are best sequential to overcome known issues
+    froms3 = True
+    if froms3:
+        _root_path = "https://s3.amazonaws.com/artifacts.h2o.ai/deps/dai/recipes"
+        _suffix = "-cp38-cp38-linux_x86_64.whl"
+        _modules_needed_by_name = [
+            '%s/setuptools_git-1.2%s' % (_root_path, _suffix),
+            '%s/LunarCalendar-0.0.9%s' % (_root_path, _suffix),
+            '%s/ephem-3.7.7.1%s' % (_root_path, _suffix),
+            '%s/cmdstanpy-0.9.5%s' % (_root_path, _suffix),
+            '%s/pystan-2.19.1.1%s' % (_root_path, _suffix),
+            '%s/httpstan-4.5.0%s' % (_root_path, _suffix),
+            '%s/fbprophet-0.7.1%s' % (_root_path, _suffix),
+        ]
+    else:
+        _modules_needed_by_name = ['holidays==0.11.1', 'convertdate', 'lunarcalendar', 'pystan==2.19.1.1',
+                                   'fbprophet==0.7.1']
 
     def set_default_params(
         self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
