@@ -1,12 +1,22 @@
+"""Recurrent Neural Networks with Convolution for Time-series problems using LSTM, GRU or Elman cells."""
+
 import numpy as np
 import pandas as pd
-import torch
 from datatable import dt
+
 from h2oaicore.models import CustomTimeSeriesTensorFlowModel
 from sklearn.preprocessing import StandardScaler
 
 # The recipe depends on Time knob values: it uses subset of training data for lower Time values to speed things up.
 # It is recommended to start with Time=1 and try increasing it if runtime allows it given the dataset size.
+
+
+def load_torch():
+    """Avoids global torch import (problems in DAI testing)"""
+    import torch
+
+    return torch
+
 
 class DataPrep:
     def __init__(self, config):
@@ -89,298 +99,347 @@ class DataPrep:
         return res
 
 
-class RNNDS_train(torch.utils.data.Dataset):
-    def __init__(self, config, df, dprep):
-        self.config = config
-        self.df = df.copy()
+class Datasets:
+    torch = load_torch()
 
-        time_vals_unique = np.sort(self.df[config["time_column"]].unique())
-        self.max_seq_len = len(time_vals_unique) - config["forecast_horizon"]
-        max_fit_time = time_vals_unique[-config["forecast_horizon"]]
-
-        if len(config["tgc"]) > 0:
-            self.fit_records_mask = (
-                self.df.groupby(config["tgc"]).cumcount() >= config["min_seq_len"]
-            ) & (
-                self.df.iloc[::-1].groupby(config["tgc"]).cumcount().iloc[::-1]
-                >= config["forecast_horizon"]
+    def __init__(self, config, train_df, test_df=None, dprep=None):
+        if test_df is None:
+            self.torch_dataset = self.RNNDS_train(
+                config=config, df=train_df, dprep=dprep
             )
         else:
-            self.fit_records_mask = (self.df.index >= config["min_seq_len"]) & (
-                self.df[config["time_column"]] < max_fit_time
+            self.torch_dataset = self.RNNDS_test(
+                config=config, train_df=train_df, test_df=test_df, dprep=dprep
             )
 
-        d = dprep.transform(df, "train")
-        self.X0 = d["X"]
-        self.tgc = d["tgc"]
-        self.y = d["y"]
-        d = dprep.transform(df, "test")
-        self.X1 = d["X"]
-        self.idxs = np.arange(self.fit_records_mask.sum())
-        np.random.shuffle(self.idxs)
+    class RNNDS_train(torch.utils.data.Dataset):
+        def __init__(self, config, df, dprep):
+            self.config = config
+            self.df = df.copy()
 
-    def __len__(self):
-        if self.config["time_setting"] < 6:
-            return len(self.idxs) // (2 ** (6 - self.config["time_setting"]))
-        else:
-            return len(self.idxs)
+            time_vals_unique = np.sort(self.df[config["time_column"]].unique())
+            self.max_seq_len = len(time_vals_unique) - config["forecast_horizon"]
+            max_fit_time = time_vals_unique[-config["forecast_horizon"]]
 
-    def __getitem__(self, idx0):
-        idx = self.idxs[idx0]
-        rec = self.df[self.fit_records_mask].iloc[idx]
-        mask0 = self.df[self.config["time_column"]] <= rec[self.config["time_column"]]
-        mask1 = self.df[self.config["time_column"]] > rec[self.config["time_column"]]
-        for col in self.config["tgc"]:
-            mask0 = mask0 & (self.df[col] == rec[col])
-            mask1 = mask1 & (self.df[col] == rec[col])
-        X0 = self.X0[mask0]
-        y0 = self.y[mask0]
-        X1 = self.X1[mask1]
-        y1 = self.y[mask1]
-        if len(self.tgc) > 0:
-            tgc0 = self.tgc[mask0]
-            tgc1 = self.tgc[mask1]
-        else:
-            tgc0 = []
-            tgc1 = []
-        if len(y1) >= self.config["forecast_horizon"]:
-            X1 = X1[: self.config["forecast_horizon"]]
-            y1 = y1[: self.config["forecast_horizon"]]
-            tgc1 = tgc1[: self.config["forecast_horizon"]]
-        return {"X0": X0, "y0": y0, "tgc0": tgc0, "X1": X1, "y1": y1, "tgc1": tgc1}
+            if len(config["tgc"]) > 0:
+                self.fit_records_mask = (
+                    self.df.groupby(config["tgc"]).cumcount() >= config["min_seq_len"]
+                ) & (
+                    self.df.iloc[::-1].groupby(config["tgc"]).cumcount().iloc[::-1]
+                    >= config["forecast_horizon"]
+                )
+            else:
+                self.fit_records_mask = (self.df.index >= config["min_seq_len"]) & (
+                    self.df[config["time_column"]] < max_fit_time
+                )
+
+            d = dprep.transform(df, "train")
+            self.X0 = d["X"]
+            self.tgc = d["tgc"]
+            self.y = d["y"]
+            d = dprep.transform(df, "test")
+            self.X1 = d["X"]
+            self.idxs = np.arange(self.fit_records_mask.sum())
+            np.random.shuffle(self.idxs)
+
+        def __len__(self):
+            if self.config["time_setting"] < 6:
+                return len(self.idxs) // (2 ** (6 - self.config["time_setting"]))
+            else:
+                return len(self.idxs)
+
+        def __getitem__(self, idx0):
+            idx = self.idxs[idx0]
+            rec = self.df[self.fit_records_mask].iloc[idx]
+            mask0 = (
+                self.df[self.config["time_column"]] <= rec[self.config["time_column"]]
+            )
+            mask1 = (
+                self.df[self.config["time_column"]] > rec[self.config["time_column"]]
+            )
+            for col in self.config["tgc"]:
+                mask0 = mask0 & (self.df[col] == rec[col])
+                mask1 = mask1 & (self.df[col] == rec[col])
+            X0 = self.X0[mask0]
+            y0 = self.y[mask0]
+            X1 = self.X1[mask1]
+            y1 = self.y[mask1]
+            if len(self.tgc) > 0:
+                tgc0 = self.tgc[mask0]
+                tgc1 = self.tgc[mask1]
+            else:
+                tgc0 = []
+                tgc1 = []
+            if len(y1) >= self.config["forecast_horizon"]:
+                X1 = X1[: self.config["forecast_horizon"]]
+                y1 = y1[: self.config["forecast_horizon"]]
+                tgc1 = tgc1[: self.config["forecast_horizon"]]
+            return {"X0": X0, "y0": y0, "tgc0": tgc0, "X1": X1, "y1": y1, "tgc1": tgc1}
+
+    class RNNDS_test(torch.utils.data.Dataset):
+        def __init__(self, config, train_df, test_df, dprep):
+            self.config = config
+            self.train_df = train_df.copy()
+            self.test_df = test_df.copy()
+
+            self.test_dates = list(self.test_df[config["time_column"]].unique())
+
+            d = dprep.transform(train_df, "train")
+            self.X0 = d["X"]
+            self.tgc0 = d["tgc"]
+            self.y = d["y"]
+            d = dprep.transform(test_df, "test")
+            self.X1 = d["X"]
+            self.tgc1 = d["tgc"]
+
+        def __len__(self):
+            return len(self.test_df)
+
+        def __getitem__(self, idx):
+            rec = self.test_df.iloc[idx]
+            mask0 = [True] * len(self.X0)
+            mask1 = [True] * len(self.X1)
+            for col in self.config["tgc"]:
+                mask0 = mask0 & (self.train_df[col] == rec[col])
+                mask1 = mask1 & (self.test_df[col] == rec[col])
+            X0 = self.X0[mask0]
+            y0 = self.y[mask0]
+            X1 = self.X1[mask1]
+            if len(self.tgc0) > 0:
+                tgc0 = self.tgc0[mask0]
+                tgc1 = self.tgc1[mask1]
+            else:
+                tgc0 = []
+                tgc1 = []
+            return {
+                "X0": X0,
+                "y0": y0,
+                "tgc0": tgc0,
+                "X1": X1,
+                "tgc1": tgc1,
+                # "seqlen1": self.test_dates.index(rec[self.config["time_column"]]),
+                "seqlen1": min(
+                    self.config["forecast_horizon"] - 1,
+                    self.test_dates.index(rec[self.config["time_column"]]),
+                ),
+            }
 
 
-class RNNDS_test(torch.utils.data.Dataset):
-    def __init__(self, config, train_df, test_df, dprep):
-        self.config = config
-        self.train_df = train_df.copy()
-        self.test_df = test_df.copy()
+class SingleRNN:
+    torch = load_torch()
 
-        self.test_dates = list(self.test_df[config["time_column"]].unique())
-
-        d = dprep.transform(train_df, "train")
-        self.X0 = d["X"]
-        self.tgc0 = d["tgc"]
-        self.y = d["y"]
-        d = dprep.transform(test_df, "test")
-        self.X1 = d["X"]
-        self.tgc1 = d["tgc"]
-
-    def __len__(self):
-        return len(self.test_df)
-
-    def __getitem__(self, idx):
-        rec = self.test_df.iloc[idx]
-        mask0 = [True] * len(self.X0)
-        mask1 = [True] * len(self.X1)
-        for col in self.config["tgc"]:
-            mask0 = mask0 & (self.train_df[col] == rec[col])
-            mask1 = mask1 & (self.test_df[col] == rec[col])
-        X0 = self.X0[mask0]
-        y0 = self.y[mask0]
-        X1 = self.X1[mask1]
-        if len(self.tgc0) > 0:
-            tgc0 = self.tgc0[mask0]
-            tgc1 = self.tgc1[mask1]
-        else:
-            tgc0 = []
-            tgc1 = []
-        return {
-            "X0": X0,
-            "y0": y0,
-            "tgc0": tgc0,
-            "X1": X1,
-            "tgc1": tgc1,
-            # "seqlen1": self.test_dates.index(rec[self.config["time_column"]]),
-            "seqlen1": min(
-                self.config["forecast_horizon"] - 1,
-                self.test_dates.index(rec[self.config["time_column"]]),
-            ),
-        }
-
-
-class SingleRNN(torch.nn.Module):
     def __init__(self, config, dilation=1):
-        super(SingleRNN, self).__init__()
-        self.config = config
-        self.dilation = dilation
+        self.torch_nn = self.SingleRNNTorch(config=config, dilation=dilation)
 
-        if config["rnn_type"] == "gru":
-            rnn_class = torch.nn.GRU
-        elif config["rnn_type"] == "lstm":
-            rnn_class = torch.nn.LSTM
-        elif config["rnn_type"] == "elman":
-            rnn_class = torch.nn.RNN
+    class SingleRNNTorch(torch.nn.Module):
+        torch = load_torch()
 
-        self.rnn_encoder = rnn_class(
-            input_size=config["m_rnn_units"] * 2,
-            hidden_size=config["m_rnn_units"],
-            num_layers=config["m_encoder_num_layers"],
-            bidirectional=False,
-            dropout=config["m_encoder_dropout"],
-            batch_first=True,
-        )
+        def __init__(self, config, dilation=1):
+            torch = self.torch
+            super().__init__()
+            self.config = config
+            self.dilation = dilation
 
-        self.decoder = rnn_class(
-            input_size=config["m_rnn_units"] * 2,
-            hidden_size=config["m_rnn_units"],
-            num_layers=config["m_decoder_num_layers"],
-            bidirectional=False,
-            dropout=config["m_decoder_dropout"],
-            batch_first=True,
-        )
+            if config["rnn_type"] == "gru":
+                rnn_class = torch.nn.GRU
+            elif config["rnn_type"] == "lstm":
+                rnn_class = torch.nn.LSTM
+            elif config["rnn_type"] == "elman":
+                rnn_class = torch.nn.RNN
 
-    def forward(self, X0, X1, seqlen):
+            self.rnn_encoder = rnn_class(
+                input_size=config["m_rnn_units"] * 2,
+                hidden_size=config["m_rnn_units"],
+                num_layers=config["m_encoder_num_layers"],
+                bidirectional=False,
+                dropout=config["m_encoder_dropout"],
+                batch_first=True,
+            )
 
-        bsize = X0.shape[0]
-        tgt_len = self.config["forecast_horizon"] // self.dilation + 1
+            self.decoder = rnn_class(
+                input_size=config["m_rnn_units"] * 2,
+                hidden_size=config["m_rnn_units"],
+                num_layers=config["m_decoder_num_layers"],
+                bidirectional=False,
+                dropout=config["m_decoder_dropout"],
+                batch_first=True,
+            )
 
-        X0 = X0[:, :, -self.dilation * (X0.shape[-1] // self.dilation) :]  # trim seqlen
-        XX0 = torch.stack([X0[:, :, i :: self.dilation] for i in range(self.dilation)])
-        XX0 = XX0.reshape(
-            bsize * self.dilation, XX0.shape[2], -1
-        )  # batch*dilation | 2*emb | seqlen/dilation
+        def forward(self, X0, X1, seqlen):
+            torch = self.torch
+            bsize = X0.shape[0]
+            tgt_len = self.config["forecast_horizon"] // self.dilation + 1
 
-        if self.config["rnn_type"] in ["gru", "elman"]:
-            rnn_out, rnn_hidden = self.rnn_encoder(
-                XX0.transpose(1, 2)
-            )  # batch*dilation | seqlen/dilation | emb
-        elif self.config["rnn_type"] in ["lstm"]:
-            rnn_out, (rnn_hidden, rnn_cstate) = self.rnn_encoder(
-                XX0.transpose(1, 2)
-            )  # batch*dilation | seqlen/dilation | emb
+            X0 = X0[
+                :, :, -self.dilation * (X0.shape[-1] // self.dilation) :
+            ]  # trim seqlen
+            XX0 = torch.stack(
+                [X0[:, :, i :: self.dilation] for i in range(self.dilation)]
+            )
+            XX0 = XX0.reshape(
+                bsize * self.dilation, XX0.shape[2], -1
+            )  # batch*dilation | 2*emb | seqlen/dilation
 
-        X1 = torch.nn.functional.pad(
-            X1, (0, tgt_len * self.dilation - X1.shape[-1], 0, 0, 0, 0)
-        )
-        X1 = torch.stack([X1[:, :, i :: self.dilation] for i in range(self.dilation)])
-        X1 = X1.reshape(
-            bsize * self.dilation, X1.shape[2], -1
-        )  # batch*dilation | emb | seqlen/dilation
-
-        outputs = torch.zeros(
-            tgt_len,
-            bsize * self.dilation,
-            rnn_hidden.shape[-1],
-            device=self.config["device"],
-        )
-        decoder_hidden = rnn_hidden
-        decoder_input = rnn_out[:, -1].unsqueeze(1)
-        for t in range(tgt_len):
-            decoder_input = torch.cat(
-                [decoder_input, X1[:, :, t].unsqueeze(1)], -1
-            )  # batch*dilation | 1 | 2*emb
             if self.config["rnn_type"] in ["gru", "elman"]:
-                decoder_output, decoder_hidden = self.decoder(
-                    decoder_input, decoder_hidden
-                )
+                rnn_out, rnn_hidden = self.rnn_encoder(
+                    XX0.transpose(1, 2)
+                )  # batch*dilation | seqlen/dilation | emb
             elif self.config["rnn_type"] in ["lstm"]:
-                decoder_output, (decoder_hidden, rnn_cstate) = self.decoder(
-                    decoder_input, (decoder_hidden, rnn_cstate)
-                )
-            outputs[t] = decoder_output.squeeze(1)
-            decoder_input = decoder_output
+                rnn_out, (rnn_hidden, rnn_cstate) = self.rnn_encoder(
+                    XX0.transpose(1, 2)
+                )  # batch*dilation | seqlen/dilation | emb
 
-        outputs = outputs.permute(1, 2, 0)
-        outputs = (
-            outputs.reshape(self.dilation, bsize, outputs.shape[1], -1)
-            .permute(1, 2, 3, 0)
-            .reshape(bsize, outputs.shape[1], -1)
-        )
-        return outputs[:, :, : self.config["forecast_horizon"]]
+            X1 = torch.nn.functional.pad(
+                X1, (0, tgt_len * self.dilation - X1.shape[-1], 0, 0, 0, 0)
+            )
+            X1 = torch.stack(
+                [X1[:, :, i :: self.dilation] for i in range(self.dilation)]
+            )
+            X1 = X1.reshape(
+                bsize * self.dilation, X1.shape[2], -1
+            )  # batch*dilation | emb | seqlen/dilation
+
+            outputs = torch.zeros(
+                tgt_len,
+                bsize * self.dilation,
+                rnn_hidden.shape[-1],
+                device=self.config["device"],
+            )
+            decoder_hidden = rnn_hidden
+            decoder_input = rnn_out[:, -1].unsqueeze(1)
+            for t in range(tgt_len):
+                decoder_input = torch.cat(
+                    [decoder_input, X1[:, :, t].unsqueeze(1)], -1
+                )  # batch*dilation | 1 | 2*emb
+                if self.config["rnn_type"] in ["gru", "elman"]:
+                    decoder_output, decoder_hidden = self.decoder(
+                        decoder_input, decoder_hidden
+                    )
+                elif self.config["rnn_type"] in ["lstm"]:
+                    decoder_output, (decoder_hidden, rnn_cstate) = self.decoder(
+                        decoder_input, (decoder_hidden, rnn_cstate)
+                    )
+                outputs[t] = decoder_output.squeeze(1)
+                decoder_input = decoder_output
+
+            outputs = outputs.permute(1, 2, 0)
+            outputs = (
+                outputs.reshape(self.dilation, bsize, outputs.shape[1], -1)
+                .permute(1, 2, 3, 0)
+                .reshape(bsize, outputs.shape[1], -1)
+            )
+            return outputs[:, :, : self.config["forecast_horizon"]]
 
 
-class TSRNN(torch.nn.Module):
+class TSRNN:
+    torch = load_torch()
+
     def __init__(self, config):
-        super(TSRNN, self).__init__()
-        self.config = config
 
-        self.encoder_X0 = torch.nn.Sequential(
-            torch.nn.Conv1d(
-                config["X0_input_features"]
-                + len(config["tgc_nval"]) * config["m_emb_dim"],
-                config["m_rnn_units"],
-                1,
-                bias=True,
-            ),
-            torch.nn.LeakyReLU(),
-            torch.nn.Conv1d(config["m_rnn_units"], config["m_rnn_units"], 1, bias=True),
-        )
-        self.encoder_X1 = torch.nn.Sequential(
-            torch.nn.Conv1d(
-                config["X1_input_features"]
-                + len(config["tgc_nval"]) * config["m_emb_dim"],
-                config["m_rnn_units"],
-                1,
-                bias=True,
-            ),
-            torch.nn.LeakyReLU(),
-            torch.nn.Conv1d(config["m_rnn_units"], config["m_rnn_units"], 1, bias=True),
-        )
-        self.encoder_y = torch.nn.Sequential(
-            torch.nn.Conv1d(1, config["m_rnn_units"], 1, bias=True),
-            torch.nn.LeakyReLU(),
-            torch.nn.Conv1d(config["m_rnn_units"], config["m_rnn_units"], 1, bias=True),
-        )
+        self.torch_nn = self.TSRNNTorch(config=config)
 
-        self.rnns = torch.nn.ModuleList(
-            [SingleRNN(config, dil) for dil in config["dilations"]]
-        )
-        self.embs = torch.nn.ModuleList(
-            [
-                torch.nn.Embedding(nval, config["m_emb_dim"])
-                for nval in config["tgc_nval"]
-            ]
-        )
+    class TSRNNTorch(torch.nn.Module):
+        torch = load_torch()
 
-        self.decoder = torch.nn.Sequential(
-            torch.nn.Conv1d(
-                len(config["dilations"]) * config["m_rnn_units"],
-                config["m_last_linear_units"],
-                1,
-                bias=True,
-            ),
-            torch.nn.LeakyReLU(),
-            torch.nn.Conv1d(
-                config["m_last_linear_units"],
-                self.config["num_classes"] if self.config["num_classes"] > 2 else 1,
-                1,
-                bias=True,
-            ),
-        )
+        def __init__(self, config):
+            super().__init__()
+            torch = self.torch
+            self.config = config
 
-    def forward(self, d):
-        if len(self.config["tgc_nval"]) > 0:
-            tgc0 = torch.cat(
-                [emb(d["tgc0"][:, :, i]) for i, emb in enumerate(self.embs)], -1
-            ).transpose(1, 2)
-            if self.config["X0_input_features"] > 0:
-                X0 = torch.cat([d["X0"], tgc0], 1)
+            self.encoder_X0 = torch.nn.Sequential(
+                torch.nn.Conv1d(
+                    config["X0_input_features"]
+                    + len(config["tgc_nval"]) * config["m_emb_dim"],
+                    config["m_rnn_units"],
+                    1,
+                    bias=True,
+                ),
+                torch.nn.LeakyReLU(),
+                torch.nn.Conv1d(
+                    config["m_rnn_units"], config["m_rnn_units"], 1, bias=True
+                ),
+            )
+            self.encoder_X1 = torch.nn.Sequential(
+                torch.nn.Conv1d(
+                    config["X1_input_features"]
+                    + len(config["tgc_nval"]) * config["m_emb_dim"],
+                    config["m_rnn_units"],
+                    1,
+                    bias=True,
+                ),
+                torch.nn.LeakyReLU(),
+                torch.nn.Conv1d(
+                    config["m_rnn_units"], config["m_rnn_units"], 1, bias=True
+                ),
+            )
+            self.encoder_y = torch.nn.Sequential(
+                torch.nn.Conv1d(1, config["m_rnn_units"], 1, bias=True),
+                torch.nn.LeakyReLU(),
+                torch.nn.Conv1d(
+                    config["m_rnn_units"], config["m_rnn_units"], 1, bias=True
+                ),
+            )
+
+            self.rnns = torch.nn.ModuleList(
+                [SingleRNN(config, dil).torch_nn for dil in config["dilations"]]
+            )
+            self.embs = torch.nn.ModuleList(
+                [
+                    torch.nn.Embedding(nval, config["m_emb_dim"])
+                    for nval in config["tgc_nval"]
+                ]
+            )
+
+            self.decoder = torch.nn.Sequential(
+                torch.nn.Conv1d(
+                    len(config["dilations"]) * config["m_rnn_units"],
+                    config["m_last_linear_units"],
+                    1,
+                    bias=True,
+                ),
+                torch.nn.LeakyReLU(),
+                torch.nn.Conv1d(
+                    config["m_last_linear_units"],
+                    self.config["num_classes"] if self.config["num_classes"] > 2 else 1,
+                    1,
+                    bias=True,
+                ),
+            )
+
+        def forward(self, d):
+            torch = self.torch
+            if len(self.config["tgc_nval"]) > 0:
+                tgc0 = torch.cat(
+                    [emb(d["tgc0"][:, :, i]) for i, emb in enumerate(self.embs)], -1
+                ).transpose(1, 2)
+                if self.config["X0_input_features"] > 0:
+                    X0 = torch.cat([d["X0"], tgc0], 1)
+                else:
+                    X0 = tgc0
             else:
-                X0 = tgc0
-        else:
-            X0 = d["X0"]
-        X0 = torch.cat(
-            [self.encoder_X0(X0), self.encoder_y(d["y0"].unsqueeze(1))], 1
-        )  # batch | 2*emb | seqlen
+                X0 = d["X0"]
+            X0 = torch.cat(
+                [self.encoder_X0(X0), self.encoder_y(d["y0"].unsqueeze(1))], 1
+            )  # batch | 2*emb | seqlen
 
-        if len(self.config["tgc_nval"]) > 0:
-            tgc1 = torch.cat(
-                [emb(d["tgc1"][:, :, i]) for i, emb in enumerate(self.embs)], -1
-            ).transpose(1, 2)
-            if self.config["X1_input_features"] > 0:
-                X1 = torch.cat([d["X1"], tgc1], 1)
+            if len(self.config["tgc_nval"]) > 0:
+                tgc1 = torch.cat(
+                    [emb(d["tgc1"][:, :, i]) for i, emb in enumerate(self.embs)], -1
+                ).transpose(1, 2)
+                if self.config["X1_input_features"] > 0:
+                    X1 = torch.cat([d["X1"], tgc1], 1)
+                else:
+                    X1 = tgc1
             else:
-                X1 = tgc1
-        else:
-            X1 = d["X1"]
-        X1 = self.encoder_X1(X1)  # batch |   emb | seqlen
+                X1 = d["X1"]
+            X1 = self.encoder_X1(X1)  # batch |   emb | seqlen
 
-        dec = torch.cat([rnn(X0, X1, d["seqlen0"]) for rnn in self.rnns], 1)
-        return self.decoder(dec)
+            dec = torch.cat([rnn(X0, X1, d["seqlen0"]) for rnn in self.rnns], 1)
+            return self.decoder(dec)
 
 
 def collator(batch):
+    torch = load_torch()
     seqlen0 = torch.stack([torch.tensor(len(b["X0"])) for b in batch])
     if "seqlen1" in batch[0].keys():
         seqlen1 = torch.stack([torch.tensor(b["seqlen1"]) for b in batch])
@@ -476,6 +535,7 @@ def collator(batch):
 
 
 def fit(model, loader, config):
+    torch = load_torch()
     model.train()
     model.to(config["device"])
     loss_function = config["loss_function"]()
@@ -521,6 +581,7 @@ def fit(model, loader, config):
 
 
 def predict(model, loader, config):
+    torch = load_torch()
     model.eval()
     model.to(config["device"])
     preds = []
@@ -548,6 +609,7 @@ def predict(model, loader, config):
 
 
 class TS_RNN(CustomTimeSeriesTensorFlowModel):
+    _torch = True
     _display_name = "TS_RNN"
     _description = "RNN for time series"
     _regression = True  # y has shape (N,) and is of numeric type, no missing values
@@ -558,6 +620,7 @@ class TS_RNN(CustomTimeSeriesTensorFlowModel):
     _is_reproducible = False
     _parallel_task = True
 
+    torch = load_torch()
     config = dict(
         # device=["cpu", "cuda"][0],
         num_workers=8,
@@ -643,7 +706,7 @@ class TS_RNN(CustomTimeSeriesTensorFlowModel):
                 :param iterations: number of iterations, used to predict on or re-use for fitting on full training data
         Recipe can raise h2oaicore.systemutils.IgnoreError to ignore error and avoid logging error for genetic algorithm.
         """
-
+        torch = self.torch
         self.config["time_column"] = self.params_base["time_column"]
         self.config["target_column"] = self.params_base["target"]
         self.config["tgc"] = self.params_base["tgc"]
@@ -684,7 +747,9 @@ class TS_RNN(CustomTimeSeriesTensorFlowModel):
         dprep = DataPrep(self.config).fit(train_df)
         self.config = dprep.config
 
-        train_ds = RNNDS_train(self.config, train_df, dprep)
+        train_ds = Datasets(
+            config=self.config, train_df=train_df, dprep=dprep
+        ).torch_dataset
 
         train_loader = torch.utils.data.DataLoader(
             train_ds,
@@ -694,7 +759,7 @@ class TS_RNN(CustomTimeSeriesTensorFlowModel):
             collate_fn=collator,
         )
 
-        model = fit(TSRNN(self.config), train_loader, self.config)
+        model = fit(TSRNN(self.config).torch_nn, train_loader, self.config)
 
         self.set_model_properties(
             model=model,
@@ -720,12 +785,17 @@ class TS_RNN(CustomTimeSeriesTensorFlowModel):
             the call to `set_model_properties()` during `fit()`. See examples.
         Recipe can raise h2oaicore.systemutils.IgnoreError to ignore error and avoid logging error for genetic algorithm.
         """
-
+        torch = self.torch
         test_df = X.to_pandas()
         test_df[self.config["time_column"]] = pd.to_datetime(
             test_df[self.config["time_column"]]
         )
-        test_ds = RNNDS_test(self.config, self.train_df, test_df, self.dprep)
+        test_ds = Datasets(
+            config=self.config,
+            train_df=self.train_df,
+            test_df=test_df,
+            dprep=self.dprep,
+        ).torch_dataset
 
         test_loader = torch.utils.data.DataLoader(
             test_ds,
