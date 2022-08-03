@@ -337,6 +337,9 @@ class H2OBaseModel:
                     elif "java.lang.NullPointerException" in str(ex):
                         # likely large valued input to DeepLearning it cannot handle
                         raise IgnoreEntirelyError
+                    elif "ArrayIndexOutOfBoundsException" in str(ex):
+                        # Bug in h2o-3 GLM, can't handle
+                        raise IgnoreEntirelyError
                     else:
                         raise
                     if trial == trials - 1:
