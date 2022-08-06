@@ -17,6 +17,7 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
     _multiclass = False
     _display_name = "DECISION_TREE_PLUS_LINEAR"
     _description = "Takes the results of a decision tree and then fits a linear model to each set of node data"
+    _raise_if_plots_fail = False
 
     @staticmethod
     def do_acceptance_test():
@@ -194,10 +195,15 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
         pd.DataFrame(equation_log, columns=['leaf value', 'number of samples', 'intercept'] + list(X.columns)).to_csv(
             os.path.join(tmp_folder, 'Leaf_model_coef.csv'))
 
-        # Plot the decision tree
-        fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(8, 8), dpi=1600)
-        tree.plot_tree(clf, feature_names=list(X.columns))
-        fig.savefig(os.path.join(tmp_folder, 'Decision_tree_plot.png'))
+        try:
+            # Plot the decision tree
+            fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(8, 8), dpi=1600)
+            tree.plot_tree(clf, feature_names=list(X.columns))
+            fig.savefig(os.path.join(tmp_folder, 'Decision_tree_plot.png'))
+        except:
+            if self._raise_if_plots_fail:
+                raise
+            # Don't normally make fatal if can't plot, see parse exception in testing
 
         importances = clf.feature_importances_
         loggerinfo(logger, str(importances))
