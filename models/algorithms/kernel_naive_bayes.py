@@ -60,6 +60,7 @@ class KernelNaiveBayesClassifier(CustomModel):
     _multiclass = True
     _parallel_task = True
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+    _known_bad_preds = True  # makes all nans sometimes in predictions
 
     _display_name = "Kernel Naive Bayes Classifier"
     _description = "Kernel Naive Bayes Model based on sklearn. Not advised if the data is larger than 200K rows"
