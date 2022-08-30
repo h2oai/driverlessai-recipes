@@ -13,7 +13,7 @@ import numpy as np
 import datatable as dt
 
 
-class XGBoostTransformedOutcome(BaseCustomModel, XGBoostGBMModel):
+class XGBoostGBMModelTransformedOutcome(BaseCustomModel, XGBoostGBMModel):
     _regression = True
     _binary = False
     _multiclass = False
