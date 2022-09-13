@@ -7,7 +7,7 @@ from h2oaicore.models import CustomUnsupervisedModel
 from h2oaicore.transformer_utils import CustomUnsupervisedTransformer
 
 
-class AggregatorTransformer(CustomUnsupervisedTransformer):
+class AggregatorCustomTransformer(CustomUnsupervisedTransformer):
     def __init__(self, n_exemplars, **kwargs):
         super().__init__(**kwargs)
         self.n_exemplars = n_exemplars
@@ -35,5 +35,5 @@ class AggregatorTransformer(CustomUnsupervisedTransformer):
 
 class AggregatorModel(CustomUnsupervisedModel):
     _included_pretransformers = ['StdFreqPreTransformer']
-    _included_transformers = ['AggregatorTransformer']
+    _included_transformers = ['AggregatorCustomTransformer']
     _included_scorers = ['UnsupervisedScorer']
