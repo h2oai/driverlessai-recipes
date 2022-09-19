@@ -13,6 +13,15 @@ from sklearn.calibration import CalibratedClassifierCV
 
 _global_modules_needed_by_name = ['ml_insights==0.1.4']  # for SplineCalibration
 
+class SklearnWrapper: #to trick CalibratedClassifierCV from sklearn
+    def __init__(self, model):
+        self.model = model
+        
+    def predict_proba(self, X):
+        return self.model.predict_simple_base(X)
+    
+    def fit(X,y): #SKLearn checks if this method exists in Estimator
+        pass
 
 class CalibratedClassifierModel:
     _regression = False
@@ -25,9 +34,9 @@ class CalibratedClassifierModel:
 
     le = LabelEncoder()
 
-    @staticmethod
-    def is_enabled():
-        return False  # WIP until figure out how to support on py38
+    # @staticmethod
+    # def is_enabled():
+    #     return False  # WIP until figure out how to support on py38
 
     @staticmethod
     def do_acceptance_test():
@@ -109,19 +118,24 @@ class CalibratedClassifierModel:
         model_classification.fit(X_train, y_train,
                                  sample_weight=sample_weight_, eval_set=eval_set_classification,
                                  sample_weight_eval_set=sample_weight_eval_set, **kwargs)
-
+        
         model_classification.fitted = True
         model_classification.eval_set_used_during_fit = val_y is not None
-
+        
+        
         # calibration
-
-        model_classification.predict_proba = model_classification.predict_simple
-        model_classification.classes_ = self.le.classes_
+        sk_model = SklearnWrapper(model_classification)
+        sk_model.classes_ = self.le.classes_
+        sk_model.fitted = True
+        sk_model.eval_set_used_during_fit = val_y is not None
+        
+        # model_classification.predict_proba = model_classification.predict_simple_base
+        # model_classification.classes_ = self.le.classes_
         if self.params["calib_method"] in ["sigmoid", "isotonic"]:
             calibrator = CalibratedClassifierCV(
-                base_estimator=model_classification,
+                base_estimator=sk_model,
                 method=self.params["calib_method"],
-                cv='prefit')
+                cv='prefit', ensemble = False)
 
             calibrator.fit(X_calibrate, y_calibrate, sample_weight=sample_weight_calib)
 
@@ -142,8 +156,8 @@ class CalibratedClassifierModel:
                 self.X_min_ = []
                 self.X_max_ = []
                 for c in calibrator.calibrated_classifiers_[0].calibrators_:
-                    self._necessary_X_.append(c._necessary_X_)
-                    self._necessary_y_.append(c._necessary_y_)
+                    self._necessary_X_.append(c.X_thresholds_)
+                    self._necessary_y_.append(c.y_thresholds_)
 
                     self.X_min_.append(c.X_min_)
                     self.X_max_.append(c.X_max_)
@@ -163,7 +177,7 @@ class CalibratedClassifierModel:
                 knot_sample_size=30,
             )
 
-            preds = model_classification.predict_proba(X_calibrate)
+            preds = sk_model.predict_proba(X_calibrate)
 
             for c in range(preds.shape[1]):
                 if len(np.unique(preds[:, c])) < 3:  # we need at least 3 unique points to form the knots
