@@ -34,9 +34,9 @@ class CalibratedClassifierModel:
 
     le = LabelEncoder()
 
-    # @staticmethod
-    # def is_enabled():
-    #     return False  # WIP until figure out how to support on py38
+    @staticmethod
+    def is_enabled():
+        return True
 
     @staticmethod
     def do_acceptance_test():
@@ -74,40 +74,47 @@ class CalibratedClassifierModel:
 
         eval_set_classification = None
         val_y = None
+        calib_perc = self.params.get("calib_perc", .1)
         if eval_set is not None:
             eval_set_y = self.le.transform(eval_set[0][1])
             val_y = eval_set_y.astype(int)
             eval_set_classification = [(eval_set[0][0], val_y)]
 
-        # Stratified split with classes control - making sure all classes present in both train and test
-        unique_cls = np.unique(y_)
-        tr_indx, te_indx = [], []
+        if not self.params["use_validation"] or eval_set is None:
+            # Stratified split with classes control - making sure all classes present in both train and test
+            unique_cls = np.unique(y_)
+            tr_indx, te_indx = [], []
 
-        for c in unique_cls:
-            c_indx = np.argwhere(y_ == c).ravel()
-            indx = np.random.permutation(c_indx)
+            for c in unique_cls:
+                c_indx = np.argwhere(y_ == c).ravel()
+                indx = np.random.permutation(c_indx)
+                if self.params["calib_method"] in ["sigmoid", "isotonic"]:
+                    start_indx = max(1, int(calib_perc * len(c_indx)))
+                else:
+                    start_indx = max(3, int(calib_perc * len(c_indx)))
+
+                tr_indx += list(indx[start_indx:])
+                te_indx += list(indx[:start_indx])
+            tr_indx = np.array(tr_indx)
+            te_indx = np.array(te_indx)
+
+            X_train, y_train = X[tr_indx, :], y_.astype(int)[tr_indx]
             if self.params["calib_method"] in ["sigmoid", "isotonic"]:
-                start_indx = max(1, int(self.params["calib_perc"] * len(c_indx)))
+                X_calibrate, y_calibrate = X[te_indx, :].to_pandas(), y[te_indx].ravel()
             else:
-                start_indx = max(3, int(self.params["calib_perc"] * len(c_indx)))
+                X_calibrate, y_calibrate = X[te_indx, :].to_pandas(), y_.astype(int)[te_indx].ravel()
 
-            tr_indx += list(indx[start_indx:])
-            te_indx += list(indx[:start_indx])
-        tr_indx = np.array(tr_indx)
-        te_indx = np.array(te_indx)
-
-        X_train, y_train = X[tr_indx, :], y_.astype(int)[tr_indx]
-        if self.params["calib_method"] in ["sigmoid", "isotonic"]:
-            X_calibrate, y_calibrate = X[te_indx, :].to_pandas(), y[te_indx].ravel()
+            if sample_weight is not None:
+                sample_weight_ = sample_weight[tr_indx]
+                sample_weight_calib = sample_weight[te_indx]
+            else:
+                sample_weight_ = sample_weight
+                sample_weight_calib = sample_weight
         else:
-            X_calibrate, y_calibrate = X[te_indx, :].to_pandas(), y_.astype(int)[te_indx].ravel()
-
-        if sample_weight is not None:
-            sample_weight_ = sample_weight[tr_indx]
-            sample_weight_calib = sample_weight[te_indx]
-        else:
+            X_train, y_train = X, y_.astype(int)
+            X_calibrate, y_calibrate = eval_set_classification[0]
             sample_weight_ = sample_weight
-            sample_weight_calib = sample_weight
+            sample_weight_calib = None if sample_weight_eval_set is None else sample_weight_eval_set[0]
 
         # mimic rest of fit_base not done:
         # get self.observed_labels
@@ -324,12 +331,20 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
 
     def set_default_params(self, **kwargs):
         super().set_default_params(**kwargs)
-        self.params["calib_perc"] = .1
+        # To activate
+        # config_overrides = "recipe_dict=\"{'calibrationModel_use_validation': True}\""
+        self.params["use_validation"] = config.recipe_dict.get('calibrationModel_use_validation', False)
+        if not self.params["use_validation"]:
+            self.params["calib_perc"] = .1
         self.params["calib_method"] = "sigmoid"
 
     def mutate_params(self, **kwargs):
         super().mutate_params(**kwargs)
-        self.params["calib_perc"] = np.random.choice([.05, .1, .15, .2])
+        # To activate
+        # config_overrides = "recipe_dict=\"{'calibrationModel_use_validation': True}\""
+        self.params["use_validation"] = config.recipe_dict.get('calibrationModel_use_validation', False)
+        if not self.params["use_validation"]:
+            self.params["calib_perc"] = np.random.choice([.05, .1, .15, .2])
         self.params["calib_method"] = np.random.choice(["isotonic", "sigmoid", "spline"])
 
     def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
