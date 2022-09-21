@@ -77,8 +77,10 @@ class CalibratedClassifierModel:
         calib_perc = self.params.get("calib_perc", .1)
         if eval_set is not None:
             eval_set_y = self.le.transform(eval_set[0][1])
+            eval_set_y_raw = eval_set[0][1]
             val_y = eval_set_y.astype(int)
             eval_set_classification = [(eval_set[0][0], val_y)]
+            
 
         if not self.params["use_validation"] or eval_set is None:
             # Stratified split with classes control - making sure all classes present in both train and test
@@ -113,9 +115,11 @@ class CalibratedClassifierModel:
         else:
             X_train, y_train = X, y_.astype(int)
             X_calibrate, y_calibrate = eval_set_classification[0]
+            if self.params["calib_method"] in ["sigmoid", "isotonic"]:
+                y_calibrate = eval_set_y_raw
             sample_weight_ = sample_weight
             sample_weight_calib = None if sample_weight_eval_set is None else sample_weight_eval_set[0]
-
+       
         # mimic rest of fit_base not done:
         # get self.observed_labels
         model_classification.check_labels_and_response(y_train, val_y=val_y)
