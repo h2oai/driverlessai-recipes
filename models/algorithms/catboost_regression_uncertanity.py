@@ -14,12 +14,12 @@ from h2oaicore.systemutils import (
 
 """
 This custom recipe of CatBoost is intended to support Uncertainty estimation
-    - Support only regression can be extended to classification
+    - Supports only regression can be extended to classification
     - GPU support is OFF for sake of simplicity
     - Predictions returned by Driverless AI only include mean predictions of the target variable. The Data Uncertainty 
         and Knowledge Uncertainty are written to experiment artifacts
     - Make sure the ensemble level for the final model is set to zero in Driverless AI
-    - Currently, we only support a single final model for CatBoostUncertanity to make any sense of the model predictions
+    - Currently, we only support a single final model(fixed_ensemble_lesvel=0) for CatBoostUncertanity to make any sense of the model predictions
         written to summary artifact
     - The model_predictions.json file is updated in experiment artifacts each time we call predict function using DAI/Py Client
 """
