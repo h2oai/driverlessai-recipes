@@ -57,7 +57,7 @@ class KolmogorovSmirnov(CustomScorer):
         :param actual:          Ground truth (correct) target values. Requires actual > 0.
         :param predicted:       Predicted probabilities
         :param sample_weight:   weights
-        :param labels:          not used
+        :param labels:          Dataset labels
 
 
         :return: score
