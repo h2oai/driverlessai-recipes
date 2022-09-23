@@ -349,7 +349,17 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
         self.params["use_validation"] = config.recipe_dict.get('calibrationModel_use_validation', False)
         if not self.params["use_validation"]:
             self.params["calib_perc"] = np.random.choice([.05, .1, .15, .2])
-        self.params["calib_method"] = np.random.choice(["isotonic", "sigmoid", "spline"])
+            
+        
+        methods = ["isotonic", "sigmoid"]
+        
+        import importlib
+        mli_spec = importlib.util.find_spec("ml_insights")
+        found = mli_spec is not None
+        if found:
+            methods+=["spline"]
+        
+        self.params["calib_method"] = np.random.choice(methods)
 
     def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):
         return self.to_mojo(mojo=mojo, iframe=iframe, group_uuid=group_uuid, group_name=group_name)
