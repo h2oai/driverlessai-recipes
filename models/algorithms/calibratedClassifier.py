@@ -11,8 +11,6 @@ import numpy as np
 from scipy.special import softmax, expit
 from sklearn.calibration import CalibratedClassifierCV
 
-_global_modules_needed_by_name = ['ml_insights==0.1.4']  # for SplineCalibration
-
 class SklearnWrapper: #to trick CalibratedClassifierCV from sklearn
     def __init__(self, model):
         self.model = model
@@ -22,6 +20,7 @@ class SklearnWrapper: #to trick CalibratedClassifierCV from sklearn
     
     def fit(X,y): #SKLearn checks if this method exists in Estimator
         pass
+
 
 class CalibratedClassifierModel:
     _regression = False
@@ -33,6 +32,8 @@ class CalibratedClassifierModel:
     _supports_predict_shuffle_scoring = False
 
     le = LabelEncoder()
+
+    _modules_needed_by_name = ['ml_insights==0.1.4']  # for SplineCalibration
 
     @staticmethod
     def is_enabled():
