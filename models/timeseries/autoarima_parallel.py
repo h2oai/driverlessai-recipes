@@ -94,12 +94,12 @@ class AutoARIMAParallelModel(CustomTimeSeriesModel):
     else:
         _modules_needed_by_name = ['holidays==0.11.1', 'convertdate', 'lunarcalendar', 'pystan==2.19.1.1',
                                    'fbprophet==0.7.1',
-                                    "statsforecast==0.6.0",
-                                    "prophet==1.1",
+                                   "statsforecast==0.6.0",
+                                   "prophet==1.1",
                                    ]
 
     def set_default_params(
-        self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
+            self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
     ):
 
         """
@@ -365,13 +365,13 @@ class AutoARIMAParallelModel(CustomTimeSeriesModel):
         return grp_hash
 
     def fit(
-        self,
-        X,
-        y,
-        sample_weight=None,
-        eval_set=None,
-        sample_weight_eval_set=None,
-        **kwargs,
+            self,
+            X,
+            y,
+            sample_weight=None,
+            eval_set=None,
+            sample_weight_eval_set=None,
+            **kwargs,
     ):
 
         # Get TGC and time column
@@ -379,7 +379,7 @@ class AutoARIMAParallelModel(CustomTimeSeriesModel):
         self.time_column = self.params_base.get("time_column", None)
         self.nan_value = np.mean(y)
         self.cap = (
-            np.max(y) * 1.5
+                np.max(y) * 1.5
         )  # TODO Don't like this we should compute a cap from average yearly growth
         self.prior = np.mean(y)
 
@@ -512,11 +512,11 @@ class AutoARIMAParallelModel(CustomTimeSeriesModel):
             if self.top_n > 0:
                 top_n_grp = (
                     X.groupby(tgc_wo_time)
-                    .size()
-                    .sort_values()
-                    .reset_index()[tgc_wo_time]
-                    .iloc[-self.top_n :]
-                    .values
+                        .size()
+                        .sort_values()
+                        .reset_index()[tgc_wo_time]
+                        .iloc[-self.top_n:]
+                        .values
                 )
                 top_groups = ["_".join(map(str, key)) for key in top_n_grp]
 

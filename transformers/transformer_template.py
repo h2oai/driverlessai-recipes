@@ -347,5 +347,6 @@ class CustomTimeSeriesTransformer(CustomTransformer):
 
 class CustomUnsupervisedTransformer(CustomTransformer):
     _unsupervised = True  # transformer must ignore y
+    _only_unsupervised = True  # transformer only for unsupervised
 
 

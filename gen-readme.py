@@ -64,8 +64,8 @@ for dirpath, dirs, files in os.walk("."):
                 if f not in exclude and not f.startswith("test_"):
                     if f[-3:] == ".py":
                         docstring = (
-                            get_module_docstring(os.path.join(dirpath, f))
-                            or "please add description"
+                                get_module_docstring(os.path.join(dirpath, f))
+                                or "please add description"
                         )
                         what = "[" + f + "](" + dirpath + "/" + f + ")"
                         mojo_tag = get_mojo_implementation_tag(os.path.join(dirpath, f))

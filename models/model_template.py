@@ -309,12 +309,13 @@ class CustomModel(BaseCustomModel):
         """
         raise NotImplementedError
 
-    def set_feature_importances(self, feature_importances, normalize=True):
+    def set_feature_importances(self, feature_importances, normalize=False):
         df_imp = pd.DataFrame()
         df_imp['fi'] = self.feature_names_fitted
         df_imp['fi_depth'] = 0
         df_imp['gain'] = feature_importances
-        df_imp['gain'] /= df_imp['gain'].max()
+        if normalize:
+            df_imp['gain'] /= df_imp['gain'].max()
         self.feature_importances = df_imp
 
     def predict(self, X, **kwargs):

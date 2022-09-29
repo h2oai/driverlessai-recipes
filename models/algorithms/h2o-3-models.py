@@ -226,24 +226,26 @@ class H2OBaseModel:
                                        column_names=[self.weight],
                                        column_types=['numeric'])
                 valid_frame = valid_frame.cbind(valid_w)
-            loggerinfo(self.get_logger(**kwargs), "%s (%s) using validation set" % (self.display_name, self.__class__.__module__))
+            loggerinfo(self.get_logger(**kwargs),
+                       "%s (%s) using validation set" % (self.display_name, self.__class__.__module__))
         else:
-            loggerinfo(self.get_logger(**kwargs), "%s (%s) not using validation set" % (self.display_name, self.__class__.__module__))
+            loggerinfo(self.get_logger(**kwargs),
+                       "%s (%s) not using validation set" % (self.display_name, self.__class__.__module__))
 
         try:
             train_kwargs = dict()
             params = copy.deepcopy(self.params)
             if isinstance(self, H2OAutoMLModel):
                 metrics_mapping = dict(
-                                ACC='mean_per_class_error',
-                                AUC='AUC',
-                                LOGLOSS='logloss',
-                                MAE='mae',
-                                MSE='mse',
-                                R2='r2',
-                                RMSE='rmse',
-                                RMSLE='rmsle'
-                            )
+                    ACC='mean_per_class_error',
+                    AUC='AUC',
+                    LOGLOSS='logloss',
+                    MAE='mae',
+                    MSE='mse',
+                    R2='r2',
+                    RMSE='rmse',
+                    RMSLE='rmsle'
+                )
                 dai_score_upper = self.params_base.get('score_f_name', '').upper()
                 sort_metric = metrics_mapping.get(dai_score_upper)
                 if sort_metric is None:
@@ -253,15 +255,19 @@ class H2OBaseModel:
                         sort_metric = 'logloss'
                     else:
                         sort_metric = 'rmse'
-                    loggerinfo(self.get_logger(**kwargs), "%s (%s) using backup for sort_metric: %s" % (self.display_name, self.__class__.__module__, sort_metric))
+                    loggerinfo(self.get_logger(**kwargs), "%s (%s) using backup for sort_metric: %s" % (
+                    self.display_name, self.__class__.__module__, sort_metric))
                 else:
-                    loggerinfo(self.get_logger(**kwargs), "%s (%s) using DAI %s for sort_metric: %s" % (self.display_name, self.__class__.__module__, dai_score_upper, sort_metric))
+                    loggerinfo(self.get_logger(**kwargs), "%s (%s) using DAI %s for sort_metric: %s" % (
+                    self.display_name, self.__class__.__module__, dai_score_upper, sort_metric))
                 params['sort_metric'] = sort_metric
                 if os.environ.get("H2O_TE", '0') == '1':
                     params['preprocessing'] = ["target_encoding"]
-                loggerinfo(self.get_logger(**kwargs), "%s (%s) sort_metric: %s" % (self.display_name, self.__class__.__module__, sort_metric))
+                loggerinfo(self.get_logger(**kwargs),
+                           "%s (%s) sort_metric: %s" % (self.display_name, self.__class__.__module__, sort_metric))
             else:
-                loggerinfo(self.get_logger(**kwargs), "%s (%s) sort_metric not set" % (self.display_name, self.__class__.__module__))
+                loggerinfo(self.get_logger(**kwargs),
+                           "%s (%s) sort_metric not set" % (self.display_name, self.__class__.__module__))
             if not isinstance(self, H2OAutoMLModel):
                 # AutoML needs max_runtime_secs in initializer, all others in train() method
                 max_runtime_secs = params.pop('max_runtime_secs', 0)
@@ -300,7 +306,7 @@ class H2OBaseModel:
                 try:
                     # Models that can use an offset column
                     loggerinfo(self.get_logger(**kwargs), "%s (%s) fit parameters: %s" % (
-                    self.display_name, self.__class__.__module__, dict(params)))
+                        self.display_name, self.__class__.__module__, dict(params)))
                     model = self.make_instance(**params)
                     if isinstance(self, (H2OGBMModel, H2ODLModel, H2OGLMModel)):
                         model.train(x=cols_to_train, y=self.target, training_frame=train_frame,

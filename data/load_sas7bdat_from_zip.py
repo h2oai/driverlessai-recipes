@@ -23,7 +23,7 @@ FILE_EXTENSION = ".sas7bdat"
 class SAS7BDATLoadFromZip(CustomData):
     @staticmethod
     def create_data(
-        X: dt.Frame = None,
+            X: dt.Frame = None,
     ) -> Union[
         str,
         List[str],

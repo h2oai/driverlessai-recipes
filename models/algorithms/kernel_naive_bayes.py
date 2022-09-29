@@ -11,7 +11,6 @@ from h2oaicore.models import CustomModel
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier, KernelDensity
 
-
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 
@@ -67,22 +66,22 @@ class KernelNaiveBayesClassifier(CustomModel):
 
     @staticmethod
     def can_use(
-        accuracy,
-        interpretability,
-        train_shape=None,
-        test_shape=None,
-        valid_shape=None,
-        n_gpus=0,
-        num_classes=None,
-        **kwargs
+            accuracy,
+            interpretability,
+            train_shape=None,
+            test_shape=None,
+            valid_shape=None,
+            n_gpus=0,
+            num_classes=None,
+            **kwargs
     ):
         if config.hard_asserts:
             # for bigger data, too slow to test even with 1 iteration
             use = (
-                train_shape is not None
-                and train_shape[0] * train_shape[1] < 1024 * 1024
-                or valid_shape is not None
-                and valid_shape[0] * valid_shape[1] < 1024 * 1024
+                    train_shape is not None
+                    and train_shape[0] * train_shape[1] < 1024 * 1024
+                    or valid_shape is not None
+                    and valid_shape[0] * valid_shape[1] < 1024 * 1024
             )
             # too slow for walmart with only 421k x 15 even with 10 neighbors
             use &= train_shape is not None and train_shape[1] < 10
@@ -91,7 +90,7 @@ class KernelNaiveBayesClassifier(CustomModel):
             return True
 
     def set_default_params(
-        self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
+            self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
     ):
         kwargs.pop("get_best", None)
         self.mutate_params(
@@ -103,12 +102,12 @@ class KernelNaiveBayesClassifier(CustomModel):
         )
 
     def mutate_params(
-        self,
-        accuracy=10,
-        time_tolerance=10,
-        interpretability=1,
-        get_best=False,
-        **kwargs
+            self,
+            accuracy=10,
+            time_tolerance=10,
+            interpretability=1,
+            get_best=False,
+            **kwargs
     ):
         # Modify certain parameters for tuning
         user_choice = config.recipe_dict.copy()
@@ -187,13 +186,13 @@ class KernelNaiveBayesClassifier(CustomModel):
         return params  # default is no transcription
 
     def fit(
-        self,
-        X,
-        y,
-        sample_weight=None,
-        eval_set=None,
-        sample_weight_eval_set=None,
-        **kwargs
+            self,
+            X,
+            y,
+            sample_weight=None,
+            eval_set=None,
+            sample_weight_eval_set=None,
+            **kwargs
     ):
         # system thing, doesn't need to be set in default or mutate, just at runtime in fit, into self.params so can see
         self.params["n_jobs"] = self.params_base.get(
@@ -221,7 +220,7 @@ class KernelNaiveBayesClassifier(CustomModel):
         X = self.basic_impute(X)
         X = X.to_numpy()
         if self.params.get(
-            "standardize", False
+                "standardize", False
         ):  # self.params since params has it popped out
             standard_scaler = StandardScaler()
             X = standard_scaler.fit_transform(X)
@@ -258,9 +257,9 @@ class KernelNaiveBayesClassifier(CustomModel):
             if col not in self.min:
                 self.min[col] = XX.min1()
                 if (
-                    self.min[col] is None
-                    or np.isnan(self.min[col])
-                    or np.isinf(self.min[col])
+                        self.min[col] is None
+                        or np.isnan(self.min[col])
+                        or np.isinf(self.min[col])
                 ):
                     self.min[col] = -1e10
                 else:

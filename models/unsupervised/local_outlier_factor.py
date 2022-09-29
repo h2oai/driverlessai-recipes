@@ -17,6 +17,7 @@ from h2oaicore.transformer_utils import CustomUnsupervisedTransformer
 class LocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
     _can_use_gpu = False
     _parallel_task = True  # if enabled, fit_transform and transform will be given self.n_jobs and kwargs['n_jobs']
+
     # n_jobs will be  >= 1 (adaptive to system resources and tasks), otherwise 1 if _parallel_task = False
 
     def __init__(self,

@@ -19,22 +19,22 @@ class AdaBoostModel(CustomModel):
 
     @staticmethod
     def can_use(
-        accuracy,
-        interpretability,
-        train_shape=None,
-        test_shape=None,
-        valid_shape=None,
-        n_gpus=0,
-        num_classes=None,
-        **kwargs
+            accuracy,
+            interpretability,
+            train_shape=None,
+            test_shape=None,
+            valid_shape=None,
+            n_gpus=0,
+            num_classes=None,
+            **kwargs
     ):
         if config.hard_asserts:
             # for bigger data, too slow to test even with 1 iteration
             use = (
-                train_shape is not None
-                and train_shape[0] * train_shape[1] < 1024 * 1024
-                or valid_shape is not None
-                and valid_shape[0] * valid_shape[1] < 1024 * 1024
+                    train_shape is not None
+                    and train_shape[0] * train_shape[1] < 1024 * 1024
+                    or valid_shape is not None
+                    and valid_shape[0] * valid_shape[1] < 1024 * 1024
             )
             # too slow for walmart with only 421k x 15
             use &= train_shape is not None and train_shape[1] < 10
@@ -43,7 +43,7 @@ class AdaBoostModel(CustomModel):
             return True
 
     def set_default_params(
-        self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
+            self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
     ):
         # Fill up parameters we care about
         n_estimators = min(kwargs.get("n_estimators", 100), 1000)
@@ -74,13 +74,13 @@ class AdaBoostModel(CustomModel):
             self.params["loss"] = np.random.choice(["linear", "square", "exponential"])
 
     def fit(
-        self,
-        X,
-        y,
-        sample_weight=None,
-        eval_set=None,
-        sample_weight_eval_set=None,
-        **kwargs
+            self,
+            X,
+            y,
+            sample_weight=None,
+            eval_set=None,
+            sample_weight_eval_set=None,
+            **kwargs
     ):
         orig_cols = list(X.names)
         if self.num_classes >= 2:
@@ -122,9 +122,9 @@ class AdaBoostModel(CustomModel):
             if col not in self.min:
                 self.min[col] = XX.min1()
                 if (
-                    self.min[col] is None
-                    or np.isnan(self.min[col])
-                    or np.isinf(self.min[col])
+                        self.min[col] is None
+                        or np.isnan(self.min[col])
+                        or np.isinf(self.min[col])
                 ):
                     self.min[col] = -1e10
                 else:

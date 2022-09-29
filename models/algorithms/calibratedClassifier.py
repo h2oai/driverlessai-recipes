@@ -11,14 +11,15 @@ import numpy as np
 from scipy.special import softmax, expit
 from sklearn.calibration import CalibratedClassifierCV
 
-class SklearnWrapper: #to trick CalibratedClassifierCV from sklearn
+
+class SklearnWrapper:  # to trick CalibratedClassifierCV from sklearn
     def __init__(self, model):
         self.model = model
-        
+
     def predict_proba(self, X):
         return self.model.predict_simple_base(X)
-    
-    def fit(X,y): #SKLearn checks if this method exists in Estimator
+
+    def fit(X, y):  # SKLearn checks if this method exists in Estimator
         pass
 
 
@@ -81,7 +82,6 @@ class CalibratedClassifierModel:
             eval_set_y_raw = eval_set[0][1]
             val_y = eval_set_y.astype(int)
             eval_set_classification = [(eval_set[0][0], val_y)]
-            
 
         if not self.params["use_validation"] or eval_set is None:
             # Stratified split with classes control - making sure all classes present in both train and test
@@ -120,7 +120,7 @@ class CalibratedClassifierModel:
                 y_calibrate = eval_set_y_raw
             sample_weight_ = sample_weight
             sample_weight_calib = None if sample_weight_eval_set is None else sample_weight_eval_set[0]
-       
+
         # mimic rest of fit_base not done:
         # get self.observed_labels
         model_classification.check_labels_and_response(y_train, val_y=val_y)
@@ -130,24 +130,23 @@ class CalibratedClassifierModel:
         model_classification.fit(X_train, y_train,
                                  sample_weight=sample_weight_, eval_set=eval_set_classification,
                                  sample_weight_eval_set=sample_weight_eval_set, **kwargs)
-        
+
         model_classification.fitted = True
         model_classification.eval_set_used_during_fit = val_y is not None
-        
-        
+
         # calibration
         sk_model = SklearnWrapper(model_classification)
         sk_model.classes_ = self.le.classes_
         sk_model.fitted = True
         sk_model.eval_set_used_during_fit = val_y is not None
-        
+
         # model_classification.predict_proba = model_classification.predict_simple_base
         # model_classification.classes_ = self.le.classes_
         if self.params["calib_method"] in ["sigmoid", "isotonic"]:
             calibrator = CalibratedClassifierCV(
                 base_estimator=sk_model,
                 method=self.params["calib_method"],
-                cv='prefit', ensemble = False)
+                cv='prefit', ensemble=False)
 
             calibrator.fit(X_calibrate, y_calibrate, sample_weight=sample_weight_calib)
 
@@ -350,16 +349,15 @@ class CalibratedClassifierLGBMModel(CalibratedClassifierModel, LightGBMModel, Cu
         self.params["use_validation"] = config.recipe_dict.get('calibrationModel_use_validation', False)
         if not self.params["use_validation"]:
             self.params["calib_perc"] = np.random.choice([.05, .1, .15, .2])
-            
-        
+
         methods = ["isotonic", "sigmoid"]
-        
+
         import importlib
         mli_spec = importlib.util.find_spec("ml_insights")
         found = mli_spec is not None
         if found:
-            methods+=["spline"]
-        
+            methods += ["spline"]
+
         self.params["calib_method"] = np.random.choice(methods)
 
     def write_to_mojo(self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None):

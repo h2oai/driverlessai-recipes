@@ -67,7 +67,7 @@ class Cached_TextTransformer(CustomTransformer):
         return dict(col_type="text", min_cols=1, max_cols=1, relative_importance=1)
 
     def __init__(
-        self, max_features=None, tf_idf=True, max_ngram=1, dim_reduction=50, **kwargs
+            self, max_features=None, tf_idf=True, max_ngram=1, dim_reduction=50, **kwargs
     ):
         super().__init__(**kwargs)
 
@@ -115,7 +115,7 @@ class Cached_TextTransformer(CustomTransformer):
     from h2oaicore.mojo import MojoWriter, MojoFrame
 
     def to_mojo(
-        self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None
+            self, mojo: MojoWriter, iframe: MojoFrame, group_uuid=None, group_name=None
     ):
         return self.TextTransformer.write_to_mojo(mojo, iframe, group_uuid, group_name)
 
@@ -193,13 +193,13 @@ class Updatable_TextTransformer(Cached_TextTransformer):
         return dict_
 
     def __init__(
-        self,
-        max_features=None,
-        tf_idf=True,
-        max_ngram=1,
-        dim_reduction=50,
-        step=0.1,
-        **kwargs
+            self,
+            max_features=None,
+            tf_idf=True,
+            max_ngram=1,
+            dim_reduction=50,
+            step=0.1,
+            **kwargs
     ):
         super().__init__(
             max_features=None, tf_idf=True, max_ngram=1, dim_reduction=50, **kwargs
@@ -342,15 +342,15 @@ class Updatable_TextTransformer(Cached_TextTransformer):
 
                         # adjust old transform matrix based on new one
                         grad = (
-                            svd_.components_
-                            - new_svd.components_[:, : svd_.components_.shape[1]]
+                                svd_.components_
+                                - new_svd.components_[:, : svd_.components_.shape[1]]
                         )
                         grad = self.step * grad
                         svd_.components_ = svd_.components_ - grad
                         svd_.components_ = np.hstack(
                             [
                                 svd_.components_,
-                                new_svd.components_[:, svd_.components_.shape[1] :],
+                                new_svd.components_[:, svd_.components_.shape[1]:],
                             ]
                         )
 

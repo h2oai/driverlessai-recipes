@@ -3,13 +3,14 @@ import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer, prep_actual_predicted, threshold_scorer, label_binarize
 
+
 class balancedaccuracy(CustomScorer):
     _binary = True
     _multiclass = True
     _maximize = True
     _perfect_score = 1.0 if _maximize else 0.0
     _worst_score = 0.0 if _maximize else 1.0
-    #_is_for_user = False  # don't let the user pick since can be trivially optimized (even when using F1-optimal thresh)
+    # _is_for_user = False  # don't let the user pick since can be trivially optimized (even when using F1-optimal thresh)
     _desc = "(weighted) Balanced Accuracy is defined as the average of recall obtained on each class."
 
     @classmethod
@@ -18,8 +19,8 @@ class balancedaccuracy(CustomScorer):
 
     @staticmethod
     def _metric(tp, fp, tn, fn):
-        return 0.5*(((tp/(tp+fn))+(tn/(tn+fp))))
-    
+        return 0.5 * (((tp / (tp + fn)) + (tn / (tn + fp))))
+
     def protected_metric(self, tp, fp, tn, fn):
         try:
             ret = self.__class__._metric(tp, fp, tn, fn)

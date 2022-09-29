@@ -29,12 +29,12 @@ class pyTodLocalOutlierFactorTransformer(CustomUnsupervisedTransformer):
     _modules_needed_by_name = ["pytod==0.0.3"]
 
     def __init__(
-        self,
-        num_cols: List[str] = list(),
-        output_features_to_drop=list(),
-        n_neighbors=20,
-        batch_size=10000,
-        **kwargs,
+            self,
+            num_cols: List[str] = list(),
+            output_features_to_drop=list(),
+            n_neighbors=20,
+            batch_size=10000,
+            **kwargs,
     ):
         super().__init__(**kwargs)
 

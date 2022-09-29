@@ -45,7 +45,7 @@ file_names = ["cloth.sas7bdat", "clothes.sas7bdat"]
 class KMeansClustering(CustomData):
     @staticmethod
     def create_data(
-        X: dt.Frame = None,
+            X: dt.Frame = None,
     ) -> Union[
         str,
         List[str],

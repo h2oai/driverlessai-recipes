@@ -22,9 +22,9 @@ class ExampleCompatibilityCheckExplainer(CustomExplainer, CustomDaiExplainer):
         CustomDaiExplainer.__init__(self)
 
     def check_compatibility(
-        self,
-        params: Optional[CommonExplainerParameters] = None,
-        **explainer_params,
+            self,
+            params: Optional[CommonExplainerParameters] = None,
+            **explainer_params,
     ) -> bool:
         CustomExplainer.check_compatibility(self, params, **explainer_params)
         CustomDaiExplainer.check_compatibility(self, params, **explainer_params)

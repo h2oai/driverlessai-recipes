@@ -82,7 +82,7 @@ abled.
  [1.10.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.1)
  [1.10.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.2)
  [1.10.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.3)
-### Count: 266
+### Count: 267
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [Load custom recipes on air-gapped installations.] 
 * [DATA](./data)
@@ -266,6 +266,7 @@ abled.
     * [f4_score.py](./scorers/classification/f4_score.py) [F4 Score] 
     * [BINARY](./scorers/classification/binary)
       * [average_mcc.py](./scorers/classification/binary/average_mcc.py) [Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems). Example how to use Driverless AI's internal scorer.] 
+      * [balanced_accuracy.py](./scorers/classification/binary/balanced_accuracy.py) [balanced_accuracy_score] 
       * [brier_loss.py](./scorers/classification/binary/brier_loss.py) [Brier Loss] 
       * [cost.py](./scorers/classification/binary/cost.py) [Using hard-coded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `(x * FP + y * FN) / N`] 
       * [cost_access_to_data.py](./scorers/classification/binary/cost_access_to_data.py) [Same as CostBinary, but provides access to full Data] 

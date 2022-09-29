@@ -99,7 +99,7 @@ class FeatureSelection(CustomData):
         # Seed the unexpected randomness of this world
         np.random.seed(123)
 
-        seeds = np.random.randint(0, 2**30, size=number_of_iterations)
+        seeds = np.random.randint(0, 2 ** 30, size=number_of_iterations)
         null_imp_df = pd.DataFrame()
 
         for i, s in enumerate(seeds):

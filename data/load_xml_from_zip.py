@@ -38,7 +38,7 @@ The col_1, col_2, ..., col_N tags will provide the column names for the final da
 class XMLLoadFromZip(CustomData):
     @staticmethod
     def create_data(
-        X: dt.Frame = None,
+            X: dt.Frame = None,
     ) -> Union[
         str,
         List[str],

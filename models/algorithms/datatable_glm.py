@@ -38,7 +38,6 @@ class datatableLinearModel(CustomModel):
                                   importances=importances.to_list()[0],
                                   iterations=res.epoch)
 
-
     def predict(self, X, **kwargs):
         model, _, _, _ = self.get_model_properties()
         X_standard = X[:, (f[:] - model["X_mean"]) / model["X_sd"]]
@@ -46,8 +45,6 @@ class datatableLinearModel(CustomModel):
         p = model["lm"].predict(X_standard)
         return p
 
-
     @staticmethod
     def impute(X):
         X.replace([None, -math.inf, math.inf], 0.0)
-

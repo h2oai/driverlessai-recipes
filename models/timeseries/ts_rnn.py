@@ -7,6 +7,7 @@ from datatable import dt
 from h2oaicore.models import CustomTimeSeriesTensorFlowModel
 from sklearn.preprocessing import StandardScaler
 
+
 # The recipe depends on Time knob values: it uses subset of training data for lower Time values to speed things up.
 # It is recommended to start with Time=1 and try increasing it if runtime allows it given the dataset size.
 
@@ -50,7 +51,7 @@ class DataPrep:
         if len(self.config["unatt"]) > 0:
             self.unatt_scaler = StandardScaler().fit(df[self.config["unatt"]])
         self.config["X0_input_features"] = (
-            df[self.config["knatt"]].shape[1] + df[self.config["unatt"]].shape[1]
+                df[self.config["knatt"]].shape[1] + df[self.config["unatt"]].shape[1]
         )
         self.config["X1_input_features"] = df[self.config["knatt"]].shape[1]
         self.config["y_mean"] = df[self.config["target_column"]].mean()
@@ -74,8 +75,8 @@ class DataPrep:
         if data_type == "train":
             if self.config["num_classes"] == 1:
                 res["y"] = (
-                    df[self.config["target_column"]].values - self.config["y_mean"]
-                ) / self.config["y_std"]
+                                   df[self.config["target_column"]].values - self.config["y_mean"]
+                           ) / self.config["y_std"]
             else:
                 res["y"] = df[self.config["target_column"]].values
 
@@ -89,10 +90,10 @@ class DataPrep:
         for tgc in self.config["tgc"]:
             res["tgc"].append(
                 df[tgc]
-                .map(self.tgc_maps[tgc])
-                .fillna(self.tgc_topv[tgc])
-                .astype(int)
-                .values.reshape(-1, 1)
+                    .map(self.tgc_maps[tgc])
+                    .fillna(self.tgc_topv[tgc])
+                    .astype(int)
+                    .values.reshape(-1, 1)
             )
         if len(res["tgc"]) > 0:
             res["tgc"] = np.hstack(res["tgc"])
@@ -123,14 +124,14 @@ class Datasets:
 
             if len(config["tgc"]) > 0:
                 self.fit_records_mask = (
-                    self.df.groupby(config["tgc"]).cumcount() >= config["min_seq_len"]
-                ) & (
-                    self.df.iloc[::-1].groupby(config["tgc"]).cumcount().iloc[::-1]
-                    >= config["forecast_horizon"]
-                )
+                                                self.df.groupby(config["tgc"]).cumcount() >= config["min_seq_len"]
+                                        ) & (
+                                                self.df.iloc[::-1].groupby(config["tgc"]).cumcount().iloc[::-1]
+                                                >= config["forecast_horizon"]
+                                        )
             else:
                 self.fit_records_mask = (self.df.index >= config["min_seq_len"]) & (
-                    self.df[config["time_column"]] < max_fit_time
+                        self.df[config["time_column"]] < max_fit_time
                 )
 
             d = dprep.transform(df, "train")
@@ -152,10 +153,10 @@ class Datasets:
             idx = self.idxs[idx0]
             rec = self.df[self.fit_records_mask].iloc[idx]
             mask0 = (
-                self.df[self.config["time_column"]] <= rec[self.config["time_column"]]
+                    self.df[self.config["time_column"]] <= rec[self.config["time_column"]]
             )
             mask1 = (
-                self.df[self.config["time_column"]] > rec[self.config["time_column"]]
+                    self.df[self.config["time_column"]] > rec[self.config["time_column"]]
             )
             for col in self.config["tgc"]:
                 mask0 = mask0 & (self.df[col] == rec[col])
@@ -271,10 +272,10 @@ class SingleRNN:
             tgt_len = self.config["forecast_horizon"] // self.dilation + 1
 
             X0 = X0[
-                :, :, -self.dilation * (X0.shape[-1] // self.dilation) :
-            ]  # trim seqlen
+                 :, :, -self.dilation * (X0.shape[-1] // self.dilation):
+                 ]  # trim seqlen
             XX0 = torch.stack(
-                [X0[:, :, i :: self.dilation] for i in range(self.dilation)]
+                [X0[:, :, i:: self.dilation] for i in range(self.dilation)]
             )
             XX0 = XX0.reshape(
                 bsize * self.dilation, XX0.shape[2], -1
@@ -293,7 +294,7 @@ class SingleRNN:
                 X1, (0, tgt_len * self.dilation - X1.shape[-1], 0, 0, 0, 0)
             )
             X1 = torch.stack(
-                [X1[:, :, i :: self.dilation] for i in range(self.dilation)]
+                [X1[:, :, i:: self.dilation] for i in range(self.dilation)]
             )
             X1 = X1.reshape(
                 bsize * self.dilation, X1.shape[2], -1
@@ -325,8 +326,8 @@ class SingleRNN:
             outputs = outputs.permute(1, 2, 0)
             outputs = (
                 outputs.reshape(self.dilation, bsize, outputs.shape[1], -1)
-                .permute(1, 2, 3, 0)
-                .reshape(bsize, outputs.shape[1], -1)
+                    .permute(1, 2, 3, 0)
+                    .reshape(bsize, outputs.shape[1], -1)
             )
             return outputs[:, :, : self.config["forecast_horizon"]]
 
@@ -596,8 +597,8 @@ def predict(model, loader, config):
 
         if config["num_classes"] == 1:
             preds_delta = (
-                model(d).squeeze(1).detach().cpu().numpy() * config["y_std"]
-                + config["y_mean"]
+                    model(d).squeeze(1).detach().cpu().numpy() * config["y_std"]
+                    + config["y_mean"]
             )
         elif config["num_classes"] == 2:
             preds_delta = torch.sigmoid(model(d)).transpose(1, 2).detach().cpu().numpy()
@@ -643,12 +644,12 @@ class TS_RNN(CustomTimeSeriesTensorFlowModel):
         return True
 
     def set_default_params(
-        self, accuracy=10, time_tolerance=10, interpretability=1, **kwargs
+            self, accuracy=10, time_tolerance=10, interpretability=1, **kwargs
     ):
         self.mutate_params(accuracy, time_tolerance, interpretability)
 
     def mutate_params(
-        self, accuracy=10, time_tolerance=10, interpretability=1, **kwargs
+            self, accuracy=10, time_tolerance=10, interpretability=1, **kwargs
     ):
         # self.config["n_epochs"] = np.random.choice([5])
         if time_tolerance > 6:
@@ -672,13 +673,13 @@ class TS_RNN(CustomTimeSeriesTensorFlowModel):
         )
 
     def fit(
-        self,
-        X: dt.Frame,
-        y: np.array,
-        sample_weight: np.array = None,
-        eval_set=None,
-        sample_weight_eval_set=None,
-        **kwargs,
+            self,
+            X: dt.Frame,
+            y: np.array,
+            sample_weight: np.array = None,
+            eval_set=None,
+            sample_weight_eval_set=None,
+            **kwargs,
     ):
         """Fit the model on training data and use optional validation data to tune parameters to avoid overfitting.
         Args:
@@ -726,8 +727,8 @@ class TS_RNN(CustomTimeSeriesTensorFlowModel):
         if self.config["num_classes"] > 1:
             y = (
                 pd.Series(y)
-                .map({v: i for i, v in enumerate(self.params_base["labels"])})
-                .values
+                    .map({v: i for i, v in enumerate(self.params_base["labels"])})
+                    .values
             )
 
         train_df = X.to_pandas()

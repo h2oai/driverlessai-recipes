@@ -8,7 +8,7 @@ from h2oaicore.systemutils import physical_cores_count, config
 
 # Can be either an integer defining the number of allowed interactions or a
 # list of lists of feature indices for which we allow interactions (see comment for example)
-ALLOWED_INTERACTIONS = 1  #  [[0, 1], [1, 2]]
+ALLOWED_INTERACTIONS = 1  # [[0, 1], [1, 2]]
 
 
 class EBMModel(CustomModel):
@@ -43,7 +43,7 @@ class EBMModel(CustomModel):
         return False  # by default GA2M too slow, but if the only model selected this will still allow use
 
     def set_default_params(
-        self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
+            self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
     ):
         # Fill up parameters we care about
         max_rounds = (
@@ -96,13 +96,13 @@ class EBMModel(CustomModel):
         return importances
 
     def fit(
-        self,
-        X,
-        y,
-        sample_weight=None,
-        eval_set=None,
-        sample_weight_eval_set=None,
-        **kwargs
+            self,
+            X,
+            y,
+            sample_weight=None,
+            eval_set=None,
+            sample_weight_eval_set=None,
+            **kwargs
     ):
         from interpret.glassbox import (
             ExplainableBoostingClassifier,
@@ -153,9 +153,9 @@ class EBMModel(CustomModel):
             if col not in self.min:
                 self.min[col] = XX.min1()
                 if (
-                    self.min[col] is None
-                    or np.isnan(self.min[col])
-                    or np.isinf(self.min[col])
+                        self.min[col] is None
+                        or np.isnan(self.min[col])
+                        or np.isinf(self.min[col])
                 ):
                     self.min[col] = -1e10
                 else:

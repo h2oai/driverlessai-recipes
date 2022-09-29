@@ -363,7 +363,8 @@ class CustomXNNModel(CustomTensorFlowModel):
                         plt.title("Projection Layer Weights {}".format(i), fontdict={'fontsize': 10})
                         plt.xticks(rotation=90)
                         plt.show()
-                        plt.savefig(os.path.join(tmp_folder, 'projection_layer_' + str(i) + '.png'), bbox_inches="tight")
+                        plt.savefig(os.path.join(tmp_folder, 'projection_layer_' + str(i) + '.png'),
+                                    bbox_inches="tight")
                         plt.clf()
                     except Exception as e:
                         if self._fail_if_plot_fails:
