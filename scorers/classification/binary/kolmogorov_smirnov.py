@@ -53,13 +53,10 @@ class KolmogorovSmirnov(CustomScorer):
     def score(self, actual: np.array, predicted: np.array, sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
         """
-
-        :param actual:          Ground truth (correct) target values. Requires actual > 0.
+        :param actual:          Ground truth (correct) target values.
         :param predicted:       Predicted probabilities
-        :param sample_weight:   weights
+        :param sample_weight:   weights - Not used
         :param labels:          Dataset labels
-
-
         :return: score
         """
 
@@ -67,16 +64,7 @@ class KolmogorovSmirnov(CustomScorer):
             """Initialize logger to print additional info in case of invalid inputs(exception is raised) and to enable debug prints"""
             logger = self.logger
             from h2oaicore.systemutils import loggerinfo
-            # loggerinfo(logger, "Start Gamma Deviance Scorer.......")
-            # loggerinfo(logger, 'Actual:%s' % str(actual))
-            # loggerinfo(logger, 'Predicted:%s' % str(predicted))
-            # loggerinfo(logger, 'Sample W:%s' % str(sample_weight))
-
             from scipy.stats import ks_2samp
-
-            # loggerinfo(logger, 'Actual:%s' % str(actual))
-            # loggerinfo(logger, 'Predicted:%s' % str(predicted))
-            # loggerinfo(logger, 'Labels:%s' % str(labels))
 
             predicted = predicted.astype('float64')
 
