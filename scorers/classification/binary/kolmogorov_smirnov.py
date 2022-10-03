@@ -39,7 +39,7 @@ class KolmogorovSmirnov(CustomScorer):
         Acceptance tests perform a number of sanity checks on small data, and attempt to provide helpful instructions
         for how to fix any potential issues. Disable if your recipe requires specific data or won't work on random data.
         """
-        return False
+        return True
 
     @property
     def logger(self):
