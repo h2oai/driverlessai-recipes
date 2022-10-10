@@ -1,12 +1,12 @@
 """Extract sentiment from text using pretrained models from TextBlob"""
 import importlib
-from h2oaicore.transformer_utils import CustomTransformer
+from h2oaicore.transformer_utils import CustomUnsupervisedTransformer
 from h2oaicore.models import CustomUnsupervisedModel
 import datatable as dt
 import numpy as np
 
 
-class TextSentimentTransformer(CustomTransformer):
+class TextSentimentTransformer(CustomUnsupervisedTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _modules_needed_by_name = ['nltk==3.4.3', 'textblob']
 

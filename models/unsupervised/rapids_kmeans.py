@@ -2,14 +2,13 @@
 import datatable as dt
 import numpy as np
 from h2oaicore.systemutils import ngpus_vis, IgnoreEntirelyError, config
-from h2oaicore.transformers import CustomTransformer
 from h2oaicore.metrics import CustomUnsupervisedScorer
 from h2oaicore.models import CustomUnsupervisedModel
 from h2oaicore.transformer_utils import CustomUnsupervisedTransformer
 from sklearn.metrics import davies_bouldin_score
 
 
-class NoMoreThanTenNumericTransformer(CustomTransformer):
+class NoMoreThanTenNumericTransformer(CustomUnsupervisedTransformer):
     @staticmethod
     def get_default_properties():
         # pick up to 10 numeric columns

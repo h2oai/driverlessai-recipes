@@ -2,12 +2,12 @@
 
 import datatable as dt
 import numpy as np
-from h2oaicore.transformer_utils import CustomTransformer
+from h2oaicore.transformer_utils import CustomUnsupervisedTransformer
 from h2oaicore.models import CustomUnsupervisedModel
 from h2oaicore.separators import orig_feat_prefix, extra_prefix
 
 
-class TextLDATopicTransformer(CustomTransformer):
+class TextLDATopicTransformer(CustomUnsupervisedTransformer):
     """Transformer to extract topics from text column using LDA"""
     _is_reproducible = False
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
