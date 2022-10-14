@@ -28,7 +28,6 @@ class FAIRXGBOOST(CustomModel):
                            eta=0.1, max_depth=12, min_child_weight=2.0,
                            reg_lambda=1.0, colsample_bytree=0.8,
                            subsample=1.0, mu=0.1, reg_alpha=0,
-                           n_jobs=self.params_base.get('n_jobs', max_threads()),
                            )
 
     def mutate_params(self, accuracy=10, **kwargs):
@@ -70,7 +69,6 @@ class FAIRXGBOOST(CustomModel):
         self.params["colsample_bytree"] = np.random.choice(colsample_bytree)
         self.params["subsample"] = np.random.choice(subsample)
         self.params["mu"] = np.random.choice(mu)
-        self.params["n_jobs"] = self.params_base.get('n_jobs', max_threads())
 
     def _create_tmp_folder(self, logger):
         # Create a temp folder to store files 
@@ -217,12 +215,12 @@ class FAIRXGBOOST(CustomModel):
 
             # Set up model
 
+        params = {}
         if self.num_classes >= 2:
             lb = LabelEncoder()
             lb.fit(self.labels)
             y = lb.transform(y)
 
-            params = {}
             params['eta'] = self.params["eta"]
             params['max_depth'] = self.params['max_depth']
             params['min_child_weight'] = self.params['min_child_weight']
@@ -232,6 +230,7 @@ class FAIRXGBOOST(CustomModel):
             params['subsample'] = self.params['subsample']
             params['silent'] = 1
             params['seed'] = self.params['random_state']
+            params['n_jobs'] = params['nthread'] = self.n_jobs
         else:
             # fairxgb doesn't work for regression
             loggerinfo(logger, "PASS, no fairxgboost model")
@@ -320,9 +319,9 @@ class FAIRXGBOOST(CustomModel):
 
             X_valid = X_valid.drop(self.protected, axis=1)
 
-        d_train = xgb.DMatrix(X, label=y, missing=np.nan)
+        d_train = xgb.DMatrix(X, label=y, missing=np.nan, nthread=self.n_jobs)
 
-        d_valid = xgb.DMatrix(X_valid, label=y_valid, missing=np.nan)
+        d_valid = xgb.DMatrix(X_valid, label=y_valid, missing=np.nan, nthread=self.n_jobs)
 
         # Initial run to find the optimal number of trees
         num_iterations = 10000
@@ -335,7 +334,7 @@ class FAIRXGBOOST(CustomModel):
         attribute_dict = clf.attributes()
         new_iterations = int(attribute_dict['best_iteration'])
 
-        d_train = xgb.DMatrix(X_full, label=y_full, missing=np.nan)
+        d_train = xgb.DMatrix(X_full, label=y_full, missing=np.nan, nthread=self.n_jobs)
         watchlist = [(d_train, 'train')]
         clf = xgb.train(params, d_train, new_iterations, watchlist, feval=fair_metric, verbose_eval=10, obj=fair)
 
@@ -439,7 +438,7 @@ class FAIRXGBOOST(CustomModel):
             X_enc = self.enc.transform(X[self.X_categorical]).toarray()
             X = pd.concat([X[self.X_numeric], pd.DataFrame(X_enc, columns=self.encoded_categories)], axis=1)
 
-        d_test = xgb.DMatrix(X, missing=np.nan)
+        d_test = xgb.DMatrix(X, missing=np.nan, nthread=self.n_jobs)
 
         # If the positive target was 0, change the final result to 1-p
         if self.positive_target == 0:
@@ -496,3 +495,20 @@ class FAIRXGBOOST(CustomModel):
         self.is_train = False
 
         return preds
+
+    def pre_get_model(self, X_shape=(1, 1), **kwargs):
+        self.prepare_xgb_predict(**self.params)
+
+    @staticmethod
+    def prepare_xgb_predict(**params):
+        """
+        Gets xgboost ready for having pickled state on GPU or to use correct core count on CPU
+        :param params:
+        :return:
+        """
+        import xgboost as xgb
+        model = xgb.XGBClassifier(**params)
+        X = np.array([[1, 2, 3, 4], [1, 3, 4, 2]])
+        y = np.array([1, 0])
+        model.fit(X=X, y=y)
+        return model
