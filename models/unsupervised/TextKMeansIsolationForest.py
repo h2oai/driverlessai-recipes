@@ -84,7 +84,8 @@ class NumCatTxtPreTransformer(CustomUnsupervisedTransformer):
     _only_as_pretransformer = True
     _num = ("StandardScalerTransformer", "numeric")
     _cat = ("FrequentTransformer", "categorical")
-    _txt = ("TextPreprocessingTransformer", "text")
+    _txt = ("TextLDATopicTransformer", "text")
+    _txt_recipe_file_name_pattern = 'text_topic_modeling'
 
     @staticmethod
     def get_default_properties():
@@ -145,7 +146,7 @@ class NumCatTxtPreTransformer(CustomUnsupervisedTransformer):
             name = 'transformers'
             from h2oaicore.utils import ContribLoader
             # 'text_preprocessing' is pattern matching name of file for custom recipe we wish to use
-            module_names = [k for k in sys.modules if '%s%s' % (ContribLoader._contentpattern, name) in k and 'text_preprocessing' in k]
+            module_names = [k for k in sys.modules if '%s%s' % (ContribLoader._contentpattern, name) in k and self._txt_recipe_file_name_pattern in k]
             if self._txt[0] in config.recipe_activation['transformers']:
                 file_name = config.recipe_activation['transformers'][self._txt[0]].split('|')[1]
                 module_names = [x for x in module_names if file_name in x]
@@ -162,21 +163,24 @@ class NumCatTxtPreTransformer(CustomUnsupervisedTransformer):
 
         # set up the pipeline, feature by feature
         del kwargs['input_feature_names']
+        kwargs_txt = kwargs.copy()
+        for k, v in TxtTrans.get_parameter_choices().items():
+            kwargs_txt.update({k: v[0]})  # default parameter, can choose others
         if self.cat_cols and CatTrans and self.num_cols and NumTrans and self.txt_cols and TxtTrans:
             self.union = [([x], NumTrans(num_cols=[x], input_feature_names=[x], **kwargs)) for x in self.num_cols] + \
                          [([x], CatTrans(cat_cols=[x], input_feature_names=[x], **kwargs)) for x in self.cat_cols] + \
-                         [([x], TxtTrans(txt_cols=[x], input_feature_names=[x], **kwargs)) for x in self.txt_cols]
+                         [([x], TxtTrans(txt_cols=[x], input_feature_names=[x], **kwargs_txt)) for x in self.txt_cols]
         elif self.cat_cols and CatTrans and self.txt_cols and TxtTrans:
             self.union = [([x], CatTrans(cat_cols=[x], input_feature_names=[x], **kwargs)) for x in self.cat_cols] + \
-                         [([x], TxtTrans(txt_cols=[x], input_feature_names=[x], **kwargs)) for x in self.txt_cols]
+                         [([x], TxtTrans(txt_cols=[x], input_feature_names=[x], **kwargs_txt)) for x in self.txt_cols]
         elif self.num_cols and NumTrans and self.txt_cols and TxtTrans:
             self.union = [([x], NumTrans(num_cols=[x], input_feature_names=[x], **kwargs)) for x in self.num_cols] + \
-                         [([x], TxtTrans(txt_cols=[x], input_feature_names=[x], **kwargs)) for x in self.txt_cols]
+                         [([x], TxtTrans(txt_cols=[x], input_feature_names=[x], **kwargs_txt)) for x in self.txt_cols]
         if self.cat_cols and CatTrans and self.num_cols and NumTrans:
             self.union = [([x], NumTrans(num_cols=[x], input_feature_names=[x], **kwargs)) for x in self.num_cols] + \
                          [([x], CatTrans(cat_cols=[x], input_feature_names=[x], **kwargs)) for x in self.cat_cols]
         elif self.txt_cols and TxtTrans:
-            self.union = [([x], TxtTrans(txt_cols=[x], input_feature_names=[x], **kwargs)) for x in self.txt_cols]
+            self.union = [([x], TxtTrans(txt_cols=[x], input_feature_names=[x], **kwargs_txt)) for x in self.txt_cols]
         elif self.cat_cols and CatTrans:
             self.union = [([x], CatTrans(cat_cols=[x], input_feature_names=[x], **kwargs)) for x in self.cat_cols]
         elif self.num_cols and NumTrans:
@@ -186,7 +190,7 @@ class NumCatTxtPreTransformer(CustomUnsupervisedTransformer):
         frames = []
         for x in self.union:
             kwargs_tr = MainModel.strip_unhandled_args_for_func(fit_params, x[1].transform)
-            X1 = dt.Frame(x[1].transform(X[:, x[0]], y, **kwargs_tr))
+            X1 = dt.Frame(x[1].transform(X[:, x[0]], **kwargs_tr))
             frames.append(X1)
         X = dt.cbind(frames)
         X.replace(None, [0, 0.0])  # replaces missing with 0 in int, with 0.0 in float cols
