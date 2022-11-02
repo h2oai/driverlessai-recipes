@@ -30,6 +30,8 @@ def convert_to_age(ts):
 
 
 class DaysUntilDec2020(CustomTransformer):
+    _unsupervised = True
+
     @staticmethod
     def get_default_properties():
         return dict(col_type="date", min_cols=1, max_cols=1, relative_importance=1)

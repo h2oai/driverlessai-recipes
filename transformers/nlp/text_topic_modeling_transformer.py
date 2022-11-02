@@ -6,6 +6,8 @@ from h2oaicore.separators import orig_feat_prefix, extra_prefix
 
 
 class TextLDATopicTransformer(CustomTransformer):
+    _unsupervised = True
+
     """Transformer to extract topics from text column using LDA"""
     _is_reproducible = False
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail

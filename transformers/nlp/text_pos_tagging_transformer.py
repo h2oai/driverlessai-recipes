@@ -86,20 +86,28 @@ class POSTagTransformer:
 
 
 class NounCountTransformer(POSTagTransformer, CustomTransformer):
+    _unsupervised = True
+
     """Get the count of nouns in the text column"""
     _method = "N"
 
 
 class VerbCountTransformer(POSTagTransformer, CustomTransformer):
+    _unsupervised = True
+
     """Get the count of verbs in the text column"""
     _method = "V"
 
 
 class AdjectiveCountTransformer(POSTagTransformer, CustomTransformer):
+    _unsupervised = True
+
     """Get the count of adjectives in the text column"""
     _method = "J"
 
 
 class AdverbCountTransformer(POSTagTransformer, CustomTransformer):
+    _unsupervised = True
+
     """Get the count of adverbs in the text column"""
     _method = "R"

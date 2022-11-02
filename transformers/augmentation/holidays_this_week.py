@@ -7,6 +7,8 @@ import holidays
 
 
 class HolidaysThisWeek(CustomTransformer):
+    _unsupervised = True
+
     _modules_needed_by_name = ['holidays']
     _display_name = 'HolidaysThisWeek'
 

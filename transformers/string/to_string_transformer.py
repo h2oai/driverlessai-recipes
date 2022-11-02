@@ -5,6 +5,8 @@ import numpy as np
 
 
 class MyToStringTransformer(CustomTransformer):
+    _unsupervised = True
+
     _numeric_output = False
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 

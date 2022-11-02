@@ -5,6 +5,8 @@ import numpy as np
 
 
 class MyStrLenEncoderTransformer(CustomTransformer):
+    _unsupervised = True
+
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     @staticmethod

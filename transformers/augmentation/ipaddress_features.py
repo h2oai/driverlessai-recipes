@@ -36,6 +36,8 @@ class IPAddressBaseTransformer(ABC):
 
 
 class IPAddressAsIntegerTransformer(IPAddressBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_ip_property(self, value):
         ip_address_types = {'ipaddress.IPv4Address', 'ipaddress.IPv6Address'}
         ip_network_types = {'ipaddress.IPv4Network', 'ipaddress.IPv6Network'}
@@ -48,35 +50,49 @@ class IPAddressAsIntegerTransformer(IPAddressBaseTransformer, CustomTransformer)
 
 
 class IsIPAddressMulticastTransformer(IPAddressBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_ip_property(self, value):
         return value.is_multicast
 
 
 class IsIPAddressPrivateTransformer(IPAddressBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_ip_property(self, value):
         return value.is_private
 
 
 class IsIPAddressGlobalTransformer(IPAddressBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_ip_property(self, value):
         return value.is_global
 
 
 class IsIPAddressUnspecifiedTransformer(IPAddressBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_ip_property(self, value):
         return value.is_unspecified
 
 
 class IsIPAddressReservedTransformer(IPAddressBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_ip_property(self, value):
         return value.is_reserved
 
 
 class IsIPAddressLoopbackTransformer(IPAddressBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_ip_property(self, value):
         return value.is_loopback
 
 
 class IsIPAddressLinkLocal(IPAddressBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_ip_property(self, value):
         return value.is_link_local

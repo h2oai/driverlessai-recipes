@@ -69,6 +69,8 @@ def make_holiday_frame():
 
 
 class SingaporePublicHolidayTransformer(CustomTransformer):
+    _unsupervised = True
+
 
     @staticmethod
     def get_default_properties():

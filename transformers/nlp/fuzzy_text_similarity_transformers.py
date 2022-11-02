@@ -42,24 +42,36 @@ class FuzzyBaseTransformer:
 
 
 class FuzzyQRatioTransformer(FuzzyBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "QRatio"
 
 
 class FuzzyWRatioTransformer(FuzzyBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "WRatio"
 
 
 class FuzzyPartialRatioTransformer(FuzzyBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "partial_ratio"
 
 
 class FuzzyTokenSetRatioTransformer(FuzzyBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "token_set_ratio"
 
 
 class FuzzyTokenSortRatioTransformer(FuzzyBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "token_sort_ratio"
 
 
 class FuzzyPartialTokenSortRatioTransformer(FuzzyBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "partial_token_sort_ratio"

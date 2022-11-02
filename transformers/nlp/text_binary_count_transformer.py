@@ -12,6 +12,8 @@ from h2oaicore.transformer_utils import CustomTransformer
 
 
 class TextBinaryCountTransformer(CustomTransformer):
+    _unsupervised = True
+
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _regression = True  # y has shape (N,) and is of numeric type, no missing values
     _binary = True  # y has shape (N,) and can be numeric or string, cardinality 2, no missing values

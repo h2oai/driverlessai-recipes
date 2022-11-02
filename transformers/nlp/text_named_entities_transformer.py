@@ -7,6 +7,8 @@ from h2oaicore.transformer_utils import CustomTransformer
 
 
 class TextNamedEntityTransformer(CustomTransformer):
+    _unsupervised = True
+
     """Transformer to extract the count of Named Entities"""
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _root_path = "https://s3.amazonaws.com/artifacts.h2o.ai/deps/dai/recipes"

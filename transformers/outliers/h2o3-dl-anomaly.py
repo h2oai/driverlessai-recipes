@@ -10,6 +10,8 @@ from h2o.estimators.deeplearning import H2OAutoEncoderEstimator
 
 
 class MyH2OAutoEncoderAnomalyTransformer(CustomTransformer):
+    _unsupervised = True
+
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     def __init__(self, **kwargs):

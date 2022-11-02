@@ -5,6 +5,8 @@ import numpy as np
 
 
 class MyRandomTransformer(CustomTransformer):
+    _unsupervised = True
+
     _is_reproducible = False
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 

@@ -55,35 +55,49 @@ class ZipcodeLightBaseTransformer(ABC):
 
 
 class ZipcodeTypeTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_property_name(self, value):
         return 'zip_code_type'
 
 
 class ZipcodeCityTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_property_name(self, value):
         return 'city'
 
 
 class ZipcodeStateTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_property_name(self, value):
         return 'state'
 
 
 class ZipcodeLatitudeTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_property_name(self, value):
         return 'lat'
 
 
 class ZipcodeLongitudeTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_property_name(self, value):
         return 'long'
 
 
 class ZipcodeIsActiveTransformer(ZipcodeLightBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_property_name(self, value):
         return 'active'
 
 
 class Zipcode5Transformer(ZipcodeLightBaseTransformer, CustomTransformer):
+    _unsupervised = True
+
     def get_property_name(self, value):
         return 'zip_code'

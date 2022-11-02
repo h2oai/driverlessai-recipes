@@ -12,6 +12,8 @@ from h2oaicore.systemutils_more import download
 
 
 class TextPreprocessingTransformer(CustomTransformer):
+    _unsupervised = True
+
     """Transformer to preprocess the text"""
     _numeric_output = False
     _is_reproducible = True

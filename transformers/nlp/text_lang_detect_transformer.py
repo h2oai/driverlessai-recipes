@@ -7,6 +7,8 @@ import numpy as np
 
 
 class TextLangDetectTransformer(CustomTransformer):
+    _unsupervised = True
+
     _modules_needed_by_name = ['langdetect']
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 

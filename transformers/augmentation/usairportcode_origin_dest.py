@@ -16,6 +16,8 @@ def computeDistance(lat1, lon1, lat2, lon2):
 
 
 class AirportOriginDestPDTransformer(CustomTransformer):
+    _unsupervised = True
+
     _allow_transform_to_modify_output_feature_names = True
 
     _numeric_output = True

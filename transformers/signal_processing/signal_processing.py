@@ -226,6 +226,8 @@ def get_features(i_f, sig_file, mfcc_size):
 
 
 class MySignalProcessingTransformer(CustomTransformer):
+    _unsupervised = True
+
     """
     SignalProcessing Transformer expects 2 features:
      - The first feature is a file name or path that contains the signal
@@ -340,6 +342,8 @@ class MySignalProcessingTransformer(CustomTransformer):
 
 
 class MyNumbaSignalProcessingTransformer(CustomTransformer):
+    _unsupervised = True
+
     """
     SignalProcessing Transformer expects 2 features:
      - The first feature is a file name or path that contains the signal

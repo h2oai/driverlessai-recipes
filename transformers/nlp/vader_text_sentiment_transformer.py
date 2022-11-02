@@ -10,6 +10,8 @@ import pandas as pd
 
 
 class VaderSentimentTransformer(CustomTransformer):
+    _unsupervised = True
+
     _modules_needed_by_name = ['vaderSentiment']
 
     @staticmethod

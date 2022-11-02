@@ -33,6 +33,8 @@ def distance(lat1, lon1, lat2, lon2):
 
 
 class MyHaversine(CustomTransformer):
+    _unsupervised = True
+
     @staticmethod
     def get_default_properties():
         return dict(col_type="numeric", min_cols="all", max_cols="all", relative_importance=1)
