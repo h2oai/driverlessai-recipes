@@ -146,8 +146,8 @@ class NumCatTxtPreTransformer(CustomUnsupervisedTransformer):
             from h2oaicore.utils import ContribLoader
             # 'text_preprocessing' is pattern matching name of file for custom recipe we wish to use
             module_names = [k for k, v in sys.modules.items() if '%s%s' % (ContribLoader._contentpattern, name) in k and self._txt[0] in dir(v)]
-            if self._txt[0] in config.recipe_activation['transformers']:
-                file_name = config.recipe_activation['transformers'][self._txt[0]].split('|')[1]
+            if name in config.recipe_activation and self._txt[0] in config.recipe_activation[name]:
+                file_name = config.recipe_activation[name][self._txt[0]].split('|')[1]
                 module_names = [x for x in module_names if file_name in x]
                 assert len(module_names) > 0, "Missing %s recipe, please upload" % self._txt[0]
                 assert len(module_names) == 1, "Unexpected multiple matches for %s recipe" % self._txt[0]
