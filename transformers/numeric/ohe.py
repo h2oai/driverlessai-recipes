@@ -6,6 +6,8 @@ from h2oaicore.transformers_more import OneHotEncodingTransformer
 
 
 class OHETransformer(OneHotEncodingTransformer, CustomTransformer):
+    _unsupervised = True
+
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _included_model_classes = None  # to stop GLMModel from being only model allowed
 

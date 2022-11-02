@@ -5,6 +5,8 @@ import numpy as np
 
 
 class TextURLSummaryTransformer(CustomTransformer):
+    _unsupervised = True
+
     _numeric_output = False
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _modules_needed_by_name = ["gensim==3.8.0", "beautifulsoup4==4.9.2"]

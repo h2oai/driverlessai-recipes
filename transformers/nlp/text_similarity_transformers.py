@@ -8,6 +8,8 @@ import nltk
 
 
 class CountCommonNGramsTransformer(CustomTransformer):
+    _unsupervised = True
+
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     def __init__(self, ngrams, **kwargs):
@@ -46,6 +48,8 @@ class CountCommonNGramsTransformer(CustomTransformer):
 
 
 class JaccardSimilarityTransformer(CustomTransformer):
+    _unsupervised = True
+
     """Jaccard similarity measure on n-grams"""
 
     def __init__(self, ngrams, **kwargs):
@@ -84,6 +88,8 @@ class JaccardSimilarityTransformer(CustomTransformer):
 
 
 class DiceSimilarityTransformer(CustomTransformer):
+    _unsupervised = True
+
     """Dice similarity measure on n-grams"""
 
     def __init__(self, ngrams, **kwargs):
@@ -122,6 +128,8 @@ class DiceSimilarityTransformer(CustomTransformer):
 
 
 class EditDistanceTransformer(CustomTransformer):
+    _unsupervised = True
+
     _modules_needed_by_name = ['editdistance==0.5.3']
 
     @staticmethod

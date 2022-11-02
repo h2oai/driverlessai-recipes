@@ -9,6 +9,8 @@ from uszipcode import SearchEngine
 
 
 class USZipcodeDBTransformer(CustomTransformer):
+    _unsupervised = True
+
     _allow_transform_to_modify_output_feature_names = True
 
     _numeric_output = True

@@ -8,6 +8,8 @@ from sklearn.decomposition import TruncatedSVD
 
 
 class TextCharTFIDFTransformer(CustomTransformer):
+    _unsupervised = True
+
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     def __init__(self, max_ngram, n_svd_comp, **kwargs):
@@ -52,6 +54,8 @@ class TextCharTFIDFTransformer(CustomTransformer):
 
 
 class TextCharCountTransformer(CustomTransformer):
+    _unsupervised = True
+
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     def __init__(self, max_ngram, n_svd_comp, **kwargs):

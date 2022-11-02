@@ -7,6 +7,8 @@ from typing import List
 
 class FactorAnalysisTransformer(CustomTransformer):
     _unsupervised = True
+
+    _unsupervised = True
     _display_name = "Factor Analysis (FA) Transformer"
 
     @staticmethod

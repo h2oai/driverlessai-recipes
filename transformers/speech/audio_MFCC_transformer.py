@@ -5,6 +5,8 @@ import numpy as np
 
 
 class AudioMFCCTransformer(CustomTransformer):
+    _unsupervised = True
+
     _modules_needed_by_name = ['librosa==0.8.1']
     _parallel_task = True  # if enabled, params_base['n_jobs'] will be >= 1 (adaptive to system), otherwise 1
     _can_use_gpu = True  # if enabled, will use special job scheduler for GPUs

@@ -16,6 +16,8 @@ from h2oaicore.separators import extra_prefix, orig_feat_prefix
 
 
 class DummyIdentityPreTransformer(CustomTransformer):
+    _unsupervised = True
+
     # only works with binomial problem for now
     _regression = True
     _binary = True

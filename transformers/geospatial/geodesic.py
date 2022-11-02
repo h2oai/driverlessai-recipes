@@ -12,6 +12,8 @@ _global_modules_needed_by_name = ['geopy==1.19.0']
 
 
 class Geodesic(CustomTransformer):
+    _unsupervised = True
+
 
     @staticmethod
     def get_default_properties():

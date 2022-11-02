@@ -8,6 +8,8 @@ from h2oaicore.transformers_cuml import ClusterDistCUMLTransformer
 
 
 class ClusterDistCUMLTransformerAll(ClusterDistCUMLTransformer, CustomTransformer):
+    _unsupervised = True
+
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
     def __init__(self, num_cols: List[str] = None, n_clusters=20, max_iter=50, tol=1e-2, init='scalable-k-means++',

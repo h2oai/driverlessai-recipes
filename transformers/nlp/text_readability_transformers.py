@@ -32,48 +32,72 @@ class ReadabilityTransformer:
 
 
 class AvgSentenceLengthTransformer(ReadabilityTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "avg_sentence_length"
 
 
 class AvgSyllablesPerWordTransformer(ReadabilityTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "avg_syllables_per_word"
 
 
 class AvgCharacterPerWordTransformer(ReadabilityTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "avg_character_per_word"
 
 
 class SyllableCountTransformer(ReadabilityTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "syllable_count"
 
 
 class PolySyllableCountTransformer(ReadabilityTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "polysyllabcount"
 
 
 class SmogIndexTransformer(ReadabilityTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "smog_index"
 
 
 class GunningFogTransformer(ReadabilityTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "gunning_fog"
 
 
 class FleschReadingEaseTransformer(ReadabilityTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "flesch_reading_ease"
 
 
 class ColemanLiauIndexTransformer(ReadabilityTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "coleman_liau_index"
 
 
 class AutomatedReadabilityIndexTransformer(ReadabilityTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "automated_readability_index"
 
 
 class DaleChallReadabilityScoreTransformer(ReadabilityTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "dale_chall_readability_score"
 
 
 class LinsearWriteFormulaTransformer(ReadabilityTransformer, CustomTransformer):
+    _unsupervised = True
+
     _method = "linsear_write_formula"

@@ -5,6 +5,8 @@ import numpy as np
 
 
 class PEImportsFeatures(CustomTransformer):
+    _unsupervised = True
+
     _modules_needed_by_name = ['lief==0.11.4']
     _regression = True
     _binary = True

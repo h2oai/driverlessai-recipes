@@ -12,6 +12,8 @@ import os
 
 
 class MyImgTransformer(TensorFlowModel, CustomTransformer):
+    _unsupervised = True
+
     # Need Pillow before nlp imports keras, else when here too late.
     # I.e. wasn't enough to put keras imports inside fit/transform to delay after Pillow installed
     _modules_needed_by_name = ['pillow==8.3.2']

@@ -8,6 +8,8 @@ import numpy as np
 
 
 class AirportOriginDestDTTransformer(CustomTransformer):
+    _unsupervised = True
+
     _display_name = 'AirportOriginDest'
     _allow_transform_to_modify_output_feature_names = True
 
