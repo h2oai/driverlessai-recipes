@@ -185,6 +185,8 @@ class Updatable_TextTransformer(Cached_TextTransformer):
     """
 
     _display_name = "Updatable_TextTransformer"
+    _unsupervised = False  # uses target
+    _uses_target = True  # uses target
 
     @staticmethod
     def get_parameter_choices():

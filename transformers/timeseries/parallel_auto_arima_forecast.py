@@ -57,6 +57,8 @@ class MyParallelAutoArimaTransformer(CustomTimeSeriesTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _lag_recipe_allowed = True
     _causal_recipe_allowed = False
+    _unsupervised = False  # uses target
+    _uses_target = True  # uses target
 
     @staticmethod
     def get_default_properties():

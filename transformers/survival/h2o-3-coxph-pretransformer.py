@@ -28,6 +28,8 @@ class SurvivalCoxPHPreTransformer(CustomTransformer):
     _default_as_pretransformer = True
     _must_be_pretransformer = True
     _only_as_pretransformer = True
+    _unsupervised = False  # uses target
+    _uses_target = True  # uses target
 
     # Duration (stop) column name
     _stop_column_name = "surv_days"
