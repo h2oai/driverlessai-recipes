@@ -78,6 +78,9 @@ class KolmogorovSmirnov(CustomScorer):
             class_0 = predicted[actual == labels[0]]
             class_1 = predicted[actual == labels[1]]
 
+            if len(class_0) == 0 or len(class_0) == 0:
+                return 0.0
+
             score = ks_2samp(class_0, class_1)[0]
 
             '''Validate that score is between 0 and 1'''
