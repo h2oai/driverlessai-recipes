@@ -19,6 +19,9 @@ class LogScaleBinner:
 
 class LogScaleTargetEncodingTransformer(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+    _unsupervised = False  # uses target
+    _uses_target = True  # uses target
+    _target_encoding_based = True
 
     @staticmethod
     def get_default_properties():

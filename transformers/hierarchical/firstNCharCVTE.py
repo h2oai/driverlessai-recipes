@@ -19,6 +19,8 @@ class firstNChars:
 
 class frst1ChrsCVTE(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+    _unsupervised = False  # uses target
+    _uses_target = True  # uses target
 
     @staticmethod
     def get_default_properties():
@@ -46,6 +48,8 @@ class frst1ChrsCVTE(CustomTransformer):
 
 class frst2ChrsCVTE(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+    _unsupervised = False  # uses target
+    _uses_target = True  # uses target
 
     @staticmethod
     def get_default_properties():
@@ -73,6 +77,8 @@ class frst2ChrsCVTE(CustomTransformer):
 
 class frst3ChrsCVTE(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+    _unsupervised = False  # uses target
+    _uses_target = True  # uses target
 
     @staticmethod
     def get_default_properties():
@@ -100,6 +106,8 @@ class frst3ChrsCVTE(CustomTransformer):
 
 class frst4ChrsCVTE(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
+    _unsupervised = False  # uses target
+    _uses_target = True  # uses target
 
     @staticmethod
     def get_default_properties():

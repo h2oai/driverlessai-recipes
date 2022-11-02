@@ -30,6 +30,8 @@ class suppress_stdout_stderr(object):
 class MySerialProphetTransformer(CustomTimeSeriesTransformer):
     _binary = False
     _multiclass = False
+    _unsupervised = False  # uses target
+    _uses_target = True  # uses target
     # some package dependencies are best sequential to overcome known issues
     froms3 = True
     if froms3:

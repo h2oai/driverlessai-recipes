@@ -34,6 +34,8 @@ from sklearn.preprocessing import LabelEncoder
 class RecH2OMFTransformer(CustomTransformer):
     _allow_transform_to_modify_output_feature_names = True
     _multiclass = False
+    _unsupervised = False  # uses target
+    _uses_target = True  # uses target
     _can_use_gpu = True
     _mf_type = "h2o4gpu"
 

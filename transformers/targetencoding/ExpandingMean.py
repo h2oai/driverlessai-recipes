@@ -10,6 +10,9 @@ from sklearn.preprocessing import LabelEncoder
 class ExpandingMean(CustomTransformer):
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _multiclass = False
+    _unsupervised = False  # uses target
+    _uses_target = True  # uses target
+    _target_encoding_based = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
