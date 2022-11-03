@@ -1,12 +1,12 @@
 """Variety of unsupervised models that mimic internal versions but includes text handling via text embedding using custom transformer"""
 import importlib
+import sys
 
 from h2oaicore.systemutils import config
 from h2oaicore.transformer_utils import CustomUnsupervisedTransformer, Transformer, strip_geneid
 from h2oaicore.models import CustomUnsupervisedModel
 import datatable as dt
 from h2oaicore.models_main import MainModel
-import numpy as np
 
 
 class KMeansFreqTextModel(CustomUnsupervisedModel):
@@ -131,7 +131,6 @@ class NumCatTxtPreTransformer(CustomUnsupervisedTransformer):
         self.txt_cols = None
 
         # fastest way to get the right transformer
-        import sys
         if self._num:
             NumTrans = getattr(sys.modules['h2oaicore.transformers'], self._num[0], False) or \
                        getattr(sys.modules['h2oaicore.transformers_more'], self._num[0], False)
@@ -143,21 +142,7 @@ class NumCatTxtPreTransformer(CustomUnsupervisedTransformer):
             self.cat_cols = col_dict[self._cat[1]]
             self.cat_cols = sorted(set([x for x in self.cat_cols if x in set_all_cols]))
         if self._txt:
-            name = 'transformers'
-            from h2oaicore.utils import ContribLoader
-            # 'text_preprocessing' is pattern matching name of file for custom recipe we wish to use
-            module_names = [k for k, v in sys.modules.items() if
-                            '%s%s' % (ContribLoader._contentpattern, name) in k and self._txt[0] in dir(v)]
-            if name in config.recipe_activation and self._txt[0] in config.recipe_activation[name]:
-                file_name = config.recipe_activation[name][self._txt[0]].split('|')[1]
-                module_names = [x for x in module_names if file_name in x]
-                assert len(module_names) > 0, "Missing %s recipe, please upload" % self._txt[0]
-                assert len(module_names) == 1, "Unexpected multiple matches for %s recipe" % self._txt[0]
-                module_name = module_names[0]
-            else:
-                # for acceptance testing, unsure how else to know which one to use unless specify exact match
-                assert len(module_names) > 0, "Missing %s recipe, please upload" % self._txt[0]
-                module_name = module_names[-1]  # use latest one.
+            module_name = self.get_text_module_name()
             TxtTrans = getattr(importlib.import_module(module_name), self._txt[0])
             self.txt_cols = col_dict[self._txt[1]]
             self.txt_cols = sorted(set([x for x in self.txt_cols if x in set_all_cols]))
@@ -186,6 +171,26 @@ class NumCatTxtPreTransformer(CustomUnsupervisedTransformer):
             self.union = [([x], CatTrans(cat_cols=[x], input_feature_names=[x], **kwargs)) for x in self.cat_cols]
         elif self.num_cols and NumTrans:
             self.union = [([x], NumTrans(num_cols=[x], input_feature_names=[x], **kwargs)) for x in self.num_cols]
+
+    def get_text_module_name(self):
+        name = 'transformers'
+        from h2oaicore.utils import ContribLoader
+        # 'text_preprocessing' is pattern matching name of file for custom recipe we wish to use
+        module_names = [k for k, v in sys.modules.items() if
+                        '%s%s' % (ContribLoader._contentpattern, name) in k and self._txt[0] in dir(v)]
+        if name in config.recipe_activation and self._txt[0] in config.recipe_activation[name]:
+            file_name = config.recipe_activation[name][self._txt[0]].split('|')[1]
+            module_names = [x for x in module_names if file_name in x]
+            assert len(module_names) > 0, "Missing %s recipe, please upload" % self._txt[0]
+            assert len(module_names) == 1, "Unexpected multiple matches for %s recipe" % self._txt[0]
+            module_name = module_names[0]
+        else:
+            # for acceptance testing, unsure how else to know which one to use unless specify exact match
+            assert len(module_names) > 0, "Missing %s recipe," \
+                                          " please upload (config.recipe_activation=%s)" % \
+                                          (self._txt[0], config.recipe_activation)
+            module_name = module_names[-1]  # use latest one.
+        return module_name
 
     def transform(self, X, y=None, **fit_params):
         frames = []
