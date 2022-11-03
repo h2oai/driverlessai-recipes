@@ -82,8 +82,7 @@ abled.
  [1.10.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.1)
  [1.10.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.2)
  [1.10.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.3)
- [1.10.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.4)
-### Count: 267
+### Count: 269
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [Load custom recipes on air-gapped installations.] 
 * [DATA](./data)
@@ -244,6 +243,7 @@ abled.
     * [historic_mean.py](./models/timeseries/historic_mean.py) [Historic Mean for Time-Series problems. Predicts the mean of the target for each timegroup for regression problems.] 
     * [ts_rnn.py](./models/timeseries/ts_rnn.py) [Recurrent Neural Networks with Convolution for Time-series problems using LSTM, GRU or Elman cells.] 
   * [UNSUPERVISED](./models/unsupervised)
+    * [TextKMeansIsolationForest.py](./models/unsupervised/TextKMeansIsolationForest.py) [Variety of unsupervised models that mimic internal versions but includes text handling via text embedding using custom transformer] 
     * [TextSentiment.py](./models/unsupervised/TextSentiment.py) [Extract sentiment from text using pretrained models from TextBlob] 
     * [aggregator.py](./models/unsupervised/aggregator.py) [Unsupervised Aggregator algorithm (by Leland Wilkinson) to segment data into user-given number of exemplars] 
     * [dbscan.py](./models/unsupervised/dbscan.py) [Clustering using DBScan] 
@@ -273,6 +273,7 @@ abled.
       * [cost_access_to_data.py](./scorers/classification/binary/cost_access_to_data.py) [Same as CostBinary, but provides access to full Data] 
       * [cost_smooth.py](./scorers/classification/binary/cost_smooth.py) [Using hard-coded dollar amounts x for false positives and y for false negatives, calculate the cost of a model using: `(1 - y_true) * y_pred * fp_cost + y_true * (1 - y_pred) * fn_cost`] 
       * [fair_auc.py](./scorers/classification/binary/fair_auc.py) [Custom scorer for detecting and reducing bias in machine learning models.] 
+      * [kolmogorov_smirnov.py](./scorers/classification/binary/kolmogorov_smirnov.py) [Kolmogorov-Smirnov scorer recipe.If you need to print debug messages into DAI log, uncomment lines with logger and loggerinfo.Starting 1.10.2 - DAI handles exceptions raised by custom scorers.Default DAI behavior is to continue experiment in case of Scorer failure.To enable forcing experiment to fail, in case of scorer error, set following parameters in DAI:  - skip_scorer_failures=false (Disabled)  - skip_model_failures=false (Disabled)] 
       * [logloss_with_costs.py](./scorers/classification/binary/logloss_with_costs.py) [Logloss with costs associated with each type of 4 outcomes - typically applicable to fraud use case] 
       * [marketing_campaign.py](./scorers/classification/binary/marketing_campaign.py) [Computes the mean profit per outbound marketing letter, given a fraction of the population addressed, and fixed cost and reward] 
       * [profit.py](./scorers/classification/binary/profit.py) [Profit Scorer for binary classification] 

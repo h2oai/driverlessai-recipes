@@ -49,7 +49,6 @@ class KolmogorovSmirnov(CustomScorer):
         return make_experiment_logger(experiment_id=application_context.context.experiment_id, tmp_dir=None,
                                       experiment_tmp_dir=exp_dir())
 
-
     def score(self, actual: np.array, predicted: np.array, sample_weight: typing.Optional[np.array] = None,
               labels: typing.Optional[np.array] = None) -> float:
         """
@@ -96,5 +95,3 @@ class KolmogorovSmirnov(CustomScorer):
             loggerinfo(logger, 'Error during KS score calculation. Exception raised: %s' % str(e))
             raise
         return score
-
-

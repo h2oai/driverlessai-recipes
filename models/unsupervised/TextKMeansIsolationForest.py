@@ -107,8 +107,9 @@ class NumCatTxtPreTransformer(CustomUnsupervisedTransformer):
         num_out = len(self._output_feature_names)
         # make short version, don't want to have long description for every feature if have thousands of features
         self._feature_desc = \
-            ["Pretransformer for {} numeric column(s) and {} categorical columns(s) and {} text columns(s), component {} out of {}".
-                 format(ncols, ccols, tcols, x, num_out) for x in range(num_out)]
+            [
+                "Pretransformer for {} numeric column(s) and {} categorical columns(s) and {} text columns(s), component {} out of {}".
+                    format(ncols, ccols, tcols, x, num_out) for x in range(num_out)]
 
     def __init__(self, all_cols, **kwargs):
         Transformer.__init__(self, **kwargs)
@@ -145,7 +146,8 @@ class NumCatTxtPreTransformer(CustomUnsupervisedTransformer):
             name = 'transformers'
             from h2oaicore.utils import ContribLoader
             # 'text_preprocessing' is pattern matching name of file for custom recipe we wish to use
-            module_names = [k for k, v in sys.modules.items() if '%s%s' % (ContribLoader._contentpattern, name) in k and self._txt[0] in dir(v)]
+            module_names = [k for k, v in sys.modules.items() if
+                            '%s%s' % (ContribLoader._contentpattern, name) in k and self._txt[0] in dir(v)]
             if name in config.recipe_activation and self._txt[0] in config.recipe_activation[name]:
                 file_name = config.recipe_activation[name][self._txt[0]].split('|')[1]
                 module_names = [x for x in module_names if file_name in x]
