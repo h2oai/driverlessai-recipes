@@ -1,5 +1,6 @@
 """Variety of unsupervised models that mimic internal versions but includes text handling via text embedding using custom transformer"""
 import importlib
+import os
 import sys
 
 from h2oaicore.systemutils import config
@@ -172,8 +173,10 @@ class NumCatTxtPreTransformer(CustomUnsupervisedTransformer):
         elif self.num_cols and NumTrans:
             self.union = [([x], NumTrans(num_cols=[x], input_feature_names=[x], **kwargs)) for x in self.num_cols]
 
-    def get_text_module_name(self):
+    @staticmethod
+    def get_text_module_name():
         name = 'transformers'
+        self = NumCatTxtPreTransformer
         from h2oaicore.utils import ContribLoader
         # 'text_preprocessing' is pattern matching name of file for custom recipe we wish to use
         module_names = [k for k, v in sys.modules.items() if
@@ -191,6 +194,15 @@ class NumCatTxtPreTransformer(CustomUnsupervisedTransformer):
                                           (self._txt[0], config.recipe_activation)
             module_name = module_names[-1]  # use latest one.
         return module_name
+
+    def file_deps(self):
+        """
+        Get dependent modules that aren't directly top-level used by DAI
+        :return:
+        """
+        module_name = self.get_text_module_name()
+        file_name = os.path.abspath(sys.modules[module_name].__file__)
+        return [file_name]
 
     def transform(self, X, y=None, **fit_params):
         frames = []
