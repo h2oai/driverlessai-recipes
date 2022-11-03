@@ -1,12 +1,12 @@
 """Variety of unsupervised models that mimic internal versions but includes text handling via text embedding using custom transformer"""
-import importlib
-import os
 import sys
+import numpy as np
+import datatable as dt
 
+from h2oaicore.separators import orig_feat_prefix, extra_prefix
 from h2oaicore.systemutils import config
 from h2oaicore.transformer_utils import CustomUnsupervisedTransformer, Transformer, strip_geneid
 from h2oaicore.models import CustomUnsupervisedModel
-import datatable as dt
 from h2oaicore.models_main import MainModel
 
 
