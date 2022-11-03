@@ -83,7 +83,8 @@ abled.
  [1.10.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.2)
  [1.10.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.3)
  [1.10.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.4)
-### Count: 267
+ [1.10.4.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.4.1)
+### Count: 268
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [Load custom recipes on air-gapped installations.] 
 * [DATA](./data)
@@ -244,6 +245,7 @@ abled.
     * [historic_mean.py](./models/timeseries/historic_mean.py) [Historic Mean for Time-Series problems. Predicts the mean of the target for each timegroup for regression problems.] 
     * [ts_rnn.py](./models/timeseries/ts_rnn.py) [Recurrent Neural Networks with Convolution for Time-series problems using LSTM, GRU or Elman cells.] 
   * [UNSUPERVISED](./models/unsupervised)
+    * [TextKMeansIsolationForest.py](./models/unsupervised/TextKMeansIsolationForest.py) [Variety of unsupervised models that mimic internal versions but includes text handling via text embedding using custom transformer] 
     * [TextSentiment.py](./models/unsupervised/TextSentiment.py) [Extract sentiment from text using pretrained models from TextBlob] 
     * [aggregator.py](./models/unsupervised/aggregator.py) [Unsupervised Aggregator algorithm (by Leland Wilkinson) to segment data into user-given number of exemplars] 
     * [dbscan.py](./models/unsupervised/dbscan.py) [Clustering using DBScan] 

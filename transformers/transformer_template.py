@@ -15,7 +15,7 @@ class CustomTransformer(DataTableTransformer):
 
     """By default, we want a transformer to work with all types of supervised problems.
     Please disable the problem types it cannot support."""
-    _unsupervised = False  # if True, then must ignore y
+    _unsupervised = True  # if True, then must ignore y (generally most transformers can be used for unsupervised)
     _regression = True  # y has shape (N,) and is of numeric type, no missing values
     _binary = True  # y has shape (N,) and can be numeric or string, cardinality 2, no missing values
     _multiclass = True  # y has shape (N,) and can be numeric or string, cardinality 3+, no missing values
