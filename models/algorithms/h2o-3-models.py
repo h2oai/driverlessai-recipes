@@ -256,10 +256,10 @@ class H2OBaseModel:
                     else:
                         sort_metric = 'rmse'
                     loggerinfo(self.get_logger(**kwargs), "%s (%s) using backup for sort_metric: %s" % (
-                    self.display_name, self.__class__.__module__, sort_metric))
+                        self.display_name, self.__class__.__module__, sort_metric))
                 else:
                     loggerinfo(self.get_logger(**kwargs), "%s (%s) using DAI %s for sort_metric: %s" % (
-                    self.display_name, self.__class__.__module__, dai_score_upper, sort_metric))
+                        self.display_name, self.__class__.__module__, dai_score_upper, sort_metric))
                 params['sort_metric'] = sort_metric
                 if os.environ.get("H2O_TE", '0') == '1':
                     params['preprocessing'] = ["target_encoding"]
