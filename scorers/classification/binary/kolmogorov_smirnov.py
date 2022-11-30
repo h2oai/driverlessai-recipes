@@ -80,7 +80,12 @@ class KolmogorovSmirnov(CustomScorer):
             if len(class_0) == 0 or len(class_0) == 0:
                 return 0.0
 
-            score = ks_2samp(class_0, class_1)[0]
+            try:
+                score = ks_2samp(class_0, class_1)[0]
+            except Exception as e2:
+                if 'Data passed to ks_2samp must not be empty' in str(e2):
+                    return 0.0
+                raise
 
             '''Validate that score is between 0 and 1'''
             if 0 <= score <= 1:
