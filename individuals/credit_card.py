@@ -309,8 +309,7 @@ class Indiv_testcreditcard9f03bf55dpawisaco_finalTrue_id0(CustomIndividual):
         # One can set cols_to_force_in and cols_to_force_in_sanitized to force in a feature at the experiment or individual level,
         # or one can pass force=True to the entire gene in add_transformer() below in set_genes()
         #
-        self.config_dict_individual = {'allowed_coltypes_for_tgc_as_features': [],
-                                       'glm_optimal_refit': False,
+        self.config_dict_individual = {'glm_optimal_refit': False,
                                        'included_transformers': ['AutovizRecommendationsTransformer',
                                                                  'BERTTransformer',
                                                                  'CVCatNumEncodeTransformer',
