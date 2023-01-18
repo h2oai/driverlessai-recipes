@@ -84,7 +84,8 @@ abled.
  [1.10.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.3)
  [1.10.4](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.4)
  [1.10.4.1](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.4.1)
-### Count: 269
+ [1.10.4.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.4.2)
+### Count: 271
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [Load custom recipes on air-gapped installations.] 
 * [DATA](./data)
@@ -199,6 +200,7 @@ abled.
     * [autogluon.py](./models/algorithms/autogluon.py) [AutoGluon + RAPIDS] 
     * [calibratedClassifier.py](./models/algorithms/calibratedClassifier.py) [ Calibrated Classifier Model: To calibrate predictions using Platt's scaling, Isotonic Regression or Splines] <kbd>✓ MOJO Enabled</kbd>
     * [catboost.py](./models/algorithms/catboost.py) [CatBoost gradient boosting by Yandex. Currently supports regression and binary classification.] 
+    * [catboost_regression_uncertanity.py](./models/algorithms/catboost_regression_uncertanity.py) [please add description] 
     * [daal_trees.py](./models/algorithms/daal_trees.py) [Binary Classification and Regression for Decision Forest and Gradient Boosting based on Intel DAAL] 
     * [datatable_glm.py](./models/algorithms/datatable_glm.py) [datatable Linear Model] 
     * [extra_trees.py](./models/algorithms/extra_trees.py) [Extremely Randomized Trees (ExtraTrees) model from sklearn] 
@@ -267,6 +269,7 @@ abled.
   * [CLASSIFICATION](./scorers/classification)
     * [f3_score.py](./scorers/classification/f3_score.py) [F3 Score] 
     * [f4_score.py](./scorers/classification/f4_score.py) [F4 Score] 
+    * [probF.py](./scorers/classification/probF.py) [Probabilistic F Score with optimized threshold] 
     * [BINARY](./scorers/classification/binary)
       * [average_mcc.py](./scorers/classification/binary/average_mcc.py) [Averaged Matthews Correlation Coefficient (averaged over several thresholds, for imbalanced problems). Example how to use Driverless AI's internal scorer.] 
       * [balanced_accuracy.py](./scorers/classification/binary/balanced_accuracy.py) [balanced_accuracy_score] 
