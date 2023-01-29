@@ -145,6 +145,7 @@ abled.
     * [sentiment_score_vader.py](./data/nlp/sentiment_score_vader.py) [Data recipe to get sentiment score using vader] 
     * [text_summarization.py](./data/nlp/text_summarization.py) [Data recipe to get summary of text using gensim] 
     * [tokenize_chinese.py](./data/nlp/tokenize_chinese.py) [Chinese text tokenization using jieba package - https://github.com/fxsjy/jieba] 
+    * [tokenize_japanese.py](./data/nlp/tokenize_japanese.py) [Japanese text tokenization using janome package - https://mocobeta.github.io/janome/en/] 
     * [topic_modeling.py](./data/nlp/topic_modeling.py) [Data recipe to perform topic modeling] 
     * [twitter_preprocessing_recipe.py](./data/nlp/twitter_preprocessing_recipe.py) [Preprocess the tweets by normalising username, removing unnecessary punctuations, expanding the hashtags] 
   * [UNSUPERVISED](./data/unsupervised)
