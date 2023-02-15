@@ -14,10 +14,11 @@ class ProbF1Opt2(CustomScorer):
     _binary = True
     _multiclass = True
     _maximize = True
-    _perfect_score = 0
+    _perfect_score = 1.0
     _display_name = "ProbF1Opt2"
     _needs_X = True  # not required, but in order to group by some ID
     _group_id = 'patient_id'
+    _group_also_laterality = True
     _opt_threshold = True
 
     def pfbeta(self, labels, predictions, beta=1.0, sample_weight=None, threshold=None, X=None):
@@ -27,6 +28,9 @@ class ProbF1Opt2(CustomScorer):
             https://aclanthology.org/2020.eval4nlp-1.9.pdf
 
             https://www.kaggle.com/code/sohier/probabilistic-f-score/comments
+
+            Should disable bootstrapping via TOML enable_bootstrap=false
+
         :param labels:
         :param predictions:
         :param beta:
@@ -36,17 +40,35 @@ class ProbF1Opt2(CustomScorer):
         if threshold is not None:
             predictions[predictions < threshold] = 0
 
-        if self._group_id is not None and self._group_id in X.names:
-            # ensure some ID has same (and good) probs since
-            # e.g. is some patient ID and same patient can't have different outcome for cancer
-            df = pd.DataFrame(predictions, columns=['predictions'])
-            df[self._group_id] = X[:, self._group_id].to_pandas()
-            max_predictions = df.groupby(self._group_id).transform('max')['predictions']  #(lambda x: x.max())['predictions']
-            mean_predictions = df.groupby(self._group_id).transform('mean')['predictions']  #(lambda x: x.mean())['predictions']
-            predictions = 0.5 * (max_predictions + mean_predictions)
-
         predictions[predictions < 0.0] = 0.0
         predictions[predictions > 1.0] = 1.0
+
+        if self._group_id is not None and self._group_id in X.names:
+            lat = 'laterality'
+            if not self._group_also_laterality:
+                # ensure some ID has same (and good) probs since
+                # e.g. is some patient ID and same patient can't have different outcome for cancer
+                df = pd.DataFrame(predictions, columns=['predictions'])
+                df[self._group_id] = X[:, self._group_id].to_pandas()
+                max_predictions = df.groupby(self._group_id).transform('max')['predictions']  #(lambda x: x.max())['predictions']
+                mean_predictions = df.groupby(self._group_id).transform('mean')['predictions']  #(lambda x: x.mean())['predictions']
+                predictions = 0.5 * (max_predictions + mean_predictions)
+            elif lat in X.names:
+                # group by prediction_id, the actual target ID
+                df = pd.DataFrame(predictions, columns=['predictions'])
+                df[self._group_id] = X[:, self._group_id].to_pandas()
+                df[lat] = X[:, lat].to_pandas()
+
+                prediction_ids = df['patient_id'].astype(str) + '_' + df['laterality'].astype(str)
+                df_preds = pd.DataFrame({"proba": predictions, 'y': labels, 'prediction_id': prediction_ids.ravel()})
+                df_preds = df_preds.groupby('prediction_id')[['proba', 'y']].max().reset_index()
+
+                predictions = df_preds['proba'].values
+                labels = df_preds['y'].values
+                prediction_ids = df_preds.index.values  # unused
+            else:
+                pass
+
         sw = sample_weight if sample_weight is not None else np.ones(predictions.shape)
 
         y_true_count = np.sum(sw[labels > 0])
