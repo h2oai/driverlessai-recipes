@@ -17,4 +17,4 @@ class CountPositivePerRowTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        return X[:, dt.sum([(dt.f[x] > 0) for x in range(X.ncols)])]
+        return X[:, dt.rowsum(dt.f[:] > 0)]
