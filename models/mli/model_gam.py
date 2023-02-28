@@ -190,6 +190,14 @@ class GAM(CustomModel):
             if 'On entry to DLASCL parameter number' in str(e):
                 raise IgnoreError('On entry to DLASCL parameter number') from e
             raise
+        except:
+            t, v, tb = sys.exc_info()
+            ex = ''.join(traceback.format_exception(t, v, tb))
+            print(ex)
+            if 'SVD did not converge' in str(ex):
+                raise IgnoreError(str(ex))
+            else:
+                raise
 
         p_values = np.array(clf.statistics_['p_values'])
 
