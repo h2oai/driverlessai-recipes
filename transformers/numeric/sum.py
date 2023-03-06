@@ -32,4 +32,4 @@ class SumTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        return X[:, dt.sum([dt.f[x] for x in range(X.ncols)])]
+        return X[:, dt.rowsum(dt.f[:])]
