@@ -41,7 +41,8 @@ explore_model_prob = max(explore_model_prob_lowest, explore_model_prob * explore
 
                        prob_perturb_xgb="Unnormalized probability to change model hyperparameters",
                        prob_prune_genes="Unnormalized probability to prune genes",
-                       prob_prune_by_features="Unnormalized probability to prune features",
+                       prob_prune_by_features="Unnormalized probability to prune weak features",
+                       prob_prune_by_top_features="Unnormalized probability to prune top features",
                        prob_add_genes="Unnormalized probability to add genes",
                        prob_addbest_genes="Unnormalized probability to add best genes",
 
@@ -77,10 +78,12 @@ True means can do TE, False means cannot do TE, 'only' means only have TE
                          prob_perturb_xgb=float,
                          prob_prune_genes=float,
                          prob_prune_by_features=float,
+                         prob_prune_by_top_features=float,
                          prob_add_genes=float,
                          prob_addbest_genes=float,
                          prob_prune_pretransformer_genes=float,
                          prob_prune_pretransformer_by_features=float,
+                         prob_prune_pretransformer_by_top_features=float,
 
                          random_state=int,
                          num_as_cat=bool,
