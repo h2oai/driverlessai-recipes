@@ -555,7 +555,11 @@ class AutoARIMAParallelModel(CustomTimeSeriesModel):
         # Predict y using unique dates
         X_time = X[["ds"]].groupby("ds").first().reset_index()
         with suppress_stdout_stderr():
-            y_avg = avg_model.predict(h = X_time.shape[0])['mean']
+            if len(exogenous_vars) > 0:
+                y_avg = avg_model.predict(h = X_time.shape[0], 
+                                          X = X.sort_values("ds").loc[:, exogenous_vars].values.astype(float))['mean'] #AutoArima accepts only numpy arrays
+            else:
+                y_avg = avg_model.predict(h = X_time.shape[0])['mean']
             
 
         ### AutoARIMA returns the results in sorted time order so allow for that
