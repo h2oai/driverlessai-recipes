@@ -486,7 +486,11 @@ class AutoARIMAParallelModel(CustomTimeSeriesModel):
         if model is not None:
             try:
                 # Run AutoARIMA
-                yhat = model.predict(h = X.shape[0])['mean']   
+                # Run AutoARIMA
+                if len(exogenous_vars) > 0:
+                    yhat = model.predict(h = X.shape[0], X = X.sort_values("ds").loc[:, exogenous_vars].values.astype(float))['mean'] #AutoArima accepts only numpy arrays
+                else:
+                    yhat = model.predict(h = X.shape[0])['mean']
                 
                 XX = pd.DataFrame(yhat, columns=["yhat"])
             except:
