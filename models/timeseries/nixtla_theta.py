@@ -5,7 +5,7 @@ Uses AutoTheta implemented in https://github.com/Nixtla/statsforecast
 
 Current limitations:
 (1) No handling for prediction "gap"
-(2) Enable user to pass in seasonality length to run AutoTheta with seasonality.  NOTE: Not passing any seasonality parameter will result in ARIMA (current default)
+(2) Enable user to pass in seasonality length to run AutoTheta with seasonality.  NOTE: The seasonality will be infered based on the temporal column.
 """
 
 import importlib
