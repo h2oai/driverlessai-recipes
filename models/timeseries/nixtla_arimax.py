@@ -363,10 +363,7 @@ class AutoARIMAParallelModel(CustomTimeSeriesModel):
 
         with suppress_stdout_stderr():
             try:
-                if len(exogenous_vars) > 0:
-                    model.fit(X['y'].values, X.loc[:, exogenous_vars].values.astype(float)) #AutoArima accepts only numpy arrays
-                else:
-                    model.fit(X['y'].values)
+                model.fit(X['y'].values)
             except:
                 #try a fallback model i.e. SeasonalNaive
                 model = mod.SeasonalNaive(season_length=self.params["season_length"])
@@ -555,11 +552,7 @@ class AutoARIMAParallelModel(CustomTimeSeriesModel):
         # Predict y using unique dates
         X_time = X[["ds"]].groupby("ds").first().reset_index()
         with suppress_stdout_stderr():
-            if len(exogenous_vars) > 0:
-                y_avg = avg_model.predict(h = X_time.shape[0], 
-                                          X = X.sort_values("ds").loc[:, exogenous_vars].values.astype(float))['mean'] #AutoArima accepts only numpy arrays
-            else:
-                y_avg = avg_model.predict(h = X_time.shape[0])['mean']
+            y_avg = avg_model.predict(h = X_time.shape[0])['mean']
             
 
         ### AutoARIMA returns the results in sorted time order so allow for that
