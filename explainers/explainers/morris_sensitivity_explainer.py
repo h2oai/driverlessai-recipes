@@ -30,6 +30,16 @@ class MorrisSensitivityLeExplainer(CustomExplainer, CustomDaiExplainer):
 
     # explainer display name (used e.g. in UI explainer listing)
     _display_name = "Morris Sensitivity Analysis"
+    _description = (
+        "Morris sensitivity analysis explainer provides Morris SA based feature "
+        "importance which is a measure of the contribution of an input variable "
+        "to the overall predictions of the Driverless AI model. In applied "
+        "statistics, the Morris method for global sensitivity analysis is a so-called "
+        "one-step-at-a-time method (OAT), meaning that in each run only one "
+        "input parameter is given a new value."
+        "This Morris sensitivity analysis explainer is based based on InterpretML"
+        "library (http://interpret.ml)."
+    )
     # declaration of supported experiments: regression / binary / multiclass
     _regression = True
     _binary = True
@@ -38,7 +48,7 @@ class MorrisSensitivityLeExplainer(CustomExplainer, CustomDaiExplainer):
     # declaration of explanation types this explainer creates e.g. feature importance
     _explanation_types = [GlobalFeatImpExplanation]
     # Python package dependencies (can be installed using pip)
-    _modules_needed_by_name = ["gevent==1.5.0", "interpret==0.1.20"]
+    _modules_needed_by_name = ["interpret==0.3.2"]
 
     # explainer constructor must not have any required parameters
     def __init__(self):
@@ -63,7 +73,7 @@ class MorrisSensitivityLeExplainer(CustomExplainer, CustomDaiExplainer):
 
     # explain() method is responsible for the creation of the explanations
     def explain(
-            self, X, y=None, explanations_types: list = None, **kwargs
+        self, X, y=None, explanations_types: list = None, **kwargs
     ) -> list:
         # 3rd party Morris SA library import
         from interpret.blackbox import MorrisSensitivity
@@ -79,9 +89,9 @@ class MorrisSensitivityLeExplainer(CustomExplainer, CustomDaiExplainer):
 
         # PREDICT FUNCTION: Driverless AI scorer -> library compliant predict function
         def predict_function(
-                pred_fn, col_names, cat_variables, label_encoder, X
+            pred_fn, col_names, cat_variables, label_encoder, X
         ):
-            X = pd.DataFrame(X.tolist(), columns=col_names)
+            X = pd.DataFrame(X, columns=col_names)
 
             # categorical features inverse label encoding used in case of 3rd party
             # libraries which support numeric only
@@ -109,7 +119,7 @@ class MorrisSensitivityLeExplainer(CustomExplainer, CustomDaiExplainer):
 
         # CALCULATION of the Morris SA explanation
         sensitivity: MorrisSensitivity = MorrisSensitivity(
-            predict_fn=predict_fn, data=x, feature_names=list(x.columns)
+            model=predict_fn, data=x, feature_names=list(x.columns)
         )
         morris_explanation = sensitivity.explain_global(name=self.display_name)
 
@@ -163,14 +173,17 @@ class MorrisSensitivityLeExplainer(CustomExplainer, CustomDaiExplainer):
                 jdf.COL_NAME: morris_explanation.data()["names"],
                 jdf.COL_IMPORTANCE: list(morris_explanation.data()["scores"]),
                 jdf.COL_GLOBAL_SCOPE: [True]
-                                      * len(morris_explanation.data()["scores"]),
+                * len(morris_explanation.data()["scores"]),
             }
         ).sort(-dt.f[jdf.COL_IMPORTANCE])
         # index file (of per-class data files)
         (
             idx_dict,
             idx_str,
-        ) = GlobalFeatImpJSonDatatableFormat.serialize_index_file(["global"])
+        ) = GlobalFeatImpJSonDatatableFormat.serialize_index_file(
+            ["global"],
+            doc=MorrisSensitivityLeExplainer._description,
+        )
         json_dt_format = GlobalFeatImpJSonDatatableFormat(explanation, idx_str)
         json_dt_format.update_index_file(
             idx_dict, total_rows=explanation_frame.shape[0]
