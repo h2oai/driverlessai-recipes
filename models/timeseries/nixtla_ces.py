@@ -304,7 +304,12 @@ class AutoCESParallelModel(CustomTimeSeriesModel):
         X.rename(columns={self.time_column: "ds"}, inplace=True)
         
         #Sort the X dataframe expects target values to be in sorted order
-        X.sort_values(["unique_id", "ds"], inplace=True, ignore_index = True)
+        if len(tgc_wo_time) > 0:
+            cols_to_sort = tgc_wo_time + ["ds"]
+        else:
+            cols_to_sort = ["ds"]
+        X.sort_values(cols_to_sort, inplace=True, ignore_index = True)
+
         # transform to datetime to try to infer the frequency
         X["ds"] = pd.to_datetime(X["ds"])
         infered_freq = pd.infer_freq(X["ds"].iloc[:5])
