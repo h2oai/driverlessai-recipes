@@ -36,6 +36,8 @@ import uuid
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
 
+FREQS = {"MS": 12, "M": 12, "D": 7, "Q": 4, "QS": 4, "H": 24}
+
 class suppress_stdout_stderr(object):
     def __init__(self):
         self.null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
@@ -97,7 +99,7 @@ class AutoThetaParallelModel(CustomTimeSeriesModel):
         )
 
     def mutate_params(self, accuracy, time_tolerance, interpretability, **kwargs):
-        # No mutation required for any parameters for AutoArima
+        # No mutation required for any parameters for AutoTheta
         pass
         
 
@@ -283,6 +285,7 @@ class AutoThetaParallelModel(CustomTimeSeriesModel):
         
         tgc_wo_time = list(np.setdiff1d(self.tgc, self.time_column))
         X = X.to_pandas()
+
         #collect the column names of the non TGC columns used as predictors
         exogenous_vars = list( np.setdiff1d(X.columns, self.tgc + [self.time_column] ) )
 
@@ -300,9 +303,18 @@ class AutoThetaParallelModel(CustomTimeSeriesModel):
         # Change date feature name to match autotheta requirements
         X.rename(columns={self.time_column: "ds"}, inplace=True)
         
-        #Sort the X dataframe as AutoArima expects target values to be in sorted order
-        X.sort_values("ds", inplace=True, ignore_index = True)
+        #Sort the X dataframe expects target values to be in sorted order
+        X.sort_values(["unique_id", "ds"], inplace=True, ignore_index = True)
+        # transform to datetime to try to infer the frequency
+        X["ds"] = pd.to_datetime(X["ds"])
+        infered_freq = pd.infer_freq(X["ds"].iloc[:5])
+        if infered_freq is not None:
+            # update season length
+            self.params["season_length"] = FREQS.get(infered_freq, 1)
         
+            loggerinfo(
+                logger, "Updated season_length based on inference"
+            )
 
         # Create a general scale now that will be used for unknown groups at prediction time
         # Can we do smarter than that ?
@@ -475,7 +487,7 @@ class AutoThetaParallelModel(CustomTimeSeriesModel):
                 XX = pd.DataFrame(
                 np.full((X.shape[0], 1), nan_value), columns=["yhat"]
                 ) # AutoTheta generated error while predicting
- 
+                
         else:
             XX = pd.DataFrame(
                 np.full((X.shape[0], 1), nan_value), columns=["yhat"]
