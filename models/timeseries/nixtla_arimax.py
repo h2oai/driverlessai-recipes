@@ -359,7 +359,7 @@ class AutoARIMAParallelModel(CustomTimeSeriesModel):
 
         # Send that to autoarima
         mod = importlib.import_module("statsforecast.models")
-        model = mod.AutoARIMA(season_length = params["season_length"], allowmean=True, approximation = True)  
+        model = mod.AutoARIMA(season_length = self.params["season_length"], allowmean=True, approximation = True)  
 
         with suppress_stdout_stderr():
             try:
