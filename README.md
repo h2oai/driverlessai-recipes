@@ -87,7 +87,7 @@ abled.
  [1.10.4.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.4.2)
  [1.10.4.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.4.3)
  [1.10.5](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.5)
-### Count: 272
+### Count: 276
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [Load custom recipes on air-gapped installations.] 
 * [DATA](./data)
@@ -248,6 +248,10 @@ abled.
     * [fb_prophet.py](./models/timeseries/fb_prophet.py) [Prophet by Facebook for TimeSeries with an example of parameter mutation.] 
     * [fb_prophet_parallel.py](./models/timeseries/fb_prophet_parallel.py) [Prophet by Facebook for TimeSeries with an example of parameter mutation.] 
     * [historic_mean.py](./models/timeseries/historic_mean.py) [Historic Mean for Time-Series problems. Predicts the mean of the target for each timegroup for regression problems.] 
+    * [nixtla_arimax.py](./models/timeseries/nixtla_arimax.py) [AutoARIMA for TimeSeries Forecasting Uses AutoARIMA implemented in https://github.com/Nixtla/statsforecastCurrent limitations:(1) No handling for prediction "gap"(2) Enable user to pass in seasonality length to run AutoARIMA with seasonality.  NOTE: Not passing any seasonality parameter will result in ARIMA (current default)] 
+    * [nixtla_ces.py](./models/timeseries/nixtla_ces.py) [AutoCES for TimeSeries Forecasting Uses AutoCES implemented in https://github.com/Nixtla/statsforecastCurrent limitations:(1) No handling for prediction "gap"(2) Enable user to pass in seasonality length to run AutoCES with seasonality.  NOTE: The seasonality will be infered based on the temporal column.] 
+    * [nixtla_ets.py](./models/timeseries/nixtla_ets.py) [AutoETS for TimeSeries Forecasting Uses AutoETS implemented in https://github.com/Nixtla/statsforecastCurrent limitations:(1) No handling for prediction "gap"(2) Enable user to pass in seasonality length to run AutoETS with seasonality.  NOTE: The seasonality will be infered based on the temporal column.] 
+    * [nixtla_theta.py](./models/timeseries/nixtla_theta.py) [AutoTheta for TimeSeries Forecasting Uses AutoTheta implemented in https://github.com/Nixtla/statsforecastCurrent limitations:(1) No handling for prediction "gap"(2) Enable user to pass in seasonality length to run AutoTheta with seasonality.  NOTE: The seasonality will be infered based on the temporal column.] 
     * [ts_rnn.py](./models/timeseries/ts_rnn.py) [Recurrent Neural Networks with Convolution for Time-series problems using LSTM, GRU or Elman cells.] 
   * [UNSUPERVISED](./models/unsupervised)
     * [TextKMeansIsolationForest.py](./models/unsupervised/TextKMeansIsolationForest.py) [Variety of unsupervised models that mimic internal versions but includes text handling via text embedding using custom transformer] 
