@@ -1,10 +1,12 @@
 """Create multiple dataset test"""
 import uuid
+import zipfile
 from typing import Union, List
-from h2oaicore.data import CustomData
+
 import datatable as dt
 import numpy as np
 import pandas as pd
+from h2oaicore.data import CustomData
 from h2oaicore.systemutils import user_dir
 
 
@@ -21,10 +23,13 @@ class TestDataMultiple(CustomData):
         temp_path = os.path.join(user_dir(), config.contrib_relative_directory, "testdata_%s" % str(uuid.uuid4()))
         os.makedirs(temp_path, exist_ok=True)
 
-        link = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
-        output_file1 = download(link, dest_path=temp_path)
+        url = "http://archive.ics.uci.edu/static/public/53/iris.zip"
+        dataset_name1 = "iris.data"
+        dataset_name2 = "bezdekIris.data"
 
-        link = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/bezdekIris.data"
-        output_file2 = download(link, dest_path=temp_path)
+        zip_file = download(url, dest_path=temp_path)
+        with zipfile.ZipFile(zip_file, "r") as my_zip:
+            my_zip.extract(dataset_name1, temp_path)
+            my_zip.extract(dataset_name2, temp_path)
 
-        return [output_file1, output_file2]
+        return [os.path.join(temp_path, dataset_name1), os.path.join(temp_path, dataset_name2)]
