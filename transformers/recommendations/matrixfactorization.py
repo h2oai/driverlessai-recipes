@@ -137,8 +137,7 @@ class RecH2OMFTransformer(CustomTransformer):
         users, user_indices = np.unique(np.array(X_pd[self.user_col], dtype="int32"), return_inverse=True)
         items, item_indices = np.unique(np.array(X_pd[self.item_col], dtype="int32"), return_inverse=True)
 
-        X_train_user_item_matrix = scipy.sparse.coo_matrix(
-            (y_train, (user_indices[:len(X_train)], item_indices[:len(X_train)])), shape=(len(users), len(items)))
+        X_train_user_item_matrix = scipy.sparse.coo_matrix((y, (user_indices, item_indices)), shape=(len(users), len(items)))
         self.X_train_shape = X_train_user_item_matrix.shape
 
         if self.__class__._mf_type == "h2o4gpu":
