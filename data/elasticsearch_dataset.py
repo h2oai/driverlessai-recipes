@@ -15,9 +15,7 @@ Refs:
 
 
 class ElasticsearchData(CustomData):
-    CLOUD_ID = "test-deployment:XXX-KEY"
-    BASIC_AUTH = ("elastic", "XXX-PASS")
-    INDEX = ".ds-logs-enterprise_search*"
+    INDEX = "some_index"
     QUERY = {
         "query": {
             "match_all": {}
@@ -45,10 +43,7 @@ class ElasticsearchData(CustomData):
 
     @staticmethod
     def create_data(X: dt.Frame = None):
-        elastic_client = Elasticsearch(
-            cloud_id=ElasticsearchData.CLOUD_ID,
-            basic_auth=ElasticsearchData.BASIC_AUTH,
-        )
+        elastic_client = Elasticsearch()  # fill up with auth details
 
         dt_frame = dt.Frame(names=ElasticsearchData.COL_NAMES)
 
