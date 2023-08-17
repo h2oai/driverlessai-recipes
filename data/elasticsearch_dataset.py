@@ -1,3 +1,4 @@
+"""Create a datasets off a scroll search query from ElasticSearch"""
 import datatable as dt
 from elasticsearch import Elasticsearch
 
