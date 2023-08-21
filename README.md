@@ -87,7 +87,7 @@ abled.
  [1.10.4.2](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.4.2)
  [1.10.4.3](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.4.3)
  [1.10.5](https://github.com/h2oai/driverlessai-recipes/tree/rel-1.10.5)
-### Count: 276
+### Count: 277
 * [AIR-GAPPED_INSTALLATIONS](./air-gapped_installations)
   * [load_custom_recipe.py](./air-gapped_installations/load_custom_recipe.py) [Load custom recipes on air-gapped installations.] 
 * [DATA](./data)
@@ -109,6 +109,7 @@ abled.
   * [data_template.py](./data/data_template.py) [Custom data recipe base class] 
   * [data_test.py](./data/data_test.py) [Create test dataset] 
   * [data_test_multiple.py](./data/data_test_multiple.py) [Create multiple dataset test] 
+  * [elasticsearch_dataset.py](./data/elasticsearch_dataset.py) [Create a datasets off a scroll search query from ElasticSearch] 
   * [feature_selection.py](./data/feature_selection.py) [Perform feature selection by using target perturbation technique] 
   * [feature_selection_backward.py](./data/feature_selection_backward.py) [Backward Feature Selection using an sklearn estimator.] 
   * [feature_selection_bidirectional.py](./data/feature_selection_bidirectional.py) [Bidirectional Feature Selection using an sklearn estimator.] 
