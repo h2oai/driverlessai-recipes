@@ -369,9 +369,9 @@ class H2OBaseModel:
                 is_final = 'IS_FINAL' in kwargs
                 json_file = os.path.join(exp_dir(), 'coefficients_table_is_final_%s_%s.json' % (is_final, struuid))
                 with open(json_file, "wt") as f:
-                    pd.set_option('precision', 16)
+                    pd.set_option('display.precision', 16)
                     f.write(json.dumps(json.loads(coeff_table.to_json()), indent=4))
-                    pd.set_option('precision', 6)
+                    pd.set_option('display.precision', 6)
 
             if isinstance(model, H2OAutoML):
                 pd.set_option('display.max_rows', None)
@@ -531,9 +531,9 @@ class H2OBaseModel:
                 if self.doing_p_values():
                     df = preds.iloc[:, 1]
                     with open(json_file, "wt") as f:
-                        pd.set_option('precision', 16)
+                        pd.set_option('display.precision', 16)
                         f.write(json.dumps(json.loads(df.to_json()), indent=4))
-                        pd.set_option('precision', 6)
+                        pd.set_option('display.precision', 6)
                     return preds.iloc[:, 0].values.ravel()
                 else:
                     return preds.values.ravel()
@@ -541,9 +541,9 @@ class H2OBaseModel:
                 if self.doing_p_values():
                     df = preds.iloc[:, 2]
                     with open(json_file, "wt") as f:
-                        pd.set_option('precision', 16)
+                        pd.set_option('display.precision', 16)
                         f.write(json.dumps(json.loads(df.to_json()), indent=4))
-                        pd.set_option('precision', 6)
+                        pd.set_option('display.precision', 6)
                     return preds.iloc[:, -1 - 1].values.ravel()
                 else:
                     return preds.iloc[:, -1].values.ravel()
