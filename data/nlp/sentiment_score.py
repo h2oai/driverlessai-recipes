@@ -10,7 +10,7 @@ text_colnames = ["text"]
 # output dataset name
 output_dataset_name = "df_with_sentiment"
 
-_global_modules_needed_by_name = ['nltk==3.4.3', "textblob"]
+_global_modules_needed_by_name = ['nltk==3.8.1', "textblob"]
 
 
 class SentimentScoreClass(CustomData):

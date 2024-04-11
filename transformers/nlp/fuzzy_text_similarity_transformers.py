@@ -5,12 +5,12 @@ from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
 
-_global_modules_needed_by_name = ['nltk==3.4.3']
+_global_modules_needed_by_name = ['nltk==3.8.1']
 import nltk
 
 
 class FuzzyBaseTransformer:
-    _modules_needed_by_name = ['fuzzywuzzy==0.17.0']
+    _modules_needed_by_name = ['fuzzywuzzy==0.18.0']
     _method = NotImplemented
     _parallel_task = False
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
