@@ -734,11 +734,11 @@ class H2ODLModel(H2OBaseModel, CustomModel):
         self.params['activation'] = np.random.choice(["rectifier", "rectifier",  # upweight
                                                       "rectifier_with_dropout",
                                                       "tanh"])
-        self.params['hidden'] = np.random.choice([[20, 20, 20],
+        self.params['hidden'] = np.random.choice(np.array([[20, 20, 20],
                                                   [50, 50, 50],
                                                   [100, 100, 100],
                                                   [200, 200], [200, 200, 200],
-                                                  [500], [500, 500], [500, 500, 500]])
+                                                  [500], [500, 500], [500, 500, 500]], dtype='object'))
         self.params['epochs'] = accuracy * max(1, time_tolerance)
         if config.hard_asserts:
             # avoid long times for testing
