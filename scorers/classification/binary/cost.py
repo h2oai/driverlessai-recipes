@@ -45,7 +45,7 @@ class CostBinary(CustomScorer):
         # multiclass
         if enc_predicted.shape[1] > 1:
             enc_predicted = enc_predicted.ravel()
-            enc_actual = label_binarize(enc_actual, labels).ravel()
+            enc_actual = label_binarize(enc_actual, classes=labels).ravel()
             cm_weights = np.repeat(cm_weights, predicted.shape[1]).ravel() if cm_weights is not None else None
             assert enc_predicted.shape == enc_actual.shape
             assert cm_weights is None or enc_predicted.shape == cm_weights.shape
