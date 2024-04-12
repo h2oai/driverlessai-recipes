@@ -211,7 +211,7 @@ class CustomTransformer(DataTableTransformer):
 
            y (:obj:`np.array`): The target column. Required. Defaults to None for API compatibility.
                 Shape is (N,)
-                Is of type :obj:`np.float` (regression) or :obj:`np.int` (multiclass) or :obj:`np.bool` (binary)
+                Is of type :obj:`float` (regression) or :obj:`int` (multiclass) or :obj:`bool` (binary)
 
 
         Returns:

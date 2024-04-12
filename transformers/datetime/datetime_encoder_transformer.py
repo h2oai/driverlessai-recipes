@@ -19,4 +19,4 @@ class MyDateTimeTransformer(CustomTransformer):
 
     def transform(self, X: dt.Frame):
         X = pd.to_datetime(X.to_pandas().iloc[:, 0], format=self.datetime_formats[self.input_feature_names[0]])
-        return X.fillna(pd.Timestamp(year=1970, month=1, day=1)).astype(np.int)
+        return X.fillna(pd.Timestamp(year=1970, month=1, day=1)).astype(int)
