@@ -65,7 +65,7 @@ class VideoToFrames:
         # Select only self.num_frames_per_video uniform frames
         n_frames = int(orig_capture.get(cv2.CAP_PROP_FRAME_COUNT))
         frames_idx = np.linspace(
-            0, n_frames, self.num_frames_per_video, endpoint=False, dtype=np.int
+            0, n_frames, self.num_frames_per_video, endpoint=False, dtype=int
         )
 
         # Loop through all frames
