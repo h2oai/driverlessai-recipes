@@ -22,4 +22,4 @@ class MyBrierLoss(CustomScorer):
         lb = LabelEncoder()
         labels = lb.fit_transform(labels)
         actual = lb.transform(actual)
-        return brier_score_loss(actual, predicted, sample_weight, pos_label=labels[1])
+        return brier_score_loss(actual, predicted, sample_weight=sample_weight, pos_label=labels[1])
