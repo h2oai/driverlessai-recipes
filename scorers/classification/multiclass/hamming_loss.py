@@ -25,7 +25,7 @@ class MyHammingLoss(CustomScorer):
         actual = lb.transform(actual)
         predicted = np.argmax(predicted, axis=1)
         if 'labels' in inspect.signature(hamming_loss).parameters.keys():
-            return hamming_loss(actual, predicted, labels, sample_weight)
+            return hamming_loss(actual, predicted, labels, sample_weight=sample_weight)
         else:
             # updated scikit-learn
-            return hamming_loss(actual, predicted, sample_weight)
+            return hamming_loss(actual, predicted, sample_weight=sample_weight)
