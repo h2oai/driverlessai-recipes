@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import dateparser
 
-_global_modules_needed_by_name = ['regex==2024.5.15', 'tzlocal==5.2', 'dateparser==0.7.1']
+_global_modules_needed_by_name = ['regex==2024.5.15', 'tzlocal==5.2', 'dateparser==1.2.0']
 
 
 def convert_to_age(ts):
