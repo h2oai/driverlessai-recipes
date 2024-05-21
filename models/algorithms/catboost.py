@@ -87,7 +87,7 @@ class CatBoostModel(CustomModel):
     def has_output_margin(self):
         return True
 
-    _modules_needed_by_name = ['catboost==1.0.5']
+    _modules_needed_by_name = ['catboost==1.2.5']
 
     def set_default_params(self,
                            accuracy=10, time_tolerance=10, interpretability=1,
