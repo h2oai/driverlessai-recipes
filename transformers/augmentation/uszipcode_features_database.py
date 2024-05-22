@@ -4,7 +4,7 @@ from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarn
 import datatable as dt
 import numpy as np
 
-_global_modules_needed_by_name = ['pycodestyle==2.7.0', 'uszipcode==0.2.6']
+_global_modules_needed_by_name = ['pycodestyle==2.11.1', 'uszipcode==1.0.1']
 from uszipcode import SearchEngine
 
 
