@@ -31,7 +31,7 @@ class TextNamedEntityTransformer(CustomTransformer):
             '%s/wasabi-0.8.2%s' % (_root_path, _suffix),
         ]
     else:
-        _modules_needed_by_name = ["spacy==2.2.3",
+        _modules_needed_by_name = ["spacy==3.7.4",
                                    "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.5/en_core_web_sm-2.2.5.tar.gz#egg=en_core_web_sm==2.2.5"]
 
     def __init__(self, **kwargs):
