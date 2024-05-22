@@ -34,7 +34,7 @@ class CalibratedClassifierModel:
 
     le = LabelEncoder()
 
-    _modules_needed_by_name = ['ml_insights==0.1.4']  # for SplineCalibration
+    _modules_needed_by_name = ['ml_insights==1.0.3']  # for SplineCalibration
 
     @staticmethod
     def is_enabled():
