@@ -15,7 +15,7 @@ class FreshEnvData(CustomData):
         pyversion = "3.8"
         _install_h2oaicore = False
         _install_datatable = True
-        _modules_needed_by_name = ["pandas==1.1.5"]
+        _modules_needed_by_name = ["pandas==1.5.3"]
 
         import os
         from h2oaicore.data import DataContribLoader
