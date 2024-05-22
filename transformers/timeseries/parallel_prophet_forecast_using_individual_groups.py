@@ -102,19 +102,19 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
     froms3 = True
     if froms3:
         _root_path = "https://s3.amazonaws.com/artifacts.h2o.ai/deps/dai/recipes"
-        _suffix = "-cp38-cp38-linux_x86_64.whl"
+        _suffix = "-cp311-cp311-linux_x86_64.whl"
         _modules_needed_by_name = [
             '%s/setuptools_git-1.2%s' % (_root_path, _suffix),
             '%s/LunarCalendar-0.0.9%s' % (_root_path, _suffix),
-            '%s/ephem-3.7.7.1%s' % (_root_path, _suffix),
-            '%s/cmdstanpy-0.9.5%s' % (_root_path, _suffix),
-            '%s/pystan-2.19.1.1%s' % (_root_path, _suffix),
-            '%s/httpstan-4.5.0%s' % (_root_path, _suffix),
-            '%s/fbprophet-0.7.1%s' % (_root_path, _suffix),
+            '%s/ephem-4.1.5%s' % (_root_path, _suffix),
+            '%s/cmdstanpy-1.2.2%s' % (_root_path, _suffix),
+            '%s/pystan-3.9.1%s' % (_root_path, _suffix),
+            '%s/httpstan-4.12.0%s' % (_root_path, _suffix),
+            '%s/prophet-1.1.5%s' % (_root_path, _suffix),
         ]
     else:
-        _modules_needed_by_name = ['holidays==0.11.1', 'convertdate', 'lunarcalendar', 'pystan==2.19.1.1',
-                                   'fbprophet==0.7.1']
+        _modules_needed_by_name = ['holidays==0.47', 'convertdate', 'lunarcalendar', 'pystan==3.9.1',
+                                   'prophet==1.1.5']
     _included_model_classes = None  # ["gblinear"] for strong trends - can extrapolate
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
@@ -172,7 +172,7 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
         # if X.shape[0] < 20:
         #     return grp_hash, None
         # Import FB Prophet package
-        mod = importlib.import_module('fbprophet')
+        mod = importlib.import_module('prophet')
         Prophet = getattr(mod, "Prophet")
         model = fit_prophet_model(Prophet, X, params)
         model_path = os.path.join(tmp_folder, "fbprophet_model" + str(uuid.uuid4()))
@@ -334,7 +334,7 @@ class MyProphetOnSingleGroupsTransformer(CustomTimeSeriesTransformer):
             "country_holidays": self.country_holidays,
             "monthly_seasonality": self.monthly_seasonality
         }
-        mod = importlib.import_module('fbprophet')
+        mod = importlib.import_module('prophet')
         Prophet = getattr(mod, "Prophet")
         avg_model = fit_prophet_model(Prophet, X_avg, params, force=True)
 

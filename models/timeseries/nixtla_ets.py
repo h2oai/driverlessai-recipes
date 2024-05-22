@@ -74,7 +74,7 @@ class AutoETSParallelModel(CustomTimeSeriesModel):
     _parallel_task = True
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
 
-    _modules_needed_by_name = ['statsforecast==1.5.0']
+    _modules_needed_by_name = ['statsforecast==1.7.4']
     
     @staticmethod
     def is_enabled():

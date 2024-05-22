@@ -32,7 +32,7 @@ class EBMModel(CustomModel):
         "Unified Framework for Machine Learning Interpretability. "
         "URL https://arxiv.org/pdf/1909.09223.pdf"
     )
-    _modules_needed_by_name = ["pillow==8.3.2", "interpret==0.1.20"]
+    _modules_needed_by_name = ["pillow==10.3.0", "interpret==0.6.1"]
 
     @staticmethod
     def do_acceptance_test():

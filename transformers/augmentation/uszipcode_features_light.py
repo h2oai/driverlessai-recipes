@@ -4,7 +4,7 @@ import datatable as dt
 import numpy as np
 from abc import ABC, abstractmethod
 
-_global_modules_needed_by_name = ['zipcodes==1.0.5']
+_global_modules_needed_by_name = ['zipcodes==1.2.0']
 import zipcodes
 
 

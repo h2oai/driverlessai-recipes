@@ -10,7 +10,7 @@ text_colnames = ["text"]
 # output dataset name
 output_dataset_name = "data_with_summary"
 
-_global_modules_needed_by_name = ["gensim==3.8.0"]
+_global_modules_needed_by_name = ["gensim==4.3.2"]
 
 
 class TextSummarizationClass(CustomData):

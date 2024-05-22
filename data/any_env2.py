@@ -4,7 +4,7 @@ from h2oaicore.data import CustomData
 import functools
 
 
-def wrap_create(pyversion="3.8", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=[],
+def wrap_create(pyversion="3.11", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=[],
                 cache_env=False, file=None, id=None,
                 **kwargs_wrapper):
     """ Decorate a function to create_data in popen in isolated env
@@ -23,7 +23,7 @@ def wrap_create(pyversion="3.8", install_h2oaicore=False, install_datatable=True
     return actual_decorator
 
 
-def create_data_popen(func, *args, pyversion="3.8", install_h2oaicore=False, install_datatable=True,
+def create_data_popen(func, *args, pyversion="3.11", install_h2oaicore=False, install_datatable=True,
                       modules_needed_by_name=[], cache_env=False, file=None, id=None,
                       X=None, **kwargs):
     """ Run recipe in popen in isolated env
@@ -119,9 +119,9 @@ class FreshEnvData(CustomData):
     # NOTE: Keep @wrap_create on a single line
     # NOTE: If want to share cache across recipes, can set cache_env=True and set id=<some unique identifier, like myrecipe12345>
     # Below caches the env into "id" folder
-    # @wrap_create(pyversion="3.8", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.1.5"], cache_env=True, file=__file__, id="myrecipe12345")
+    # @wrap_create(pyversion="3.11", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.5.3"], cache_env=True, file=__file__, id="myrecipe12345")
     # Below does not cache the env
-    @wrap_create(pyversion="3.8", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.1.5"], file=__file__)
+    @wrap_create(pyversion="3.11", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.5.3"], file=__file__)
     def create_data(X=None):
         import os
         import datatable as dt

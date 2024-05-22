@@ -3,7 +3,7 @@ from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
 
-_global_modules_needed_by_name = ['nltk==3.4.3']
+_global_modules_needed_by_name = ['nltk==3.8.1']
 import nltk
 
 
@@ -130,7 +130,7 @@ class DiceSimilarityTransformer(CustomTransformer):
 class EditDistanceTransformer(CustomTransformer):
     _unsupervised = True
 
-    _modules_needed_by_name = ['editdistance==0.5.3']
+    _modules_needed_by_name = ['editdistance==0.8.1']
 
     @staticmethod
     def get_default_properties():

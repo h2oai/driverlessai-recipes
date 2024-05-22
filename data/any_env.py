@@ -12,10 +12,10 @@ class FreshEnvData(CustomData):
     @staticmethod
     def create_data_popen(X=None):
         # Specify the python package dependencies.  Will be installed in order of list
-        pyversion = "3.8"
+        pyversion = "3.11"
         _install_h2oaicore = False
         _install_datatable = True
-        _modules_needed_by_name = ["pandas==1.1.5"]
+        _modules_needed_by_name = ["pandas==1.5.3"]
 
         import os
         from h2oaicore.data import DataContribLoader

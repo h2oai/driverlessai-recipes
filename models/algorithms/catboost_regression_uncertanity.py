@@ -46,7 +46,7 @@ class CatBoostRegressionUncertanityModel(CustomModel):
 
     _display_name = "CatBoostRegressionUncertanity"
     _description = "Yandex CatBoost GBM"
-    _modules_needed_by_name = ["catboost==1.0.4"]
+    _modules_needed_by_name = ["catboost==1.2.5"]
 
     @staticmethod
     def do_acceptance_test():
