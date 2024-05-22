@@ -9,7 +9,7 @@ class TextURLSummaryTransformer(CustomTransformer):
 
     _numeric_output = False
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
-    _modules_needed_by_name = ["gensim==4.3.2", "beautifulsoup4==4.9.2"]
+    _modules_needed_by_name = ["gensim==4.3.2", "beautifulsoup4==4.12.3"]
     _display_name = 'TextURLSummaryTransformer'
 
     @staticmethod
