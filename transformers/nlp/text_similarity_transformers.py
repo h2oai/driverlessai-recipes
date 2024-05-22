@@ -130,7 +130,7 @@ class DiceSimilarityTransformer(CustomTransformer):
 class EditDistanceTransformer(CustomTransformer):
     _unsupervised = True
 
-    _modules_needed_by_name = ['editdistance==0.5.3']
+    _modules_needed_by_name = ['editdistance==0.8.1']
 
     @staticmethod
     def get_default_properties():
