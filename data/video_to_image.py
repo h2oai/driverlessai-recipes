@@ -35,7 +35,7 @@ class VideoToFrames:
     Additionally detects all faces for each frame.
     """
 
-    _modules_needed_by_name = ["torchvision==0.4.1", "facenet-pytorch==2.2.9"]
+    _modules_needed_by_name = ["torchvision==0.18.0+rocm6.0", "facenet-pytorch==2.5.3"]
 
     def __init__(self, num_frames_per_video=3, face_additional_area=0.5):
         self.num_frames_per_video = num_frames_per_video
