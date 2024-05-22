@@ -9,7 +9,7 @@ import uuid
 from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError
 import numpy as np
 
-_global_modules_needed_by_name = ['h2o==3.34.0.7']
+_global_modules_needed_by_name = ['h2o==3.46.0.2']
 import h2o
 import os
 
