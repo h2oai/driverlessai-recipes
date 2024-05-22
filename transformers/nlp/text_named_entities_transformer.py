@@ -12,10 +12,11 @@ class TextNamedEntityTransformer(CustomTransformer):
     """Transformer to extract the count of Named Entities"""
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
     _root_path = "https://s3.amazonaws.com/artifacts.h2o.ai/deps/dai/recipes"
-    _suffix = "-cp38-cp38-linux_x86_64.whl"
-    froms3 = True
+    _suffix = "-cp311-cp311-linux_x86_64.whl"
+    froms3 = False
     _is_reproducible = False  # some issue with deepcopy and refit, do not get same result
     if froms3:
+        # TODO: upload the wheel files to S3
         _modules_needed_by_name = [
             '%s/blis-0.4.1%s' % (_root_path, _suffix),
             '%s/catalogue-1.0.0%s' % (_root_path, _suffix),
