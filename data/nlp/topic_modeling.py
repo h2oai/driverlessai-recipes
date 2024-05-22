@@ -20,7 +20,7 @@ output_dataset_name = "df_topic_modeling"
 # number of top words to be represented in the column name
 n_words_colname = 10
 
-_global_modules_needed_by_name = ["gensim==3.8.0"]
+_global_modules_needed_by_name = ["gensim==4.3.2"]
 
 stop_words = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll", "you'd",
               'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', "she's", 'her', 'hers',
