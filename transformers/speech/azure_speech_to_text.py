@@ -31,7 +31,7 @@ class AzureSpeechToText(CustomTransformer):
 
     _numeric_output = False
     _display_name = 'AzureSpeechToTextTransformer'
-    _modules_needed_by_name = ["azure-cognitiveservices-speech==1.16.0"]
+    _modules_needed_by_name = ["azure-cognitiveservices-speech==1.37.0"]
 
     @staticmethod
     def get_default_properties():
