@@ -33,8 +33,9 @@ class CalibratedClassifierModel:
     _supports_predict_shuffle_scoring = False
 
     le = LabelEncoder()
-
-    _modules_needed_by_name = ['ml_insights==1.0.3']  # for SplineCalibration
+    # require ml_insights for SplineCalibration
+    # require numpy to avoid pulling breaking changes in numpy 2.0
+    _modules_needed_by_name = ['ml_insights==1.0.3', 'numpy==1.24.3']
 
     @staticmethod
     def is_enabled():
