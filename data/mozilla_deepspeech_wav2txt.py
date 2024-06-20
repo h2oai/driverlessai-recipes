@@ -36,10 +36,10 @@ try:
 except ImportError:
     from pipes import quote
 
-_global_modules_needed_by_name = ["deepspeech-gpu==0.9.3"]
+_global_modules_needed_by_name = ["deepspeech-gpu==0.10.0a3"]
 
 #####Please fill up before usage
-MODEL_PATH = "/home/dmitry/Desktop/DAI/deepspeech/deepspeech-0.9.3-models"
+MODEL_PATH = "/home/dmitry/Desktop/DAI/deepspeech/deepspeech-0.10.0a3-models"
 beam_width = 500  # Beam width for the CTC decoder
 lm_alpha = 0.75  # Language model weight (lm_alpha)
 lm_beta = 1.85  # Word insertion bonus (lm_beta)
@@ -67,7 +67,7 @@ def convert_samplerate(audio_path, desired_sample_rate):
 
 
 class MozillaDeepSpeechWav2Txt(BaseData):
-    _modules_needed_by_name = ["deepspeech-gpu==0.9.3"]
+    _modules_needed_by_name = ["deepspeech-gpu==0.10.0a3"]
 
     @staticmethod
     def create_data(X: dt.Frame = None) -> dt.Frame:
