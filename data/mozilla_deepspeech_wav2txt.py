@@ -67,6 +67,7 @@ def convert_samplerate(audio_path, desired_sample_rate):
 
 
 class MozillaDeepSpeechWav2Txt(BaseData):
+    # Note: deepspeech-gpu only supports upto Python 3.9
     _modules_needed_by_name = ["deepspeech-gpu==0.10.0a3"]
 
     @staticmethod
