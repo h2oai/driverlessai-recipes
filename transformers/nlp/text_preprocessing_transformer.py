@@ -65,7 +65,7 @@ class TextPreprocessingTransformer(CustomTransformer):
                 self.lemmatizer = nltk.stem.WordNetLemmatizer()
                 self.pos_tagger = nltk.pos_tag
                 self.lemmatizer.lemmatize("test", wordnet.NOUN)
-                self.pos_tagger("test")
+                self.pos_tagger(["test"])
             except LookupError:
                 os.makedirs(nltk_data_path, exist_ok=True)
                 os.makedirs(nltk_temp_path, exist_ok=True)
@@ -92,7 +92,7 @@ class TextPreprocessingTransformer(CustomTransformer):
                 self.lemmatizer = nltk.stem.WordNetLemmatizer()
                 self.pos_tagger = nltk.pos_tag
                 self.lemmatizer.lemmatize("test", wordnet.NOUN)
-                self.pos_tagger("test")
+                self.pos_tagger(["test"])
             self.wordnet_map = {"N": wordnet.NOUN,
                                 "V": wordnet.VERB,
                                 "J": wordnet.ADJ,

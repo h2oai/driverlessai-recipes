@@ -23,7 +23,7 @@ class POSTagTransformer:
         nltk.download('averaged_perceptron_tagger', download_dir=nltk_data_path)
         try:
             self.pos_tagger = nltk.pos_tag
-            self.pos_tagger("test")
+            self.pos_tagger(["test"])
         except LookupError:
             os.makedirs(nltk_data_path, exist_ok=True)
             os.makedirs(nltk_temp_path, exist_ok=True)
@@ -40,7 +40,7 @@ class POSTagTransformer:
             self.atomic_copy(file1, tagger_path)
             self.atomic_copy(file2, tagger_path)
             self.pos_tagger = nltk.pos_tag
-            self.pos_tagger("test")
+            self.pos_tagger(["test"])
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
