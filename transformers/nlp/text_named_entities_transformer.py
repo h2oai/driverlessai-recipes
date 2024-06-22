@@ -31,8 +31,8 @@ class TextNamedEntityTransformer(CustomTransformer):
             '%s/wasabi-0.8.2%s' % (_root_path, _suffix),
         ]
     else:
-        _modules_needed_by_name = ["spacy==3.7.4",
-                                   "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.5/en_core_web_sm-2.2.5.tar.gz#egg=en_core_web_sm==2.2.5"]
+        _modules_needed_by_name = ["spacy==3.7.5",
+                                   "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.0/en_core_web_sm-3.7.0.tar.gz#egg=en_core_web_sm==3.7.0"]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -57,7 +57,6 @@ class TextNamedEntityTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
-        import spacy
         import en_core_web_sm
         nlp = en_core_web_sm.load()
 
