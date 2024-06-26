@@ -156,7 +156,7 @@ class CalibratedClassifierModel:
                 self.slope = []
                 self.intercept = []
 
-                for c in calibrator.calibrated_classifiers_[0].calibrators_:
+                for c in calibrator.calibrated_classifiers_[0].calibrators:
                     self.slope.append(c.a_)
                     self.intercept.append(c.b_)
 
@@ -166,7 +166,7 @@ class CalibratedClassifierModel:
 
                 self.X_min_ = []
                 self.X_max_ = []
-                for c in calibrator.calibrated_classifiers_[0].calibrators_:
+                for c in calibrator.calibrated_classifiers_[0].calibrators:
                     self._necessary_X_.append(c.X_thresholds_)
                     self._necessary_y_.append(c.y_thresholds_)
 
