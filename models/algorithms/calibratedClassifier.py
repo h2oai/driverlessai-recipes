@@ -156,7 +156,7 @@ class CalibratedClassifierModel:
                 self.slope = []
                 self.intercept = []
 
-                for c in calibrator.calibrated_classifiers_[0].calibrators_:
+                for c in calibrator.calibrated_classifiers_[0].calibrators:
                     self.slope.append(c.a_)
                     self.intercept.append(c.b_)
 
@@ -166,7 +166,7 @@ class CalibratedClassifierModel:
 
                 self.X_min_ = []
                 self.X_max_ = []
-                for c in calibrator.calibrated_classifiers_[0].calibrators_:
+                for c in calibrator.calibrated_classifiers_[0].calibrators:
                     self._necessary_X_.append(c.X_thresholds_)
                     self._necessary_y_.append(c.y_thresholds_)
 
@@ -181,8 +181,7 @@ class CalibratedClassifierModel:
             import ml_insights as mli
             self.calib_method = "spline"
             spline = mli.SplineCalib(
-                penalty='l2',
-                solver='liblinear',
+                method="L-BFGS-B",
                 reg_param_vec='default',
                 cv_spline=3, random_state=4451,
                 knot_sample_size=30,
@@ -197,7 +196,10 @@ class CalibratedClassifierModel:
             spline.fit(preds, y_calibrate, verbose=False)  # no weight support so far :(
 
             self.calib_logodds_scale = spline.logodds_scale
-            self.calib_logodds_eps = spline.logodds_eps
+            # Due to a bug in `splinecalib`, `logodds_eps` attribute doesn't get set
+            # unless you pass the `logodds_eps` param to the `SplineCalib` constructor.
+            # Below we try to mimic the behaviour of `ml_insights` < v1.0.
+            self.calib_logodds_eps = getattr(spline, "logodds_eps", 0.001)
 
             self.calib_knot_vec_tr = []
             self.calib_basis_coef_vec = []
