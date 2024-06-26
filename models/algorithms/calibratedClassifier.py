@@ -181,8 +181,7 @@ class CalibratedClassifierModel:
             import ml_insights as mli
             self.calib_method = "spline"
             spline = mli.SplineCalib(
-                penalty='l2',
-                solver='liblinear',
+                method="L-BFGS-B",
                 reg_param_vec='default',
                 cv_spline=3, random_state=4451,
                 knot_sample_size=30,
