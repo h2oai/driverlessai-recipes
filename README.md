@@ -25,8 +25,7 @@ Custom recipes are Python code snippets that can be uploaded into Driverless AI 
     * Recipes have implicit access to system resources such as disk, memory, CPUs, GPUs, network, etc.
   * An H2O-3 Java process is started in the background, for use by all recipes using H2O-3. Anyone with access to the Driverless AI instance can browse the file system, see models and data through the H2O-3 interface.
 
-* Enable automatic detection of forbidden or dangerous code constructs in a custom recipe with `custom_recipe_security_analysis_enabled = tr
-ue`. Note the following:
+* Enable automatic detection of forbidden or dangerous code constructs in a custom recipe with `custom_recipe_security_analysis_enabled = true`. Note the following:
   * When `custom_recipe_security_analysis_enabled` is enabled, do not use modules specified in the banlist. Specify the banlist with the `cu
 stom_recipe_import_banlist` config option.
     * For example: `custom_recipe_import_banlist = ["shlex", "plumbum", "pexpect", "envoy", "commands", "fabric", "subprocess", "os.system",
