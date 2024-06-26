@@ -196,7 +196,10 @@ class CalibratedClassifierModel:
             spline.fit(preds, y_calibrate, verbose=False)  # no weight support so far :(
 
             self.calib_logodds_scale = spline.logodds_scale
-            self.calib_logodds_eps = spline.logodds_eps
+            # Due to a bug in `splinecalib`, `logodds_eps` attribute doesn't get set
+            # unless you pass the `logodds_eps` param to the `SplineCalib` constructor.
+            # Below we try to mimic the behaviour of `ml_insights` < v1.0.
+            self.calib_logodds_eps = getattr(spline, "logodds_eps", 0.001)
 
             self.calib_knot_vec_tr = []
             self.calib_basis_coef_vec = []
