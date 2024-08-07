@@ -10,7 +10,7 @@ from sklearn.preprocessing import LabelEncoder
 import os
 import uuid
 
-_global_modules_needed_by_name = ['h2o==3.46.0.2']
+_global_modules_needed_by_name = ['h2o==3.46.0.4']
 import h2o
 from h2oaicore.systemutils import temporary_files_path, config, remove
 from h2o.estimators.coxph import H2OCoxProportionalHazardsEstimator
