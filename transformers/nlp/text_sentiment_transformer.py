@@ -9,7 +9,7 @@ class TextSentimentTransformer(CustomTransformer):
     _unsupervised = True
 
     _testing_can_skip_failure = False  # ensure tested as if shouldn't fail
-    _modules_needed_by_name = ['nltk==3.4.3', 'textblob']
+    _modules_needed_by_name = ['nltk==3.4.3', 'textblob==0.17.1']
 
     @staticmethod
     def get_default_properties():
