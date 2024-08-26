@@ -191,6 +191,9 @@ class GAM(CustomModel):
                 raise IgnoreError('On entry to DLASCL parameter number') from e
             raise
         except:
+            import traceback
+            import sys
+
             t, v, tb = sys.exc_info()
             ex = ''.join(traceback.format_exception(t, v, tb))
             print(ex)
