@@ -3,7 +3,7 @@
 import datatable as dt
 import numpy as np
 import pandas as pd
-from typing import Union, List
+from typing import Union, List, Dict
 from h2oaicore.data import BaseData
 
 _global_modules_needed_by_name = []  # Optional global package requirements, for multiple custom recipes in a file
