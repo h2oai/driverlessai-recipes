@@ -57,6 +57,7 @@ MLI module of Driverless AI uses the concept of **recipes** so that users can ad
     * [Safety](#safety)
     * [Security](#security)
     * [Versioning](#versioning)
+    * [Dependable](#dependable)
 * [Explainer Examples](#explainer-examples)
     * [Hello world!](#hello-world)
     * [Logging Example](#logging-example)
@@ -2953,6 +2954,21 @@ class ExampleVersionExplainer_v2_1(CustomExplainer):
 ```
 
 This will create a new explainer with save new name and both explainer versions may coexist.
+## Dependable
+In practice, explainer class should be self-contained without having
+a high degree of coupling with external modules such that can be more plugable and replaceable.
+However, the downside of the approach is explainer class can become less cohesive and
+lead to higher complexity which can brought challenges to future extend/change.
+Therefore, the trade-off should be considered thoughtfully in the design stage.
+
+Currently, one exception is Shapley explainers including:
+- [Transformed Shapley explainer](https://github.com/h2oai/h2oai/blob/dev/h2oaicore/mli/byor/recipes/transformed_shapley_explainer.py)
+- [Naive Shapley explainer](https://github.com/h2oai/h2oai/blob/dev/h2oaicore/mli/byor/recipes/original_contrib_explainer.py)
+- [Naive Summary Shapley explainer](https://github.com/h2oai/h2oai/blob/dev/h2oaicore/mli/byor/recipes/shapley_summary_explainer.py)
+
+Above explainers have a high degree of coupling with [Shapley utils](https://github.com/h2oai/h2oai/blob/dev/h2oaicore/mli/byor/mli_shapley_utils.py)
+to compute on-demand Shapleys and predictions, any modifications in [Shapley utils](https://github.com/h2oai/h2oai/blob/dev/h2oaicore/mli/byor/mli_shapley_utils.py)
+should be well designed and should be changed with minimal scopes as only needed.
 # Explainer Examples
 Examples of simple explainers which demonstrate explainer 
 features.
