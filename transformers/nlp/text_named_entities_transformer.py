@@ -17,6 +17,7 @@ class TextNamedEntityTransformer(CustomTransformer):
     _is_reproducible = False  # some issue with deepcopy and refit, do not get same result
     if froms3:
         _modules_needed_by_name = [
+            'spacy==2.2.3',
             '%s/blis-0.4.1%s' % (_root_path, _suffix),
             '%s/catalogue-1.0.0%s' % (_root_path, _suffix),
             '%s/cymem-2.0.5%s' % (_root_path, _suffix),
