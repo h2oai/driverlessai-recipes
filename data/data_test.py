@@ -11,7 +11,7 @@ from h2oaicore.systemutils import user_dir
 
 
 class TestData(CustomData):
-    url = "http://archive.ics.uci.edu/static/public/53/iris.zip"
+    url = "https://h2o-public-test-data.s3.amazonaws.com/smalldata/iris/iris.zip"
     dataset_name = "iris.data"
 
     @staticmethod
