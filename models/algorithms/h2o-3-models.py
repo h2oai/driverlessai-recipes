@@ -12,7 +12,7 @@ from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError,
 import numpy as np
 import pandas as pd
 
-_global_modules_needed_by_name = ['h2o==3.46.0.4']
+_global_modules_needed_by_name = ['h2o==3.46.0.6']
 import h2o
 import os
 
