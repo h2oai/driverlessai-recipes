@@ -41,7 +41,7 @@ A text editor and knowledge of Python. Recipes are written as `.py` files with t
 ### How do I start?
 - Review the [API specifications](https://github.com/h2oai/driverlessai-recipes#reference-guide) and architecture diagrams.
 - Review the [examples in this repository](https://github.com/h2oai/driverlessai-recipes/blob/master/README.md#sample-recipes).
-- Upload your recipe in the Expert Settings during the experiment setup.
+- Upload your recipe in the Expert Settings section during the experiment setup.
 
 ### What version of Python does Driverless AI use?
 Driverless AI uses Python 3.6. Ensure your recipes are compatible with this version.
