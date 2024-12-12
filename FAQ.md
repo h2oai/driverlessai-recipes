@@ -53,7 +53,7 @@ Driverless AI will notify you whether your recipe passes the acceptance tests. I
 Upload your recipe to the Expert Settings and use the experiment log for debugging. Alternatively, make minimal changes as shown in [this debugging example](./transformers/how_to_debug_transformer.py) and debug with a Python debugger, like PyCharm.
 
 ### What happens if my recipe is rejected during upload?
-Review the error message, which usually includes a stack trace and hints for fixing the issue. If you need help, ask questions in the [Driverless AI community Slack channel]](https://www.h2o.ai/community/driverless-ai-community/#chat). You can also send your experiment logs zip file, which will contain the recipe source files.
+Review the error message, which usually includes a stack trace and hints for fixing the issue. If you need help, ask questions in the [Driverless AI community Slack channel](https://www.h2o.ai/community/driverless-ai-community/#chat). You can also send your experiment logs zip file, which will contain the recipe source files.
 
 ### What if my transformer recipe doesn't lead to the highest variable importance?
 Features created by your transformer might not have the strongest signal, but they can still improve the overall model performance.
