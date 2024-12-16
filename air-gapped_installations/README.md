@@ -5,9 +5,9 @@ Air gapping is a network security measure used to isolate one or more computers 
 This guide walks you through the installation process of Custom Recipes in an air-gapped environment.
 
 ## Prerequisite 
-- Two DAI installations are required: one on an **Air-Gapped Machine** and the other on an **Internet-Facing Machine**. These terms will be used throughout the document for clarity.
-- First, install DAI on the air-gapped machine (a machine isolated from the Internet). DAI can be installed using any available package type (e.g., TAR SH, Docker, DEB). You can download the installation packages from [H2O.ai Downloads](https://h2o.ai/resources/download/).
-- On the Internet-facing machine, clone the repository and check out the appropriate branch for your DAI `VERSION`:
+- Two H2O Driverless AI (DAI) installations are required: one on an **Air-Gapped Machine** and the other on an **Internet-Facing Machine**. These terms will be used throughout the document for clarity.
+- First, install H2O Driverless AI on the air-gapped machine (a machine isolated from the Internet). Driverless AI can be installed using any available package type (e.g., TAR SH, Docker, DEB). You can download the installation packages from [H2O.ai Downloads](https://h2o.ai/resources/download/).
+- On the Internet-facing machine, clone the repository and check out the appropriate branch for your Driverless AI `VERSION`:
   ```
   git clone https://github.com/h2oai/driverlessai-recipes.git
   cd driverlessai-recipes
@@ -15,13 +15,13 @@ This guide walks you through the installation process of Custom Recipes in an ai
   ```
 
 ## Installation Guide
-Follow the steps below to use custom recipes for DAI in an air-gapped environment:
+Follow the steps below to use custom recipes for H2O Driverless AI in an air-gapped environment:
 
 **Note**: *These steps should be performed on the Internet-Facing Machine.*
 
-1. Download the required version of the Driverless AI TAR SH installer on the Internet-Facing Machine from [H2O.ai Downloads](https://www.h2o.ai/download/).
+1. Download the required version of the H2O Driverless AI TAR SH installer on the Internet-Facing Machine from [H2O.ai Downloads](https://www.h2o.ai/download/).
 
-2. Run the following commands to install the Driverless AI TAR SH. Replace `VERSION` with the specific version you need.
+2. Run the following commands to install the H2O Driverless AI TAR SH. Replace `VERSION` with the specific version you need.
     ```
     chmod 755 dai-VERSION.sh
     ./dai-VERSION.sh
@@ -62,7 +62,7 @@ Follow the steps below to use custom recipes for DAI in an air-gapped environmen
             
 6. Once the script has been executed successfully, custom recipes and Python dependencies will be installed in the `dai-VERSION/<data_directory>/<user>/contrib` directory,  where `<data_directory>` is `tmp` by default.   
     
-7. Zip the `dai-VERSION/tmp/contrib` directory and move it to the air-gapped machine. Unzip it into the DAI `tmp` directory:
+7. Zip the `dai-VERSION/tmp/contrib` directory and move it to the air-gapped machine. Unzip it into the Driverless AI `tmp` directory:
     ```
     cd dai-VERSION/`<data_directory>`/
     zip -r user_contrib.zip `<user>`/contrib

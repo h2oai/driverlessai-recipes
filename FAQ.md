@@ -26,8 +26,8 @@ See the [examples in this repository](https://github.com/h2oai/driverlessai-reci
   - Create custom recipes for model interpretability, fairness, robustness, and explanations.
   - Generate custom plots, charts, markdown reports, and more.
 
-### Is Driverless AI sufficient without custom recipes?
-Driverless AI continues to improve with each version, so you may not need custom recipes. However, adding your own recipes can optimize performance for specific use cases.
+### Is H2O Driverless AI sufficient without custom recipes?
+H2O Driverless AI continues to improve with each version, so you may not need custom recipes. However, adding your own recipes can optimize performance for specific use cases.
 
 ### What's in it for me if I write a recipe?
 Writing recipes improves your data science skills and helps achieve better results. It is one of the best ways to enhance your expertise.
@@ -43,17 +43,17 @@ A text editor and knowledge of Python. Recipes are written as `.py` files with t
 - Review the [examples in this repository](https://github.com/h2oai/driverlessai-recipes/blob/master/README.md#sample-recipes).
 - Upload your recipe in the Expert Settings section during the experiment setup.
 
-### What version of Python does Driverless AI use?
-Driverless AI uses Python 3.6. Ensure your recipes are compatible with this version.
+### What version of Python does H2O Driverless AI use?
+H2O Driverless AI uses Python 3.6. Ensure your recipes are compatible with this version.
 
 ### How do I know if my recipe works?
-Driverless AI will notify you whether your recipe passes the acceptance tests. If it fails, feedback will guide you on how to fix it.
+H2O Driverless AI will notify you whether your recipe passes the acceptance tests. If it fails, feedback will guide you on how to fix it.
 
 ### How can I debug my recipe?
 Upload your recipe to the Expert Settings and use the experiment log for debugging. Alternatively, make minimal changes as shown in [this debugging example](./transformers/how_to_debug_transformer.py) and debug with a Python debugger, like PyCharm.
 
 ### What happens if my recipe is rejected during upload?
-Review the error message, which usually includes a stack trace and hints for fixing the issue. If you need help, ask questions in the [Driverless AI community Slack channel](https://www.h2o.ai/community/driverless-ai-community/#chat). You can also send your experiment logs zip file, which will contain the recipe source files.
+Review the error message, which usually includes a stack trace and hints for fixing the issue. If you need help, ask questions in the [H2O Driverless AI community Slack channel](https://www.h2o.ai/community/driverless-ai-community/#chat). You can also send your experiment logs zip file, which will contain the recipe source files.
 
 ### What if my transformer recipe doesn't lead to the highest variable importance?
 Features created by your transformer might not have the strongest signal, but they can still improve the overall model performance.
@@ -64,7 +64,7 @@ H2O Driverless AI will use the best-performing recipes. Check the experiment log
 ### Can I write recipes in Go, C++, Java, or R?
 You can use any language as long as you can interface it with Python. Many recipes rely on Java and C++ backends.
 
-### Is there a difference between custom recipes and those shipped with Driverless AI?
+### Is there a difference between custom recipes and those shipped with H2O Driverless AI?
 Custom recipes are treated the same as built-in recipes. There is no performance penalty or calling overhead.
 
 ### Why are some models implemented as transformers?
@@ -77,10 +77,10 @@ Recipes can be disabled by setting `enable_custom_recipes=false` in the `config.
 When you upload a new version of a recipe, it becomes the default. Older experiments will continue using the previous version.
 
 ### Who can see my recipe?
-Anyone with access to the Driverless AI instance can run any uploaded recipe, but recipes are shared only within the instance.
+Anyone with access to the H2O Driverless AI instance can run any uploaded recipe, but recipes are shared only within the instance.
 
 ### How do I delete all recipes on my instance?
-To delete all recipes, remove the `contrib` folder from the data directory (usually `tmp`) and restart Driverless AI. This will prevent old experiments from making predictions unless related experiments are also deleted.
+To delete all recipes, remove the `contrib` folder from the data directory (usually `tmp`) and restart H2O Driverless AI. This will prevent old experiments from making predictions unless related experiments are also deleted.
 
 ### Are MOJOs supported for experiments that use custom recipes?
 In most cases, MOJOs are not available for custom recipes. Contact support@h2o.ai for more details.
