@@ -59,7 +59,7 @@ Review the error message, which usually includes a stack trace and hints for fix
 Features created by your transformer might not have the strongest signal, but they can still improve the overall model performance.
 
 ### What happens if my recipe is not used in the experiment?
-Driverless AI will use the best-performing recipes. Check the experiment logs for errors related to your recipe. You can also disable recipe failures in Expert Settings.
+H2O Driverless AI will use the best-performing recipes. Check the experiment logs for errors related to your recipe. You can also disable recipe failures in Expert Settings.
 
 ### Can I write recipes in Go, C++, Java, or R?
 You can use any language as long as you can interface it with Python. Many recipes rely on Java and C++ backends.
