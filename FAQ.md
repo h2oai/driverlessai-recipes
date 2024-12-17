@@ -44,7 +44,7 @@ A text editor and knowledge of Python. Recipes are written as `.py` files with t
 - Upload your recipe in the Expert Settings section during the experiment setup.
 
 ### What version of Python does H2O Driverless AI use?
-H2O Driverless AI uses Python 3.6. Ensure your recipes are compatible with this version.
+H2O Driverless AI uses Python 3.11. Ensure your recipes are compatible with this version.
 
 ### How do I know if my recipe works?
 H2O Driverless AI will notify you whether your recipe passes the acceptance tests. If it fails, feedback will guide you on how to fix it.
