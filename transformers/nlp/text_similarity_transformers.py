@@ -3,7 +3,7 @@ from h2oaicore.transformer_utils import CustomTransformer
 import datatable as dt
 import numpy as np
 
-_global_modules_needed_by_name = ['nltk==3.8.1']
+_global_modules_needed_by_name = ['nltk==3.9.1']
 import nltk
 
 
