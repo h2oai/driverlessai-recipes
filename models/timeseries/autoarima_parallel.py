@@ -89,11 +89,10 @@ class AutoARIMAParallelModel(CustomTimeSeriesModel):
             '%s/httpstan-4.12.0%s' % (_root_path, _suffix),
             '%s/prophet-1.1.5%s' % (_root_path, _suffix),
             "statsforecast==1.7.4",
-            "dask==2024.12.1",
         ]
     else:
         _modules_needed_by_name = ['holidays==0.47', 'convertdate', 'lunarcalendar', 'pystan==3.9.1',
-                                   'prophet==1.1.5', 'statsforecast==1.7.4', 'dask==2024.12.1',]
+                                   'prophet==1.1.5', 'statsforecast==1.7.4']
 
     def set_default_params(
             self, accuracy=None, time_tolerance=None, interpretability=None, **kwargs
