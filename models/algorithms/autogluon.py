@@ -29,7 +29,7 @@ class AutoGluonModel(CustomModel):
     # so use isolated env
     isolate_env = dict(pyversion="3.11", install_h2oaicore=False, install_datatable=True, cache_env=True,
                        cache_by_full_module_name=False, install_pip="latest",
-                       modules_needed_by_name=['autogluon==0.3.1'])
+                       modules_needed_by_name=['autogluon==1.0.0'])
 
     @staticmethod
     def is_enabled():
@@ -115,7 +115,7 @@ class AutoGluonModel(CustomModel):
             'XGB': {'n_jobs': n_jobs, 'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
             'CAT': {'thread_count': n_jobs, 'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
             'GBM': [{}, {'extra_trees': True, 'ag_args': {'name_suffix': 'XT'}}, 'GBMLarge'],
-            'NN': {'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
+            'NN_TORCH': {'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
             'FASTAI': {'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
         }
         kwargs_fit = dict(hyperparameters=hyperparameters)
