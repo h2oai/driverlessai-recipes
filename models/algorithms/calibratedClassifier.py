@@ -144,7 +144,7 @@ class CalibratedClassifierModel:
         # model_classification.classes_ = self.le.classes_
         if self.params["calib_method"] in ["sigmoid", "isotonic"]:
             calibrator = CalibratedClassifierCV(
-                base_estimator=sk_model,
+                estimator=sk_model,
                 method=self.params["calib_method"],
                 cv='prefit', ensemble=False)
 

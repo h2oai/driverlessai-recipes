@@ -135,7 +135,7 @@ class LinearSVMModel(CustomModel):
             mod = linsvc(random_state=self.random_state, C=self.params["C"], penalty=self.params["penalty"],
                          loss=self.params["loss"], dual=self.params["dual"])
             kf = StratifiedKFold(n_splits=3, shuffle=True, random_state=self.random_state)
-            model = CalibratedClassifierCV(base_estimator=mod, method='isotonic', cv=kf)
+            model = CalibratedClassifierCV(estimator=mod, method='isotonic', cv=kf)
             lb = LabelEncoder()
             lb.fit(self.labels)
             y = lb.transform(y)

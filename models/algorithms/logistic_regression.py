@@ -10,18 +10,17 @@ import copy
 import codecs
 from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
-from sklearn.compose import ColumnTransformer, make_column_transformer
+from sklearn.compose import make_column_transformer
 from sklearn.pipeline import make_pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import roc_auc_score, make_scorer
 
 from h2oaicore.models import CustomModel
-from h2oaicore.systemutils import config, physical_cores_count, save_obj_atomically, load_obj, DefaultOrderedDict
-from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
+from h2oaicore.systemutils import physical_cores_count, save_obj_atomically, load_obj, DefaultOrderedDict
 from h2oaicore.transformers import CatOriginalTransformer, FrequentTransformer, CVTargetEncodeTransformer
 from h2oaicore.transformer_utils import Transformer
 from h2oaicore.transformers_more import CatTransformer, LexiLabelEncoderTransformer
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.model_selection import StratifiedKFold
 from sklearn.ensemble import VotingClassifier
 
 
@@ -450,7 +449,7 @@ class LogisticRegressionModel(CustomModel):
         if self._use_ohe_encoding and any(categorical_features.values):
             one_hot_encoder = None
             try:
-                one_hot_encoder = OneHotEncoder(handle_unknown='ignore', sparse=True)
+                one_hot_encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=True)
             except TypeError:
                 one_hot_encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=True)
             finally:
@@ -575,7 +574,7 @@ class LogisticRegressionModel(CustomModel):
         if self._use_ohe_encoding and any(categorical_features.values):
             input_features = [x + self._ohe_postfix for x in cat_X.columns]
             ohe_features = pd.Series(
-                model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names(
+                model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names_out(
                     input_features=input_features))
 
             def f(x):

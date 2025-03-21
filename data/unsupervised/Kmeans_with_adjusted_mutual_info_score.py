@@ -128,7 +128,7 @@ class KMeansClustering(CustomData):
 
         ## if number of clusters is pre-defined by user, then dont find the optimal
         if num_clusters > 1:
-            model = KMeans(n_clusters=num_clusters, n_jobs=NUM_JOBS).fit(X_clust)
+            model = KMeans(n_clusters=num_clusters).fit(X_clust)
             clust_ids = model.predict(X_clust)
             score = get_score(
                 X_clust,
@@ -140,7 +140,7 @@ class KMeansClustering(CustomData):
 
         else:
             for n_clusters in range(MIN_CLUSTERS, MAX_CLUSTERS, CLUSTER_STEP_SIZE):
-                model = KMeans(n_clusters=n_clusters, n_jobs=NUM_JOBS).fit(X_clust)
+                model = KMeans(n_clusters=n_clusters).fit(X_clust)
                 clust_ids = model.predict(X_clust)
 
                 X1 = X.to_pandas()

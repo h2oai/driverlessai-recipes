@@ -32,6 +32,7 @@ class CountCommonNGramsTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
+        import nltk
         output = []
         X = X.to_pandas()
         text1_arr = X.iloc[:, 0].values
@@ -72,6 +73,7 @@ class JaccardSimilarityTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
+        import nltk
         output = []
         X = X.to_pandas()
         text1_arr = X.iloc[:, 0].values
