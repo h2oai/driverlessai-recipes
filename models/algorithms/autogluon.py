@@ -29,7 +29,7 @@ class AutoGluonModel(CustomModel):
     # so use isolated env
     isolate_env = dict(pyversion="3.11", install_h2oaicore=False, install_datatable=True, cache_env=True,
                        cache_by_full_module_name=False, install_pip="latest",
-                       modules_needed_by_name=['autogluon==0.3.1'])
+                       modules_needed_by_name=['autogluon==1.2'])
 
     @staticmethod
     def is_enabled():
@@ -44,7 +44,7 @@ class AutoGluonModel(CustomModel):
 
     @staticmethod
     def fit_static(X, y, sample_weight=None, eval_set=None, sample_weight_eval_set=None, **kwargs):
-        from autogluon.tabular import TabularDataset, TabularPredictor
+        from autogluon.tabular import TabularPredictor
         from autogluon.tabular.models.knn.knn_rapids_model import KNNRapidsModel
         from autogluon.tabular.models.lr.lr_rapids_model import LinearRapidsModel
 

@@ -34,11 +34,10 @@ class TextPreprocessingTransformer(CustomTransformer):
         nltk_download_lock_file = os.path.join(nltk_data_path, "nltk.lock")
         with filelock.FileLock(nltk_download_lock_file):
             nltk.download('stopwords', download_dir=nltk_data_path)
-            nltk.download('punkt', download_dir=nltk_data_path)
-            nltk.download('averaged_perceptron_tagger', download_dir=nltk_data_path)
+            nltk.download('punkt_tab', download_dir=nltk_data_path)
+            nltk.download('averaged_perceptron_tagger_eng', download_dir=nltk_data_path)
             nltk.download('maxent_treebank_pos_tagger', download_dir=nltk_data_path)
             nltk.download('wordnet', download_dir=nltk_data_path)
-            nltk.download('sonoritysequencing', download_dir=nltk_data_path)
 
         # download resources for stemming if needed
         if self.do_stemming:
@@ -51,7 +50,7 @@ class TextPreprocessingTransformer(CustomTransformer):
                 tokenizer_path = os.path.join(nltk_data_path, "tokenizers")
                 os.makedirs(tokenizer_path, exist_ok=True)
                 file1 = download(
-                    "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt.zip",
+                    "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt_tab.zip",
                     dest_path=nltk_temp_path)
                 self.unzip_file(file1, tokenizer_path)
                 self.atomic_copy(file1, tokenizer_path)
@@ -62,10 +61,11 @@ class TextPreprocessingTransformer(CustomTransformer):
         if self.do_lemmatization:
             try:
                 from nltk.corpus import wordnet
+                from nltk.tokenize import word_tokenize
                 self.lemmatizer = nltk.stem.WordNetLemmatizer()
                 self.pos_tagger = nltk.pos_tag
                 self.lemmatizer.lemmatize("test", wordnet.NOUN)
-                self.pos_tagger(list("test"))
+                self.pos_tagger(word_tokenize("test"))
             except LookupError:
                 os.makedirs(nltk_data_path, exist_ok=True)
                 os.makedirs(nltk_temp_path, exist_ok=True)
@@ -89,10 +89,11 @@ class TextPreprocessingTransformer(CustomTransformer):
                 self.atomic_copy(file2, tagger_path)
                 self.atomic_copy(file3, corpora_path)
                 from nltk.corpus import wordnet
+                from nltk.tokenize import word_tokenize
                 self.lemmatizer = nltk.stem.WordNetLemmatizer()
                 self.pos_tagger = nltk.pos_tag
                 self.lemmatizer.lemmatize("test", wordnet.NOUN)
-                self.pos_tagger(list("test"))
+                self.pos_tagger(word_tokenize("test"))
             self.wordnet_map = {"N": wordnet.NOUN,
                                 "V": wordnet.VERB,
                                 "J": wordnet.ADJ,
@@ -147,7 +148,8 @@ class TextPreprocessingTransformer(CustomTransformer):
         if self.do_stemming:
             text = " ".join([self.stemmer.stem(word) for word in text.split()])
         if self.do_lemmatization:
-            pos_tagged_text = self.pos_tagger(text.split())
+            from nltk.tokenize import word_tokenize
+            pos_tagged_text = self.pos_tagger(word_tokenize(text))
             text = " ".join([self.lemmatizer.lemmatize(word, self.wordnet_map.get(pos[0], self.wordnet_map["O"]))
                              for word, pos in pos_tagged_text])
         if self.remove_stopwords:
