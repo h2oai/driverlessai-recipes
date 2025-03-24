@@ -572,13 +572,11 @@ class LogisticRegressionModel(CustomModel):
         # reduce OHE features to original names
         ohe_features_short = []
         if self._use_ohe_encoding and any(categorical_features.values):
-            input_features = [x + self._ohe_postfix for x in cat_X.columns]
             ohe_features = pd.Series(
-                model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names_out(
-                    input_features=input_features))
+                model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names_out())
 
             def f(x):
-                return '_'.join(x.split(self._ohe_postfix + '_')[:-1])
+                return '_'.join(x.split('_')[:-1])
 
             # identify OHE features
             ohe_features_short = ohe_features.apply(lambda x: f(x))
