@@ -2,7 +2,6 @@
 import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
-from sklearn.metrics import hamming_loss
 from sklearn.preprocessing import LabelEncoder
 
 

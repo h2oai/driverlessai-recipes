@@ -4,7 +4,6 @@ import typing
 import numpy as np
 from h2oaicore.metrics import CustomScorer
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import confusion_matrix
 
 
 class CostBinary_smooth(CustomScorer):

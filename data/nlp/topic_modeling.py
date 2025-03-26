@@ -98,7 +98,7 @@ class LdaTopicsClass(CustomData):
                 original_space_centroids = svd.inverse_transform(km.cluster_centers_)
                 order_centroids = original_space_centroids.argsort()[:, ::-1]
 
-            terms = tfidf_vec.get_feature_names()
+            terms = tfidf_vec.get_feature_names_out()
             topic_names = ["_".join([terms[ind] for ind in order_centroids[i, :n_words_colname]])
                            for i in range(n_topics)]
             df.columns = list(X.names) + topic_names

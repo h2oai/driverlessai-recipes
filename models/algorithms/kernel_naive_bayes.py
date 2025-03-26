@@ -9,7 +9,7 @@ from h2oaicore.systemutils import config, physical_cores_count, loggerinfo
 from sklearn.preprocessing import LabelEncoder
 from h2oaicore.models import CustomModel
 from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier, KernelDensity
+from sklearn.neighbors import KernelDensity
 
 from sklearn.base import BaseEstimator, ClassifierMixin
 

@@ -115,7 +115,7 @@ class AutoGluonModel(CustomModel):
             'XGB': {'n_jobs': n_jobs, 'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
             'CAT': {'thread_count': n_jobs, 'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
             'GBM': [{}, {'extra_trees': True, 'ag_args': {'name_suffix': 'XT'}}, 'GBMLarge'],
-            'NN': {'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
+            'NN_TORCH': {'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
             'FASTAI': {'ag_args_fit': {'num_gpus': num_gpus, 'num_cpus': n_jobs}},
         }
         kwargs_fit = dict(hyperparameters=hyperparameters)

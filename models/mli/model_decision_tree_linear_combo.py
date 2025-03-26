@@ -138,7 +138,7 @@ class DECISION_TREE_PLUS_LINEAR(CustomModel):
             self.enc = OneHotEncoder(handle_unknown='ignore')
 
             self.enc.fit(X[self.X_categorical])
-            self.encoded_categories = list(self.enc.get_feature_names(input_features=self.X_categorical))
+            self.encoded_categories = list(self.enc.get_feature_names_out(input_features=self.X_categorical))
 
             X_enc = self.enc.transform(X[self.X_categorical]).toarray()
 

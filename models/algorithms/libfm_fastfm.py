@@ -3,9 +3,6 @@ import datatable as dt
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from h2oaicore.models import CustomModel
-from sklearn.model_selection import StratifiedKFold
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.preprocessing import StandardScaler
 from scipy.sparse import csr_matrix
 

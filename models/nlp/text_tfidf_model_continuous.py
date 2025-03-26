@@ -5,7 +5,7 @@ import scipy as sp
 import datatable as dt
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.linear_model import LogisticRegression
 from h2oaicore.models import CustomModel
 from h2oaicore.systemutils_more import arch_type
 from h2oaicore.systemutils import config, remove, user_dir, get_num_gpus_for_prediction, IgnoreEntirelyError

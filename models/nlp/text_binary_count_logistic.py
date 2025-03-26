@@ -10,7 +10,6 @@ To enable TfidfVectorizer on words instead of CountVectorizer, use
 recipe_dict = "{'use_tfidf':True}"
 """
 
-import random
 import numpy as np
 import scipy as sp
 import datatable as dt
@@ -19,7 +18,6 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from h2oaicore.systemutils import config
 from h2oaicore.models import CustomModel
-from h2oaicore.transformer_utils import CustomTransformer
 
 
 class TextBinaryCountLogisticModel(CustomModel):
