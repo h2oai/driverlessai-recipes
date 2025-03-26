@@ -210,9 +210,9 @@ class LogisticRegressionModel(CustomModel):
         # self.params["max_iter"] = 37
 
         if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
-            penalty_list = ['l2', 'none']
+            penalty_list = ['l2', None]
         elif self.params["solver"] in ['saga']:
-            penalty_list = ['l1', 'l2', 'none']
+            penalty_list = ['l1', 'l2', None]
         elif self.params["solver"] in ['liblinear']:
             penalty_list = ['l1']
         else:
@@ -224,7 +224,7 @@ class LogisticRegressionModel(CustomModel):
             self.params["l1_ratio"] = float(np.random.choice(l1_ratio_list))
         else:
             self.params.pop('l1_ratio', None)
-        if self.params["penalty"] == 'none':
+        if self.params["penalty"] is None:
             self.params.pop('C', None)
         else:
             self.params['C'] = float(np.random.choice(C_list)) if not get_default else 0.12
@@ -277,9 +277,9 @@ class LogisticRegressionModel(CustomModel):
             if pick_key == 'penalty':
                 # has restrictions need to switch other keys if mismatched
                 if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
-                    penalty_list = ['l2', 'none']
+                    penalty_list = ['l2', None]
                 elif self.params["solver"] in ['saga']:
-                    penalty_list = ['l1', 'l2', 'none']
+                    penalty_list = ['l1', 'l2', None]
                 elif self.params["solver"] in ['liblinear']:
                     penalty_list = ['l1']
                 if not self.params['penalty'] in penalty_list:
@@ -497,7 +497,7 @@ class LogisticRegressionModel(CustomModel):
             lr_params_cv.pop('n_jobs', None)
             lr_params_cv.pop('C', None)
             lr_params_cv.pop('l1_ratio', None)
-            if lr_params_cv['penalty'] == 'none':
+            if lr_params_cv['penalty'] is None:
                 lr_params_cv['penalty'] = 'l2'
             estimator = LogisticRegressionCV(n_jobs=self.params['n_jobs'],
                                              cv=3, refit=True, scoring=scorer, **lr_params_cv)
