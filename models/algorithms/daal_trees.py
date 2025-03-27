@@ -25,6 +25,11 @@ class DaalBaseModel(object):
         # return not (arch_type == "ppc64le")
         return False  # WIP until figure out how to support on py38
 
+    @staticmethod
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
+        num_classes=None, **kwargs):
+        return False
+
     def dt_to_numpy(self, X, y=None):
         if isinstance(X, dt.Frame):
             X = X.to_numpy()
