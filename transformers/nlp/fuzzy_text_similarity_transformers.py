@@ -6,7 +6,6 @@ import datatable as dt
 import numpy as np
 
 _global_modules_needed_by_name = ['nltk==3.9.1']
-import nltk
 
 
 class FuzzyBaseTransformer:
