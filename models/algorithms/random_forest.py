@@ -39,7 +39,7 @@ class RandomForestModel(CustomModel):
             n_estimators = 10
         self.params = dict(random_state=kwargs.get("random_state", 1234),
                            n_estimators=n_estimators,
-                           criterion="gini" if self.num_classes >= 2 else "mse",
+                           criterion="gini" if self.num_classes >= 2 else "squared_error",
                            n_jobs=self.params_base.get('n_jobs', max(1, physical_cores_count)),
                            max_depth=14,
                            min_samples_split=2,
@@ -64,7 +64,7 @@ class RandomForestModel(CustomModel):
         # Modify certain parameters for tuning
         self.params["n_estimators"] = int(np.random.choice(estimators_list))
         self.params["criterion"] = np.random.choice(["gini", "entropy"]) if self.num_classes >= 2 \
-            else np.random.choice(["mse", "mae"])
+            else np.random.choice(["squared_error", "absolute_error"])
         max_depth_list = [6, 10, 14, 20]
         self.params['max_depth'] = int(np.random.choice(max_depth_list))
         min_samples_split_list = [2, 4, 10]
