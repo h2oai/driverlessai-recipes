@@ -210,9 +210,9 @@ class LogisticRegressionModel(CustomModel):
         # self.params["max_iter"] = 37
 
         if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
-            penalty_list = ['l2']
+            penalty_list = ['l2', None]
         elif self.params["solver"] in ['saga']:
-            penalty_list = ['l1', 'l2']
+            penalty_list = ['l1', 'l2', None]
         elif self.params["solver"] in ['liblinear']:
             penalty_list = ['l1']
         else:
@@ -277,9 +277,9 @@ class LogisticRegressionModel(CustomModel):
             if pick_key == 'penalty':
                 # has restrictions need to switch other keys if mismatched
                 if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
-                    penalty_list = ['l2']
+                    penalty_list = ['l2', None]
                 elif self.params["solver"] in ['saga']:
-                    penalty_list = ['l1', 'l2']
+                    penalty_list = ['l1', 'l2', None]
                 elif self.params["solver"] in ['liblinear']:
                     penalty_list = ['l1']
                 if not self.params['penalty'] in penalty_list:
