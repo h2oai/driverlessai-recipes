@@ -131,9 +131,9 @@ class LogisticRegressionModel(CustomModel):
     _use_woe_encoding = False
 
     # tell DAI what pip modules we will use
-    _modules_needed_by_name = ['category_encoders']
+    _modules_needed_by_name = ['category_encoders==2.7.0']
     if _use_target_encoding_other:
-        _modules_needed_by_name.extend(['target_encoding'])
+        _modules_needed_by_name.extend(['target_encoding==1.1.0'])
         # _modules_needed_by_name.extend(['git+https://github.com/h2oai/target_encoding#egg=target_encoding'])
 
     # whether to show debug prints and write munged view to disk
@@ -212,7 +212,7 @@ class LogisticRegressionModel(CustomModel):
         if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
             penalty_list = ['l2']
         elif self.params["solver"] in ['saga']:
-            penalty_list = ['l1', 'l2', 'elasticnet']
+            penalty_list = ['l1', 'l2']
         elif self.params["solver"] in ['liblinear']:
             penalty_list = ['l1']
         else:
@@ -279,7 +279,7 @@ class LogisticRegressionModel(CustomModel):
                 if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
                     penalty_list = ['l2']
                 elif self.params["solver"] in ['saga']:
-                    penalty_list = ['l1', 'l2', 'elasticnet']
+                    penalty_list = ['l1', 'l2']
                 elif self.params["solver"] in ['liblinear']:
                     penalty_list = ['l1']
                 if not self.params['penalty'] in penalty_list:
