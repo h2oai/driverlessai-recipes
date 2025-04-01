@@ -447,13 +447,9 @@ class LogisticRegressionModel(CustomModel):
                  categorical_features)
             )
         if self._use_ohe_encoding and any(categorical_features.values):
-            one_hot_encoder = None
-            try:
-                one_hot_encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=True)
-            except TypeError:
-                one_hot_encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=True)
-            finally:
-                transformers.append((one_hot_encoder, categorical_features))
+            transformers.append(
+                (OneHotEncoder(handle_unknown='ignore', sparse_output=True), categorical_features)
+            )
         assert len(transformers) > 0, "should have some features"
 
         preprocess = make_column_transformer(*transformers)
@@ -576,6 +572,8 @@ class LogisticRegressionModel(CustomModel):
                 model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names_out())
 
             def f(x):
+                if x.endswith(self._oob_cat):
+                    x = x[:-len(self._oob_cat)]
                 return '_'.join(x.split('_')[:-1])
 
             # identify OHE features
