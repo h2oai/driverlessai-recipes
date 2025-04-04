@@ -7,7 +7,6 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from h2oaicore.models import CustomModel
-from h2oaicore.transformer_utils import CustomTransformer
 
 
 class TextTFIDFModel(CustomModel):

@@ -145,7 +145,7 @@ class RecH2OMFTransformer(CustomTransformer):
                                                                   max_iter=self._max_iter)
             self.factorization.fit(X_train_user_item_matrix, X_BATCHES=self._batches, THETA_BATCHES=self._batches)
         elif self.__class__._mf_type == "nmf":
-            factorization = NMF(n_components=self._n_components, alpha=self._alpha, max_iter=self._max_iter)
+            factorization = NMF(n_components=self._n_components, alpha_W=self._alpha, max_iter=self._max_iter)
             self.user_matrix = factorization.fit_transform(X_train_user_item_matrix)
             self.item_matrix = factorization.components_.T
 

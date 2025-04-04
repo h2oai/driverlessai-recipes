@@ -13,8 +13,10 @@ from sklearn.calibration import CalibratedClassifierCV
 
 
 class SklearnWrapper:  # to trick CalibratedClassifierCV from sklearn
-    def __init__(self, model):
+    def __init__(self, model, classes):
         self.model = model
+        self._estimator_type = 'classifier'
+        self.classes_ = classes
 
     def predict_proba(self, X):
         return self.model.predict_simple_base(X)
@@ -135,7 +137,7 @@ class CalibratedClassifierModel:
         model_classification.eval_set_used_during_fit = val_y is not None
 
         # calibration
-        sk_model = SklearnWrapper(model_classification)
+        sk_model = SklearnWrapper(model_classification, np.unique(y_calibrate))
         sk_model.classes_ = self.le.classes_
         sk_model.fitted = True
         sk_model.eval_set_used_during_fit = val_y is not None
@@ -144,7 +146,7 @@ class CalibratedClassifierModel:
         # model_classification.classes_ = self.le.classes_
         if self.params["calib_method"] in ["sigmoid", "isotonic"]:
             calibrator = CalibratedClassifierCV(
-                base_estimator=sk_model,
+                estimator=sk_model,
                 method=self.params["calib_method"],
                 cv='prefit', ensemble=False)
 

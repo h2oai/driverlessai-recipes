@@ -40,7 +40,7 @@ class linsvc(BaseEstimator, ClassifierMixin):
         return np.column_stack((np.array(X1) - 1, np.array(X1)))
 
     def set_params(self, random_state=1, C=1., loss="squared_hinge", penalty="l2"):
-        self.model.set_params(random_state=random_state, C=C, loss=loss, penalty=penalty)
+        self.model.set_params(params={"random_state": random_state, "C": C, "loss": loss, "penalty": penalty})
 
     def get_params(self, deep=False):
         return {"random_state": self.random_state,
@@ -132,10 +132,10 @@ class LinearSVMModel(CustomModel):
         orig_cols = list(X.names)
 
         if self.num_classes >= 2:
-            mod = linsvc(random_state=self.random_state, C=self.params["C"], penalty=self.params["penalty"],
+            mod = LinearSVC(random_state=self.random_state, C=self.params["C"], penalty=self.params["penalty"],
                          loss=self.params["loss"], dual=self.params["dual"])
             kf = StratifiedKFold(n_splits=3, shuffle=True, random_state=self.random_state)
-            model = CalibratedClassifierCV(base_estimator=mod, method='isotonic', cv=kf)
+            model = CalibratedClassifierCV(estimator=mod, method='isotonic', cv=kf)
             lb = LabelEncoder()
             lb.fit(self.labels)
             y = lb.transform(y)
@@ -156,7 +156,7 @@ class LinearSVMModel(CustomModel):
         importances = np.array([0.0 for k in range(len(orig_cols))])
         if self.num_classes >= 2:
             for classifier in model.calibrated_classifiers_:
-                importances += np.array(abs(classifier.base_estimator.get_coeff()))
+                importances += np.array(abs(classifier.estimator.coef_[0]))
         else:
             importances += np.array(abs(model.coef_[0]))
 

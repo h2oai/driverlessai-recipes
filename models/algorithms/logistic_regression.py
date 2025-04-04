@@ -10,18 +10,17 @@ import copy
 import codecs
 from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
-from sklearn.compose import ColumnTransformer, make_column_transformer
+from sklearn.compose import make_column_transformer
 from sklearn.pipeline import make_pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import roc_auc_score, make_scorer
 
 from h2oaicore.models import CustomModel
-from h2oaicore.systemutils import config, physical_cores_count, save_obj_atomically, load_obj, DefaultOrderedDict
-from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning
+from h2oaicore.systemutils import physical_cores_count, save_obj_atomically, load_obj, DefaultOrderedDict
 from h2oaicore.transformers import CatOriginalTransformer, FrequentTransformer, CVTargetEncodeTransformer
 from h2oaicore.transformer_utils import Transformer
 from h2oaicore.transformers_more import CatTransformer, LexiLabelEncoderTransformer
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.model_selection import StratifiedKFold
 from sklearn.ensemble import VotingClassifier
 
 
@@ -132,9 +131,9 @@ class LogisticRegressionModel(CustomModel):
     _use_woe_encoding = False
 
     # tell DAI what pip modules we will use
-    _modules_needed_by_name = ['category_encoders']
+    _modules_needed_by_name = ['category_encoders==2.7.0']
     if _use_target_encoding_other:
-        _modules_needed_by_name.extend(['target_encoding'])
+        _modules_needed_by_name.extend(['target_encoding==1.1.0'])
         # _modules_needed_by_name.extend(['git+https://github.com/h2oai/target_encoding#egg=target_encoding'])
 
     # whether to show debug prints and write munged view to disk
@@ -211,9 +210,9 @@ class LogisticRegressionModel(CustomModel):
         # self.params["max_iter"] = 37
 
         if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
-            penalty_list = ['l2', 'none']
+            penalty_list = ['l2', None]
         elif self.params["solver"] in ['saga']:
-            penalty_list = ['l1', 'l2', 'none']
+            penalty_list = ['l1', 'l2', None]
         elif self.params["solver"] in ['liblinear']:
             penalty_list = ['l1']
         else:
@@ -225,7 +224,7 @@ class LogisticRegressionModel(CustomModel):
             self.params["l1_ratio"] = float(np.random.choice(l1_ratio_list))
         else:
             self.params.pop('l1_ratio', None)
-        if self.params["penalty"] == 'none':
+        if self.params["penalty"] is None:
             self.params.pop('C', None)
         else:
             self.params['C'] = float(np.random.choice(C_list)) if not get_default else 0.12
@@ -278,9 +277,9 @@ class LogisticRegressionModel(CustomModel):
             if pick_key == 'penalty':
                 # has restrictions need to switch other keys if mismatched
                 if self.params["solver"] in ['lbfgs', 'newton-cg', 'sag']:
-                    penalty_list = ['l2', 'none']
+                    penalty_list = ['l2', None]
                 elif self.params["solver"] in ['saga']:
-                    penalty_list = ['l1', 'l2', 'none']
+                    penalty_list = ['l1', 'l2', None]
                 elif self.params["solver"] in ['liblinear']:
                     penalty_list = ['l1']
                 if not self.params['penalty'] in penalty_list:
@@ -449,7 +448,7 @@ class LogisticRegressionModel(CustomModel):
             )
         if self._use_ohe_encoding and any(categorical_features.values):
             transformers.append(
-                (OneHotEncoder(handle_unknown='ignore', sparse=True), categorical_features)
+                (OneHotEncoder(handle_unknown='ignore', sparse_output=True), categorical_features)
             )
         assert len(transformers) > 0, "should have some features"
 
@@ -494,7 +493,7 @@ class LogisticRegressionModel(CustomModel):
             lr_params_cv.pop('n_jobs', None)
             lr_params_cv.pop('C', None)
             lr_params_cv.pop('l1_ratio', None)
-            if lr_params_cv['penalty'] == 'none':
+            if lr_params_cv['penalty'] is None:
                 lr_params_cv['penalty'] = 'l2'
             estimator = LogisticRegressionCV(n_jobs=self.params['n_jobs'],
                                              cv=3, refit=True, scoring=scorer, **lr_params_cv)
@@ -569,13 +568,13 @@ class LogisticRegressionModel(CustomModel):
         # reduce OHE features to original names
         ohe_features_short = []
         if self._use_ohe_encoding and any(categorical_features.values):
-            input_features = [x + self._ohe_postfix for x in cat_X.columns]
             ohe_features = pd.Series(
-                model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names(
-                    input_features=input_features))
+                model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names_out())
 
             def f(x):
-                return '_'.join(x.split(self._ohe_postfix + '_')[:-1])
+                if x.endswith(self._oob_cat):
+                    x = x[:-len(self._oob_cat)]
+                return '_'.join(x.split('_')[:-1])
 
             # identify OHE features
             ohe_features_short = ohe_features.apply(lambda x: f(x))

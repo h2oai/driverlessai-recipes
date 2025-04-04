@@ -87,9 +87,9 @@ class TextBinaryCountTransformer(CustomTransformer):
                 raise
 
         self._output_feature_names = ['BinaryCount:' + curr_col + '.' + token for token in
-                                      self.count_vec.get_feature_names()]
+                                      self.count_vec.get_feature_names_out()]
         self._feature_desc = ["Binary count of '" + token + "' found in " + curr_col for token in
-                              self.count_vec.get_feature_names()]
+                              self.count_vec.get_feature_names_out()]
         return X
 
     def transform(self, X: dt.Frame):

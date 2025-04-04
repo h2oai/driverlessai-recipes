@@ -4,7 +4,6 @@ import datatable as dt
 import numpy as np
 
 _global_modules_needed_by_name = ['nltk==3.9.1']
-import nltk
 
 
 class CountCommonNGramsTransformer(CustomTransformer):
@@ -32,6 +31,7 @@ class CountCommonNGramsTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
+        import nltk
         output = []
         X = X.to_pandas()
         text1_arr = X.iloc[:, 0].values
@@ -72,6 +72,7 @@ class JaccardSimilarityTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
+        import nltk
         output = []
         X = X.to_pandas()
         text1_arr = X.iloc[:, 0].values
@@ -112,6 +113,7 @@ class DiceSimilarityTransformer(CustomTransformer):
         return self.transform(X)
 
     def transform(self, X: dt.Frame):
+        import nltk
         output = []
         X = X.to_pandas()
         text1_arr = X.iloc[:, 0].values

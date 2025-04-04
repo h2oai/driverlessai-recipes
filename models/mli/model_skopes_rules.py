@@ -18,7 +18,7 @@ class SKOPE_RULES(CustomModel):
     _display_name = "SKOPE RULES"
     _description = "SKOPE RULES"
     # using git master because pypi is very out of date (Jan 2020) but need Sept 1-ish master with fix for updated scikit-learn
-    _modules_needed_by_name = ['git+https://github.com/scikit-learn-contrib/skope-rules.git']
+    _modules_needed_by_name = ['git+https://github.com/h2oai/skope-rules.git']
 
     @staticmethod
     def do_acceptance_test():
@@ -193,7 +193,7 @@ class SKOPE_RULES(CustomModel):
             self.enc = OneHotEncoder(handle_unknown='ignore')
 
             self.enc.fit(X[self.X_categorical])
-            self.encoded_categories = list(self.enc.get_feature_names(input_features=self.X_categorical))
+            self.encoded_categories = list(self.enc.get_feature_names_out(input_features=self.X_categorical))
 
             X_enc = self.enc.transform(X[self.X_categorical]).toarray()
 

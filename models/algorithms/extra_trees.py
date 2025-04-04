@@ -67,7 +67,7 @@ class ExtraTreesModel(CustomModel):
         self.params["n_estimators"] = MainModel.get_one(self.estimators_list(accuracy=accuracy), get_best=get_best,
                                                         best_type="first", name="n_estimators",
                                                         trial=trial, user_choice=user_choice)
-        criterions = ["gini", "entropy"] if self.num_classes >= 2 else ["mse", "mae"]
+        criterions = ["gini", "entropy"] if self.num_classes >= 2 else ["squared_error", "absolute_error"]
         self.params["criterion"] = MainModel.get_one(criterions, get_best=get_best,
                                                      best_type="first", name="criterion",
                                                      trial=trial, user_choice=user_choice)
