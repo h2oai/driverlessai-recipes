@@ -384,6 +384,7 @@ class LogisticRegressionModel(CustomModel):
             print("LR: Cat names: %s" % str(list(cat_X.columns)))
             print("LR: Num names: %s" % str(list(num_X.columns)))
 
+        self._categorical_encoded_lookup = {cat_feat for cat_feat in cat_X.columns if cat_X[cat_feat].values.dtype == object}
         # TRANSFORMERS
         lr_params = copy.deepcopy(self.params)
         lr_params.pop('grid_search_by_iterations', None)
@@ -571,13 +572,8 @@ class LogisticRegressionModel(CustomModel):
             ohe_features = pd.Series(
                 model.named_steps['columntransformer'].named_transformers_['onehotencoder'].get_feature_names_out())
 
-            def f(x):
-                if x.endswith(self._oob_cat):
-                    x = x[:-len(self._oob_cat)]
-                return '_'.join(x.split('_')[:-1])
-
             # identify OHE features
-            ohe_features_short = ohe_features.apply(lambda x: f(x))
+            ohe_features_short = ohe_features.apply(self._sanitize_column)
             full_features_list.extend(list(ohe_features_short))
 
             if self._debug:
@@ -686,6 +682,15 @@ class LogisticRegressionModel(CustomModel):
             preds = model.predict_proba(X)
         os.chdir(orig_dir)
         return preds
+
+    def _sanitize_column(self, column):
+        if column.endswith(self._oob_cat):
+            column = column[:-len(self._oob_cat)]
+        column = '_'.join(column.split('_')[:-1])
+        for cat_feat in self._categorical_encoded_lookup:
+            if column.startswith(f"{cat_feat}_"):
+                return cat_feat
+        return column
 
 
 class OOBImpute(object):
