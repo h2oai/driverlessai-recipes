@@ -31,7 +31,7 @@ class SKOPE_RULES(CustomModel):
                            max_depth_duplication=None, n_estimators=10,
                            precision_min=0.5, recall_min=0.01, max_samples=0.8,
                            max_samples_features=1.0, max_depth=3,
-                           max_features="auto", min_samples_split=2,
+                           max_features=None, min_samples_split=2,
                            bootstrap=False, bootstrap_features=False)
 
     def mutate_params(self, accuracy=10, **kwargs):
@@ -43,7 +43,7 @@ class SKOPE_RULES(CustomModel):
             max_samples = [0.5, 0.8, 1.0]
             max_samples_features = [0.5, 0.8, 1.0]
             max_depth = [3, 4, 5]
-            max_features = ["sqrt", "log2", "auto"]
+            max_features = ["sqrt", "log2", None]
             min_samples_split = [2, 11, 21]
             bootstrap = [True, False]
             bootstrap_features = [True, False]
@@ -55,7 +55,7 @@ class SKOPE_RULES(CustomModel):
             max_samples = [0.8, 1.0]
             max_samples_features = [1.0]
             max_depth = [3, 4]
-            max_features = ["sqrt", "log2", "auto"]
+            max_features = ["sqrt", "log2", None]
             min_samples_split = [2, 5, 11]
             bootstrap = [True, False]
             bootstrap_features = [True, False]
@@ -67,7 +67,7 @@ class SKOPE_RULES(CustomModel):
             max_samples = [0.8, 1.0]
             max_samples_features = [0.8, 1.0]
             max_depth = [3, 4]
-            max_features = ["auto"]
+            max_features = [None]
             min_samples_split = [2]
             bootstrap = [True, False]
             bootstrap_features = [True, False]
