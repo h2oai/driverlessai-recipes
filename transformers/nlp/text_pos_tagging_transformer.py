@@ -17,30 +17,37 @@ class POSTagTransformer:
 
     def set_tagger(self):
         import nltk
+        from nltk.tokenize import word_tokenize
+
         nltk_data_path = os.path.join(user_dir(), config.contrib_env_relative_directory, "nltk_data")
         nltk_temp_path = os.path.join(user_dir(), "nltk_data")
         nltk.data.path.append(nltk_data_path)
-        nltk.download('averaged_perceptron_tagger', download_dir=nltk_data_path)
+        nltk.download('averaged_perceptron_tagger_eng', download_dir=nltk_data_path)
+        nltk.download('punkt_tab', download_dir=nltk_data_path)
         try:
             self.pos_tagger = nltk.pos_tag
-            self.pos_tagger(list("test"))
+            self.pos_tagger(word_tokenize("test"))
         except LookupError:
             os.makedirs(nltk_data_path, exist_ok=True)
             os.makedirs(nltk_temp_path, exist_ok=True)
             tagger_path = os.path.join(nltk_data_path, "taggers")
             os.makedirs(tagger_path, exist_ok=True)
-            file1 = download(
-                "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/averaged_perceptron_tagger.zip",
-                dest_path=nltk_temp_path)
-            file2 = download(
+            data_files = []
+            data_files.append(download(
+                "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/averaged_perceptron_tagger_eng.zip",
+                dest_path=nltk_temp_path))
+            data_files.append(download(
                 "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/maxent_treebank_pos_tagger.zip",
-                dest_path=nltk_temp_path)
-            self.unzip_file(file1, tagger_path)
-            self.unzip_file(file2, tagger_path)
-            self.atomic_copy(file1, tagger_path)
-            self.atomic_copy(file2, tagger_path)
+                dest_path=nltk_temp_path))
+            data_files.append(download(
+                "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt_tab.zip",
+                    dest_path=nltk_temp_path))
+            for data_file in data_files:
+                self.unzip_file(data_file, tagger_path)
+                self.atomic_copy(data_file, tagger_path)
+
             self.pos_tagger = nltk.pos_tag
-            self.pos_tagger(list("test"))
+            self.pos_tagger(word_tokenize("test"))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
