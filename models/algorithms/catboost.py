@@ -21,8 +21,6 @@ class DeprecatedCatBoostModel(CustomModel):
     _regression = True
     _binary = True
     _multiclass = True
-    _display_name = "CatBoost"
-    _description = "Yandex CatBoost GBM"
     _can_use_multi_gpu = False  # Can enable, but consumes too much memory
     # WIP: leakage can't find _catboost module, unsure what special.  Probably shift would fail too if used catboost.
     _can_use_gpu = True
