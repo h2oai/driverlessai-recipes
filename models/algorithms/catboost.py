@@ -17,7 +17,7 @@ import inspect
 
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
 # https://catboost.ai/docs/concepts/python-usages-examples.html
-class CatBoostModel(CustomModel):
+class DeprecatedCatBoostModel(CustomModel):
     _regression = True
     _binary = True
     _multiclass = True
@@ -69,7 +69,7 @@ class CatBoostModel(CustomModel):
 
     @staticmethod
     def is_enabled():
-        return not (arch_type == "ppc64le")
+        return False
 
     @staticmethod
     def do_acceptance_test():
