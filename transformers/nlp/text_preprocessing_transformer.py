@@ -49,11 +49,20 @@ class TextPreprocessingTransformer(CustomTransformer):
                 os.makedirs(nltk_temp_path, exist_ok=True)
                 tokenizer_path = os.path.join(nltk_data_path, "tokenizers")
                 os.makedirs(tokenizer_path, exist_ok=True)
-                file1 = download(
+                data_files = []
+                data_files.append(download(
+                    "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/averaged_perceptron_tagger_eng.zip",
+                    dest_path=nltk_temp_path))
+                data_files.append(download(
+                    "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/maxent_treebank_pos_tagger.zip",
+                    dest_path=nltk_temp_path))
+                data_files.append(download(
                     "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt_tab.zip",
-                    dest_path=nltk_temp_path)
-                self.unzip_file(file1, tokenizer_path)
-                self.atomic_copy(file1, tokenizer_path)
+                        dest_path=nltk_temp_path))
+                for data_file in data_files:
+                    self.unzip_file(data_file, tokenizer_path)
+                    self.atomic_copy(data_file, tokenizer_path)
+
                 self.stemmer = nltk.stem.porter.PorterStemmer()
                 self.stemmer.stem("test")
 
