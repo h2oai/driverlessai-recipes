@@ -389,6 +389,12 @@ class LogisticRegressionModel(CustomModel):
         lr_params = copy.deepcopy(self.params)
         lr_params.pop('grid_search_by_iterations', None)
         lr_params.pop('cv_search', None)
+
+        # Convert string 'None' to actual None for sklearn compatibility
+        for key, value in lr_params.items():
+            if value == 'None':
+                lr_params[key] = None
+
         grid_search = False  # WIP
 
         full_features_list = []
