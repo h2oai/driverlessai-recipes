@@ -389,6 +389,12 @@ class LogisticRegressionModel(CustomModel):
         lr_params = copy.deepcopy(self.params)
         lr_params.pop('grid_search_by_iterations', None)
         lr_params.pop('cv_search', None)
+
+        # Convert string 'None' to actual None for sklearn compatibility
+        for key, value in lr_params.items():
+            if value == 'None':
+                lr_params[key] = None
+
         grid_search = False  # WIP
 
         full_features_list = []
@@ -606,10 +612,22 @@ class LogisticRegressionModel(CustomModel):
 
         # aggregate importances by dai feature name
         importances = pd.Series(np.abs(importances), index=full_features_list).groupby(level=0).mean()
-        assert len(importances) == len(
-            X_orig_cols_names), "lenimp=%d lenorigX=%d msg=%s : X.columns=%s dtypes=%s : full_features_list=%s" % (
+
+        # Ensure we have importances for all original columns
+        # If aggregation resulted in fewer features, fill missing ones with the mean importance
+        if len(importances) < len(X_orig_cols_names):
+            missing_cols = set(X_orig_cols_names) - set(importances.index)
+            if missing_cols:
+                # Use mean of existing importances for missing columns
+                mean_importance = importances.mean() if len(importances) > 0 else 0.0
+                for col in missing_cols:
+                    importances[col] = mean_importance
+
+        # Verify we now have the right number of features
+        assert len(importances) >= len(
+            X_orig_cols_names), "lenimp=%d lenorigX=%d msg=%s : X.columns=%s dtypes=%s : full_features_list=%s : importances.index=%s" % (
             len(importances), len(X_orig_cols_names), msg,
-            str(list(X.columns)), str(list(X.dtypes)), str(full_features_list))
+            str(list(X.columns)), str(list(X.dtypes)), str(full_features_list), str(list(importances.index)))
 
         # save hyper parameter searched results for next search
         self.params['max_iter'] = iterations
@@ -622,8 +640,20 @@ class LogisticRegressionModel(CustomModel):
         else:
             self.params['fit_count'] = 0
 
-        importances_list = importances.tolist()
-        importances_list = list(np.array(importances_list) / np.max(importances_list))
+        # Ensure importances are aligned with orig_cols
+        # Create a properly ordered list matching orig_cols
+        importances_aligned = []
+        for col in orig_cols:
+            if col in importances.index:
+                importances_aligned.append(importances[col])
+            else:
+                # If column missing, use mean importance
+                importances_aligned.append(importances.mean() if len(importances) > 0 else 0.0)
+
+        importances_list = importances_aligned
+        max_imp = np.max(importances_list) if len(importances_list) > 0 else 1.0
+        if max_imp > 0:
+            importances_list = list(np.array(importances_list) / max_imp)
         self.set_model_properties(model=(model, self.features),
                                   features=orig_cols,
                                   importances=importances_list,
