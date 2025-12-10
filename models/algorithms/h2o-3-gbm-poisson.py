@@ -11,7 +11,7 @@ from h2o.estimators.gbm import H2OGradientBoostingEstimator
 
 import numpy as np
 
-_global_modules_needed_by_name = ['h2o==3.46.0.8']
+_global_modules_needed_by_name = ['h2o==3.46.0.9']
 import h2o
 import os
 
