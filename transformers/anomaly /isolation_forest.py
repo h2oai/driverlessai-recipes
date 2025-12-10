@@ -15,7 +15,7 @@ import datatable as dt
 from h2oaicore.systemutils import config, user_dir, remove, IgnoreEntirelyError, print_debug
 from h2oaicore.transformer_utils import CustomTransformer
 
-_global_modules_needed_by_name = ['h2o==3.46.0.8']
+_global_modules_needed_by_name = ['h2o==3.46.0.9']
 import h2o
 from h2o import H2OFrame
 from h2o.estimators import H2OEstimator
