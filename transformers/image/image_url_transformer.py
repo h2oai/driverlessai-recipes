@@ -16,7 +16,7 @@ class MyImgTransformer(TensorFlowModel, CustomTransformer):
 
     # Need Pillow before nlp imports keras, else when here too late.
     # I.e. wasn't enough to put keras imports inside fit/transform to delay after Pillow installed
-    _modules_needed_by_name = ['pillow==10.3.0']
+    _modules_needed_by_name = ['pillow==12.0.0']
     _tensorflow = True
     _mojo = False
     _parallel_task = True  # assumes will use n_jobs in params_base
