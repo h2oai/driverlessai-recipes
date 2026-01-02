@@ -17,6 +17,7 @@ from typing import Tuple
 import datatable as dt
 import numpy as np
 from sklearn.exceptions import NotFittedError
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 from sklearn.utils.validation import check_is_fitted
 
@@ -87,13 +88,21 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
     _uses_target = True
     _modules_needed_by_name = ["tabpfn==6.2.0"]
 
-    TRAIN_SIZE_LIMITS = 1000
+    TRAIN_SIZE_LIMITS = 10000
+    TRAIN_SIZE_OVERLOAD_RATE = 2
     MAX_CLASSES = 10
+    MAX_FEATURES = 30
 
     @staticmethod
     def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
                 num_classes=None, **kwargs):
-        return accuracy > 8 and interpretability < 2 and train_shape[0] < 10000 and n_gpus > 0
+        return (
+            accuracy > 8
+            and interpretability < 2
+            and train_shape[0] < TabPFNEmbeddingTransformer.TRAIN_SIZE_OVERLOAD_RATE * TabPFNEmbeddingTransformer.TRAIN_SIZE_LIMITS
+            and train_shape[1] <= TabPFNEmbeddingTransformer.MAX_FEATURES
+            and n_gpus > 0
+        )
 
     @staticmethod
     def enabled_setting():
@@ -101,12 +110,12 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
 
     @staticmethod
     def do_acceptance_test():
-        # Very slow, manually set be `True` for testing purpose
-        return False
+        # Very slow, manually set be `False` to skip
+        return True
 
     @staticmethod
     def get_default_properties():
-        return dict(col_type="numcat", min_cols="all", max_cols="all", relative_importance=1)
+        return dict(col_type="numcat", min_cols=2, max_cols=TabPFNEmbeddingTransformer.MAX_FEATURES, relative_importance=1)
 
     @staticmethod
     def get_parameter_choices():
@@ -114,29 +123,43 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
             n_estimators=[8, 10, 12],
             balance_probabilities=[False, True],
             average_before_softmax=[False, True],
+            tune_boundary_threshold=[False, True],
+            calibrate_softmax_temperature=[False, True],
             max_dim=[40, 60, 80],
+            pooling_type=["mean", "max"],
         )
 
     @property
     def display_name(self):
-        return (f"TabPFNEmbedding(n_estimators={self.n_estimators},max_fit_rows={self.max_fit_rows},"
-                f"balance_probabilities={self.balance_probabilities},average_before_softmax={self.average_before_softmax})")
+        return (f"TabPFNEmbedding(n_estimators={self.n_estimators},max_dim={self.max_dim},tune_boundary_threshold={self.tune_boundary_threshold},"
+                f"pooling_type={self.pooling_type},balance_probabilities={self.balance_probabilities},"
+                f"average_before_softmax={self.average_before_softmax},calibrate_softmax_temperature={self.calibrate_softmax_temperature})")
+
+    @property
+    def is_classification(self) -> bool:
+        num_classes = len(self.labels or [])
+        return num_classes > 1
 
     def __init__(
         self,
         n_estimators: int = 8,
-        max_fit_rows: int = 10000,
         balance_probabilities: bool = False,
         average_before_softmax: bool = False,
+        tune_boundary_threshold: bool = False,
+        calibrate_softmax_temperature: bool = False,
         max_dim: int = 40,
+        pooling_type: str = "mean",
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.n_estimators = n_estimators
-        self.max_fit_rows = max_fit_rows
         self.balance_probabilities = balance_probabilities
         self.average_before_softmax = average_before_softmax
+        self.calibrate_softmax_temperature = calibrate_softmax_temperature
+        self.tune_boundary_threshold = tune_boundary_threshold
         self.max_dim = max_dim
+        self.pooling_type = pooling_type
+        self.max_fit_rows = self.TRAIN_SIZE_LIMITS
         self.uid = str(uuid.uuid4())
         self.seed = systemutils.config.seed
 
@@ -159,157 +182,60 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
                 username=self.context.username,
             )
 
-        self._prepare_env(limit=X.shape[0])
-        x, sample_indices = self._prepare_x(X)
+        self._prepare_env(seed=self.seed)
 
         self.ord_encoder_ = OrdinalEncoder(
             handle_unknown="use_encoded_value",
             unknown_value=-1,
             encoded_missing_value=-2,
         )
-        x_sampled_numpy = _to_numeric(x[sample_indices, :], self.ord_encoder_)
-        x_sampled_numpy = np.asarray(x_sampled_numpy, dtype=np.float32)
+        x_numpy, sample_indices = self._prepare_x(x=X, encoder=self.ord_encoder_, y=y)
+        x_sampled_numpy = x_numpy[sample_indices]
 
         device = self._get_device()
-        is_classification = self._is_classifier(y)
         self.tabpfn_model_ = self._build_tabpfn_models(
             seed=self.seed,
             n_estimators=self.n_estimators,
             n_jobs=self._get_n_jobs(logger, **kwargs),
             balance_probabilities=self.balance_probabilities,
             average_before_softmax=self.average_before_softmax,
-            is_classification=is_classification,
+            tune_boundary_threshold=self.tune_boundary_threshold,
+            calibrate_softmax_temperature=self.calibrate_softmax_temperature,
+            is_classification=self.is_classification,
             device=device,
         )
-        y_sampled = self._prepare_y(y[sample_indices], is_classification)
+        y_sampled = self._prepare_y(y[sample_indices], self.is_classification)
 
-        systemutils.loggerinfo(logger, f"Fitting TabPFN {'Classifier' if is_classification else 'Regressor'}...")
+        systemutils.loggerinfo(logger, f"Fitting TabPFN {'Classifier' if self.is_classification else 'Regressor'}...")
         self.tabpfn_model_.fit(x_sampled_numpy, y_sampled)
 
-        x_transformed = self._transform(x_sampled_numpy, data_source="test", training=True, use_gpu=device != "cpu")
+        x_transformed = self._transform(x_numpy, data_source="test", training=True, use_gpu=device != "cpu")
+
+        # Validate embeddings for NaN/inf
+        if np.any(np.isnan(x_transformed)) or np.any(np.isinf(x_transformed)):
+            systemutils.loggerwarning(logger, "WARNING: NaN or inf detected in embeddings, replacing with 0.0")
+            x_transformed = np.nan_to_num(x_transformed, nan=0.0, posinf=0.0, neginf=0.0)
 
         self._save_state()
-        systemutils.loggerinfo(logger, f"Finished fitting TabPFN {'Classifier' if is_classification else 'Regressor'}")
+        systemutils.loggerinfo(logger, f"Finished fitting TabPFN {'Classifier' if self.is_classification else 'Regressor'}")
 
-        final_output = np.full((x.shape[0], x_transformed.shape[-1]), fill_value=0.0, dtype=np.float32)
-        final_output[sample_indices] = x_transformed
-        return final_output
+        return np.asarray(x_transformed, dtype=np.float32)
 
     def transform(self, X: dt.Frame, **kwargs) -> np.ndarray:
         assert len(X.shape) == 2
         check_is_fitted(self, ["raw_model_bytes"])
 
         self._restore_state()
-        self._prepare_env()
-        x, _ = self._prepare_x(X)
+        self._prepare_env(seed=self.seed)
+        x_numpy, _ = self._prepare_x(x=X, encoder=self.ord_encoder_, y=None)
+        x_transformed = self._transform(x_numpy, data_source="test", use_gpu=self._get_device() != "cpu")
 
-        x_numpy = _to_numeric(x, self.ord_encoder_)
-        return self._transform(x_numpy, data_source="test", use_gpu=self._get_device() != "cpu")
+        # Validate embeddings for NaN/inf
+        if np.any(np.isnan(x_transformed)) or np.any(np.isinf(x_transformed)):
+            systemutils.loggerwarning(None, "WARNING: NaN or inf detected in embeddings during transform, replacing with 0.0")
+            x_transformed = np.nan_to_num(x_transformed, nan=0.0, posinf=0.0, neginf=0.0)
 
-    @staticmethod
-    def _get_gpu_id() -> int:
-        return (systemutils.get_gpu_id() + os.getpid() % systemutils.ngpus_vis) % systemutils.ngpus_vis_real
-
-    @staticmethod
-    def _get_n_jobs(logger, **kwargs) -> int:
-        try:
-            if systemutils.config.fixed_num_folds <= 0:
-                n_jobs = max(1, int(int(systemutils.max_threads() / min(systemutils.config.num_folds, kwargs['max_workers']))))
-            else:
-                n_jobs = max(1, int(
-                    int(systemutils.max_threads() / min(systemutils.config.fixed_num_folds, systemutils.config.num_folds, kwargs['max_workers']))))
-        except KeyError:
-            systemutils.loggerinfo(logger, "Arima No Max Worker in kwargs. Set n_jobs to 1")
-            n_jobs = 1
-
-        return n_jobs
-
-    @staticmethod
-    def _is_classifier(targets: np.ndarray) -> bool:
-        # classifier if low cardinality <= TABPFN maximum classes
-        return np.unique(targets).size <= TabPFNEmbeddingTransformer.MAX_CLASSES
-
-    @staticmethod
-    def _build_tabpfn_models(
-        seed: int,
-        n_jobs: int,
-        n_estimators: int,
-        balance_probabilities: bool = False,
-        average_before_softmax: bool = False,
-        is_classification: bool = False,
-        device: str = "cpu",
-    ):
-        from tabpfn.constants import ModelVersion
-
-        clf_ckpt, reg_ckpt = TabPFNEmbeddingTransformer._ensure_weights_cached()
-        if is_classification:
-            from tabpfn import TabPFNClassifier
-
-            systemutils.loggerinfo(None, f"Instantiating TabPFN Classifier from {clf_ckpt}")
-            return TabPFNClassifier.create_default_for_version(
-                ModelVersion.V2,
-                device=device,
-                model_path=clf_ckpt,
-                random_state=seed,
-                n_preprocessing_jobs=n_jobs,
-                n_estimators=n_estimators,
-                balance_probabilities=balance_probabilities,
-                average_before_softmax=average_before_softmax,
-            )
-        else:
-            from tabpfn import TabPFNRegressor
-
-            systemutils.loggerinfo(None, f"Instantiating TabPFN Regressor from {reg_ckpt}")
-            return TabPFNRegressor.create_default_for_version(
-                ModelVersion.V2,
-                device=device,
-                model_path=reg_ckpt,
-                random_state=seed,
-                n_preprocessing_jobs=n_jobs,
-                n_estimators=n_estimators,
-                average_before_softmax=average_before_softmax,
-            )
-
-    @staticmethod
-    def _ensure_weights_cached():
-        """
-        Optional: pre-download weights into a deterministic cache location.
-        If TabPFN already handles caching, this still helps DAI environments.
-        """
-        cache_dir = _get_cache_dir()
-        systemutils.makedirs(cache_dir, exist_ok=True)
-
-        clf_path = cache_dir / os.path.basename(TABPFN_CLASSIFIER_CKPT_URL)
-        reg_path = cache_dir / os.path.basename(TABPFN_REGRESSOR_CKPT_URL)
-
-        if not clf_path.exists():
-            download(TABPFN_CLASSIFIER_CKPT_URL, dest_path=cache_dir)
-        if not reg_path.exists():
-            download(TABPFN_REGRESSOR_CKPT_URL, dest_path=cache_dir)
-
-        return str(clf_path), str(reg_path)
-
-    @staticmethod
-    def _get_device() -> str:
-        import torch
-        return "cuda" if torch.cuda.is_available() else "cpu"
-
-    @staticmethod
-    def _claim_gpu_memory(is_gpu: bool):
-        if is_gpu:
-            import torch
-            torch.cuda.empty_cache()
-
-    @staticmethod
-    def _prepare_y(y: np.ndarray, is_classification: bool) -> np.ndarray:
-        transformed_y = y.copy()
-        if transformed_y.dtype.kind in {"U", "S", "O"}:
-            le = LabelEncoder()
-            transformed_y = le.fit_transform(transformed_y.astype(str))
-            transformed_y = transformed_y.astype(np.int64, copy=False)
-        if is_classification:
-            transformed_y = transformed_y.astype(np.int64, copy=False)
-        return transformed_y
+        return x_transformed
 
     def _transform(self, X: np.ndarray, data_source: str, training: bool = False, use_gpu: bool = False) -> np.ndarray:
         if len(X.shape) == 1:
@@ -319,7 +245,12 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         if len(x_transformed.shape) == 2:
             x_transformed = x_transformed[:, None, :]
         x_transformed = np.swapaxes(x_transformed, 0, 1)
-        x_transformed = np.asarray(x_transformed.mean(axis=1), dtype=np.float32)
+
+        # Apply pooling: mean or max across ensemble estimators
+        if self.pooling_type == "max":
+            x_transformed = np.asarray(x_transformed.max(axis=1), dtype=np.float32)
+        else:  # default to mean
+            x_transformed = np.asarray(x_transformed.mean(axis=1), dtype=np.float32)
 
         if training:
             self._init_svd(x_transformed.shape[-1], use_gpu)
@@ -327,7 +258,7 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         else:
             final_output = self.svd_.transform(x_transformed)
 
-        self._claim_gpu_memory(self.tabpfn_model_.device.lower() != "cpu")
+        self._claim_memory()
         return final_output
 
     def _init_svd(self, num_features: int, use_gpu: bool):
@@ -377,39 +308,175 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         assert self.ord_encoder_ is not None
         assert self.svd_ is not None
 
-    def _prepare_x(self, x: dt.Frame) -> Tuple[dt.Frame, np.ndarray]:
+    def _prepare_x(
+        self,
+        x: dt.Frame,
+        encoder: OrdinalEncoder,
+        y: Optional[np.ndarray] = None,
+    ) -> Tuple[dt.Frame, np.ndarray]:
+        """
+        Prepare X for fitting with optional stratified sampling for classification.
+
+        Args:
+            x: Input features
+            encoder: Categorical features encoder
+            y: Target values (optional, used for stratified sampling in classification)
+
+        Returns:
+            Tuple of (x, sample_indices)
+        """
         sample_indices = np.arange(x.shape[0])
         n = x.shape[0]
 
         if n > self.max_fit_rows:
-            rng = np.random.RandomState(self.seed)
-            sample_indices = rng.choice(n, self.max_fit_rows, replace=False)
+            # Use stratified sampling for classification if y is provided
+            if y is not None and self.is_classification:
+                sample_indices, _ = train_test_split(
+                    np.arange(n),
+                    train_size=self.max_fit_rows,
+                    stratify=y,
+                    random_state=self.seed
+                )
+            else:
+                # Uniform random sampling for regression or when y is not provided
+                rng = np.random.RandomState(self.seed)
+                sample_indices = rng.choice(n, self.max_fit_rows, replace=False)
 
-        return x, sample_indices
+        x_numpy = _to_numeric(x, encoder)
+        return np.asarray(x_numpy, dtype=np.float32), sample_indices
 
-    def _prepare_env(self, limit: int = -1):
+    @staticmethod
+    def _get_gpu_id() -> int:
+        return (systemutils.get_gpu_id() + os.getpid() % systemutils.ngpus_vis) % systemutils.ngpus_vis_real
+
+    @staticmethod
+    def _get_n_jobs(logger, **kwargs) -> int:
+        try:
+            if systemutils.config.fixed_num_folds <= 0:
+                n_jobs = max(1, int(int(
+                    systemutils.max_threads() / min(systemutils.config.num_folds, kwargs['max_workers']))))
+            else:
+                n_jobs = max(1, int(
+                    int(systemutils.max_threads() / min(systemutils.config.fixed_num_folds,
+                                                        systemutils.config.num_folds, kwargs['max_workers']))))
+        except KeyError:
+            systemutils.loggerwarning(logger, "No Max Worker in kwargs. Set n_jobs to 1")
+            n_jobs = 1
+
+        return n_jobs
+
+    @staticmethod
+    def _build_tabpfn_models(
+            seed: int,
+            n_jobs: int,
+            n_estimators: int,
+            balance_probabilities: bool = False,
+            average_before_softmax: bool = False,
+            tune_boundary_threshold: bool = False,
+            calibrate_softmax_temperature: bool = False,
+            is_classification: bool = False,
+            device: str = "cpu",
+    ):
+        from tabpfn.constants import ModelVersion
+
+        clf_ckpt, reg_ckpt = TabPFNEmbeddingTransformer._ensure_weights_cached()
+        if is_classification:
+            from tabpfn import TabPFNClassifier
+
+            systemutils.loggerinfo(None, f"Instantiating TabPFN Classifier from {clf_ckpt}")
+            return TabPFNClassifier.create_default_for_version(
+                ModelVersion.V2,
+                device=device,
+                model_path=clf_ckpt,
+                random_state=seed,
+                n_preprocessing_jobs=n_jobs,
+                n_estimators=n_estimators,
+                balance_probabilities=balance_probabilities,
+                average_before_softmax=average_before_softmax,
+                tuning_config={"tune_decision_thresholds": tune_boundary_threshold,
+                               "calibrate_temperature": calibrate_softmax_temperature},
+            )
+        else:
+            from tabpfn import TabPFNRegressor
+
+            systemutils.loggerinfo(None, f"Instantiating TabPFN Regressor from {reg_ckpt}")
+            return TabPFNRegressor.create_default_for_version(
+                ModelVersion.V2,
+                device=device,
+                model_path=reg_ckpt,
+                random_state=seed,
+                n_preprocessing_jobs=n_jobs,
+                n_estimators=n_estimators,
+                average_before_softmax=average_before_softmax,
+            )
+
+    @staticmethod
+    def _ensure_weights_cached():
+        """
+        Optional: pre-download weights into a deterministic cache location.
+        If TabPFN already handles caching, this still helps DAI environments.
+        """
+        cache_dir = _get_cache_dir()
+        systemutils.makedirs(cache_dir, exist_ok=True)
+
+        clf_path = cache_dir / os.path.basename(TABPFN_CLASSIFIER_CKPT_URL)
+        reg_path = cache_dir / os.path.basename(TABPFN_REGRESSOR_CKPT_URL)
+
+        if not clf_path.exists():
+            download(TABPFN_CLASSIFIER_CKPT_URL, dest_path=cache_dir)
+        if not reg_path.exists():
+            download(TABPFN_REGRESSOR_CKPT_URL, dest_path=cache_dir)
+
+        return str(clf_path), str(reg_path)
+
+    @staticmethod
+    def _get_device() -> str:
+        import torch
+        return "cuda" if torch.cuda.is_available() else "cpu"
+
+    @staticmethod
+    def _claim_memory():
+        import gc
         import torch
 
-        np.random.seed(self.seed)
-        random.seed(self.seed)
-        torch.manual_seed(self.seed)
+        if torch.cuda.is_available():
+            try:
+                allocated_memory = torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated()
+                if allocated_memory > 0.8:
+                    torch.cuda.empty_cache()
+                    gc.collect()
+                    return
+            except (RuntimeError, AttributeError):
+                # Fallback if memory stats unavailable
+                torch.cuda.empty_cache()
+        # CPU: collect garbage after all permutations for this chunk
+        gc.collect()
+
+    @staticmethod
+    def _prepare_y(y: np.ndarray, is_classification: bool) -> np.ndarray:
+        transformed_y = y.copy()
+        if transformed_y.dtype.kind in {"U", "S", "O"} or is_classification:
+            le = LabelEncoder()
+            transformed_y = le.fit_transform(transformed_y.astype(str))
+            transformed_y = transformed_y.astype(np.int64, copy=False)
+        return transformed_y
+
+    @staticmethod
+    def _prepare_env(seed: int):
+        import torch
+
+        np.random.seed(seed)
+        random.seed(seed)
+        torch.manual_seed(seed)
 
         use_gpu = torch.cuda.is_available()
         if use_gpu:
-            torch.cuda.manual_seed_all(self.seed)
-            os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True,max_split_size_mb:128"
-            os.putenv("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True,max_split_size_mb:128")
-
-        os.environ["TABPFN_ALLOW_CPU_LARGE_DATASET"] = "true"
-        os.putenv("TABPFN_ALLOW_CPU_LARGE_DATASET", "true")
+            torch.cuda.manual_seed_all(seed)
+            os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True,max_split_size_mb:256"
 
         os.environ["TABPFN_DISABLE_TELEMETRY"] = "1"
-        os.putenv("TABPFN_DISABLE_TELEMETRY", "1")
         os.environ["TABPFN_MODEL_CACHE_DIR"] = str(_get_cache_dir())
-        os.putenv("TABPFN_MODEL_CACHE_DIR", str(_get_cache_dir()))
-        if not use_gpu and limit > self.TRAIN_SIZE_LIMITS:
-            os.environ["TABPFN_ALLOW_CPU_LARGE_DATASET"] = "1"
-            os.putenv("TABPFN_ALLOW_CPU_LARGE_DATASET", "1")
+        os.environ["TABPFN_ALLOW_CPU_LARGE_DATASET"] = "1"
 
 
 def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder) -> np.ndarray:
@@ -425,11 +492,9 @@ def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder) -> np.ndarray:
     numeric_col_indices = np.where(numeric_col_mask)[0].tolist()
     non_numeric_col_indices = np.where(~numeric_col_mask)[0].tolist()
 
-    # OPTIMIZATION: Pre-allocate with correct dtype to avoid copies
     numeric_array = np.empty((x.nrows, x.ncols), dtype=np.float32)
 
     if numeric_col_indices:
-        # OPTIMIZATION: Direct assignment without intermediate conversion
         numeric_array[:, numeric_col_indices] = x[:, numeric_col_indices].to_numpy().astype(np.float32)
 
     if non_numeric_col_indices:
@@ -443,10 +508,8 @@ def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder) -> np.ndarray:
     except NotFittedError:
         numeric_transformed = ord_encoder.fit_transform(x_cat)
 
-    # OPTIMIZATION: Use in-place assignment with proper casting
     numeric_array[:, non_numeric_col_indices] = np.asarray(numeric_transformed, dtype=np.float32)
 
-    # Clean up intermediate data
     del x_cat, numeric_transformed
 
     return numeric_array
@@ -454,13 +517,24 @@ def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder) -> np.ndarray:
 
 def _numeric_column_mask(x: dt.Frame) -> np.ndarray:
     mask = np.zeros(x.shape[1], dtype=bool)
+
     for i in range(x.shape[1]):
-        col = x[:, i].to_numpy()
-        try:
-            col.astype(np.float32)  # succeeds for numeric-like strings too
+        col_type = x[:, i].type
+
+        if col_type in (dt.Type.int8, dt.Type.int16, dt.Type.int32, dt.Type.int64,
+                       dt.Type.float32, dt.Type.float64, dt.Type.bool8):
             mask[i] = True
-        except (ValueError, TypeError):
-            mask[i] = False
+        else:
+            # For string columns, check first 100 rows if they're numeric-like
+            # This handles "123" stored as string without full column scan
+            sample_size = min(100, x.nrows)
+            sample = x[:sample_size, i].to_numpy()
+            try:
+                sample.astype(np.float32)
+                mask[i] = True
+            except (ValueError, TypeError):
+                mask[i] = False
+
     return mask
 
 
