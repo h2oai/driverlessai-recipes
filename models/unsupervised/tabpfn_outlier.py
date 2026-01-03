@@ -35,6 +35,7 @@ TABPFN_CLASSIFIER_CKPT_URL = (
 TABPFN_REGRESSOR_CKPT_URL = (
     "https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/pretrained/tabpfn/tabpfn-v2-regressor.ckpt"
 )
+MAX_CLASSES = 10
 
 
 class TabPFNOutliersDetection:
@@ -42,7 +43,6 @@ class TabPFNOutliersDetection:
     Inspired from https://github.com/PriorLabs/tabpfn-extensions/blob/a54bc14398a5155ae22a5c0ac2fb9327e88782a8/src/tabpfn_extensions
     Outlier-only subset of TabPFNUnsupervisedModel.
     """
-    MAX_CLASSES = 10
 
     @staticmethod
     def load_from_bytes(model_bytes) -> "TabPFNOutliersDetection":
@@ -378,7 +378,7 @@ class TabPFNOutliersDetection:
 
     @staticmethod
     def _is_classification(targets: np.ndarray) -> bool:
-        return np.unique(targets).size <= TabPFNOutliersDetection.MAX_CLASSES
+        return np.unique(targets).size <= MAX_CLASSES
 
     @staticmethod
     def _claim_memory(force: bool = False):
@@ -475,8 +475,7 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
 
     TRAIN_SIZE_LIMITS = 10000
     TRAIN_SIZE_OVERLOAD_RATE = 2
-    MAX_CLASSES = 10
-    MAX_FEATURES = 20
+    MAX_FEATURES = 15
 
     @staticmethod
     def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
@@ -505,8 +504,8 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
     @staticmethod
     def get_parameter_choices():
         return dict(
-            n_permutations=[5, 6, 7],
-            n_estimators=[8, 10, 12],
+            n_permutations=[3, 4, 5],
+            n_estimators=[6, 8, 10],
             softmax_temperature=[0.3, 0.6, 0.9],
             balance_probabilities=[False, True],
             average_before_softmax=[False, True],
@@ -648,9 +647,9 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
 
         final_output = scores.reshape(-1, 1)
         if full > final_output.shape[0]:
-            finals = np.full((full, 1), fill_value=0.0, dtype=np.float32)
-            finals[sample_indices] = final_output
-            return finals
+            padded_output = np.full((full, 1), fill_value=0.0, dtype=np.float32)
+            padded_output[sample_indices] = final_output
+            return padded_output
         return final_output
 
     def _scores(self, x: dt.Frame) -> np.ndarray:
@@ -758,7 +757,7 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
         # k-NN density estimation (smaller distance = higher density)
         num_classes = len(self.labels or [])
         # num_classes > 1 then classes would be bounded by MAX_CLASSES, otherwise regression takes 1% of the overall dataset as number of target regions
-        k = min(self.MAX_CLASSES, num_classes) if num_classes > 1 else min(100, x.shape[0] // 100)
+        k = min(MAX_CLASSES, num_classes) if num_classes > 1 else min(100, x.shape[0] // 100)
         try:
             st = time.perf_counter()
             nn = NearestNeighbors(n_neighbors=k, algorithm='auto').fit(x_probe_numeric)
