@@ -353,12 +353,12 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
     def _get_n_jobs(logger, **kwargs) -> int:
         try:
             if systemutils.config.fixed_num_folds <= 0:
-                n_jobs = max(1, int(int(
-                    systemutils.max_threads() / min(systemutils.config.num_folds, kwargs['max_workers']))))
+                n_jobs = max(1, int(
+                    systemutils.max_threads() / min(systemutils.config.num_folds, kwargs['max_workers'])))
             else:
                 n_jobs = max(1, int(
-                    int(systemutils.max_threads() / min(systemutils.config.fixed_num_folds,
-                                                        systemutils.config.num_folds, kwargs['max_workers']))))
+                    systemutils.max_threads() / min(systemutils.config.fixed_num_folds,
+                                                    systemutils.config.num_folds, kwargs['max_workers'])))
         except KeyError:
             systemutils.loggerwarning(logger, "No Max Worker in kwargs. Set n_jobs to 1")
             n_jobs = 1
@@ -441,7 +441,13 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
 
         if torch.cuda.is_available():
             try:
-                allocated_memory = torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated()
+                max_allocated = torch.cuda.max_memory_allocated()
+                if not max_allocated:
+                    # Avoid division by zero; fall back to conservative cleanup
+                    torch.cuda.empty_cache()
+                    gc.collect()
+                    return
+                allocated_memory = torch.cuda.memory_allocated() / max_allocated
                 if allocated_memory > 0.8:
                     torch.cuda.empty_cache()
                     gc.collect()
