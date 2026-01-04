@@ -378,7 +378,7 @@ class TabPFNOutliersDetection:
 
     @staticmethod
     def _is_classification(targets: np.ndarray) -> bool:
-        return np.unique(targets).size <= MAX_CLASSES
+        return 1 < np.unique(targets).size <= MAX_CLASSES
 
     @staticmethod
     def _claim_memory(force: bool = False):
