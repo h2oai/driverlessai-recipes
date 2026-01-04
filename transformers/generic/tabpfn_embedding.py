@@ -138,7 +138,7 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
     @property
     def is_classification(self) -> bool:
         num_classes = len(self.labels or [])
-        return num_classes > 1
+        return self.MAX_CLASSES >= num_classes > 1
 
     def __init__(
         self,
