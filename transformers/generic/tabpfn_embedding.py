@@ -12,7 +12,7 @@ import pathlib
 import random
 import uuid
 from typing import Optional
-from typing import Tuple
+from typing import Sequence, Tuple
 
 import datatable as dt
 import numpy as np
@@ -130,18 +130,15 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         )
 
     @property
-    def display_name(self):
-        return (f"TabPFNEmbedding(n_estimators={self.n_estimators},max_dim={self.max_dim},tune_boundary_threshold={self.tune_boundary_threshold},"
-                f"pooling_type={self.pooling_type},balance_probabilities={self.balance_probabilities},"
-                f"average_before_softmax={self.average_before_softmax},calibrate_softmax_temperature={self.calibrate_softmax_temperature})")
-
-    @property
     def is_classification(self) -> bool:
         num_classes = len(self.labels or [])
         return self.MAX_CLASSES >= num_classes > 1
 
     def __init__(
         self,
+        num_cols: Sequence[str] = (),
+        cat_cols: Sequence[str] = (),
+        output_features_to_drop: Sequence[str] = (),
         n_estimators: int = 8,
         balance_probabilities: bool = False,
         average_before_softmax: bool = False,
@@ -152,13 +149,10 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.n_estimators = n_estimators
-        self.balance_probabilities = balance_probabilities
-        self.average_before_softmax = average_before_softmax
-        self.calibrate_softmax_temperature = calibrate_softmax_temperature
-        self.tune_boundary_threshold = tune_boundary_threshold
-        self.max_dim = max_dim
-        self.pooling_type = pooling_type
+        init_args_dict = locals().copy()
+        self.params = {k: v for k, v in init_args_dict.items() if k in self.get_parameter_choices()}
+        self._output_features_to_drop = output_features_to_drop
+
         self.max_fit_rows = self.TRAIN_SIZE_LIMITS
         self.uid = str(uuid.uuid4())
         self.seed = systemutils.config.seed
@@ -195,12 +189,12 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         device = self._get_device()
         self.tabpfn_model_ = self._build_tabpfn_models(
             seed=self.seed,
-            n_estimators=self.n_estimators,
+            n_estimators=self.params["n_estimators"],
             n_jobs=self._get_n_jobs(logger, **kwargs),
-            balance_probabilities=self.balance_probabilities,
-            average_before_softmax=self.average_before_softmax,
-            tune_boundary_threshold=self.tune_boundary_threshold,
-            calibrate_softmax_temperature=self.calibrate_softmax_temperature,
+            balance_probabilities=self.params["balance_probabilities"],
+            average_before_softmax=self.params["average_before_softmax"],
+            tune_boundary_threshold=self.params["tune_boundary_threshold"],
+            calibrate_softmax_temperature=self.params["calibrate_softmax_temperature"],
             is_classification=self.is_classification,
             device=device,
         )
@@ -247,7 +241,7 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         x_transformed = np.swapaxes(x_transformed, 0, 1)
 
         # Apply pooling: mean or max across ensemble estimators
-        if self.pooling_type == "max":
+        if self.params["pooling_type"] == "max":
             x_transformed = np.asarray(x_transformed.max(axis=1), dtype=np.float32)
         else:  # default to mean
             x_transformed = np.asarray(x_transformed.mean(axis=1), dtype=np.float32)
@@ -264,7 +258,7 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
     def _init_svd(self, num_features: int, use_gpu: bool):
         if systemutils.config.enable_h2o4gpu_truncatedsvd and use_gpu:
             self.svd_ = transformers.GPUTruncatedSVD(
-                n_components=min(self.max_dim, num_features),
+                n_components=min(self.params["max_dim"], num_features),
                 algorithm=["power", "arpack"],
                 tol=[1e-2, 0],
                 n_iter=[30, 5],
@@ -275,7 +269,7 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
             )
         else:
             self.svd_ = transformers.CPUTruncatedSVD(
-                n_components=min(self.max_dim, num_features),
+                n_components=min(self.params["max_dim"], num_features),
                 algorithm="randomized",
                 n_iter=5,
                 tol=0.05,

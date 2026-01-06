@@ -13,7 +13,7 @@ import pathlib
 import time
 import random
 import uuid
-from typing import List, Optional, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 import datatable as dt
 import numpy as np
@@ -21,12 +21,14 @@ from sklearn.base import clone
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.exceptions import NotFittedError
 from sklearn.preprocessing import OrdinalEncoder
+from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils.validation import check_is_fitted
 
 from h2oaicore import systemutils
+from h2oaicore.metrics import CustomUnsupervisedScorer
 from h2oaicore.models import CustomUnsupervisedModel
 from h2oaicore.systemutils_more import download
-from h2oaicore.transformer_utils import CustomTransformer
+from h2oaicore.transformer_utils import CustomUnsupervisedTransformer
 
 
 TABPFN_CLASSIFIER_CKPT_URL = (
@@ -269,7 +271,7 @@ class TabPFNOutliersDetection:
                 - Whether model is classification
         """
         y_fit = x_fit[:, column_idx]
-        is_classification = self._is_classification(y_fit)
+        is_classification = self._is_classification(y_fit, MAX_CLASSES)
 
         st = time.perf_counter()
         systemutils.loggerinfo(self._logger, f"[{self.__class__.__name__}] [density] model fitting preparations started")
@@ -377,8 +379,16 @@ class TabPFNOutliersDetection:
         return self._classifier if is_classification else self._regressor
 
     @staticmethod
-    def _is_classification(targets: np.ndarray) -> bool:
-        return 1 < np.unique(targets).size <= MAX_CLASSES
+    def _is_classification(targets: np.ndarray, upper_bound: int = -1) -> bool:
+        try:
+            check_classification_targets(targets)
+        except ValueError:
+            return False
+
+        if upper_bound < 0:
+            return 1 < np.unique(targets).size
+        else:
+            return 1 < np.unique(targets).size <= MAX_CLASSES
 
     @staticmethod
     def _claim_memory(force: bool = False):
@@ -410,7 +420,7 @@ class TabPFNOutliersDetection:
         gc.collect()
 
 
-class TabPFNOutlierScoreTransformer(CustomTransformer):
+class TabPFNOutlierScoreTransformer(CustomUnsupervisedTransformer):
     r"""
         TabPFN-based outlier score transformer for Driverless AI.
 
@@ -462,40 +472,22 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
         - This transformer is computationally expensive; keep `max_cols` and `n_permutations` conservative.
         - Output is numeric and can be used directly as an engineered feature for downstream models.
         """
-    _unsupervised = True
     _numeric_output = True
     _is_reproducible = True
     _parallel_task = False
     _can_use_gpu = True
     _must_use_gpu = True
     _can_use_multi_gpu = False
-    _force_no_fork_isolation = False
     _get_gpu_lock = True
     _get_gpu_lock_vis = True
     _mojo = False
-    _display_name = "TabPFN (Unsupervised) Outliers Scoring Transformer"
     _testing_can_skip_failure = False
-    _allow_transform_to_modify_output_feature_names = True
+    _allow_transform_to_modify_output_feature_names = False
     _modules_needed_by_name = ["tabpfn==6.2.0"]
 
     TRAIN_SIZE_LIMITS = 10000
     TRAIN_SIZE_OVERLOAD_RATE = 2
     MAX_FEATURES = 15
-
-    @staticmethod
-    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
-                num_classes=None, **kwargs):
-        return (
-            accuracy > 8
-            and interpretability < 2
-            and train_shape[0] < TabPFNOutlierScoreTransformer.TRAIN_SIZE_OVERLOAD_RATE * TabPFNOutlierScoreTransformer.TRAIN_SIZE_LIMITS
-            and train_shape[1] <= TabPFNOutlierScoreTransformer.MAX_FEATURES
-            and n_gpus > 0
-        )
-
-    @staticmethod
-    def enabled_setting():
-        return "auto"
 
     @staticmethod
     def do_acceptance_test():
@@ -504,28 +496,23 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
 
     @staticmethod
     def get_default_properties():
-        return dict(col_type="numcat", min_cols=2, max_cols=TabPFNOutlierScoreTransformer.MAX_FEATURES, relative_importance=1)
+        return dict(col_type="numeric", min_cols=2, max_cols=TabPFNOutlierScoreTransformer.MAX_FEATURES, relative_importance=1)
 
     @staticmethod
     def get_parameter_choices():
         return dict(
-            n_permutations=[3, 4, 5],
-            n_estimators=[6, 8, 10],
-            softmax_temperature=[0.3, 0.6, 0.9],
-            balance_probabilities=[False, True],
-            average_before_softmax=[False, True],
+            n_permutations=[5],
+            n_estimators=[10],
+            softmax_temperature=[0.5],
+            balance_probabilities=[True],
+            average_before_softmax=[True],
             eps=[1e-10],
         )
 
-    @property
-    def display_name(self):
-        return (f"TabPFNOutlierScore(p={self.n_permutations},"
-                f"n_estimators={self.n_estimators},balance_probabilities={self.balance_probabilities},"
-                f"softmax_temperature={self.softmax_temperature}),"
-                f"average_before_softmax={self.average_before_softmax})")
-
     def __init__(
         self,
+        num_cols: Sequence[str] = (),
+        output_features_to_drop: Sequence[str] = (),
         n_permutations: int = 5,
         n_estimators: int = 8,
         softmax_temperature: float = 0.5,
@@ -536,20 +523,14 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.n_permutations = n_permutations
-        self.softmax_temperature = softmax_temperature
-        self.balance_probabilities = balance_probabilities
-        self.average_before_softmax = average_before_softmax
-        self.n_estimators = n_estimators
-        self.eps = eps
+        init_args_dict = locals().copy()
+        self.params = {k: v for k, v in init_args_dict.items() if k in self.get_parameter_choices()}
+        self._output_features_to_drop = output_features_to_drop
+
         self.max_fit_rows = self.TRAIN_SIZE_LIMITS
         self.uid = str(uuid.uuid4())
         self.seed = systemutils.config.seed
         self.top_features = top_features
-
-        # learned state
-        self.raw_model_bytes = None
-        self.detector_ = None
 
     def fit_transform(self, X: dt.Frame, y: Optional[np.ndarray] = None, **kwargs) -> np.ndarray:
         assert len(X.shape) == 2
@@ -569,17 +550,17 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
         tabpfn_classifier, tabpfn_regressor = self._build_tabpfn_models(
             seed=self.seed,
             n_jobs=self._get_n_jobs(logger, **kwargs),
-            n_estimators=self.n_estimators,
+            n_estimators=self.params['n_estimators'],
             device=self._get_device(),
-            softmax_temperature=self.softmax_temperature,
-            balance_probabilities=self.balance_probabilities,
-            average_before_softmax=self.average_before_softmax,
+            softmax_temperature=self.params['softmax_temperature'],
+            balance_probabilities=self.params['balance_probabilities'],
+            average_before_softmax=self.params['average_before_softmax'],
         )
         self.detector_ = TabPFNOutliersDetection(
             classifier=tabpfn_classifier,
             regressor=tabpfn_regressor,
             num_features=x.shape[1],
-            eps=self.eps,
+            eps=self.params['eps'],
             top_features=self.top_features,
             seed=self.seed,
             logger=logger,
@@ -629,10 +610,10 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
         self._prepare_env(seed=self.seed)
         x, _ = self._prepare_x(X)
 
-        systemutils.loggerinfo(logger, f"[{self.__class__.__name__}] [transform] Scoring model with {self.n_permutations} permutations...")
+        systemutils.loggerinfo(logger, f"[{self.__class__.__name__}] [transform] Scoring model with {self.params['n_permutations']} permutations...")
         st = time.perf_counter()
         raw_scores = self._scores(x)
-        systemutils.loggerinfo(logger, f"[{self.__class__.__name__}] [transform] Finished scoring model with {self.n_permutations} permutations, takes {(time.perf_counter() - st):.6f} seconds")
+        systemutils.loggerinfo(logger, f"[{self.__class__.__name__}] [transform] Finished scoring model with {self.params['n_permutations']} permutations, takes {(time.perf_counter() - st):.6f} seconds")
 
         systemutils.loggerinfo(logger, f"[{self.__class__.__name__}] [transform] Calibrating scores...")
         st = time.perf_counter()
@@ -647,12 +628,12 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
         return final_output
 
     def _transform(self, scores: np.ndarray, full: int, sample_indices: np.ndarray) -> np.ndarray:
-        self._output_feature_names = ["OutlierScore"]
-        self._feature_desc = ["Calibrated outlier probability [0-1] from TabPFN density estimation"]
+        #self._output_feature_names = ["OutlierScore"]
+        #self._feature_desc = ["Calibrated outlier probability [0-1] from TabPFN density estimation"]
 
-        final_output = scores.reshape(-1, 1)
+        final_output = scores.reshape(-1)
         if full > final_output.shape[0]:
-            padded_output = np.full((full, 1), fill_value=0.0, dtype=np.float32)
+            padded_output = np.full(full, fill_value=0.0, dtype=np.float32)
             padded_output[sample_indices] = final_output
             return padded_output
         return final_output
@@ -660,7 +641,7 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
     def _scores(self, x: dt.Frame) -> np.ndarray:
         scores = self.detector_.outliers(
             x=x,
-            n_permutations=self.n_permutations,
+            n_permutations=self.params['n_permutations'],
             seed=self.seed,
         )
         assert scores.shape[0] == x.shape[0]
@@ -883,15 +864,43 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
         return "cuda" if torch.cuda.is_available() else "cpu"
 
 
+class TabPFNVarianceScorer(CustomUnsupervisedScorer):
+    """Compute the variance of the TabPFN outlier scores.
+
+    ``TabPFNOutlierScoreTransformer`` outputs a calibrated probability for
+    each row in ``X`` in the range ``[0, 1]`` where larger values
+    correspond to more anomalous rows【873411121057838†L770-L834】.  By returning the variance
+    of these scores, the scorer encourages models that produce
+    distinctively high probabilities for the few outliers and low
+    probabilities for the majority of normal observations.  The score is
+    maximised when the variance is large, and thus ``_maximize`` is set
+    to ``True``.
+    """
+
+    # A very large perfect score so that any finite variance is far from it.
+    _perfect_score = 1e30
+    # We want to maximise the variance: larger variance means more
+    # separation between normal and anomalous points.
+    _maximize = True
+
+    def score(self, actual, predicted, sample_weight=None, labels=None, X=None, **kwargs):  # noqa: D401
+        """Return the variance of the predicted TabPFN outlier scores.
+
+        Explanation:
+         The variance of the anomaly scores.  A higher value indicates a
+         broader distribution of scores, which is assumed to reflect better
+         anomaly detection performance【738151902875968†L14-L26】.
+        """
+        scores = np.asarray(predicted).reshape(-1)
+        return float(np.var(scores))
+
+
 class TabPFNOutlierScoreModel(CustomUnsupervisedModel):
+    # Use OrigPreTransformer which only passes through numeric columns
+    # This avoids the 2-layer gene dependency issue
     _included_pretransformers = ['OrigFreqPreTransformer']
     _included_transformers = ["TabPFNOutlierScoreTransformer"]
-    _included_scorers = ['UnsupervisedScorer']
-
-    @staticmethod
-    def do_acceptance_test():
-        # Very slow, manually set be `True` for testing purpose
-        return True
+    _included_scorers = ['TabPFNVarianceScorer']
 
 
 def _log_mean_exp(log_values: np.ndarray, axis: int = 0) -> np.ndarray:
