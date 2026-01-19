@@ -404,7 +404,7 @@ class Indiv_testtimeserieswalmartnolimits3f5872993miduhoge_finalTrue_id0(CustomI
                                                            'RFCUML',
                                                            'RFCUMLDask',
                                                            'RuleFit',
-                                                           'TensorFlow',
+                                                           #'TensorFlow',
                                                            'TextALBERT',
                                                            'TextBERT',
                                                            'TextCamemBERT',

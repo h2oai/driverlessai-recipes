@@ -4,7 +4,7 @@ import os
 import numpy as np
 from h2oaicore.models import CustomModel
 from h2oaicore.models_utils import import_tensorflow
-from h2oaicore.systemutils import ngpus_vis
+from h2oaicore.systemutils import config, ngpus_vis
 
 
 class CustomTFGPUCheck(CustomModel):
@@ -27,6 +27,28 @@ class CustomTFGPUCheck(CustomModel):
     def mutate_params(self,
                       **kwargs):
         self.params = {}
+
+    @staticmethod
+    def is_enabled():
+        try:
+            return not config.global_disable_tensorflow
+        except:
+            return True
+    
+    @staticmethod
+    def enabled_setting():
+        try:
+            return "auto" if config.global_disable_tensorflow else "off"
+        except:
+            return "on"
+    
+    @staticmethod
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
+                num_classes=None, **kwargs):
+        try:
+            return not config.global_disable_tensorflow
+        except:
+            return True
 
     @staticmethod
     def acceptance_test_coverage_fraction():
