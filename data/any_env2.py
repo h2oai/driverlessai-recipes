@@ -66,9 +66,6 @@ def create_data_popen(func, *args, pyversion="3.11", install_h2oaicore=False, in
 
     script_name = os.path.abspath(os.path.join(env_path, "script.sh"))
     import os
-    # Get constraints file to prevent dependency version conflicts (e.g., numpy 2.x with pandas 1.5.3)
-    dai_home = os.environ.get('DRIVERLESS_AI_HOME', os.getcwd())
-    pip_install_constraint_file = os.path.abspath(os.path.join(dai_home, 'req_constraints_deps.txt'))
     with open(script_name, "wt") as f:
         print("set -o pipefail", file=f)
         print("set -ex", file=f)
@@ -82,6 +79,7 @@ def create_data_popen(func, *args, pyversion="3.11", install_h2oaicore=False, in
             print("python -m pip install --upgrade pip", file=f)
             print("%s/bin/python -m pip debug --verbose" % (env_path), file=f)
             print("%s/bin/python -c \'import platform ; print(platform.architecture())\'" % (env_path), file=f)
+            dai_home = os.environ.get('DRIVERLESS_AI_HOME', os.getcwd())
             template_dir = os.environ.get("H2OAI_SCORER_TEMPLATE_DIR", os.path.join(dai_home, 'h2oai_scorer'))
             if install_h2oaicore:
                 print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'license-*'), file=f)
@@ -89,7 +87,7 @@ def create_data_popen(func, *args, pyversion="3.11", install_h2oaicore=False, in
             if install_datatable:
                 print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'datatable-*'), file=f)
             for pkg in modules_needed_by_name:
-                print("%s/bin/pip install --use-deprecated=legacy-resolver -c %s %s --ignore-installed" % (env_path, pip_install_constraint_file, pkg), file=f)
+                print("%s/bin/pip install %s --ignore-installed" % (env_path, pkg), file=f)
         print("cd %s" % os.path.dirname(python_script_file), file=f)
         script_module_name = os.path.basename(python_script_file.replace(".py", ""))
         print(

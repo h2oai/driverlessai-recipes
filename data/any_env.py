@@ -40,9 +40,6 @@ class FreshEnvData(CustomData):
 
         script_name = os.path.abspath(os.path.join(env_path, "script.sh"))
         import os
-        # Get constraints file to prevent dependency version conflicts (e.g., numpy 2.x with pandas 1.5.3)
-        dai_home = os.environ.get('DRIVERLESS_AI_HOME', os.getcwd())
-        pip_install_constraint_file = os.path.abspath(os.path.join(dai_home, 'req_constraints_deps.txt'))
         with open(script_name, "wt") as f:
             print("set -o pipefail", file=f)
             print("set -ex", file=f)
@@ -51,6 +48,7 @@ class FreshEnvData(CustomData):
             print("mkdir -p %s" % env_path, file=f)
             print("virtualenv -p python%s %s" % (pyversion, env_path), file=f)
             print("source %s/bin/activate" % env_path, file=f)
+            dai_home = os.environ.get('DRIVERLESS_AI_HOME', os.getcwd())
             template_dir = os.environ.get("H2OAI_SCORER_TEMPLATE_DIR", os.path.join(dai_home, 'h2oai_scorer'))
             if _install_h2oaicore:
                 print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'license-*'), file=f)
@@ -58,7 +56,7 @@ class FreshEnvData(CustomData):
             if _install_datatable:
                 print("pip install %s" % os.path.join(template_dir, 'scoring-pipeline', 'datatable-*'), file=f)
             for pkg in _modules_needed_by_name:
-                print("%s/bin/pip install --use-deprecated=legacy-resolver -c %s %s --ignore-installed" % (env_path, pip_install_constraint_file, pkg), file=f)
+                print("%s/bin/pip install %s --ignore-installed" % (env_path, pkg), file=f)
             print("cd %s" % os.path.dirname(python_script_file), file=f)
             print("%s/bin/python %s --X %s --Y %s" % (env_path, python_script_file, X_file, Y_file), file=f)
         import stat
