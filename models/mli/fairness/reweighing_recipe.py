@@ -33,6 +33,8 @@ from h2oaicore.data import CustomData
 from h2oaicore.systemutils import config
 
 
+# NOTE: Tensorflow no longer support since 2.4.0 in DAI
+"""
 class MyReweightingData(CustomData):
     _modules_needed_by_name = ["datetime", "fairlearn", "aif360"]
 
@@ -193,3 +195,4 @@ class MyReweightingData(CustomData):
             dataset_dict[valid_file.split(".")[0] + "_rw_transformed.csv"] = valid_df
 
         return dataset_dict
+"""
