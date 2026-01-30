@@ -4,7 +4,7 @@ from h2oaicore.transformer_utils import CustomTransformer
 from h2oaicore.models import TensorFlowModel
 import datatable as dt
 import numpy as np
-from h2oaicore.systemutils import small_job_pool, user_dir, dummypool, print_debug, remove
+from h2oaicore.systemutils import config, user_dir, remove
 import requests
 import shutil
 import uuid
@@ -26,7 +26,25 @@ class MyImgTransformer(TensorFlowModel, CustomTransformer):
 
     @staticmethod
     def is_enabled():
-        return True
+        try:
+            return not config.global_disable_tensorflow
+        except:
+            return True
+    
+    @staticmethod
+    def enabled_setting():
+        try:
+            return "auto" if config.global_disable_tensorflow else "off"
+        except:
+            return "on"
+    
+    @staticmethod
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
+                num_classes=None, **kwargs):
+        try:
+            return not config.global_disable_tensorflow
+        except:
+            return True
 
     @staticmethod
     def do_acceptance_test():
