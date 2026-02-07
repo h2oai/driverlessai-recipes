@@ -353,9 +353,9 @@ class Indiv_testcreditcard9f03bf55dpawisaco_finalTrue_id0(CustomIndividual):
                                                                  'StandardScalerTransformer',
                                                                  'StringConcatTransformer',
                                                                  'TSNECUMLTransformer',
-                                                                 'TextBiGRUTransformer',
-                                                                 'TextCNNTransformer',
-                                                                 'TextCharCNNTransformer',
+                                                                 #'TextBiGRUTransformer',
+                                                                 #'TextCNNTransformer',
+                                                                 #'TextCharCNNTransformer',
                                                                  'TextLinModelTransformer',
                                                                  'TextOriginalTransformer',
                                                                  'TextTransformer',
@@ -372,8 +372,8 @@ class Indiv_testcreditcard9f03bf55dpawisaco_finalTrue_id0(CustomIndividual):
                                        'prob_default_lags': 0.2,
                                        'prob_lag_non_targets': 0.1,
                                        'prob_lagsaggregates': 0.2,
-                                       'prob_lagsinteraction': 0.2,
-                                       'tensorflow_max_epochs_nlp': 1}
+                                       'prob_lagsinteraction': 0.2}
+                                       #'tensorflow_max_epochs_nlp': 1}
         #
         # Some transformers and models may be inconsistent with experiment's config.toml or expert config toml state,
         # such as OHE for LightGBM when config.enable_one_hot_encoding in ['auto', 'off'], yet have no other adverse effect.
@@ -415,7 +415,7 @@ class Indiv_testcreditcard9f03bf55dpawisaco_finalTrue_id0(CustomIndividual):
                                                            'RFCUML',
                                                            'RFCUMLDask',
                                                            'RuleFit',
-                                                           'TensorFlow',
+                                                           #'TensorFlow',
                                                            'TextALBERT',
                                                            'TextBERT',
                                                            'TextCamemBERT',

@@ -6,7 +6,7 @@ import numpy as np
 from h2oaicore.models import CustomTensorFlowModel
 from sklearn.preprocessing import LabelEncoder
 from h2oaicore.systemutils import physical_cores_count, loggerdata, load_obj_bytes
-from h2oaicore.systemutils import user_dir, remove, config
+from h2oaicore.systemutils import user_dir, config
 from h2oaicore.systemutils import make_experiment_logger, loggerinfo, loggerwarning, loggerdebug
 import functools
 
@@ -34,6 +34,28 @@ class CustomXNNModel(CustomTensorFlowModel):
     _mojo = False
 
     _fail_if_plot_fails = False
+
+    @staticmethod
+    def is_enabled():
+        try:
+            return not config.global_disable_tensorflow
+        except:
+            return True
+    
+    @staticmethod
+    def enabled_setting():
+        try:
+            return "auto" if config.global_disable_tensorflow else "off"
+        except:
+            return "on"
+    
+    @staticmethod
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
+                num_classes=None, **kwargs):
+        try:
+            return not config.global_disable_tensorflow
+        except:
+            return True
 
     @staticmethod
     def do_acceptance_test():

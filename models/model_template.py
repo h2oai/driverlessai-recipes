@@ -414,6 +414,8 @@ class CustomTimeSeriesModel(CustomModel):
                          date_format_strings=date_format_strings, **kwargs)
 
 
+# NOTE: Tensorflow no longer support since 2.4.0 in DAI
+"""
 class CustomTensorFlowModel(TensorFlowModel, CustomModel):
     """
         TensorFlow-based Custom Model
@@ -468,6 +470,7 @@ class CustomTimeSeriesTensorFlowModel(CustomTensorFlowModel, CustomTimeSeriesMod
         TensorFlow-based Time-Series Custom Model
     """
     pass
+"""
 
 
 class CustomUnsupervisedModel(UnsupervisedModel, CustomModel):

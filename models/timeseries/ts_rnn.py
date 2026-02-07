@@ -5,6 +5,7 @@ import pandas as pd
 from datatable import dt
 
 from h2oaicore.models import CustomTimeSeriesTensorFlowModel
+from h2oaicore.systemutils import config
 from sklearn.preprocessing import StandardScaler
 
 
@@ -637,7 +638,25 @@ class TS_RNN(CustomTimeSeriesTensorFlowModel):
 
     @staticmethod
     def is_enabled():
-        return True
+        try:
+            return not config.global_disable_tensorflow
+        except:
+            return True
+    
+    @staticmethod
+    def enabled_setting():
+        try:
+            return "auto" if config.global_disable_tensorflow else "off"
+        except:
+            return "on"
+    
+    @staticmethod
+    def can_use(accuracy, interpretability, train_shape=None, test_shape=None, valid_shape=None, n_gpus=0,
+                num_classes=None, **kwargs):
+        try:
+            return not config.global_disable_tensorflow
+        except:
+            return True
 
     @staticmethod
     def do_acceptance_test():
