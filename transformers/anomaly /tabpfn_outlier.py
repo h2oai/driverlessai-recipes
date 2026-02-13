@@ -28,7 +28,7 @@ from h2oaicore import systemutils
 from h2oaicore.metrics import CustomUnsupervisedScorer
 from h2oaicore.models import CustomUnsupervisedModel
 from h2oaicore.systemutils_more import download
-from h2oaicore.transformer_utils import CustomUnsupervisedTransformer
+from h2oaicore.transformer_utils import CustomTransformer
 
 
 TABPFN_CLASSIFIER_CKPT_URL = (
@@ -420,7 +420,7 @@ class TabPFNOutliersDetection:
         gc.collect()
 
 
-class TabPFNOutlierScoreTransformer(CustomUnsupervisedTransformer):
+class TabPFNOutlierScoreTransformer(CustomTransformer):
     r"""
         TabPFN-based outlier score transformer for Driverless AI.
 
@@ -472,6 +472,10 @@ class TabPFNOutlierScoreTransformer(CustomUnsupervisedTransformer):
         - This transformer is computationally expensive; keep `max_cols` and `n_permutations` conservative.
         - Output is numeric and can be used directly as an engineered feature for downstream models.
         """
+    _unsupervised = True
+    _regression = True
+    _binary = True
+    _multiclass = True
     _numeric_output = True
     _is_reproducible = True
     _parallel_task = False
