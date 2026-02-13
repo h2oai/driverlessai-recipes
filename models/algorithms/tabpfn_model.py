@@ -103,12 +103,14 @@ class PermutationEstimator:
         n_jobs: int = 1,
         random_state: int = 1234,
         num_classes: int = 1,
+        labels: Optional[Sequence[int]] = None,
     ):
         self.imputer = imputer
         self.utility_fn = utility_fn
         self.random_state = random_state
         self.n_jobs = n_jobs
         self.num_classes = num_classes
+        self.labels = [] if labels is None else list(labels)
 
     def __call__(
         self,
@@ -336,7 +338,7 @@ class PermutationEstimator:
 
         # Make prediction with minimum coalition.
         y_hat = self.imputer(x, mask)
-        prev_score = self.utility_fn(y_hat, y)
+        prev_score = self.utility_fn(y_hat, y, self.labels)
 
         _claim_memory()
         # Add all remaining features.
@@ -347,7 +349,7 @@ class PermutationEstimator:
 
             # Make prediction with missing features.
             y_hat = self.imputer(x, mask)
-            score = self.utility_fn(y_hat, y)
+            score = self.utility_fn(y_hat, y, self.labels)
 
             # Calculate delta sample.
             if consider_class_idx:
@@ -731,10 +733,10 @@ class TabPFNModel(CustomModel):
     MAX_CLASSES = 10
     TRAIN_SIZE_LIMITS = 10000
     TRAIN_SIZE_OVERLOAD_RATE = 2
-    MAX_FEATURES = 20 # very sensitive to SAGE/Shapley O(#features * #batch * #permutations * O(fit/predict)), reduce the value if too slow
-    MAX_GLOBAL_EXPLANATION_PERMUTATIONS = 512
-    MAX_LOCAL_EXPLANATION_PERMUTATIONS = 12 # very sensitive to running complexity, pick small to be conservative
-    FAST_LOCAL_EXPLANATION_PERMUTATIONS = 5
+    MAX_FEATURES = 60 # very sensitive to SAGE/Shapley O(#features * #batch * #permutations * O(fit/predict)), reduce the value if too slow
+    MAX_GLOBAL_EXPLANATION_PERMUTATIONS = 1024
+    MAX_LOCAL_EXPLANATION_PERMUTATIONS = 32 # very sensitive to running complexity, pick small to be conservative
+    FAST_LOCAL_EXPLANATION_PERMUTATIONS = 10
     MAX_CONTEXT_SIZE = 64 # very sensitive to GPU memory when enabled, should be chosen close to batch size
     BATCH_SIZE = 64 # very sensitive to GPU memory when enabled, pick small to be conservative
 
@@ -915,6 +917,7 @@ class TabPFNModel(CustomModel):
                 n_jobs=self._get_n_jobs(logger, **kwargs),
                 random_state=self.random_state,
                 num_classes=self.n_classes,
+                labels=enc_labels,
             )
 
             systemutils.loggerinfo(logger, "Start SAGE simulation game to compute feature importance...")
@@ -979,6 +982,7 @@ class TabPFNModel(CustomModel):
                 n_jobs=self._get_n_jobs(logger, **kwargs),
                 random_state=self.random_state,
                 num_classes=self.n_classes,
+                labels=self._encode_labels(),
             )
 
             systemutils.loggerinfo(logger, f"Start {'Fast' if fast_approx else ''} Shapley computation...")
