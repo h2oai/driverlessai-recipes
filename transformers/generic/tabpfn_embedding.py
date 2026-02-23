@@ -9,7 +9,6 @@ License compliance note (Prior Labs License v1.2, See license text; ensure compl
 """
 import os
 import pathlib
-import random
 import uuid
 from typing import Optional
 from typing import Sequence, Tuple
@@ -33,6 +32,8 @@ TABPFN_CLASSIFIER_CKPT_URL = (
 TABPFN_REGRESSOR_CKPT_URL = (
     "https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/pretrained/tabpfn/tabpfn-v2-regressor.ckpt"
 )
+TABPFN_CLASSIFIER_CKPT_SHA256 = "cf8c519c01eaf1613ee91239006d57b1c806ff5f23ac1aeb1315ba1015210e49"
+TABPFN_REGRESSOR_CKPT_SHA256 = "2ab5a07d5c41dfe6db9aa7ae106fc6de898326c2765be66505a07e2868c10736"
 
 
 class TabPFNEmbeddingTransformer(CustomTransformer):
@@ -86,7 +87,7 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
     _get_gpu_lock = True
     _get_gpu_lock_vis = True
     _uses_target = True
-    _modules_needed_by_name = ["tabpfn==6.2.0"]
+    _modules_needed_by_name = ["tabpfn==6.4.1"]
 
     TRAIN_SIZE_LIMITS = 10000
     TRAIN_SIZE_OVERLOAD_RATE = 2
@@ -160,6 +161,7 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         # learned state
         self.raw_model_bytes: Optional[bytes] = None
         self.ord_encoder_: Optional[OrdinalEncoder] = None
+        self.numeric_col_mask_: Optional[np.ndarray] = None
         self.tabpfn_model_ = None
         self.svd_ = None
 
@@ -183,8 +185,18 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
             unknown_value=-1,
             encoded_missing_value=-2,
         )
-        x_numpy, sample_indices = self._prepare_x(x=X, encoder=self.ord_encoder_, y=y)
+        self.numeric_col_mask_ = _numeric_column_mask(X)
+        x_numpy, sample_indices = self._prepare_x(x=X, encoder=self.ord_encoder_, y=y,
+                                                    numeric_col_mask=self.numeric_col_mask_)
         x_sampled_numpy = x_numpy[sample_indices]
+
+        num_classes = len(self.labels or [])
+        if num_classes > self.MAX_CLASSES:
+            systemutils.loggerwarning(
+                logger,
+                f"Dataset has {num_classes} classes (> {self.MAX_CLASSES}). "
+                "Falling back to TabPFNRegressor for embedding extraction.",
+            )
 
         device = self._get_device()
         self.tabpfn_model_ = self._build_tabpfn_models(
@@ -202,6 +214,7 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
 
         systemutils.loggerinfo(logger, f"Fitting TabPFN {'Classifier' if self.is_classification else 'Regressor'}...")
         self.tabpfn_model_.fit(x_sampled_numpy, y_sampled)
+        self._claim_memory(force=True)
 
         x_transformed = self._transform(x_numpy, data_source="test", training=True, use_gpu=device != "cpu")
 
@@ -221,7 +234,8 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
 
         self._restore_state()
         self._prepare_env(seed=self.seed)
-        x_numpy, _ = self._prepare_x(x=X, encoder=self.ord_encoder_, y=None)
+        x_numpy, _ = self._prepare_x(x=X, encoder=self.ord_encoder_, y=None,
+                                      numeric_col_mask=self.numeric_col_mask_)
         x_transformed = self._transform(x_numpy, data_source="test", use_gpu=self._get_device() != "cpu")
 
         # Validate embeddings for NaN/inf
@@ -237,6 +251,9 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
 
         x_transformed = self.tabpfn_model_.get_embeddings(X, data_source=data_source)
         if len(x_transformed.shape) == 2:
+            # 2D occurs when n_samples=1: squeeze() in TabPFN's get_embeddings
+            # collapses (1, embed_dim) → (embed_dim,), yielding (n_estimators, embed_dim).
+            # Re-insert the sample dimension at axis 1 to restore (n_estimators, 1, embed_dim).
             x_transformed = x_transformed[:, None, :]
         x_transformed = np.swapaxes(x_transformed, 0, 1)
 
@@ -279,6 +296,7 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
     def _save_state(self):
         self.raw_model_bytes = systemutils.save_obj_to_bytes({
             "ord_encoder": self.ord_encoder_,
+            "numeric_col_mask": self.numeric_col_mask_,
             "tabpfn_model_": self.tabpfn_model_,
             "svd_": self.svd_,
         })
@@ -286,6 +304,7 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
 
     def _reset_state(self):
         self.ord_encoder_ = None
+        self.numeric_col_mask_ = None
         self.tabpfn_model_ = None
         self.svd_ = None
 
@@ -295,6 +314,7 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         if self.ord_encoder_ is None or self.tabpfn_model_ is None:
             model_state = systemutils.load_obj_bytes(self.raw_model_bytes)
             self.ord_encoder_ = model_state.get("ord_encoder", None)
+            self.numeric_col_mask_ = model_state.get("numeric_col_mask", None)
             self.tabpfn_model_ = model_state.get("tabpfn_model_", None)
             self.svd_ = model_state.get("svd_", None)
 
@@ -307,7 +327,8 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         x: dt.Frame,
         encoder: OrdinalEncoder,
         y: Optional[np.ndarray] = None,
-    ) -> Tuple[dt.Frame, np.ndarray]:
+        numeric_col_mask: Optional[np.ndarray] = None,
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Prepare X for fitting with optional stratified sampling for classification.
 
@@ -315,9 +336,10 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
             x: Input features
             encoder: Categorical features encoder
             y: Target values (optional, used for stratified sampling in classification)
+            numeric_col_mask: Pre-computed column type mask from fit (reused for transform consistency)
 
         Returns:
-            Tuple of (x, sample_indices)
+            Tuple of (x_numpy, sample_indices)
         """
         sample_indices = np.arange(x.shape[0])
         n = x.shape[0]
@@ -325,18 +347,24 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         if n > self.max_fit_rows:
             # Use stratified sampling for classification if y is provided
             if y is not None and self.is_classification:
-                sample_indices, _ = train_test_split(
-                    np.arange(n),
-                    train_size=self.max_fit_rows,
-                    stratify=y,
-                    random_state=self.seed
-                )
+                try:
+                    sample_indices, _ = train_test_split(
+                        np.arange(n),
+                        train_size=self.max_fit_rows,
+                        stratify=y,
+                        random_state=self.seed
+                    )
+                except ValueError:
+                    # Stratified split fails when a class has < 2 samples;
+                    # fall back to uniform random sampling.
+                    rng = np.random.RandomState(self.seed)
+                    sample_indices = rng.choice(n, self.max_fit_rows, replace=False)
             else:
                 # Uniform random sampling for regression or when y is not provided
                 rng = np.random.RandomState(self.seed)
                 sample_indices = rng.choice(n, self.max_fit_rows, replace=False)
 
-        x_numpy = _to_numeric(x, encoder)
+        x_numpy = _to_numeric(x, encoder, numeric_col_mask=numeric_col_mask)
         return np.asarray(x_numpy, dtype=np.float32), sample_indices
 
     @staticmethod
@@ -345,16 +373,19 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
 
     @staticmethod
     def _get_n_jobs(logger, **kwargs) -> int:
+        max_workers = kwargs.get('max_workers', None)
+        if max_workers is None:
+            systemutils.loggerwarning(logger, "No Max Worker in kwargs. Set n_jobs to 1")
+            return 1
         try:
             if systemutils.config.fixed_num_folds <= 0:
                 n_jobs = max(1, int(
-                    systemutils.max_threads() / min(systemutils.config.num_folds, kwargs['max_workers'])))
+                    systemutils.max_threads() / min(systemutils.config.num_folds, max_workers)))
             else:
                 n_jobs = max(1, int(
                     systemutils.max_threads() / min(systemutils.config.fixed_num_folds,
-                                                    systemutils.config.num_folds, kwargs['max_workers'])))
-        except KeyError:
-            systemutils.loggerwarning(logger, "No Max Worker in kwargs. Set n_jobs to 1")
+                                                    systemutils.config.num_folds, max_workers)))
+        except (KeyError, AttributeError):
             n_jobs = 1
 
         return n_jobs
@@ -373,15 +404,15 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
     ):
         from tabpfn.constants import ModelVersion
 
-        clf_ckpt, reg_ckpt = TabPFNEmbeddingTransformer._ensure_weights_cached()
+        ckpt = TabPFNEmbeddingTransformer._ensure_weights_cached(is_classification)
         if is_classification:
             from tabpfn import TabPFNClassifier
 
-            systemutils.loggerinfo(None, f"Instantiating TabPFN Classifier from {clf_ckpt}")
+            systemutils.loggerinfo(None, f"Instantiating TabPFN Classifier from {ckpt}")
             return TabPFNClassifier.create_default_for_version(
                 ModelVersion.V2,
                 device=device,
-                model_path=clf_ckpt,
+                model_path=ckpt,
                 random_state=seed,
                 n_preprocessing_jobs=n_jobs,
                 n_estimators=n_estimators,
@@ -393,11 +424,11 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         else:
             from tabpfn import TabPFNRegressor
 
-            systemutils.loggerinfo(None, f"Instantiating TabPFN Regressor from {reg_ckpt}")
+            systemutils.loggerinfo(None, f"Instantiating TabPFN Regressor from {ckpt}")
             return TabPFNRegressor.create_default_for_version(
                 ModelVersion.V2,
                 device=device,
-                model_path=reg_ckpt,
+                model_path=ckpt,
                 random_state=seed,
                 n_preprocessing_jobs=n_jobs,
                 n_estimators=n_estimators,
@@ -405,23 +436,34 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
             )
 
     @staticmethod
-    def _ensure_weights_cached():
-        """
-        Optional: pre-download weights into a deterministic cache location.
-        If TabPFN already handles caching, this still helps DAI environments.
+    def _ensure_weights_cached(is_classification: bool) -> str:
+        """Download the needed checkpoint into a deterministic cache location.
+
+        Only downloads the classifier or regressor checkpoint based on the task,
+        avoiding ~500 MB of unnecessary transfer on cold cache.
         """
         cache_dir = _get_cache_dir()
         systemutils.makedirs(cache_dir, exist_ok=True)
 
-        clf_path = cache_dir / os.path.basename(TABPFN_CLASSIFIER_CKPT_URL)
-        reg_path = cache_dir / os.path.basename(TABPFN_REGRESSOR_CKPT_URL)
+        if is_classification:
+            url, expected_sha = TABPFN_CLASSIFIER_CKPT_URL, TABPFN_CLASSIFIER_CKPT_SHA256
+        else:
+            url, expected_sha = TABPFN_REGRESSOR_CKPT_URL, TABPFN_REGRESSOR_CKPT_SHA256
 
-        if not clf_path.exists():
-            download(TABPFN_CLASSIFIER_CKPT_URL, dest_path=cache_dir)
-        if not reg_path.exists():
-            download(TABPFN_REGRESSOR_CKPT_URL, dest_path=cache_dir)
+        final_path = cache_dir / os.path.basename(url)
+        if not final_path.exists():
+            # Atomic download: write to PID-stamped temp file, verify, then rename.
+            # Prevents concurrent workers from reading partially-written files.
+            tmp_path = final_path.with_suffix(f".tmp.{os.getpid()}")
+            try:
+                download(url, dest=str(tmp_path))
+                _verify_checkpoint(tmp_path, expected_sha)
+                os.replace(str(tmp_path), str(final_path))
+            except Exception:
+                tmp_path.unlink(missing_ok=True)
+                raise
 
-        return str(clf_path), str(reg_path)
+        return str(final_path)
 
     @staticmethod
     def _get_device() -> str:
@@ -429,27 +471,29 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         return "cuda" if torch.cuda.is_available() else "cpu"
 
     @staticmethod
-    def _claim_memory():
+    def _claim_memory(force: bool = False):
         import gc
         import torch
 
-        if torch.cuda.is_available():
-            try:
-                max_allocated = torch.cuda.max_memory_allocated()
-                if not max_allocated:
-                    # Avoid division by zero; fall back to conservative cleanup
-                    torch.cuda.empty_cache()
-                    gc.collect()
-                    return
-                allocated_memory = torch.cuda.memory_allocated() / max_allocated
-                if allocated_memory > 0.8:
-                    torch.cuda.empty_cache()
-                    gc.collect()
-                    return
-            except (RuntimeError, AttributeError):
-                # Fallback if memory stats unavailable
+        use_gpu = torch.cuda.is_available()
+        if force:
+            if use_gpu:
                 torch.cuda.empty_cache()
-        # CPU: collect garbage after all permutations for this chunk
+        else:
+            if use_gpu:
+                try:
+                    max_allocated = torch.cuda.max_memory_allocated()
+                    if not max_allocated:
+                        # Avoid division by zero; fall back to conservative cleanup
+                        torch.cuda.empty_cache()
+                        gc.collect()
+                        return
+                    allocated_memory = torch.cuda.memory_allocated() / max_allocated
+                    if allocated_memory > 0.8:
+                        torch.cuda.empty_cache()
+                except (RuntimeError, AttributeError):
+                    # Fallback if memory stats unavailable
+                    torch.cuda.empty_cache()
         gc.collect()
 
     @staticmethod
@@ -465,8 +509,9 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
     def _prepare_env(seed: int):
         import torch
 
-        np.random.seed(seed)
-        random.seed(seed)
+        # Only set torch seeds (needed for CUDA determinism in TabPFN).
+        # Avoid setting global np.random.seed() / random.seed() to prevent
+        # polluting state for other models running in the same process.
         torch.manual_seed(seed)
 
         use_gpu = torch.cuda.is_available()
@@ -479,13 +524,15 @@ class TabPFNEmbeddingTransformer(CustomTransformer):
         os.environ["TABPFN_ALLOW_CPU_LARGE_DATASET"] = "1"
 
 
-def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder) -> np.ndarray:
+def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder,
+                numeric_col_mask: Optional[np.ndarray] = None) -> np.ndarray:
     assert len(x.shape) == 2
 
     if x.shape[0] == 0:
         return x.to_numpy().astype(np.float32)
 
-    numeric_col_mask = _numeric_column_mask(x)
+    if numeric_col_mask is None:
+        numeric_col_mask = _numeric_column_mask(x)
     if np.all(numeric_col_mask):
         return x.to_numpy().astype(np.float32)
 
@@ -518,6 +565,16 @@ def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder) -> np.ndarray:
 def _numeric_column_mask(x: dt.Frame) -> np.ndarray:
     mask = np.zeros(x.shape[1], dtype=bool)
 
+    # Pre-compute shared sample indices once for all string columns
+    sample_size = min(10000, x.nrows)
+    if sample_size < x.nrows:
+        rng = np.random.RandomState(42)
+        shared_indices = rng.choice(x.nrows, size=sample_size, replace=False)
+        shared_indices.sort()
+        shared_indices = shared_indices.tolist()
+    else:
+        shared_indices = None
+
     for i in range(x.shape[1]):
         col_type = x[:, i].type
 
@@ -525,13 +582,21 @@ def _numeric_column_mask(x: dt.Frame) -> np.ndarray:
                        dt.Type.float32, dt.Type.float64, dt.Type.bool8):
             mask[i] = True
         else:
-            # For string columns, check first 100 rows if they're numeric-like
-            # This handles "123" stored as string without full column scan
-            sample_size = min(100, x.nrows)
-            sample = x[:sample_size, i].to_numpy()
+            # For string columns, sample rows to check if they're numeric-like.
+            # Use random sampling to avoid positional bias (e.g., first rows are IDs).
+            if shared_indices is not None:
+                sample = x[shared_indices, i].to_numpy()
+            else:
+                sample = x[:, i].to_numpy()
             try:
-                sample.astype(np.float32)
-                mask[i] = True
+                # Filter out None/NaN so numeric columns with missing values
+                # are not incorrectly classified as non-numeric.
+                sample_clean = sample[sample != None]  # noqa: E711
+                if len(sample_clean) > 0:
+                    sample_clean.astype(np.float32)
+                    mask[i] = True
+                else:
+                    mask[i] = False
             except (ValueError, TypeError):
                 mask[i] = False
 
@@ -540,3 +605,23 @@ def _numeric_column_mask(x: dt.Frame) -> np.ndarray:
 
 def _get_cache_dir() -> pathlib.Path:
     return pathlib.Path(systemutils.temporary_files_abspath) / "tabpfn_cache"
+
+
+def _verify_checkpoint(path: pathlib.Path, expected_sha256: Optional[str]) -> None:
+    """Verify SHA-256 checksum of a downloaded checkpoint file.
+
+    Skipped when expected_sha256 is None (hashes not yet populated).
+    Raises RuntimeError on mismatch; caller is responsible for cleanup.
+    """
+    if expected_sha256 is None:
+        return
+    import hashlib
+    sha256 = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            sha256.update(chunk)
+    if sha256.hexdigest() != expected_sha256:
+        raise RuntimeError(
+            f"Checksum mismatch for {path.name}: "
+            f"expected {expected_sha256}, got {sha256.hexdigest()}."
+        )

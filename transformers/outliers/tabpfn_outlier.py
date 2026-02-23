@@ -25,8 +25,6 @@ from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils.validation import check_is_fitted
 
 from h2oaicore import systemutils
-from h2oaicore.metrics import CustomUnsupervisedScorer
-from h2oaicore.models import CustomUnsupervisedModel
 from h2oaicore.systemutils_more import download
 from h2oaicore.transformer_utils import CustomTransformer
 
@@ -37,6 +35,8 @@ TABPFN_CLASSIFIER_CKPT_URL = (
 TABPFN_REGRESSOR_CKPT_URL = (
     "https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/pretrained/tabpfn/tabpfn-v2-regressor.ckpt"
 )
+TABPFN_CLASSIFIER_CKPT_SHA256 = "cf8c519c01eaf1613ee91239006d57b1c806ff5f23ac1aeb1315ba1015210e49"
+TABPFN_REGRESSOR_CKPT_SHA256 = "2ab5a07d5c41dfe6db9aa7ae106fc6de898326c2765be66505a07e2868c10736"
 MAX_CLASSES = 10
 
 
@@ -60,6 +60,7 @@ class TabPFNOutliersDetection:
 
         self.train_x_ = None
         self.ord_encoder_ = None
+        self.numeric_col_mask_: Optional[np.ndarray] = None
         # (#features, #K): (i, j) represents top K important feature indices when ith feature as target, heuristically find the top K conditioning set.
         # avoid growing prefix of columns, approximate with fixed size better for caching.
         self.top_features_matrix_ = np.full((self._num_features, min(top_features, num_features - 1)), fill_value=-1, dtype=int)
@@ -76,7 +77,8 @@ class TabPFNOutliersDetection:
             unknown_value=-1,
             encoded_missing_value=-2,
         )
-        x_numpy = _to_numeric(X, self.ord_encoder_)
+        self.numeric_col_mask_ = _numeric_column_mask(X)
+        x_numpy = _to_numeric(X, self.ord_encoder_, numeric_col_mask=self.numeric_col_mask_)
         self.train_x_ = np.asarray(x_numpy, dtype=np.float32)
         del x_numpy
 
@@ -124,7 +126,7 @@ class TabPFNOutliersDetection:
         check_is_fitted(self, attributes=["train_x_", "ord_encoder_", "top_features_matrix_"])
 
         seed = self._seed if seed is None else seed
-        x_numpy = _to_numeric(x, self.ord_encoder_)
+        x_numpy = _to_numeric(x, self.ord_encoder_, numeric_col_mask=self.numeric_col_mask_)
         x_numpy = np.asarray(x_numpy, dtype=np.float32)
 
         n_features = x.shape[1]
@@ -133,10 +135,15 @@ class TabPFNOutliersDetection:
         actual_n_permutations = 1 if fast_mode else n_permutations
         log_densities = []
 
-        # Run outlier scoring in parallel
+        # Run outlier scoring per permutation
         st = time.perf_counter()
-        for perm_idx, perm in enumerate(_efficient_random_permutation(all_features, actual_n_permutations, seed)):
-            perm_density_log, perm_density = self.outliers_single_permutation_(
+        permutations = _efficient_random_permutation(all_features, actual_n_permutations, seed)
+        n_perms = len(permutations)
+        for perm_idx, perm in enumerate(permutations):
+            perm_st = time.perf_counter()
+            systemutils.loggerinfo(self._logger,
+                                   f"[{self.__class__.__name__}] [outliers] Starting permutation {perm_idx + 1}/{n_perms}")
+            perm_density_log = self.outliers_single_permutation_(
                 x=x_numpy,
                 feature_permutation=perm,
                 seed=seed,
@@ -145,7 +152,10 @@ class TabPFNOutliersDetection:
             perm_density_log = np.nan_to_num(perm_density_log, nan=-1e30, posinf=0.0, neginf=-1e30)
             log_densities.append(perm_density_log)
 
-            del perm_density_log, perm_density
+            del perm_density_log
+            systemutils.loggerinfo(self._logger,
+                                   f"[{self.__class__.__name__}] [outliers] Permutation {perm_idx + 1}/{n_perms} "
+                                   f"took {(time.perf_counter() - perm_st):.1f}s")
         systemutils.loggerinfo(self._logger, f"[{self.__class__.__name__}] [outliers] Outlier scoring takes {(time.perf_counter() - st):.6f} seconds")
 
         self._claim_memory()
@@ -171,9 +181,9 @@ class TabPFNOutliersDetection:
         import torch
 
         systemutils.loggerinfo(self._logger, f"[{self.__class__.__name__}] [outliers_single_permutation_] Outlier score start")
-        st = time.perf_counter()
+        perm_wall_start = time.perf_counter()
         # Start with a log probability of 0 (log(1) = 0)
-        log_p = np.zeros(x[:, 0].shape, dtype=np.float32)
+        log_p = np.zeros(x[:, 0].shape, dtype=np.float64)
         seed = self._seed if seed is None else seed
 
         for i, column_idx in enumerate(feature_permutation):
@@ -189,22 +199,25 @@ class TabPFNOutliersDetection:
                 pred_np = model.predict_proba(x_predict)
                 systemutils.loggerinfo(self._logger, f"[{self.__class__.__name__}] [outliers_single_permutation_] TabPFN probability prediction took {(time.perf_counter() - st):.6f} seconds")
 
-                # Convert y_predict to indices for indexing the probabilities
-                y_indices = y_predict.astype(np.int64)
+                # Map y_predict values to predict_proba column indices via model.classes_.
+                # Direct integer indexing (y_predict.astype(int) as column index) is WRONG
+                # when class labels are not 0-based contiguous (e.g., numeric columns with
+                # values like [100, 200, 300], or ordinal-encoded columns with missing=-2).
+                classes = model.classes_
+                y_vals = y_predict.astype(classes.dtype)
+                col_indices = np.searchsorted(classes, y_vals)
+                # searchsorted can return out-of-bounds; validate exact match
+                col_indices_clipped = np.minimum(col_indices, len(classes) - 1)
+                valid = (col_indices < len(classes)) & (classes[col_indices_clipped] == y_vals)
 
-                # Check indices are in bounds
-                valid_indices = (y_indices >= 0) & (y_indices < pred_np.shape[1])
-                # Get default probability filled with a reasonable value
-                # Default small probability (eps)
                 pred = np.full(x_predict.shape[0], self._eps, dtype=np.float32)
-                rows = np.arange(x_predict.shape[0])
-                # Only index with valid indices
-                pred[valid_indices] = pred_np[rows[valid_indices], y_indices[valid_indices]]
+                valid_rows = np.where(valid)[0]
+                pred[valid_rows] = pred_np[valid_rows, col_indices[valid_rows]]
 
                 # Clip to [eps, 1.0] to handle both underflow and potential numerical issues
                 pred = np.clip(pred, self._eps, 1.0)
 
-                del pred_np, y_indices, valid_indices, rows
+                del pred_np, classes, y_vals, col_indices, col_indices_clipped, valid, valid_rows
             else:
                 st = time.perf_counter()
                 # Regression: use proper Gaussian likelihood from TabPFN's PDF
@@ -238,10 +251,8 @@ class TabPFNOutliersDetection:
             if i > 0 and i % 5 == 0:
                 self._claim_memory(force=True)
 
-        exp_log_p = np.exp(log_p)
-
-        systemutils.loggerinfo(self._logger, f"[{self.__class__.__name__}] [outliers_single_permutation_] Outlier scores permutations takes {(time.perf_counter() - st):.6f} seconds")
-        return log_p, exp_log_p
+        systemutils.loggerinfo(self._logger, f"[{self.__class__.__name__}] [outliers_single_permutation_] Outlier scores permutations takes {(time.perf_counter() - perm_wall_start):.6f} seconds")
+        return log_p
 
     def density_(
         self,
@@ -275,47 +286,14 @@ class TabPFNOutliersDetection:
 
         st = time.perf_counter()
         systemutils.loggerinfo(self._logger, f"[{self.__class__.__name__}] [density] model fitting preparations started")
-        if len(conditional_idx) > 0:
-            # If not the first feature, use all previous features
-            x_fit = x_fit[:, conditional_idx]
-            x_fit = x_fit.reshape(x_fit.shape[0], -1)
+        # conditional_idx always has ≥1 entry because top_features_matrix_ has
+        # shape (num_features, min(top_features, num_features-1)) and min_cols=2
+        # guarantees num_features ≥ 2, so every feature has at least 1 conditioning feature.
+        x_fit = x_fit[:, conditional_idx]
+        x_fit = x_fit.reshape(x_fit.shape[0], -1)
 
-            x_predict, y_predict = x_predict[:, conditional_idx], x_predict[:, column_idx]
-            x_predict = x_predict.reshape(x_predict.shape[0], -1)
-        else:
-            # First feature: p(x_0) - marginal distribution
-            # Use empirical distribution from training data instead of random features
-            # This is mathematically correct for the marginal probability
-            y_predict = x_predict[:, column_idx]
-
-            # Create a reproducible random generator for noise
-            rng = np.random.RandomState(seed)
-
-            if is_classification:
-                # For classification: use mode (most frequent class) with small noise
-                # This approximates p(x_0) by conditioning on the mode
-                # Add small noise to avoid "all constant features" error from TabPFN preprocessor
-                from collections import Counter
-                mode_counts = Counter(y_fit.astype(int))
-                mode_val = mode_counts.most_common(1)[0][0]
-                x_fit = np.full((len(y_fit), 1), mode_val, dtype=np.float32)
-                x_predict = np.full((len(y_predict), 1), mode_val, dtype=np.float32)
-                # Add tiny noise (± 0.01) to avoid constant feature rejection
-                x_fit += rng.uniform(-0.01, 0.01, x_fit.shape).astype(np.float32)
-                x_predict += rng.uniform(-0.01, 0.01, x_predict.shape).astype(np.float32)
-            else:
-                # For regression: use mean with small noise
-                # This approximates p(x_0) by conditioning on the mean
-                # Add small noise to avoid "all constant features" error from TabPFN preprocessor
-                mean_val = np.mean(y_fit)
-                std_val = np.std(y_fit)
-                # Use 1% of std as noise scale, or 0.01 if std is too small
-                noise_scale = max(0.01 * std_val, 0.01)
-                x_fit = np.full((len(y_fit), 1), mean_val, dtype=np.float32)
-                x_predict = np.full((len(y_predict), 1), mean_val, dtype=np.float32)
-                # Add small gaussian noise centered at mean
-                x_fit += rng.normal(0, noise_scale, x_fit.shape).astype(np.float32)
-                x_predict += rng.normal(0, noise_scale, x_predict.shape).astype(np.float32)
+        x_predict, y_predict = x_predict[:, conditional_idx], x_predict[:, column_idx]
+        x_predict = x_predict.reshape(x_predict.shape[0], -1)
 
         systemutils.loggerinfo(self._logger, f"[{self.__class__.__name__}] [density] model fitting preparations ended takes {(time.perf_counter() - st):.6f} seconds")
         # Handle potential nan values in y_fit
@@ -323,8 +301,10 @@ class TabPFNOutliersDetection:
             y_fit = np.nan_to_num(y_fit, nan=0.0)
 
         st = time.perf_counter()
-        systemutils.loggerinfo(self._logger,
-                               f"[{self.__class__.__name__}] [density] model clone starts")
+        # clone() creates a fresh unfitted estimator, invalidating fit_with_cache.
+        # Each clone+fit is a cold-start TabPFN fit. This is architecturally
+        # required by the SAGE permutation algorithm (each feature subset
+        # needs an independent model), but is the main performance bottleneck.
         model = clone(self._get_model(is_classification))
         systemutils.loggerinfo(self._logger,
                                f"[{self.__class__.__name__}] [density] model clone takes {(time.perf_counter() - st):.6f} seconds")
@@ -360,7 +340,7 @@ class TabPFNOutliersDetection:
         if np.isnan(targets).any():
             targets = np.nan_to_num(targets, nan=0.0)
 
-        if self._is_classification(targets):
+        if self._is_classification(targets, MAX_CLASSES):
             rf = RandomForestClassifier(n_estimators=100, max_depth=10, max_features="sqrt", min_samples_leaf=2, random_state=self._seed, n_jobs=-1)
         else:
             rf = RandomForestRegressor(n_estimators=100, max_depth=10, max_features="sqrt", min_samples_leaf=2, random_state=self._seed, n_jobs=-1)
@@ -411,12 +391,9 @@ class TabPFNOutliersDetection:
                     allocated_memory = torch.cuda.memory_allocated() / max_allocated
                     if allocated_memory > 0.8:
                         torch.cuda.empty_cache()
-                        gc.collect()
-                    return
                 except (RuntimeError, AttributeError):
                     # Fallback if memory stats unavailable
                     torch.cuda.empty_cache()
-        # CPU: collect garbage after all permutations for this chunk
         gc.collect()
 
 
@@ -487,7 +464,7 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
     _mojo = False
     _testing_can_skip_failure = False
     _allow_transform_to_modify_output_feature_names = False
-    _modules_needed_by_name = ["tabpfn==6.2.0"]
+    _modules_needed_by_name = ["tabpfn==6.4.1"]
 
     TRAIN_SIZE_LIMITS = 10000
     TRAIN_SIZE_OVERLOAD_RATE = 2
@@ -587,7 +564,7 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
 
         systemutils.loggerinfo(logger, f"[{self.__class__.__name__}] [fit_transform] Transforming score output...")
         st = time.perf_counter()
-        final_output = self._transform(scores=calibrated_scores, sample_indices=sample_indices, full=x.shape[0])
+        final_output = self._transform(scores=calibrated_scores)
         systemutils.loggerinfo(logger, f"[{self.__class__.__name__}] [fit_transform] Finished transforming score output, takes {(time.perf_counter() - st):.6f} seconds")
 
         systemutils.loggerinfo(logger, f"[{self.__class__.__name__}] [fit_transform] Saving model...")
@@ -627,20 +604,13 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
 
         systemutils.loggerinfo(logger, f"[{self.__class__.__name__}] [transform] Transforming model...")
         st = time.perf_counter()
-        final_output = self._transform(scores=calibrated_scores, sample_indices=np.arange(x.shape[0]), full=x.shape[0])
+        final_output = self._transform(scores=calibrated_scores)
         systemutils.loggerinfo(logger, f"[{self.__class__.__name__}] [transform] Finished transforming model, takes {(time.perf_counter() - st):.6f} seconds")
         return final_output
 
-    def _transform(self, scores: np.ndarray, full: int, sample_indices: np.ndarray) -> np.ndarray:
-        #self._output_feature_names = ["OutlierScore"]
-        #self._feature_desc = ["Calibrated outlier probability [0-1] from TabPFN density estimation"]
-
-        final_output = scores.reshape(-1)
-        if full > final_output.shape[0]:
-            padded_output = np.full(full, fill_value=0.0, dtype=np.float32)
-            padded_output[sample_indices] = final_output
-            return padded_output
-        return final_output
+    def _transform(self, scores: np.ndarray) -> np.ndarray:
+        # _scores() always scores the full frame, so no padding needed.
+        return scores.reshape(-1)
 
     def _scores(self, x: dt.Frame) -> np.ndarray:
         scores = self.detector_.outliers(
@@ -737,17 +707,15 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
 
         from sklearn.neighbors import NearestNeighbors
 
-        # Use entire x for density estimation
-        probe_indices = np.arange(x.shape[0])
-
         # Convert to numeric for distance calculation
-        x_probe = x[probe_indices, :].to_numpy()
-        x_probe_numeric = _to_numeric_fast(x_probe)
+        probe_indices = np.arange(x.shape[0])
+        x_probe_numeric = _to_numeric_fast(x.to_numpy())
 
         # k-NN density estimation (smaller distance = higher density)
         num_classes = len(self.labels or [])
         # num_classes > 1 then classes would be bounded by MAX_CLASSES, otherwise regression takes 1% of the overall dataset as number of target regions
         k = min(MAX_CLASSES, num_classes) if num_classes > 1 else min(100, x.shape[0] // 100)
+        k = max(1, k)
         try:
             st = time.perf_counter()
             nn = NearestNeighbors(n_neighbors=k, algorithm='auto').fit(x_probe_numeric)
@@ -772,8 +740,9 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
     def _prepare_env(seed: int):
         import torch
 
-        np.random.seed(seed)
-        random.seed(seed)
+        # Only set torch seeds (needed for CUDA determinism in TabPFN).
+        # Avoid setting global np.random.seed() / random.seed() to prevent
+        # polluting state for other models running in the same process.
         torch.manual_seed(seed)
 
         use_gpu = torch.cuda.is_available()
@@ -787,16 +756,19 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
 
     @staticmethod
     def _get_n_jobs(logger, **kwargs) -> int:
+        max_workers = kwargs.get('max_workers', None)
+        if max_workers is None:
+            systemutils.loggerwarning(logger, "No Max Worker in kwargs. Set n_jobs to 1")
+            return 1
         try:
             if systemutils.config.fixed_num_folds <= 0:
                 n_jobs = max(1, int(
-                    systemutils.max_threads() / min(systemutils.config.num_folds, kwargs['max_workers'])))
+                    systemutils.max_threads() / min(systemutils.config.num_folds, max_workers)))
             else:
                 n_jobs = max(1, int(
                     systemutils.max_threads() / min(systemutils.config.fixed_num_folds,
-                                                    systemutils.config.num_folds, kwargs['max_workers'])))
-        except KeyError:
-            systemutils.loggerwarning(logger, "No Max Worker in kwargs. Set n_jobs to 1")
+                                                    systemutils.config.num_folds, max_workers)))
+        except (KeyError, AttributeError):
             n_jobs = 1
 
         return n_jobs
@@ -844,9 +816,11 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
 
     @staticmethod
     def _ensure_weights_cached():
-        """
-        Optional: pre-download weights into a deterministic cache location.
-        If TabPFN already handles caching, this still helps DAI environments.
+        """Download checkpoints into a deterministic cache location.
+
+        Uses atomic PID-stamped temp files to prevent concurrent workers from
+        reading partially-written files.  Verification happens only on freshly
+        downloaded checkpoints (not on every call).
         """
         cache_dir = _get_cache_dir()
         systemutils.makedirs(cache_dir, exist_ok=True)
@@ -854,10 +828,20 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
         clf_path = cache_dir / os.path.basename(TABPFN_CLASSIFIER_CKPT_URL)
         reg_path = cache_dir / os.path.basename(TABPFN_REGRESSOR_CKPT_URL)
 
-        if not clf_path.exists():
-            download(TABPFN_CLASSIFIER_CKPT_URL, dest_path=cache_dir)
-        if not reg_path.exists():
-            download(TABPFN_REGRESSOR_CKPT_URL, dest_path=cache_dir)
+        for url, final_path, expected_sha in [
+            (TABPFN_CLASSIFIER_CKPT_URL, clf_path, TABPFN_CLASSIFIER_CKPT_SHA256),
+            (TABPFN_REGRESSOR_CKPT_URL, reg_path, TABPFN_REGRESSOR_CKPT_SHA256),
+        ]:
+            if not final_path.exists():
+                # Atomic download: write to PID-stamped temp file, verify, then rename.
+                tmp_path = final_path.with_suffix(f".tmp.{os.getpid()}")
+                try:
+                    download(url, dest=str(tmp_path))
+                    _verify_checkpoint(tmp_path, expected_sha)
+                    os.replace(str(tmp_path), str(final_path))
+                except Exception:
+                    tmp_path.unlink(missing_ok=True)
+                    raise
 
         return str(clf_path), str(reg_path)
 
@@ -866,45 +850,6 @@ class TabPFNOutlierScoreTransformer(CustomTransformer):
         import torch
 
         return "cuda" if torch.cuda.is_available() else "cpu"
-
-
-class TabPFNVarianceScorer(CustomUnsupervisedScorer):
-    """Compute the variance of the TabPFN outlier scores.
-
-    ``TabPFNOutlierScoreTransformer`` outputs a calibrated probability for
-    each row in ``X`` in the range ``[0, 1]`` where larger values
-    correspond to more anomalous rows【873411121057838†L770-L834】.  By returning the variance
-    of these scores, the scorer encourages models that produce
-    distinctively high probabilities for the few outliers and low
-    probabilities for the majority of normal observations.  The score is
-    maximised when the variance is large, and thus ``_maximize`` is set
-    to ``True``.
-    """
-
-    # A very large perfect score so that any finite variance is far from it.
-    _perfect_score = 1e30
-    # We want to maximise the variance: larger variance means more
-    # separation between normal and anomalous points.
-    _maximize = True
-
-    def score(self, actual, predicted, sample_weight=None, labels=None, X=None, **kwargs):  # noqa: D401
-        """Return the variance of the predicted TabPFN outlier scores.
-
-        Explanation:
-         The variance of the anomaly scores.  A higher value indicates a
-         broader distribution of scores, which is assumed to reflect better
-         anomaly detection performance【738151902875968†L14-L26】.
-        """
-        scores = np.asarray(predicted).reshape(-1)
-        return float(np.var(scores))
-
-
-class TabPFNOutlierScoreModel(CustomUnsupervisedModel):
-    # Use OrigPreTransformer which only passes through numeric columns
-    # This avoids the 2-layer gene dependency issue
-    _included_pretransformers = ['OrigFreqPreTransformer']
-    _included_transformers = ["TabPFNOutlierScoreTransformer"]
-    _included_scorers = ['TabPFNVarianceScorer']
 
 
 def _log_mean_exp(log_values: np.ndarray, axis: int = 0) -> np.ndarray:
@@ -957,6 +902,15 @@ def _efficient_random_permutation(
             seen.add(perm)
         n_iter += 1
 
+    if len(perms) < n_permutations:
+        import math
+        n_possible = math.factorial(len(indices))
+        logging.getLogger(__name__).warning(
+            f"Requested {n_permutations} unique permutations of {len(indices)} features, "
+            f"but only {len(perms)} could be generated ({n_possible} possible). "
+            f"Outlier score estimates may have higher variance."
+        )
+
     return perms
 
 
@@ -975,14 +929,14 @@ def _efficient_random_permutation_(
     Returns:
         A tuple representing a random permutation of the input indices
     """
-    random.seed(seed)
+    rng = random.Random(seed)
     # Create a copy of the list to avoid modifying the original
     permutation = list(indices)
 
     # Shuffle the list in-place using Fisher-Yates algorithm
     for i in range(len(indices) - 1, 0, -1):
         # Pick a random index from 0 to i
-        j = random.randint(0, i)
+        j = rng.randint(0, i)
         # Swap elements at i and j
         permutation[i], permutation[j] = permutation[j], permutation[i]
 
@@ -1010,13 +964,15 @@ def _to_numeric_fast(x: np.ndarray) -> np.ndarray:
         return result
 
 
-def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder) -> np.ndarray:
+def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder,
+                numeric_col_mask: Optional[np.ndarray] = None) -> np.ndarray:
     assert len(x.shape) == 2
 
     if x.shape[0] == 0:
         return x.to_numpy().astype(np.float32)
 
-    numeric_col_mask = _numeric_column_mask(x)
+    if numeric_col_mask is None:
+        numeric_col_mask = _numeric_column_mask(x)
     if np.all(numeric_col_mask):
         return x.to_numpy().astype(np.float32)
 
@@ -1049,6 +1005,16 @@ def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder) -> np.ndarray:
 def _numeric_column_mask(x: dt.Frame) -> np.ndarray:
     mask = np.zeros(x.shape[1], dtype=bool)
 
+    # Pre-compute shared sample indices once for all string columns
+    sample_size = min(10000, x.nrows)
+    if sample_size < x.nrows:
+        rng = np.random.RandomState(42)
+        shared_indices = rng.choice(x.nrows, size=sample_size, replace=False)
+        shared_indices.sort()
+        shared_indices = shared_indices.tolist()
+    else:
+        shared_indices = None
+
     for i in range(x.shape[1]):
         col_type = x[:, i].type
 
@@ -1056,13 +1022,21 @@ def _numeric_column_mask(x: dt.Frame) -> np.ndarray:
                        dt.Type.float32, dt.Type.float64, dt.Type.bool8):
             mask[i] = True
         else:
-            # For string columns, check first 100 rows if they're numeric-like
-            # This handles "123" stored as string without full column scan
-            sample_size = min(100, x.nrows)
-            sample = x[:sample_size, i].to_numpy()
+            # For string columns, sample rows to check if they're numeric-like.
+            # Use random sampling to avoid positional bias (e.g., first rows are IDs).
+            if shared_indices is not None:
+                sample = x[shared_indices, i].to_numpy()
+            else:
+                sample = x[:, i].to_numpy()
             try:
-                sample.astype(np.float32)
-                mask[i] = True
+                # Filter out None/NaN so numeric columns with missing values
+                # are not incorrectly classified as non-numeric.
+                sample_clean = sample[sample != None]  # noqa: E711
+                if len(sample_clean) > 0:
+                    sample_clean.astype(np.float32)
+                    mask[i] = True
+                else:
+                    mask[i] = False
             except (ValueError, TypeError):
                 mask[i] = False
 
@@ -1071,3 +1045,23 @@ def _numeric_column_mask(x: dt.Frame) -> np.ndarray:
 
 def _get_cache_dir() -> pathlib.Path:
     return pathlib.Path(systemutils.temporary_files_abspath) / "tabpfn_cache"
+
+
+def _verify_checkpoint(path: pathlib.Path, expected_sha256: Optional[str]) -> None:
+    """Verify SHA-256 checksum of a downloaded checkpoint file.
+
+    Skipped when expected_sha256 is None (hashes not yet populated).
+    Raises RuntimeError on mismatch; caller is responsible for cleanup.
+    """
+    if expected_sha256 is None:
+        return
+    import hashlib
+    sha256 = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            sha256.update(chunk)
+    if sha256.hexdigest() != expected_sha256:
+        raise RuntimeError(
+            f"Checksum mismatch for {path.name}: "
+            f"expected {expected_sha256}, got {sha256.hexdigest()}."
+        )
