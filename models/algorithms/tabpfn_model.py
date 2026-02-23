@@ -42,6 +42,8 @@ TABPFN_CLASSIFIER_CKPT_URL = (
 TABPFN_REGRESSOR_CKPT_URL = (
     "https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/pretrained/tabpfn/tabpfn-v2-regressor.ckpt"
 )
+TABPFN_CLASSIFIER_CKPT_SHA256 = "cf8c519c01eaf1613ee91239006d57b1c806ff5f23ac1aeb1315ba1015210e49"
+TABPFN_REGRESSOR_CKPT_SHA256 = "2ab5a07d5c41dfe6db9aa7ae106fc6de898326c2765be66505a07e2868c10736"
 
 
 class InferenceFunction(Protocol):
@@ -68,6 +70,7 @@ class MarginalImputer:
         self.data_repeat = data
         self.samples = len(data)
         self.num_groups = data.shape[1]
+        self._alloc_n = 1  # tracks how many repeats are currently allocated
 
     def __call__(self, x: np.ndarray, mask: np.ndarray) -> np.ndarray:
         # Prepare x and S.
@@ -76,13 +79,17 @@ class MarginalImputer:
         x = x.repeat(self.samples, 0)
         mask = mask.repeat(self.samples, 0)
 
-        # Prepare samples.
-        if len(self.data_repeat) != self.samples * n:
+        # Prepare samples. Only re-allocate when batch size grows beyond
+        # previous allocation; reuse (slice) the buffer for smaller batches.
+        if n > self._alloc_n:
             self.data_repeat = np.tile(self.data, (n, 1))
+            self._alloc_n = n
+        needed = self.samples * n
+        data_repeat = self.data_repeat[:needed]
 
         # Replace specified indices.
         x_ = x.copy()
-        x_[~mask] = self.data_repeat[~mask]
+        x_[~mask] = data_repeat[~mask]
 
         # Make predictions.
         pred = self.model_callable(x_)
@@ -178,13 +185,15 @@ class PermutationEstimator:
         else:
             mean_samples = np.zeros((size, num_features), dtype=np.float32)
 
-        for it in range(n_loops):
-            batches = []
-            for idx in range(int(np.ceil(size / batch_size))):
-                stop = min((idx + 1) * batch_size, size)
-                indices = np.arange(idx * batch_size, stop)
-                batches.append((x[indices], indices))
+        batches = []
+        for idx in range(int(np.ceil(size / batch_size))):
+            stop = min((idx + 1) * batch_size, size)
+            indices = np.arange(idx * batch_size, stop)
+            batches.append((x[indices], indices))
 
+        wall_start = time.perf_counter()
+        completed_loops = 0
+        for it in range(n_loops):
             early_st = time.perf_counter()
             for idx, _batch in enumerate(batches):
                 st = time.perf_counter()
@@ -205,12 +214,13 @@ class PermutationEstimator:
                 )
                 mean_samples[indices] += scores
 
+            completed_loops += 1
             systemutils.loggerinfo(
                 logger,
                 f"Process batch for Shapley samples at {it + 1}/{n_loops} iteration took {(time.perf_counter() - early_st):.6f} seconds"
             )
 
-        return (mean_samples / n_loops).astype(np.float32)
+        return (mean_samples / completed_loops).astype(np.float32)
 
     def _process_global_explanation(
         self,
@@ -226,12 +236,14 @@ class PermutationEstimator:
         size, _ = x.shape
         num_features = self.imputer.num_groups
         n_loops = int(np.ceil(n_permutations / (batch_size * self.n_jobs)))
+        min_iterations = 2  # require at least 2 iterations to avoid premature convergence on degenerate data
         total_samples = np.zeros(num_features, dtype=np.int32)
-        mean_samples = np.zeros(num_features, dtype=np.float32)
-        M2 = np.zeros(num_features, dtype=np.float32)
-        std = np.zeros(num_features, dtype=np.float32)
+        mean_samples = np.zeros(num_features, dtype=np.float64)
+        M2 = np.zeros(num_features, dtype=np.float64)
+        std = np.zeros(num_features, dtype=np.float64)
 
         rng = np.random.RandomState(self.random_state)
+        wall_start = time.perf_counter()
         for it in range(n_loops):
             batches = []
             for _ in range(self.n_jobs):
@@ -289,9 +301,10 @@ class PermutationEstimator:
             gap = float(max(mean_samples.max() - mean_samples.min(), 1e-12))
             ratio = 1 - std_max / (std_max + gap)
 
-            # Check for convergence.
+            # Check for convergence (require minimum iterations to avoid
+            # premature exit when std=0 on degenerate data).
             systemutils.loggerinfo(logger, f"Converge ratio is {ratio}, expect {thresh}")
-            if ratio >= thresh:
+            if it >= min_iterations - 1 and ratio >= thresh:
                 break
 
         return mean_samples, std
@@ -351,7 +364,13 @@ class PermutationEstimator:
             y_hat = self.imputer(x, mask)
             score = self.utility_fn(y_hat, y, self.labels)
 
-            # Calculate delta sample.
+            # Calculate marginal contribution of adding feature `index`.
+            # Sign convention: (prev_score - score) where score includes the
+            # newly added feature. For PredictionUtility (local explanations),
+            # utility = -1 * prediction, so:
+            #   prev - curr = (-1*pred_before) - (-1*pred_after) = pred_after - pred_before
+            # Positive delta means the feature increases the prediction.
+            # This is consistent with standard Shapley attribution direction.
             if consider_class_idx:
                 scores[batch_range, :, index] = prev_score - score
             else:
@@ -395,8 +414,7 @@ class TabPFNManyClassifier(BaseEstimator, ClassifierMixin):
         self.estimators_: Sequence[Any] = []
         self.n_features_in_: Optional[int] = None
         self.feature_names_in_: Sequence[str] = []
-        self.x_train_: Optional[np.ndarray] = None
-        self.y_train_per_estimator_: Optional[np.ndarray] = None
+        self.mapping_fitted_: bool = False
         self.code_book_: Optional[np.ndarray] = None
 
     def fit(self, X: np.ndarray, y: np.ndarray, **fit_params) -> "TabPFNManyClassifier":
@@ -456,16 +474,16 @@ class TabPFNManyClassifier(BaseEstimator, ClassifierMixin):
                 n_classes, n_est, self.alphabet_size_, random_state_instance
             )
             classes_index_ = {c: i for i, c in enumerate(self.classes_)}
-            self.x_train_ = x  # Store validated x
             y_indices = np.array([classes_index_[val] for val in y])
-            self.y_train_per_estimator_ = self.code_book_[:, y_indices]
+            y_per_estimator = self.code_book_[:, y_indices]
 
             # Pre-fit all sub-estimators to make prediction faster
             self.estimators_ = []
             for i in range(self.code_book_.shape[0]):
                 est = clone(self.estimator)
-                est.fit(x, self.y_train_per_estimator_[i, :], **fit_params)
+                est.fit(x, y_per_estimator[i, :], **fit_params)
                 self.estimators_.append(est)
+            self.mapping_fitted_ = True
 
         return self
 
@@ -511,11 +529,7 @@ class TabPFNManyClassifier(BaseEstimator, ClassifierMixin):
                 raise RuntimeError("Estimator not fitted. Call fit first.")
             return self.estimators_[0].predict_proba(x)
 
-        if (
-                self.x_train_ is None
-                or self.y_train_per_estimator_ is None
-                or self.code_book_ is None
-        ):
+        if not self.mapping_fitted_ or self.code_book_ is None:
             raise RuntimeError(
                 "Fit method did not properly initialize for mapping. Call fit first."
             )
@@ -579,14 +593,20 @@ class TabPFNManyClassifier(BaseEstimator, ClassifierMixin):
         See the original scikit-learn documentation:
         https://scikit-learn.org/stable/modules/generated/sklearn.utils.validation.validate_data.html#sklearn.utils.validation.validate_data
         """
-        return estimator._validate_data(
-            X=X if X is not None else "no_validation",
-            y=y if y is not None else "no_validation",
-            reset=reset,
+        x_val = X if X is not None else "no_validation"
+        y_val = y if y is not None else "no_validation"
+        val_kwargs = dict(
+            X=x_val, y=y_val, reset=reset,
             validate_separately=validate_separately,
-            force_all_finite=force_all_finite,
-            **kwargs
+            force_all_finite=force_all_finite, **kwargs,
         )
+        try:
+            # sklearn >= 1.6: standalone function
+            from sklearn.utils.validation import validate_data as _sklearn_validate_data
+            return _sklearn_validate_data(estimator, **val_kwargs)
+        except ImportError:
+            # sklearn < 1.6: deprecated instance method
+            return estimator._validate_data(**val_kwargs)
 
     @staticmethod
     def _generate_codebook(
@@ -723,18 +743,23 @@ class TabPFNModel(CustomModel):
     _is_reproducible = True
     _fit_by_iteration = True
     _fit_iteration_name = "n_estimators"
-    _modules_needed_by_name = ["tabpfn==6.2.0"]
+    _modules_needed_by_name = ["tabpfn==6.4.1"]
     _can_use_gpu = True
     _can_use_multi_gpu = False
     _get_gpu_lock = True
     _get_gpu_lock_vis = True
     _must_use_gpu = True
+    _can_handle_non_numeric = True  # allow CatOriginalTransformer to pass raw categoricals
+    _included_transformers = ["OriginalTransformer", "CatOriginalTransformer"]  # raw features only
+    _is_reference = True        # reserved GA slot; final_model.py forces TabPFN into base-model list on top of ensemble_level
+    _num_allowed_reference = 1  # exactly 1 TabPFN slot in the GA — competes only with itself (hyperparameter search)
+    _ensemble_weight_floor = 0.0  # never pruned from stacked ensemble regardless of meta-learner weight
 
     MAX_CLASSES = 10
     TRAIN_SIZE_LIMITS = 10000
     TRAIN_SIZE_OVERLOAD_RATE = 2
-    MAX_FEATURES = 60 # very sensitive to SAGE/Shapley O(#features * #batch * #permutations * O(fit/predict)), reduce the value if too slow
-    MAX_GLOBAL_EXPLANATION_PERMUTATIONS = 1024
+    MAX_FEATURES = 500  # TabPFN V2 supports up to 500 natively; raw features (via _included_transformers) rarely exceed this
+    MAX_GLOBAL_EXPLANATION_PERMUTATIONS = 256  # reduced from 1024 to control SAGE cost with higher feature counts
     MAX_LOCAL_EXPLANATION_PERMUTATIONS = 32 # very sensitive to running complexity, pick small to be conservative
     FAST_LOCAL_EXPLANATION_PERMUTATIONS = 10
     MAX_CONTEXT_SIZE = 64 # very sensitive to GPU memory when enabled, should be chosen close to batch size
@@ -752,8 +777,8 @@ class TabPFNModel(CustomModel):
         **kwargs
     ):
         return (
-            accuracy > 8
-            and interpretability < 2
+            accuracy > 5
+            and interpretability < 5
             and train_shape[0] < int(TabPFNModel.TRAIN_SIZE_OVERLOAD_RATE * TabPFNModel.TRAIN_SIZE_LIMITS)
             and train_shape[1] <= TabPFNModel.MAX_FEATURES
             and n_gpus > 0
@@ -801,6 +826,8 @@ class TabPFNModel(CustomModel):
                 average_before_softmax=False,
                 tune_boundary_threshold=False,
                 calibrate_softmax_temperature=False,
+                finetune_epochs=10,
+                finetune_learning_rate=1e-4,
             )
         elif accuracy > 8:
             self.params = dict(
@@ -811,6 +838,8 @@ class TabPFNModel(CustomModel):
                 average_before_softmax=True,
                 tune_boundary_threshold=False,
                 calibrate_softmax_temperature=False,
+                finetune_epochs=30,
+                finetune_learning_rate=1e-5,
             )
         else:
             self.params = dict(
@@ -821,6 +850,8 @@ class TabPFNModel(CustomModel):
                 average_before_softmax=True,
                 tune_boundary_threshold=True,
                 calibrate_softmax_temperature=True,
+                finetune_epochs=20,
+                finetune_learning_rate=5e-5,
             )
 
     def mutate_params(self, accuracy=10, time_tolerance=10, interpretability=1, score_f_name: str = None, trial=None, **kwargs):
@@ -832,6 +863,8 @@ class TabPFNModel(CustomModel):
         if accuracy > 8:
             n_estimator_list = [10, 12, 14]
             n_estimator_redundancy_list = [5, 6, 7]
+            finetune_epochs_list = [25, 30, 40]
+            finetune_lr_list = [5e-6, 1e-5, 2e-5]
             self.params["balance_probabilities"] = True
             self.params["average_before_softmax"] = True
             self.params["tune_boundary_threshold"] = True
@@ -841,6 +874,8 @@ class TabPFNModel(CustomModel):
         elif accuracy > 4:
             n_estimator_list = [8, 10, 12]
             n_estimator_redundancy_list = [4, 5, 6]
+            finetune_epochs_list = [15, 20, 25]
+            finetune_lr_list = [2e-5, 5e-5, 1e-4]
             self.params["balance_probabilities"] = True
             self.params["average_before_softmax"] = True
             max_softmax_temperature = 0.8
@@ -848,12 +883,17 @@ class TabPFNModel(CustomModel):
         else:
             n_estimator_list = [6, 8, 10]
             n_estimator_redundancy_list = [3, 4, 5]
+            finetune_epochs_list = [5, 10, 15]
+            finetune_lr_list = [5e-5, 1e-4, 2e-4]
             max_softmax_temperature = 1.0
             min_softmax_temperature = 0.8
 
-        self.params["n_estimators"] = int(random.choice(n_estimator_list))
-        self.params["n_estimators_redundancy"] = random.choice(n_estimator_redundancy_list)
-        self.params["softmax_temperature"] = random.choice(np.linspace(min_softmax_temperature, max_softmax_temperature))
+        rng = random.Random(self.random_state)
+        self.params["n_estimators"] = int(rng.choice(n_estimator_list))
+        self.params["n_estimators_redundancy"] = rng.choice(n_estimator_redundancy_list)
+        self.params["softmax_temperature"] = rng.choice(np.linspace(min_softmax_temperature, max_softmax_temperature).tolist())
+        self.params["finetune_epochs"] = int(rng.choice(finetune_epochs_list))
+        self.params["finetune_learning_rate"] = rng.choice(finetune_lr_list)
 
     def fit(
         self, X: dt.Frame,
@@ -872,6 +912,10 @@ class TabPFNModel(CustomModel):
                 username=self.context.username,
             )
 
+        # self.labels empty or None indicates regression, convention in DAI.
+        # Invalidate cached encoded labels in case labels changed between fits.
+        if hasattr(self, '_cached_enc_labels'):
+            del self._cached_enc_labels
         enc_labels = self._encode_labels()
         self._prepare_env(self.random_state)
 
@@ -881,9 +925,14 @@ class TabPFNModel(CustomModel):
             encoded_missing_value=-2,
         )
 
-        y = self._prepare_y(y, self.is_classification)
-        x_numpy, sample_indices = self._prepare_x(x=X, encoder=ord_encoder_, y=y)
-        x_fit = x_numpy[sample_indices]
+        y, y_label_encoder_ = self._prepare_y(y, self.is_classification)
+        # Compute numeric column mask once during fit and reuse for eval_set + predict
+        numeric_col_mask_ = _numeric_column_mask(X)
+        # Pre-fit encoder on the FULL frame so it sees all categories,
+        # even those in rows that _prepare_x will discard via subsampling.
+        _fit_encoder(X, ord_encoder_, numeric_col_mask_)
+        x_fit, sample_indices = self._prepare_x(x=X, encoder=ord_encoder_, y=y, logger=logger,
+                                                numeric_col_mask=numeric_col_mask_)
         device = self._get_device()
         n_jobs = self._get_n_jobs(logger, **kwargs)
         model = self._get_tabpfn_model(n_jobs=n_jobs, device=device, enc_labels=enc_labels, logger=logger)
@@ -898,11 +947,13 @@ class TabPFNModel(CustomModel):
         x_bg = _kmeans_snap_coreset(X=x_fit, k=min(self.MAX_CONTEXT_SIZE, len(x_fit)), random_state=self.random_state)
 
         feat_imp: Optional[np.ndarray] = None
-        if eval_set is not None:
+        if eval_set is not None and len(eval_set) > 0 and x_fit.shape[1] <= 100:
             _claim_memory()
             x_eval, y_eval = eval_set[0]
-            y_val = self._prepare_y(y_eval, self.is_classification)
-            x_val, _ = self._prepare_x(x=x_eval, encoder=ord_encoder_, y=y_val)
+            y_val, _ = self._prepare_y(y_eval, self.is_classification, label_encoder=y_label_encoder_)
+            x_val, eval_sample_indices = self._prepare_x(x=x_eval, encoder=ord_encoder_, y=y_val, logger=logger,
+                                                          numeric_col_mask=numeric_col_mask_)
+            y_val = y_val[eval_sample_indices]
             if self.is_classification:
                 utility_fn = _get_classification_utility()
             else:
@@ -930,15 +981,22 @@ class TabPFNModel(CustomModel):
                 logger=logger,
             )
             systemutils.loggerinfo(logger, f"Finished SAGE simulation game takes {(time.perf_counter() - st):.6f} seconds")
+        elif eval_set is not None and len(eval_set) > 0:
+            # Skip SAGE for high-dimensional inputs (> 100 features) — use uniform importance
+            feat_imp = np.ones(x_fit.shape[1], dtype=np.float32) / x_fit.shape[1]
+            systemutils.loggerinfo(logger,
+                f"[{self.__class__.__name__}] Skipping SAGE for {x_fit.shape[1]} features (> 100). "
+                f"Using uniform importance.")
         else:
             systemutils.loggerwarning(logger, f"[{self.__class__.__name__}] [fit] Skip computing features global importance")
 
         _claim_memory(force=True)
-        self.set_model_properties(model=(model, ord_encoder_, x_bg), features=X.names, importances=feat_imp)
+        self.set_model_properties(model=(model, ord_encoder_, x_bg, numeric_col_mask_), features=X.names, importances=feat_imp)
         return None
 
     def predict(self, X, **kwargs):
         pred_contribs = kwargs.get('pred_contribs', False)
+        output_margin = kwargs.get('output_margin', False)
         fast_approx = kwargs.pop('fast_approx', False)
 
         logger = None
@@ -951,75 +1009,129 @@ class TabPFNModel(CustomModel):
             )
 
         model, _, _, _ = self.get_model_properties()
-        fitted_model, ord_encoder, x_bg = model
+        # Backward compat: older pickled models store 3-tuple, newer store 4-tuple
+        if len(model) == 4:
+            fitted_model, ord_encoder, x_bg, numeric_col_mask = model
+        else:
+            fitted_model, ord_encoder, x_bg = model
+            numeric_col_mask = None
 
         self._prepare_env(self.random_state)
-        x_predict, _ = self._prepare_x(x=X, encoder=ord_encoder)
-
-        st = time.perf_counter()
-        if self.is_classification:
-            predictions = fitted_model.predict_proba(x_predict)
-            if predictions.shape[1] == 2:
-                predictions = predictions[:, 1]
-        else:
-            predictions = np.asarray(fitted_model.predict(x_predict), dtype=np.float32)
-        systemutils.loggerinfo(
-            logger,
-            f"[{self.__class__.__name__}] [predict] TabPFN Model prediction takes {(time.perf_counter() - st):.6f} seconds",
-        )
+        x_predict, _ = self._prepare_x(x=X, encoder=ord_encoder, logger=logger,
+                                        numeric_col_mask=numeric_col_mask)
 
         if not pred_contribs:
-            return predictions
-        else:
-            _claim_memory()
-            imputer = MarginalImputer(
-                model_callable=self._get_model_inference(fitted_model, logits=True),
-                data=x_bg,
-            )
-            estimator = PermutationEstimator(
-                imputer=imputer,
-                utility_fn=_get_prediction_utility(),
-                n_jobs=self._get_n_jobs(logger, **kwargs),
-                random_state=self.random_state,
-                num_classes=self.n_classes,
-                labels=self._encode_labels(),
-            )
-
-            systemutils.loggerinfo(logger, f"Start {'Fast' if fast_approx else ''} Shapley computation...")
             st = time.perf_counter()
-            phi = estimator(
-                X=x_predict,
-                batch_size=self.BATCH_SIZE,
-                n_permutations=self.FAST_LOCAL_EXPLANATION_PERMUTATIONS if fast_approx else self.MAX_LOCAL_EXPLANATION_PERMUTATIONS,
-                logger=logger,
+            if output_margin and self.is_classification:
+                # Return logits in the same space that pred_contribs uses.
+                # The Shapley path computes phi via _get_model_inference(logits=True)
+                # and sets bias = logit(x) - sum(phi).  For the efficiency property
+                # sum(contribs) == output_margin, this path must return the same
+                # logit(x) value, cast to float32 to match pred_shap's dtype.
+                logit_fn = self._get_model_inference(fitted_model, logits=True)
+                predictions = np.asarray(logit_fn(x_predict), dtype=np.float32)
+                if predictions.ndim == 2 and predictions.shape[1] == 2:
+                    predictions = predictions[:, 1]
+            elif self.is_classification:
+                predictions = fitted_model.predict_proba(x_predict)
+                if predictions.shape[1] == 2:
+                    predictions = predictions[:, 1]
+            else:
+                predictions = np.asarray(fitted_model.predict(x_predict), dtype=np.float32)
+            systemutils.loggerinfo(
+                logger,
+                f"[{self.__class__.__name__}] [predict] TabPFN Model prediction takes {(time.perf_counter() - st):.6f} seconds",
             )
-            systemutils.loggerinfo(logger, f"Finished {'Fast' if fast_approx else ''} Shapley computation takes {(time.perf_counter() - st):.6f} seconds")
-            _claim_memory(force=True)
+            return predictions
 
-            bias = predictions - phi.sum(axis=-1)
-            bias = np.expand_dims(bias, axis=-1)
-            pred_shap = np.concatenate((phi, bias), axis=-1).astype(np.float32)
-            if pred_shap.ndim == 3:
-                pred_shap = pred_shap.reshape(pred_shap.shape[0], -1)
-            return pred_shap
+        # --- pred_contribs path ---
+        _claim_memory()
+        imputer = MarginalImputer(
+            model_callable=self._get_model_inference(fitted_model, logits=True),
+            data=x_bg,
+        )
+        estimator = PermutationEstimator(
+            imputer=imputer,
+            utility_fn=_get_prediction_utility(),
+            n_jobs=self._get_n_jobs(logger, **kwargs),
+            random_state=self.random_state,
+            num_classes=self.n_classes,
+            labels=self._encode_labels(),
+        )
 
-    def _prepare_x(self, x: dt.Frame, encoder: OrdinalEncoder, y: Optional[np.ndarray] = None) -> Tuple[np.ndarray, np.ndarray]:
+        systemutils.loggerinfo(logger, f"Start {'Fast' if fast_approx else ''} Shapley computation...")
+        st = time.perf_counter()
+        phi = estimator(
+            X=x_predict,
+            batch_size=self.BATCH_SIZE,
+            n_permutations=self.FAST_LOCAL_EXPLANATION_PERMUTATIONS if fast_approx else self.MAX_LOCAL_EXPLANATION_PERMUTATIONS,
+            logger=logger,
+        )
+        systemutils.loggerinfo(logger, f"Finished {'Fast' if fast_approx else ''} Shapley computation takes {(time.perf_counter() - st):.6f} seconds")
+        _claim_memory(force=True)
+
+        # Compute bias in the same logit space that produced phi.
+        # The Shapley imputer uses ModelInferenceCallable(logits=True), which
+        # calls predict_logits (native raw logits) for TabPFNClassifier, or
+        # _proba_to_logits (manual conversion) for TabPFNManyClassifier.
+        # We must use the same path here so bias = f(x) - sum(phi) holds.
+        if self.is_classification:
+            logit_fn = self._get_model_inference(fitted_model, logits=True)
+            if self.is_many_classification:
+                systemutils.loggerwarning(
+                    logger,
+                    f"[{self.__class__.__name__}] Shapley bias uses probability-to-logit "
+                    f"conversion for ManyClassifier (>10 classes). "
+                    f"Minor numerical approximation may occur.",
+                )
+            predictions_logit = logit_fn(x_predict)
+            # MarginalImputer extracts [:, 1] for binary — match that here
+            if predictions_logit.ndim == 2 and predictions_logit.shape[1] == 2:
+                predictions_logit = predictions_logit[:, 1]
+        else:
+            predictions_logit = np.asarray(fitted_model.predict(x_predict), dtype=np.float32)
+        bias = predictions_logit - phi.sum(axis=-1)
+        bias = np.expand_dims(bias, axis=-1)
+        pred_shap = np.concatenate((phi, bias), axis=-1).astype(np.float32)
+        if pred_shap.ndim == 3:
+            pred_shap = pred_shap.reshape(pred_shap.shape[0], -1)
+        return pred_shap
+
+    def _prepare_x(self, x: dt.Frame, encoder: OrdinalEncoder, y: Optional[np.ndarray] = None,
+                   logger: Optional[logging.Logger] = None,
+                   numeric_col_mask: Optional[np.ndarray] = None) -> Tuple[np.ndarray, np.ndarray]:
         sample_indices = np.arange(x.shape[0])
         n = x.shape[0]
 
-        if n > self.TRAIN_SIZE_LIMITS:
-            if y is not None and self.is_classification:
-                sample_indices, _ = train_test_split(
-                    np.arange(n),
-                    train_size=self.TRAIN_SIZE_LIMITS,
-                    stratify=y,
-                    random_state=self.random_state,
+        if y is not None and n > self.TRAIN_SIZE_LIMITS:
+            discard_pct = 100.0 * (1.0 - self.TRAIN_SIZE_LIMITS / n)
+            if discard_pct >= 50.0:
+                systemutils.loggerwarning(
+                    logger,
+                    f"[{self.__class__.__name__}] Downsampling from {n} to {self.TRAIN_SIZE_LIMITS} rows "
+                    f"({discard_pct:.1f}% of data discarded)."
                 )
+            if self.is_classification:
+                try:
+                    sample_indices, _ = train_test_split(
+                        np.arange(n),
+                        train_size=self.TRAIN_SIZE_LIMITS,
+                        stratify=y,
+                        random_state=self.random_state,
+                    )
+                except ValueError:
+                    # Stratified split fails when a class has < 2 samples;
+                    # fall back to uniform random sampling.
+                    rng = np.random.RandomState(self.random_state)
+                    sample_indices = rng.choice(n, size=self.TRAIN_SIZE_LIMITS, replace=False)
             else:
                 rng = np.random.RandomState(self.random_state)
                 sample_indices = rng.choice(n, size=self.TRAIN_SIZE_LIMITS, replace=False)
+            # Subsample the frame before numeric conversion to avoid
+            # OrdinalEncoder processing rows that will be discarded.
+            x = x[sample_indices.tolist(), :]
 
-        x_numpy = _to_numeric(x, encoder)
+        x_numpy = _to_numeric(x, encoder, numeric_col_mask=numeric_col_mask)
         return np.asarray(x_numpy, dtype=np.float32), sample_indices
 
     def _get_tabpfn_model(self, n_jobs: int, device: str, enc_labels: Optional[Sequence[int]], logger: Optional[logging.Logger] = None):
@@ -1030,14 +1142,17 @@ class TabPFNModel(CustomModel):
         tune_boundary_threshold = self.params.get("tune_boundary_threshold", False)
         calibrate_softmax_temperature = self.params.get("calibrate_softmax_temperature", False)
         n_estimators_redundancy = self.params.get("n_estimators_redundancy", 4)
+        finetune_epochs = self.params.get("finetune_epochs", 30)
+        finetune_learning_rate = self.params.get("finetune_learning_rate", 1e-5)
 
         systemutils.loggerinfo(
             logger,
             f"parameters: n_estimators = {n_estimators}, softmax_temperature = {softmax_temperature}, balance_probabilities = {balance_probabilities},"
             f" average_before_softmax = {average_before_softmax}, tune_boundary_threshold = {tune_boundary_threshold},"
-            f" calibrate_softmax_temperature = {calibrate_softmax_temperature}, n_estimators_redundancy = {n_estimators_redundancy}"
+            f" calibrate_softmax_temperature = {calibrate_softmax_temperature}, n_estimators_redundancy = {n_estimators_redundancy},"
+            f" finetune_epochs = {finetune_epochs}, finetune_learning_rate = {finetune_learning_rate}"
         )
-        tabpfn_classifier, tabpfn_regressor = self._build_tabpfn_models(
+        tabpfn_model = self._build_tabpfn_model(
             seed=self.random_state,
             n_jobs=n_jobs,
             n_estimators=n_estimators,
@@ -1047,29 +1162,33 @@ class TabPFNModel(CustomModel):
             average_before_softmax=average_before_softmax,
             tune_boundary_threshold=tune_boundary_threshold,
             calibrate_softmax_temperature=calibrate_softmax_temperature,
+            finetune_epochs=finetune_epochs,
+            finetune_learning_rate=finetune_learning_rate,
             logger=logger,
+            build_classifier=self.is_classification or self.is_many_classification,
+            build_regressor=not self.is_classification and not self.is_many_classification,
         )
 
         if self.is_many_classification:
             return TabPFNManyClassifier(
-                estimator=tabpfn_classifier,
+                estimator=tabpfn_model,
                 n_estimators=n_estimators,
                 n_estimators_redundancy=n_estimators_redundancy,
                 random_state=self.random_state,
                 labels=[] if enc_labels is None else enc_labels,
                 logger=logger,
             )
-        elif self.is_classification:
-            return tabpfn_classifier
-        else:
-            return tabpfn_regressor
+        return tabpfn_model
 
     def _encode_labels(self) -> Optional[Sequence[int]]:
-        if self.is_classification:
-            assert self.labels is not None
-            enc_labels = LabelEncoder().fit_transform(self.labels)
-            return np.sort(np.unique(enc_labels))
-        return self.labels
+        if not hasattr(self, '_cached_enc_labels'):
+            if self.is_classification:
+                assert self.labels is not None
+                enc_labels = LabelEncoder().fit_transform(self.labels)
+                self._cached_enc_labels = np.sort(np.unique(enc_labels))
+            else:
+                self._cached_enc_labels = self.labels
+        return self._cached_enc_labels
 
     def _get_model_inference(self, model, logits: bool = False) -> InferenceFunction:
         return ModelInferenceCallable(
@@ -1079,7 +1198,7 @@ class TabPFNModel(CustomModel):
         )
 
     @staticmethod
-    def _build_tabpfn_models(
+    def _build_tabpfn_model(
         seed: int,
         n_jobs: int,
         n_estimators: int,
@@ -1089,48 +1208,74 @@ class TabPFNModel(CustomModel):
         average_before_softmax: bool = False,
         tune_boundary_threshold: bool = False,
         calibrate_softmax_temperature: bool = False,
+        finetune_epochs: int = 30,
+        finetune_learning_rate: float = 1e-5,
         logger: Optional[logging.Logger] = None,
+        build_classifier: bool = True,
+        build_regressor: bool = True,
     ):
         """
-        Instantiate TabPFNClassifier/Regressor in a way compatible with your environment.
-        You may need to adjust constructor args to point to ckpt paths depending on TabPFN version.
+        Instantiate FinetunedTabPFNClassifier/Regressor that fine-tunes V2 weights
+        on the downstream dataset during fit().
         """
-        from tabpfn import TabPFNClassifier, TabPFNRegressor
-        from tabpfn.constants import ModelVersion
+        from tabpfn.finetuning import FinetunedTabPFNClassifier, FinetunedTabPFNRegressor
 
-        clf_ckpt, reg_ckpt = TabPFNModel._ensure_weights_cached()
-
-        systemutils.loggerinfo(logger, f"Instantiating TabPFN Classifier and Regressor. {clf_ckpt} and {reg_ckpt}")
-        tabpfn_clf = TabPFNClassifier.create_default_for_version(
-            ModelVersion.V2,
-            device=device,
-            model_path=clf_ckpt,
-            random_state=seed,
-            n_preprocessing_jobs=n_jobs,
-            n_estimators=n_estimators,
-            softmax_temperature=softmax_temperature,
-            balance_probabilities=balance_probabilities,
-            average_before_softmax=average_before_softmax,
-            tuning_config={"tune_decision_thresholds": tune_boundary_threshold,
-                           "calibrate_temperature": calibrate_softmax_temperature},
-        )
-        tabpfn_reg = TabPFNRegressor.create_default_for_version(
-            ModelVersion.V2,
-            device=device,
-            model_path=reg_ckpt,
-            random_state=seed,
-            n_preprocessing_jobs=n_jobs,
-            n_estimators=n_estimators,
-            average_before_softmax=average_before_softmax,
+        clf_ckpt, reg_ckpt = TabPFNModel._ensure_weights_cached(
+            build_classifier=build_classifier, build_regressor=build_regressor,
         )
 
-        return tabpfn_clf, tabpfn_reg
+        if build_classifier:
+            systemutils.loggerinfo(
+                logger,
+                f"Instantiating Finetuned TabPFN Classifier. ckpt={clf_ckpt}, "
+                f"epochs={finetune_epochs}, lr={finetune_learning_rate}",
+            )
+            return FinetunedTabPFNClassifier(
+                device=device,
+                epochs=finetune_epochs,
+                learning_rate=finetune_learning_rate,
+                random_state=seed,
+                n_estimators_final_inference=n_estimators,
+                extra_classifier_kwargs={
+                    "model_path": str(clf_ckpt),
+                    "n_preprocessing_jobs": n_jobs,
+                    "softmax_temperature": softmax_temperature,
+                    "balance_probabilities": balance_probabilities,
+                    "average_before_softmax": average_before_softmax,
+                    "tuning_config": {
+                        "tune_decision_thresholds": tune_boundary_threshold,
+                        "calibrate_temperature": calibrate_softmax_temperature,
+                    },
+                },
+            )
+
+        systemutils.loggerinfo(
+            logger,
+            f"Instantiating Finetuned TabPFN Regressor. ckpt={reg_ckpt}, "
+            f"epochs={finetune_epochs}, lr={finetune_learning_rate}",
+        )
+        return FinetunedTabPFNRegressor(
+            device=device,
+            epochs=finetune_epochs,
+            learning_rate=finetune_learning_rate,
+            random_state=seed,
+            n_estimators_final_inference=n_estimators,
+            extra_regressor_kwargs={
+                "model_path": str(reg_ckpt),
+                "n_preprocessing_jobs": n_jobs,
+                "average_before_softmax": average_before_softmax,
+            },
+        )
 
     @staticmethod
-    def _ensure_weights_cached():
-        """
-        Optional: pre-download weights into a deterministic cache location.
-        If TabPFN already handles caching, this still helps DAI environments.
+    def _ensure_weights_cached(
+        build_classifier: bool = True,
+        build_regressor: bool = True,
+    ) -> Tuple[Optional[str], Optional[str]]:
+        """Download needed checkpoints into a deterministic cache location.
+
+        Only downloads checkpoints that are actually required, avoiding ~500 MB
+        of unnecessary transfer on cold cache.
         """
         cache_dir = _get_cache_dir()
         systemutils.makedirs(cache_dir, exist_ok=True)
@@ -1138,12 +1283,28 @@ class TabPFNModel(CustomModel):
         clf_path = cache_dir / os.path.basename(TABPFN_CLASSIFIER_CKPT_URL)
         reg_path = cache_dir / os.path.basename(TABPFN_REGRESSOR_CKPT_URL)
 
-        if not clf_path.exists():
-            download(TABPFN_CLASSIFIER_CKPT_URL, dest_path=cache_dir)
-        if not reg_path.exists():
-            download(TABPFN_REGRESSOR_CKPT_URL, dest_path=cache_dir)
+        for url, final_path, expected_sha, needed in [
+            (TABPFN_CLASSIFIER_CKPT_URL, clf_path, TABPFN_CLASSIFIER_CKPT_SHA256, build_classifier),
+            (TABPFN_REGRESSOR_CKPT_URL, reg_path, TABPFN_REGRESSOR_CKPT_SHA256, build_regressor),
+        ]:
+            if not needed:
+                continue
+            if not final_path.exists():
+                # Atomic download: write to PID-stamped temp file, verify, then rename.
+                # Prevents concurrent workers from reading partially-written or corrupted files.
+                tmp_path = final_path.with_suffix(f".tmp.{os.getpid()}")
+                try:
+                    download(url, dest=str(tmp_path))
+                    _verify_checkpoint(tmp_path, expected_sha)
+                    os.replace(str(tmp_path), str(final_path))
+                except Exception:
+                    tmp_path.unlink(missing_ok=True)
+                    raise
 
-        return str(clf_path), str(reg_path)
+        return (
+            str(clf_path) if build_classifier else None,
+            str(reg_path) if build_regressor else None,
+        )
 
     @staticmethod
     def _get_device() -> str:
@@ -1155,8 +1316,9 @@ class TabPFNModel(CustomModel):
     def _prepare_env(seed: int):
         import torch
 
-        np.random.seed(seed)
-        random.seed(seed)
+        # Only set torch seeds (needed for CUDA determinism in TabPFN).
+        # Avoid setting global np.random.seed() / random.seed() to prevent
+        # polluting state for other models running in the same process.
         torch.manual_seed(seed)
 
         use_gpu = torch.cuda.is_available()
@@ -1170,28 +1332,47 @@ class TabPFNModel(CustomModel):
 
     @staticmethod
     def _get_n_jobs(logger, **kwargs) -> int:
+        max_workers = kwargs.get('max_workers', None)
+        if max_workers is None:
+            systemutils.loggerwarning(logger, "No Max Worker in kwargs. Set n_jobs to 1")
+            return 1
         try:
             if systemutils.config.fixed_num_folds <= 0:
                 n_jobs = max(1, int(
-                    systemutils.max_threads() / min(systemutils.config.num_folds, kwargs['max_workers'])))
+                    systemutils.max_threads() / min(systemutils.config.num_folds, max_workers)))
             else:
                 n_jobs = max(1, int(
                     systemutils.max_threads() / min(systemutils.config.fixed_num_folds,
-                                                    systemutils.config.num_folds, kwargs['max_workers'])))
-        except KeyError:
-            systemutils.loggerwarning(logger, "No Max Worker in kwargs. Set n_jobs to 1")
+                                                    systemutils.config.num_folds, max_workers)))
+        except (KeyError, AttributeError):
             n_jobs = 1
 
         return n_jobs
 
     @staticmethod
-    def _prepare_y(y: np.ndarray, is_classification: bool) -> np.ndarray:
-        transformed_y = y
+    def _prepare_y(
+        y: np.ndarray,
+        is_classification: bool,
+        label_encoder: Optional[LabelEncoder] = None,
+    ) -> Tuple[np.ndarray, Optional[LabelEncoder]]:
+        transformed_y = y.copy()
         if transformed_y.dtype.kind in {"U", "S", "O"} or is_classification:
-            le = LabelEncoder()
-            transformed_y = le.fit_transform(transformed_y.astype(str))
+            if label_encoder is None:
+                label_encoder = LabelEncoder()
+                transformed_y = label_encoder.fit_transform(transformed_y.astype(str))
+            else:
+                y_str = transformed_y.astype(str)
+                unseen = set(y_str) - set(label_encoder.classes_)
+                if unseen:
+                    # Eval set has classes not seen during training (rare with
+                    # stratified splitting).  Fall back to a fresh encoder so we
+                    # don't crash; SAGE values may be slightly less accurate.
+                    label_encoder = LabelEncoder()
+                    transformed_y = label_encoder.fit_transform(y_str)
+                else:
+                    transformed_y = label_encoder.transform(y_str)
             transformed_y = transformed_y.astype(np.int64, copy=False)
-        return transformed_y
+        return transformed_y, label_encoder
 
 
 class PredictionUtility:
@@ -1225,21 +1406,47 @@ class ModelInferenceCallable:
 
     Replaces lambda functions that capture model references.
     """
+    _LOGIT_EPS = 1e-7
+
     def __init__(self, model, is_classification: bool, logits: bool = False):
         """
         Args:
             model: The fitted TabPFN model (Classifier/Regressor/ManyClassifier)
             is_classification: Whether this is a classification task
-            logits: Whether to use predict_logits (currently unused)
+            logits: Whether to return logits instead of probabilities
+                    (classification only). Uses native predict_logit when
+                    available (TabPFNClassifier), falls back to manual
+                    conversion for TabPFNManyClassifier (>10 classes).
         """
         self.model = model
         self.is_classification = is_classification
         self.logits = logits
 
+    @staticmethod
+    def _proba_to_logits(proba: np.ndarray, eps: float = _LOGIT_EPS) -> np.ndarray:
+        """Convert probabilities to logit space.
+
+        - Binary (2 classes): uses log-odds log(p/(1-p)), the sigmoid inverse.
+        - Multiclass (>2 classes): uses log(p), the log-softmax inverse.
+        """
+        proba = np.clip(proba, eps, 1.0 - eps)
+        if proba.ndim == 2 and proba.shape[1] > 2:
+            return np.log(proba)
+        return np.log(proba / (1.0 - proba))
+
     def __call__(self, x: np.ndarray) -> np.ndarray:
         """Invoke model inference on input data."""
         if self.is_classification:
-            return self.model.predict_proba(x)
+            if self.logits and hasattr(self.model, 'predict_logits'):
+                # Native TabPFN classifier supports direct logit output.
+                # Returns shape (n_samples, n_classes) for both binary and multiclass.
+                return self.model.predict_logits(x)
+            proba = self.model.predict_proba(x)
+            if self.logits:
+                # Fallback for models without native logit support
+                # (e.g., TabPFNManyClassifier which exceeds TabPFN's 10-class limit)
+                return self._proba_to_logits(proba)
+            return proba
         else:
             return self.model.predict(x)
 
@@ -1260,32 +1467,69 @@ def _kmeans_snap_coreset(X: np.ndarray, k: int, random_state: int = 0) -> np.nda
     if k >= X.shape[0]:
         return X
 
-    x = X
+    x_clean = X
     if np.isnan(X).any():
-        x = np.nan_to_num(X, nan=0.0)
+        x_clean = np.nan_to_num(X, nan=0.0)
     km = MiniBatchKMeans(n_clusters=k, random_state=random_state, batch_size=2048, n_init="auto")
-    km.fit(x)
+    km.fit(x_clean)
 
     # snap each center to nearest actual row (medoid-like)
-    labels = km.predict(x)
-    idx = np.random.RandomState(random_state).choice(len(x), k, replace=False)
+    labels = km.predict(x_clean)
+    rng = np.random.RandomState(random_state)
+    idx = rng.choice(len(x_clean), k, replace=False)
+    assigned = np.zeros(k, dtype=bool)
     for cluster_id in range(k):
         cluster_mask = labels == cluster_id
         if cluster_mask.any():
-            cluster_points = x[cluster_mask]
+            cluster_points = x_clean[cluster_mask]
             # Find closest point to center
             distances = np.linalg.norm(cluster_points - km.cluster_centers_[cluster_id], axis=1)
             idx[cluster_id] = np.where(cluster_mask)[0][distances.argmin()]
-    return x[idx].astype(np.float32)
+            assigned[cluster_id] = True
+
+    # Replace empty-cluster slots with unique random samples.
+    # Guard k < len(X) (line above) guarantees enough available indices.
+    if not assigned.all():
+        used = set(idx[assigned].tolist())
+        available = np.array([i for i in range(len(X)) if i not in used])
+        n_empty = int((~assigned).sum())
+        idx[~assigned] = rng.choice(available, size=n_empty, replace=False)
+
+    # Deduplicate: two clusters may snap to the same data point.
+    unique_idx, first_pos = np.unique(idx, return_index=True)
+    if len(unique_idx) < k:
+        used = set(unique_idx.tolist())
+        available = np.array([i for i in range(len(X)) if i not in used])
+        n_dup = k - len(unique_idx)
+        extra = rng.choice(available, size=n_dup, replace=False)
+        dup_mask = np.ones(k, dtype=bool)
+        dup_mask[first_pos] = False
+        idx[dup_mask] = extra
+
+    return X[idx].astype(np.float32)
 
 
-def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder) -> np.ndarray:
+def _fit_encoder(x: dt.Frame, encoder: OrdinalEncoder, numeric_col_mask: np.ndarray):
+    """Fit OrdinalEncoder on non-numeric columns of the full frame.
+
+    Must be called before subsampling so the encoder sees all categories.
+    """
+    non_numeric = np.where(~numeric_col_mask)[0].tolist()
+    if not non_numeric:
+        return
+    x_cat = x[:, non_numeric].to_numpy().astype(np.object_)
+    encoder.fit(x_cat)
+
+
+def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder,
+                numeric_col_mask: Optional[np.ndarray] = None) -> np.ndarray:
     assert len(x.shape) == 2
 
     if x.shape[0] == 0:
         return x.to_numpy().astype(np.float32)
 
-    numeric_col_mask = _numeric_column_mask(x)
+    if numeric_col_mask is None:
+        numeric_col_mask = _numeric_column_mask(x)
     if np.all(numeric_col_mask):
         return x.to_numpy().astype(np.float32)
 
@@ -1318,6 +1562,16 @@ def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder) -> np.ndarray:
 def _numeric_column_mask(x: dt.Frame) -> np.ndarray:
     mask = np.zeros(x.shape[1], dtype=bool)
 
+    # Pre-compute shared sample indices once for all string columns
+    sample_size = min(10000, x.nrows)
+    if sample_size < x.nrows:
+        rng = np.random.RandomState(42)
+        shared_indices = rng.choice(x.nrows, size=sample_size, replace=False)
+        shared_indices.sort()
+        shared_indices = shared_indices.tolist()
+    else:
+        shared_indices = None
+
     for i in range(x.shape[1]):
         col_type = x[:, i].type
 
@@ -1325,13 +1579,21 @@ def _numeric_column_mask(x: dt.Frame) -> np.ndarray:
                        dt.Type.float32, dt.Type.float64, dt.Type.bool8):
             mask[i] = True
         else:
-            # For string columns, check first 100 rows if they're numeric-like
-            # This handles "123" stored as string without full column scan
-            sample_size = min(100, x.nrows)
-            sample = x[:sample_size, i].to_numpy()
+            # For string columns, sample rows to check if they're numeric-like.
+            # Use random sampling to avoid positional bias (e.g., first rows are IDs).
+            if shared_indices is not None:
+                sample = x[shared_indices, i].to_numpy()
+            else:
+                sample = x[:, i].to_numpy()
             try:
-                sample.astype(np.float32)
-                mask[i] = True
+                # Filter out None/NaN so numeric columns with missing values
+                # are not incorrectly classified as non-numeric.
+                sample_clean = sample[sample != None]  # noqa: E711
+                if len(sample_clean) > 0:
+                    sample_clean.astype(np.float32)
+                    mask[i] = True
+                else:
+                    mask[i] = False
             except (ValueError, TypeError):
                 mask[i] = False
 
@@ -1358,14 +1620,31 @@ def _claim_memory(force: bool = False):
                 allocated_memory = torch.cuda.memory_allocated() / max_allocated
                 if allocated_memory > 0.8:
                     torch.cuda.empty_cache()
-                    gc.collect()
-                return
             except (RuntimeError, AttributeError):
                 # Fallback if memory stats unavailable
                 torch.cuda.empty_cache()
-        # CPU: collect garbage after all permutations for this chunk
     gc.collect()
 
 
 def _get_cache_dir() -> pathlib.Path:
     return pathlib.Path(systemutils.temporary_files_abspath) / "tabpfn_cache"
+
+
+def _verify_checkpoint(path: pathlib.Path, expected_sha256: Optional[str]) -> None:
+    """Verify SHA-256 checksum of a downloaded checkpoint file.
+
+    Skipped when expected_sha256 is None (hashes not yet populated).
+    Raises RuntimeError on mismatch; caller is responsible for cleanup.
+    """
+    if expected_sha256 is None:
+        return
+    import hashlib
+    sha256 = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            sha256.update(chunk)
+    if sha256.hexdigest() != expected_sha256:
+        raise RuntimeError(
+            f"Checksum mismatch for {path.name}: "
+            f"expected {expected_sha256}, got {sha256.hexdigest()}."
+        )
