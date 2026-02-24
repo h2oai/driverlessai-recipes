@@ -749,11 +749,12 @@ class TabPFNModel(CustomModel):
     _get_gpu_lock = True
     _get_gpu_lock_vis = True
     _must_use_gpu = True
+    _can_handle_categorical = True
     _can_handle_non_numeric = True  # allow CatOriginalTransformer to pass raw categoricals
-    _included_transformers = ["OriginalTransformer", "CatOriginalTransformer"]  # raw features only
-    _is_reference = True        # reserved GA slot; final_model.py forces TabPFN into base-model list on top of ensemble_level
-    _num_allowed_reference = 1  # exactly 1 TabPFN slot in the GA — competes only with itself (hyperparameter search)
-    _ensemble_weight_floor = 0.0  # never pruned from stacked ensemble regardless of meta-learner weight
+    _included_transformers = ["OriginalTransformer", "CatOriginalTransformer", "TextTransformer", "DatesTransformer"]
+    #_is_reference = True        # reserved GA slot; final_model.py forces TabPFN into base-model list on top of ensemble_level
+    #_num_allowed_reference = 1  # exactly 1 TabPFN slot in the GA — competes only with itself (hyperparameter search)
+    #_ensemble_weight_floor = 0.0  # never pruned from stacked ensemble regardless of meta-learner weight
 
     MAX_CLASSES = 10
     TRAIN_SIZE_LIMITS = 10000
