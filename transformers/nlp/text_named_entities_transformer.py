@@ -31,8 +31,7 @@ class TextNamedEntityTransformer(CustomTransformer):
             '%s/wasabi-0.8.2%s' % (_root_path, _suffix),
         ]
     else:
-        _modules_needed_by_name = ["typer-slim==0.23.1",
-                                   "typer==0.23.1",
+        _modules_needed_by_name = ["typer==0.23.1",
                                    "spacy==3.7.5",
                                    "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.0/en_core_web_sm-3.7.0.tar.gz#egg=en_core_web_sm==3.7.0"]
 
