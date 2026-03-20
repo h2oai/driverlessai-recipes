@@ -30,7 +30,7 @@ CV = 5
 
 
 class BackwardFeatureSelection(CustomData):
-    _modules_needed_by_name = ["mlxtend"]
+    _modules_needed_by_name = ["mlxtend==0.23.4"]
 
     @staticmethod
     def create_data(X: dt.Frame = None) -> pd.DataFrame:
