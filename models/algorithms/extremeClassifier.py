@@ -40,7 +40,7 @@ class HashLabel():
                     md5.update(str(np.random.randint(np.iinfo(np.int16).max)).encode('utf-8'))
                     self.mapped_classes[c, r] = int(md5.hexdigest(), 16) % self.B
 
-            unique_rows = np.vstack({tuple(row) for row in self.mapped_classes})
+            unique_rows = np.unique(self.mapped_classes, axis=0)
             maping_created = unique_rows.shape != self.mapped_classes.shape
 
     def transform(self, labels):
