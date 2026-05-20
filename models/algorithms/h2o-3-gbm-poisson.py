@@ -11,7 +11,8 @@ from h2o.estimators.gbm import H2OGradientBoostingEstimator
 
 import numpy as np
 
-_global_modules_needed_by_name = ['h2o==3.46.0.10']
+# TODO: revert to `_global_modules_needed_by_name = ['h2o==<released-version>']` once the h2o-3 release with the CVE fix is on PyPI.
+_global_modules_needed_by_name = ['h2o @ https://h2o-release.s3.amazonaws.com/h2o/master/7582/Python/h2o-3.47.0.7582-py2.py3-none-any.whl']
 import h2o
 import os
 
