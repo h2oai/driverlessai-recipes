@@ -6,10 +6,10 @@ from h2oaicore.data import CustomData
 class FreshEnvData(CustomData):
     # Specify the python package dependencies.  Will be installed in order of list
     # Below caches the env into "id" folder
-    # isolate_env = dict(pyversion="3.11", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["pandas==1.5.3"], cache_env=True, id="myrecipe12345")
+    # isolate_env = dict(pyversion="3.11", install_h2oaicore=False, install_datatable=True, modules_needed_by_name=["numpy==1.24.4", "pandas==1.5.3"], cache_env=True, id="myrecipe12345")
     # Below does not cache the env
     isolate_env = dict(pyversion="3.11", install_h2oaicore=False, install_datatable=True,
-                       modules_needed_by_name=["pandas==1.5.3"])
+                       modules_needed_by_name=["numpy==1.24.4", "pandas==1.5.3"])
 
     @staticmethod
     def create_data(X=None):
@@ -23,7 +23,7 @@ class FreshEnvData(CustomData):
         my_path = os.path.dirname(__file__)
 
         import pandas as pd
-        assert pd.__version__ == "1.1.5", "actual: %s" % pd.__version__
+        assert pd.__version__ == "1.5.3", "actual: %s" % pd.__version__
 
         url = "http://data.un.org/_Docs/SYB/CSV/SYB63_226_202009_Net%20Disbursements%20from%20Official%20ODA%20to%20Recipients.csv"
         import urllib.request
