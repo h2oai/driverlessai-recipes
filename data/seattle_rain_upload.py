@@ -27,14 +27,16 @@ class SeattleRainDataRaw(CustomData):
         temp_path = os.path.join(user_dir(), config.contrib_relative_directory)
         os.makedirs(temp_path, exist_ok=True)
 
-        # URL of desired data, this comes from the City of Seattle
-        link = "https://data.seattle.gov/resource/rdtp-hzy3.csv"
+        # URL of desired data: a mirror of the City of Seattle's
+        # "Observed Monthly Rain Gauge Accumulations - Oct 2002 to May 2017" open
+        # dataset, which was retired from data.seattle.gov (old resource rdtp-hzy3).
+        link = "https://0xdata-public.cdn.h2o.ai/data_recipes_data/seattle_monthly_rain.csv"
 
         # Download the file
         file = download(link, dest_path=temp_path)
 
         # Give the file a descriptive name for the UI
-        output_file = file.replace("rdtp-hzy3", "seattle_monthly_rain_raw")
+        output_file = file.replace("seattle_monthly_rain", "seattle_monthly_rain_raw")
         os.rename(file, output_file)
 
         # Return the location on the DAI server for this data set
