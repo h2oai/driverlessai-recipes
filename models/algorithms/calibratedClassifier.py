@@ -19,7 +19,7 @@ class SklearnWrapper:  # to trick CalibratedClassifierCV from sklearn
         self.classes_ = classes
 
     def predict_proba(self, X):
-        return self.model.predict_simple_base(X)
+        return self.model.predict_simple_base(X).astype(np.float64)
 
     def fit(X, y):  # SKLearn checks if this method exists in Estimator
         pass
