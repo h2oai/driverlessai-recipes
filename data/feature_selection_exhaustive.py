@@ -32,7 +32,10 @@ CV = 5
 
 
 class ExhaustiveFeatureSelection(CustomData):
-    _modules_needed_by_name = ["mlxtend"]
+    # Pin matplotlib to the DAI env version (conda matplotlib-base==3.8.3) so pip does not
+    # try to upgrade it while installing mlxtend; that upgrade fails in CI when pip cannot
+    # uninstall the conda matplotlib-base. Keep this in sync with DAI's matplotlib-base pin.
+    _modules_needed_by_name = ["matplotlib==3.8.3", "mlxtend==0.23.4"]
 
     @staticmethod
     def create_data(X: dt.Frame = None) -> pd.DataFrame:
