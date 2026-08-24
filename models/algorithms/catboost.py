@@ -17,12 +17,10 @@ import inspect
 
 # https://github.com/KwokHing/YandexCatBoost-Python-Demo
 # https://catboost.ai/docs/concepts/python-usages-examples.html
-class CatBoostModel(CustomModel):
+class DeprecatedCatBoostModel(CustomModel):
     _regression = True
     _binary = True
     _multiclass = True
-    _display_name = "CatBoost"
-    _description = "Yandex CatBoost GBM"
     _can_use_multi_gpu = False  # Can enable, but consumes too much memory
     # WIP: leakage can't find _catboost module, unsure what special.  Probably shift would fail too if used catboost.
     _can_use_gpu = True
@@ -69,7 +67,7 @@ class CatBoostModel(CustomModel):
 
     @staticmethod
     def is_enabled():
-        return not (arch_type == "ppc64le")
+        return False
 
     @staticmethod
     def do_acceptance_test():
