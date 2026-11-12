@@ -1527,12 +1527,12 @@ def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder,
     assert len(x.shape) == 2
 
     if x.shape[0] == 0:
-        return x.to_numpy().astype(np.float32)
+        return np.empty((0, x.ncols), dtype=np.float32)
 
     if numeric_col_mask is None:
         numeric_col_mask = _numeric_column_mask(x)
     if np.all(numeric_col_mask):
-        return x.to_numpy().astype(np.float32)
+        return _numeric_cols_to_numpy(x, list(range(x.ncols)))
 
     numeric_col_indices = np.where(numeric_col_mask)[0].tolist()
     non_numeric_col_indices = np.where(~numeric_col_mask)[0].tolist()
@@ -1540,7 +1540,7 @@ def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder,
     numeric_array = np.empty((x.nrows, x.ncols), dtype=np.float32)
 
     if numeric_col_indices:
-        numeric_array[:, numeric_col_indices] = x[:, numeric_col_indices].to_numpy().astype(np.float32)
+        numeric_array[:, numeric_col_indices] = _numeric_cols_to_numpy(x, numeric_col_indices)
 
     if non_numeric_col_indices:
         x_cat = x[:, non_numeric_col_indices].to_numpy().astype(np.object_)
@@ -1558,6 +1558,17 @@ def _to_numeric(x: dt.Frame, ord_encoder: OrdinalEncoder,
     del x_cat, numeric_transformed
 
     return numeric_array
+
+
+def _numeric_cols_to_numpy(x: dt.Frame, col_indices: Sequence[int]) -> np.ndarray:
+    """Convert numeric(-like) columns to a float32 array.
+
+    _numeric_column_mask also flags str32 columns whose values parse as numbers,
+    and datatable refuses Frame.to_numpy() on mixed str/numeric frames. Casting
+    each column to float32 inside datatable first avoids that; strings that
+    don't parse (e.g. outside the mask's row sample) become NaN instead of raising.
+    """
+    return x[:, [dt.float32(dt.f[i]) for i in col_indices]].to_numpy().astype(np.float32, copy=False)
 
 
 def _numeric_column_mask(x: dt.Frame) -> np.ndarray:
